@@ -1,20 +1,31 @@
-# InSpatialServer
+<div align="center">
 
-`InSpatialServer` is used under the hood by `EasyApp` and handles the web server
-setup, configuration and core functionality.
+# ☁️ `InSpatial Serve`
+
+_Your entry point into InSpatial Cloud_
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Core](https://img.shields.io/badge/cloud-inspatial.serve-brightgreen.svg)](https://www.inspatial.cloud)
+
+</div>
+
+## 📝 Description
+
+`InSpatialServer` is used under the hood by `InSpatialApp` and handles the web
+server setup, configuration and core functionality.
 
 It is designed as a standalone module that can be used as a web server for any
 Deno project.
 
-## Features
+## 🌟 Features
 
-- Simple API
-- Built-in extensions
-- Easy to extend
-- Fully compatible with [Deno Deploy](https://deno.com/deploy)
-- Compatible with `deno serve`
+- 🚀 Simple API
+- 🧩 Built-in extensions
+- 📦 Easy to extend
+- 🌐 Fully compatible with [Deno Deploy](https://deno.com/deploy)
+- 💪 Compatible with `deno serve`
 
-## Usage
+## 🛠️ Usage
 
 ### Basic Usage
 
@@ -22,7 +33,7 @@ Deno project.
 // main.ts
 import InSpatialServer from "@inspatial/serve";
 
-const server = await InSpatialServer.create({
+const server = new InSpatialServer({
   extensions: [], // Add extensions here
 });
 
@@ -44,7 +55,7 @@ want to use features like parallel processing.
 // main.ts
 import InSpatialServer from "@inspatial/serve";
 
-const server = await InSpatialServer.create({
+const server = new InSpatialServer({
   extensions: [], // Add extensions here
 });
 
