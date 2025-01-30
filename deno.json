@@ -1,0 +1,14 @@
+{
+  "workspace": [
+    "./packages/*",
+    "./dev"
+  ],
+  "unstable": ["broadcast-channel"],
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-explicit-any"
+      ]
+    }
+  }
+}
