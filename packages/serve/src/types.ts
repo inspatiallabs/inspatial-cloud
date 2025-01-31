@@ -1,5 +1,6 @@
 import type { ServerExtension } from "#/extension/server-extension.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
+import { ServerException } from "#/server-exception.ts";
 
 /**
  * Configuration for InSpatialServer.
@@ -40,7 +41,7 @@ export type ConfigEnv<
   env?: string;
   description: string;
   required?: boolean;
-  default?: string;
+  default?: ConfigEnvTypeMap[T];
   type: T;
 };
 

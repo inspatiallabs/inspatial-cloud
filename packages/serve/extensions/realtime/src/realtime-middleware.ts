@@ -10,8 +10,8 @@ export const realtimeMiddleware: ServerMiddleware = createServerMiddleware({
   description: "Realtime Middleware for InSpatialServer",
   handler(server, inRequest) {
     if (inRequest.upgradeSocket && inRequest.path === "/ws") {
-      const realtime = server.getCustomProperty<RealtimeHandler>("realtime");
-      return realtime?.handleUpgrade(inRequest);
+      const realtime = server.getExtension("realtime") as RealtimeHandler;
+      return realtime.handleUpgrade(inRequest);
     }
   },
 });

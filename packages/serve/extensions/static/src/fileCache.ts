@@ -8,12 +8,12 @@ export interface CachedFile {
 }
 
 export class FileCache {
-  private cache = new Map<string, CachedFile>();
+  #cache = new Map<string, CachedFile>();
   skipCache: boolean;
   constructor(skipCache?: boolean) {
     this.skipCache = skipCache || false;
   }
-  private async getFile(
+  async #getFile(
     root: string,
     path: string,
   ): Promise<CachedFile> {
@@ -32,13 +32,13 @@ export class FileCache {
   }
   async loadFile(root: string, path: string): Promise<CachedFile> {
     if (this.skipCache) {
-      return await this.getFile(root, path);
+      return await this.#getFile(root, path);
     }
-    let file: CachedFile | undefined = this.cache.get(path);
+    let file: CachedFile | undefined = this.#cache.get(path);
     if (!file) {
-      file = await this.getFile(root, path);
+      file = await this.#getFile(root, path);
       if (file) {
-        this.cache.set(path, file);
+        this.#cache.set(path, file);
       }
     }
 

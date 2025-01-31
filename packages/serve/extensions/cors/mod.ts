@@ -14,12 +14,13 @@
  * ```
  */
 import { ServerExtension } from "#/extension/server-extension.ts";
+import { log } from "#log";
 
 /**
  * CORS Extension for {@link InSpatialServer}
  */
 
-const corsExtension: ServerExtension<"CORS", void> = ServerExtension.create(
+const corsExtension = new ServerExtension(
   "CORS",
   {
     description: "CORS Handler for InSpatialServer",
@@ -28,6 +29,7 @@ const corsExtension: ServerExtension<"CORS", void> = ServerExtension.create(
       allowedOrigins: {
         description: "Allowed Origins",
         required: false,
+        default: ["*"],
         type: "string[]",
       },
     },
@@ -40,7 +42,8 @@ const corsExtension: ServerExtension<"CORS", void> = ServerExtension.create(
           "CORS",
           "allowedOrigins",
         );
-        if (origins?.has(inRequest.origin)) {
+
+        if (origins?.has(inRequest.origin) || origins?.has("*")) {
           inResponse.setAllowOrigin(inRequest.origin);
         }
       },

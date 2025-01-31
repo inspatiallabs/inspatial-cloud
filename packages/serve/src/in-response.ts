@@ -115,3 +115,11 @@ export class InResponse {
     );
   }
 }
+
+export function assertResponse(response: any): response is Response {
+  return response instanceof Response;
+}
+
+export function assertInResponse(response: any): response is InResponse {
+  return response instanceof InResponse;
+}

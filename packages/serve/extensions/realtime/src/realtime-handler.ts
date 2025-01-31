@@ -8,6 +8,7 @@ import type {
   RealtimeRoomDef,
 } from "#realtime/types.ts";
 import { RealtimeRoom } from "#realtime/realtime-room.ts";
+import { log } from "#log";
 
 export class RealtimeHandler {
   clients: Map<string, RealtimeClient>;
@@ -15,6 +16,9 @@ export class RealtimeHandler {
   channel: BroadcastChannel;
   rooms: Map<string, RealtimeRoom> = new Map();
 
+  handleError(...args: any) {
+    log.error(args, "RealtimeHandler");
+  }
   roomHandlers: Map<
     string,
     Array<(client: RealtimeClient, message: RealtimeMessage) => void>
@@ -34,7 +38,7 @@ export class RealtimeHandler {
         messageEvent: MessageEvent<RealtimeBroadcastMessage>,
       ) => {
         const message = messageEvent.data;
-        this.sendToRoom(message);
+        this.#sendToRoom(message);
       },
     );
   }
@@ -58,7 +62,7 @@ export class RealtimeHandler {
       const { socket, response } = Deno.upgradeWebSocket(
         inRequest.request,
       );
-      this.addClient(socket);
+      this.#addClient(socket);
       return response;
     }
 
@@ -67,7 +71,7 @@ export class RealtimeHandler {
     });
   }
 
-  private addClient(socket: WebSocket) {
+  #addClient(socket: WebSocket) {
     const id = Math.random().toString(36).substring(7);
     const client: RealtimeClient = {
       id,
@@ -77,23 +81,54 @@ export class RealtimeHandler {
       },
       rooms: new Set(),
     };
-    this.addListeners(client);
+    this.#addListeners(client);
     return client.id;
   }
-  private addListeners(client: RealtimeClient) {
+  #addListeners(client: RealtimeClient) {
     client.socket.onopen = () => {
       this.clients.set(client.id, client);
       this.handleConnection(client);
     };
-    client.socket.onmessage = (event) => {
+    client.socket.addEventListener("message", (event) => {
       let data: Record<string, any> = {};
       try {
         data = JSON.parse(event.data);
       } catch (e) {
-        console.warn("Error parsing JSON data from client", event.data);
+        log.warn("Error parsing JSON data from client", event.data);
         return;
       }
-      this.handleMessage(client, data);
+      try {
+        this.handleMessage(client, data);
+      } catch (e) {
+        this.handleError(e);
+      }
+    });
+    client.socket.onerror = (e) => {
+      if (e instanceof ErrorEvent) {
+        const readyState = client.socket.readyState;
+        let socketState = "unknown";
+        if (readyState === WebSocket.CONNECTING) {
+          socketState = "connecting";
+        } else if (readyState === WebSocket.OPEN) {
+          socketState = "open";
+        } else if (readyState === WebSocket.CLOSING) {
+          socketState = "closing";
+        } else if (readyState === WebSocket.CLOSED) {
+          socketState = "closed";
+        }
+        const info = {
+          client: client.id,
+          readyState: client.socket.readyState,
+          clientState: socketState,
+          message: e.message,
+          type: e.type,
+          target: e.target,
+        };
+
+        this.handleError(info);
+        return;
+      }
+      this.handleError(e);
     };
     client.socket.onclose = () => {
       this.handleClose(client);
@@ -112,7 +147,7 @@ export class RealtimeHandler {
     return room;
   }
   leave(roomName: string, client: RealtimeClient): void {
-    this.validateRoom(roomName);
+    this.#validateRoom(roomName);
     const room = this.getRoom(roomName);
 
     this.notify({
@@ -135,12 +170,12 @@ export class RealtimeHandler {
   }
 
   notify(message: RealtimeBroadcastMessage) {
-    this.sendToRoom(
+    this.#sendToRoom(
       message,
     );
     this.channel.postMessage(message);
   }
-  private validateRoom(room: string) {
+  #validateRoom(room: string) {
     if (!this.rooms.has(room)) {
       this.addRoom({
         roomName: room,
@@ -164,10 +199,10 @@ export class RealtimeHandler {
     }
   }
 
-  private sendToRoom(
+  #sendToRoom(
     message: RealtimeBroadcastMessage,
   ) {
-    this.validateRoom(message.roomName);
+    this.#validateRoom(message.roomName);
     const room = this.getRoom(message.roomName);
 
     for (const clientId of room.clients) {
@@ -185,7 +220,7 @@ export class RealtimeHandler {
   }
 
   join(roomName: string, client: RealtimeClient): void {
-    this.validateRoom(roomName);
+    this.#validateRoom(roomName);
 
     const room = this.getRoom(roomName);
     if (room.clients.has(client.id)) {

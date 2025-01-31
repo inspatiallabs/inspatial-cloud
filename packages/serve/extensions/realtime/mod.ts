@@ -18,19 +18,19 @@
 import { RealtimeHandler } from "#realtime/realtime-handler.ts";
 import { realtimeMiddleware } from "#realtime/realtime-middleware.ts";
 import { ServerExtension } from "#/extension/server-extension.ts";
+export { RealtimeClient } from "./client/realtime-client.ts";
 
 /**
  * Realtime Extension for {@link InSpatialServer}
  */
-const realtimeExtension: ServerExtension<"realtime", RealtimeHandler> =
-  ServerExtension.create("realtime", {
-    description: "Realtime Handler for InSpatialServer",
-    middleware: [realtimeMiddleware],
-    install: (_server) => {
-      const realtime = new RealtimeHandler();
-      return realtime;
-    },
-  });
+const realtimeExtension = new ServerExtension("realtime", {
+  description: "Realtime Handler for InSpatialServer",
+  middleware: [realtimeMiddleware],
+  install: (_server) => {
+    const realtime = new RealtimeHandler();
+    return realtime;
+  },
+});
 
 export default realtimeExtension;
 

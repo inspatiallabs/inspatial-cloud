@@ -1,5 +1,6 @@
 import type { InSpatialServer } from "#/inspatial-server.ts";
-import { joinPath } from "@vef/easy-utils";
+import { joinPath } from "#utils";
+import { log } from "#log";
 
 /**
  * Checks for a serve-config.json file in the current working directory and loads it to the environment variables.
@@ -9,11 +10,21 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
     const filePath = joinPath(Deno.cwd(), "serve-config.json");
     const file = Deno.readTextFileSync(filePath);
     const config = JSON.parse(file);
+    log.debug("Loaded serve-config.json");
+    log.debug(config);
     for (const key in config) {
       const extensionConfig = config[key];
       for (const subKey in extensionConfig) {
         const value = extensionConfig[subKey];
-
+        console.log(
+          {
+            key,
+            subKey,
+            value,
+          },
+        );
+        console.log(`Setting ${subKey} to ${value}`);
+        log.debug(`Setting ${subKey} to ${value}`);
         Deno.env.set(subKey, value);
       }
     }

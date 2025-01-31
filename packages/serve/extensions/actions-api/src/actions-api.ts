@@ -12,13 +12,13 @@ import type {
 export class ActionsAPI {
   actionGroups: Map<string, ActionsAPIGroup>;
 
-  private _docs: ActionsAPIDocs | null = null;
+  #_docs: ActionsAPIDocs | null = null;
 
   /**
    * Get a JSON object representing the API groups and actions.
    */
   get docs(): ActionsAPIDocs {
-    if (this._docs) return this._docs;
+    if (this.#_docs) return this.#_docs;
     const docs: ActionsAPIDocs = {
       groups: [],
     };
@@ -29,18 +29,14 @@ export class ActionsAPI {
         actions: [],
       };
       group.actions.forEach((action, actionName) => {
-        let params: ActionsAPIActionDocs["params"] = [];
-        if (action.params) {
-          params = Object.entries(action.params)?.map(
-            ([paramName, param]) => {
-              return {
-                paramName,
-                required: param.required || false,
-                type: param.type,
-              };
-            },
-          );
-        }
+        const params: ActionsAPIActionDocs["params"] =
+          action.params.map((param) => ({
+            paramName: param.key as string,
+            required: param.required || false,
+            description: param.description || "",
+            type: param.type,
+          })) || [];
+
         groupDocs.actions.push({
           actionName,
           description: action.description,
@@ -49,7 +45,7 @@ export class ActionsAPI {
       });
       docs.groups.push(groupDocs);
     });
-    this._docs = docs;
+    this.#_docs = docs;
     return docs;
   }
 
@@ -58,7 +54,8 @@ export class ActionsAPI {
    * @param group {string}
    * @returns {ActionsAPIGroup | undefined}
    */
-  getGroup(group: string): ActionsAPIGroup | undefined {
+  getGroup(group: string | undefined): ActionsAPIGroup | undefined {
+    if (!group) return;
     return this.actionGroups.get(group);
   }
 
@@ -84,7 +81,7 @@ export class ActionsAPI {
     this.actionGroups = new Map<string, ActionsAPIGroup>();
   }
 
-  private _sanitizeName(name: string) {
+  #_sanitizeName(name: string) {
     return name.replace(/[^a-z0-9]/gi, "");
   }
 

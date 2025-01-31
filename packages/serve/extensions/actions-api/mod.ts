@@ -20,20 +20,21 @@ import { ActionsAPI } from "#actions-api/actions-api.ts";
 
 export { ActionsAPI } from "#actions-api/actions-api.ts";
 export type {
+  ActionParamProp,
   ActionsAPIAction,
   ActionsAPIActionDocs,
   ActionsAPIDocs,
   ActionsAPIGroup,
   ActionsAPIGroupDocs,
+  DocsActionParam,
+  ParamsMap,
+  ParamTypeProp,
 } from "#actions-api/types.ts";
 
 /**
  * API Extension for {@link InSpatialServer}
  */
-const actionsAPI: ServerExtension<
-  "actions-api",
-  ActionsAPI
-> = ServerExtension.create("actions-api", {
+const actionsAPI = new ServerExtension("actions-api", {
   description: "API handler for InSpatialServer",
   pathHandlers: [apiHandler],
   install: (_server) => {
@@ -46,7 +47,7 @@ const actionsAPI: ServerExtension<
     api.addAction("api", {
       actionName: "getDocs",
       description: "Get API documentation",
-      params: {},
+      params: [],
       handler: () => {
         return api.docs;
       },

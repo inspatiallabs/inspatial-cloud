@@ -51,3 +51,30 @@ export function raiseServerException(
 ): never {
   throw new ServerException(message, status);
 }
+
+export async function tryCatchServerException<
+  FN extends () => Promise<any> | any,
+>(
+  fn: FN,
+): Promise<[ServerException | null, ReturnType<FN> | null]> {
+  let err = null;
+  let response = null;
+  try {
+    response = await fn();
+  } catch (error) {
+    if (isServerException(error)) {
+      err = error;
+    } else {
+      throw error;
+    }
+  }
+  return [err, response];
+}
+
+export type ExceptionHandler = {
+  name: string;
+  description?: string;
+  handler: (
+    serverException: ServerException,
+  ) => Promise<void> | void;
+};

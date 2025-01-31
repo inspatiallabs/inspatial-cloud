@@ -1,0 +1,24 @@
+{
+  "name": "@inspatial/log",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
+  "publish": {
+    "exclude": [
+      ".github"
+    ]
+  },
+  "imports": {
+    "#/": "./src/",
+    "#utils": "../utils/mod.ts",
+    "#utils/colorMe": "../utils/src/colorMe.ts",
+    "#utils/printUtils": "../utils/src/printUtils.ts",
+    "#utils/formatUtils": "../utils/src/formatUtils.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-explicit-any"
+      ]
+    }
+  }
+}

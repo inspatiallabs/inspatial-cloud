@@ -2,79 +2,80 @@
  * RealtimeClient is a WebSocket client to connect to the Realtime Extension of InSpatial Server.
  * It provides an easy way to join and leave rooms and add listeners for messages from the rooms.
  */
-class RealtimeClient {
-  private socket!: WebSocket;
-  private readonly host: string;
+export class RealtimeClient {
+  #socket!: WebSocket;
+  readonly #host: string;
 
-  private authToken?: string;
-  private rooms: Map<string, Set<string>> = new Map();
-  private messageListeners: Set<
+  #authToken?: string;
+  #rooms: Map<string, Set<string>> = new Map();
+  #messageListeners: Set<
     (room: string, event: string, data: any) => void
   > = new Set();
-  private statusListeners: Set<(status: SocketStatus) => void> = new Set();
-  private manualClose = false;
+  #statusListeners: Set<(status: SocketStatus) => void> = new Set();
+  #manualClose = false;
 
   get endpoint(): string {
-    let url = this.host;
-    if (this.authToken) {
-      url += `?authToken=${this.authToken}`;
+    let url = this.#host;
+    if (this.#authToken) {
+      url += `?authToken=${this.#authToken}`;
     }
     return url;
   }
   get connected(): boolean {
-    return this.socket?.readyState === WebSocket.OPEN;
+    return this.#socket?.readyState === WebSocket.OPEN;
   }
 
   get connecting(): boolean {
-    return this.socket?.readyState === WebSocket.CONNECTING;
+    return this.#socket?.readyState === WebSocket.CONNECTING;
   }
 
   get closed(): boolean {
-    return this.socket?.readyState === WebSocket.CLOSED;
+    return this.#socket?.readyState === WebSocket.CLOSED;
   }
 
   constructor(host?: string) {
-    const protocol = globalThis.location.protocol === "https:" ? "wss" : "ws";
-    this.host = host || `${protocol}://${globalThis.location.host}/ws`;
+    const protocol = globalThis?.location?.protocol === "https:" ? "wss" : "ws";
+    this.#host = host ||
+      `${protocol}://${globalThis?.location?.host || "localhost"}/ws`;
   }
 
   onMessage(
     callback: (room: string, event: string, data: Record<string, any>) => void,
   ): void {
-    this.messageListeners.add(callback);
+    this.#messageListeners.add(callback);
   }
 
   removeMessageListener(
     callback: (room: string, event: string, data: Record<string, any>) => void,
   ): void {
-    this.messageListeners.delete(callback);
+    this.#messageListeners.delete(callback);
   }
 
   onStatusChange(callback: (status: SocketStatus) => void): void {
-    this.statusListeners.add(callback);
+    this.#statusListeners.add(callback);
   }
 
   removeStatusListener(callback: (status: SocketStatus) => void): void {
-    this.statusListeners.delete(callback);
+    this.#statusListeners.delete(callback);
   }
 
   connect(authToken?: string): void {
     if (authToken) {
-      this.authToken = authToken;
+      this.#authToken = authToken;
     }
-    this.socket = new WebSocket(this.endpoint);
-    this.manualClose = false;
-    this.notifyStatus("connecting");
-    this.socket.addEventListener("open", (_event) => {
-      this.notifyStatus("open");
-      this.rejoinRooms();
-      this.socket.addEventListener("close", (_event) => {
-        this.notifyStatus("closed");
-        if (!this.manualClose) {
-          this.retryReconnect(1000);
+    this.#socket = new WebSocket(this.endpoint);
+    this.#manualClose = false;
+    this.#notifyStatus("connecting");
+    this.#socket.addEventListener("open", (_event) => {
+      this.#notifyStatus("open");
+      this.#rejoinRooms();
+      this.#socket.addEventListener("close", (_event) => {
+        this.#notifyStatus("closed");
+        if (!this.#manualClose) {
+          this.#retryReconnect(1000);
         }
       });
-      this.socket.addEventListener("message", (event) => {
+      this.#socket.addEventListener("message", (event) => {
         let data;
         try {
           data = JSON.parse(event.data);
@@ -83,25 +84,25 @@ class RealtimeClient {
             data: event.data,
           };
         }
-        if ("room" in data && "event" in data && "data" in data) {
-          for (const listener of this.messageListeners) {
-            listener(data.room, data.event, data.data);
+        if ("roomName" in data && "event" in data && "data" in data) {
+          for (const listener of this.#messageListeners) {
+            listener(data.roomName, data.event, data.data);
           }
         }
       });
     });
-    this.socket.addEventListener("error", (_event) => {
-      this.notifyStatus("error");
+    this.#socket.addEventListener("error", (_event) => {
+      this.#notifyStatus("error");
     });
   }
 
-  private notifyStatus(status: SocketStatus): void {
-    for (const listener of this.statusListeners) {
+  #notifyStatus(status: SocketStatus): void {
+    for (const listener of this.#statusListeners) {
       listener(status);
     }
   }
 
-  private retryReconnect(attempts: number): void {
+  #retryReconnect(attempts: number): void {
     let count = 0;
     const interval = setInterval(() => {
       if (count >= attempts) {
@@ -115,61 +116,61 @@ class RealtimeClient {
       if (this.closed) {
         count++;
         console.log(`Reconnecting... ${count}/${attempts}`);
-        this.reconnect();
+        this.#reconnect();
       }
     }, 1000);
   }
 
-  private reconnect() {
+  #reconnect() {
     if (this.closed) {
       this.connect();
     }
   }
 
-  private rejoinRooms(): void {
-    for (const [room, events] of this.rooms) {
+  #rejoinRooms(): void {
+    for (const [roomName, events] of this.#rooms) {
       if (events.size === 0) {
-        this.send({ type: "join", room });
+        this.#send({ type: "join", roomName });
         return;
       }
 
-      this.send({ type: "join", room, events: Array.from(events) });
+      this.#send({ type: "join", roomName, events: Array.from(events) });
     }
   }
 
-  join(room: string, event?: string): void {
-    if (!this.rooms.has(room)) {
+  join(roomName: string, event?: string): void {
+    if (!this.#rooms.has(roomName)) {
       const roomEvents = new Set<string>();
 
-      this.rooms.set(room, roomEvents);
+      this.#rooms.set(roomName, roomEvents);
     }
-    const events = this.rooms.get(room)!;
+    const events = this.#rooms.get(roomName)!;
     if (event && !events.has(event)) {
       events.add(event);
     }
 
-    this.send({ type: "join", room, event });
+    this.#send({ type: "join", roomName, event });
   }
 
-  leave(room: string, event?: string): void {
+  leave(roomName: string, event?: string): void {
     if (event) {
-      this.rooms.get(room)?.delete(event);
+      this.#rooms.get(roomName)?.delete(event);
     } else {
-      this.rooms.delete(room);
+      this.#rooms.delete(roomName);
     }
-    this.send({ type: "leave", room, event });
+    this.#send({ type: "leave", roomName, event });
   }
 
   disconnect() {
-    this.manualClose = true;
-    this.socket.close();
+    this.#manualClose = true;
+    this.#socket.close();
   }
 
-  private send(message: Record<string, any>): void {
+  #send(message: Record<string, any>): void {
     if (!this.connected) {
       return;
     }
-    this.socket.send(JSON.stringify(message));
+    this.#socket.send(JSON.stringify(message));
   }
 }
 type SocketStatus = "open" | "closed" | "connecting" | "error";

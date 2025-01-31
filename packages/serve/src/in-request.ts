@@ -12,12 +12,12 @@ export class InRequest {
   constructor(request: Request) {
     this.request = request;
     this.headers = new Headers(request.headers);
-    this.parseHeaders();
-    this.parseParams();
-    this.extractCookies();
-    this.getAuthToken();
-    this.checkForSocketUpgrade();
-    this.checkForFileExtension();
+    this.#parseHeaders();
+    this.#parseParams();
+    this.#extractCookies();
+    this.#getAuthToken();
+    this.#checkForSocketUpgrade();
+    this.#checkForFileExtension();
   }
 
   /**
@@ -62,18 +62,15 @@ export class InRequest {
    */
   action?: string;
 
+  #bodyLoaded = false;
+  #body: Map<string, unknown> = new Map();
   /**
    * The body of the request. This is a map of key-value pairs.
    * This is loaded in the `loadBody` method.
    */
-  body: Map<string, unknown> = new Map();
 
-  /**
-   * The body of the request as a JSON object.
-   * The body is loaded in the `loadBody` method.
-   */
-  get bodyJSON(): Record<string, unknown> {
-    return Object.fromEntries(this.body);
+  get body(): Promise<Record<string, any>> {
+    return this.#loadBody().then(() => Object.fromEntries(this.#body));
   }
 
   /**
@@ -130,7 +127,7 @@ export class InRequest {
    * Sets the `isFile` and `fileExtension` properties if the path has a file extension.
    * Helps to easily check if the request is for a file.
    */
-  private checkForFileExtension() {
+  #checkForFileExtension() {
     const pathParts = this.path.split("/");
     const lastPart = pathParts[pathParts.length - 1];
     const parts = lastPart.split(".");
@@ -149,7 +146,7 @@ export class InRequest {
    * This sets the `upgradeSocket` property to true if the request is a websocket upgrade request.
    * Can be used later to easily check if the request is a websocket upgrade request.
    */
-  private checkForSocketUpgrade() {
+  #checkForSocketUpgrade() {
     let connection = "";
     let upgrade = "";
     this.request.headers.forEach((value, key) => {
@@ -168,7 +165,7 @@ export class InRequest {
    * Extracts the auth token from the request headers and sets it to the `authToken` property.
    * This is called in the constructor.
    */
-  private getAuthToken() {
+  #getAuthToken() {
     const authHeader = this.request.headers.get("Authorization");
 
     if (authHeader) {
@@ -183,7 +180,7 @@ export class InRequest {
    * Extracts the cookies from the request headers and sets them to the `cookies` property.
    * This is called in the constructor.
    */
-  private extractCookies() {
+  #extractCookies() {
     const cookie = this.request.headers.get("cookie");
 
     if (cookie) {
@@ -199,7 +196,7 @@ export class InRequest {
    * Parses the request headers and sets the relevant properties.
    */
 
-  private parseHeaders() {
+  #parseHeaders() {
     this.origin = this.headers.get("origin") || "";
   }
 
@@ -207,7 +204,7 @@ export class InRequest {
    * Parses the request URL and sets the relevant properties.
    * Any query parameters other than `group`, `action`, and `authToken` are set to the `params` property and are merged with the body later.
    */
-  private parseParams() {
+  #parseParams() {
     const url = new URL(this.request.url);
     this.method = this.request.method as
       | "GET"
@@ -244,13 +241,14 @@ export class InRequest {
    * Loads the body of the request and sets it to the `body` property.
    * This merges the query parameters with the body, giving preference to the body.
    */
-  async loadBody(): Promise<void> {
-    this.body = new Map([...this.params]);
+  async #loadBody(): Promise<void> {
+    if (this.#bodyLoaded) return;
+    this.#body = new Map([...this.params]);
     try {
       const body = await this.request.json();
       if (typeof body === "object") {
         for (const [key, value] of Object.entries(body)) {
-          this.body.set(key, value);
+          this.#body.set(key, value);
         }
       }
     } catch (_e) {

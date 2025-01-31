@@ -18,8 +18,8 @@
     "#realtime/": "./extensions/realtime/src/",
     "#cors/": "./extensions/cors/src/",
     "#static/": "./extensions/static/src/",
-
-    "@vef/easy-utils": "jsr:@vef/easy-utils@^0.1.0",
+    "#log": "../log/mod.ts",
+    "#utils": "../utils/mod.ts",
     "@vef/types": "jsr:@vef/types@^0.1.30"
   },
 

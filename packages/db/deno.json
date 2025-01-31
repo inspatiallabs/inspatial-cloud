@@ -1,0 +1,18 @@
+{
+  "name": "@inspatial/db",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "publish": {
+    "exclude": [
+      ".github"
+    ]
+  },
+  "imports": {
+    "#/": "./src/",
+    "#serve": "../serve/mod.ts",
+    "#log": "../log/mod.ts",
+    "#utils": "../utils/mod.ts"
+  }
+}
