@@ -137,7 +137,7 @@ export class InSpatialServer<
 
     return server;
   }
-  private constructor(config: C) {
+  constructor(config: C) {
     if (config) {
       this._config = config;
     }

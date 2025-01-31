@@ -1,50 +1,23 @@
 import type { InRequest } from "#/in-request.ts";
 import { raiseServerException } from "#/server-exception.ts";
-
-class SocketRoom {
-  roomName: string;
-
-  clients: Set<string> = new Set();
-  users: Map<string, User> = new Map();
-  constructor(roomName: string) {
-    this.roomName = roomName;
-  }
-}
-
-interface User {
-  id: string;
-  name?: string;
-}
-export interface RealtimeClient {
-  id: string;
-  socket: WebSocket;
-  user: User;
-  rooms: Set<string>;
-}
-
-export interface RealtimeRoomDef {
-  roomName: string;
-  description?: string;
-}
-export interface RealtimeMessage {
-  room: string;
-  event: string;
-  data: Record<string, any>;
-}
-
-export interface RealtimeClientMessage extends RealtimeMessage {
-  type: "join" | "leave" | "message";
-}
+import type {
+  RealtimeBroadcastMessage,
+  RealtimeClient,
+  RealtimeClientMessage,
+  RealtimeMessage,
+  RealtimeRoomDef,
+} from "#realtime/types.ts";
+import { RealtimeRoom } from "#realtime/realtime-room.ts";
 
 export class RealtimeHandler {
   clients: Map<string, RealtimeClient>;
 
   channel: BroadcastChannel;
-  rooms: Map<string, SocketRoom> = new Map();
+  rooms: Map<string, RealtimeRoom> = new Map();
 
   roomHandlers: Map<
     string,
-    (client: RealtimeClient, message: RealtimeMessage) => void
+    Array<(client: RealtimeClient, message: RealtimeMessage) => void>
   >;
   info: {
     rooms: Array<RealtimeRoomDef>;
@@ -58,19 +31,27 @@ export class RealtimeHandler {
     this.channel.addEventListener(
       "message",
       (
-        messageEvent: MessageEvent<RealtimeMessage>,
+        messageEvent: MessageEvent<RealtimeBroadcastMessage>,
       ) => {
-        const { room, event, data } = messageEvent.data;
-        this.sendToRoom(room, event, data);
+        const message = messageEvent.data;
+        this.sendToRoom(message);
       },
     );
   }
 
+  /**
+   * Add a handler to the specified room
+   * @param roomName The name of the room to add the handler to
+   * @param handler The handler function to add
+   */
   addRoomHandler(
-    room: string,
+    roomName: string,
     handler: (client: RealtimeClient, message: RealtimeMessage) => void,
   ) {
-    this.roomHandlers.set(room, handler);
+    if (!this.roomHandlers.has(roomName)) {
+      this.roomHandlers.set(roomName, []);
+    }
+    this.roomHandlers.get(roomName)?.push(handler);
   }
   handleUpgrade(inRequest: InRequest): Response {
     if (inRequest.upgradeSocket) {
@@ -105,11 +86,12 @@ export class RealtimeHandler {
       this.handleConnection(client);
     };
     client.socket.onmessage = (event) => {
-      let data;
+      let data: Record<string, any> = {};
       try {
         data = JSON.parse(event.data);
       } catch (e) {
-        console.error("Error parsing JSON data from client", e);
+        console.warn("Error parsing JSON data from client", event.data);
+        return;
       }
       this.handleMessage(client, data);
     };
@@ -122,21 +104,26 @@ export class RealtimeHandler {
   handleConnection(_client: RealtimeClient) {
   }
 
-  getRoom(roomName: string): SocketRoom {
+  getRoom(roomName: string): RealtimeRoom {
     const room = this.rooms.get(roomName);
     if (!room) {
       raiseServerException(404, `Room ${roomName} not found`);
     }
     return room;
   }
-  leave(roomName: string, client: RealtimeClient, _data: any): void {
+  leave(roomName: string, client: RealtimeClient): void {
     this.validateRoom(roomName);
     const room = this.getRoom(roomName);
 
-    this.notify(roomName, "leave", {
+    this.notify({
       roomName,
-      user: client.user,
-      users: Array.from(room.clients).filter((c) => c !== client.id),
+      event: "leave",
+      data: {
+        user: client.user,
+        event: "leave",
+        room: roomName,
+        users: Array.from(room.clients).filter((c) => c !== client.id),
+      },
     });
     room.clients.delete(client.id);
 
@@ -147,17 +134,11 @@ export class RealtimeHandler {
     client.rooms.delete(roomName);
   }
 
-  notify(room: string, event: string, data: Record<string, any>) {
+  notify(message: RealtimeBroadcastMessage) {
     this.sendToRoom(
-      room,
-      event,
-      data,
+      message,
     );
-    this.channel.postMessage({
-      room,
-      event,
-      data,
-    });
+    this.channel.postMessage(message);
   }
   private validateRoom(room: string) {
     if (!this.rooms.has(room)) {
@@ -172,7 +153,7 @@ export class RealtimeHandler {
     if (this.rooms.has(room.roomName)) {
       return;
     }
-    const newRoom = new SocketRoom(room.roomName);
+    const newRoom = new RealtimeRoom(room.roomName);
     this.rooms.set(room.roomName, newRoom);
     this.info.rooms.push(room);
   }
@@ -184,12 +165,10 @@ export class RealtimeHandler {
   }
 
   private sendToRoom(
-    roomName: string,
-    event: string,
-    data: Record<string, any>,
+    message: RealtimeBroadcastMessage,
   ) {
-    this.validateRoom(roomName);
-    const room = this.getRoom(roomName);
+    this.validateRoom(message.roomName);
+    const room = this.getRoom(message.roomName);
 
     for (const clientId of room.clients) {
       const client = this.clients.get(clientId);
@@ -201,15 +180,11 @@ export class RealtimeHandler {
       if (client.socket.readyState !== WebSocket.OPEN) {
         continue;
       }
-      client.socket.send(JSON.stringify({
-        roomName,
-        event,
-        data,
-      }));
+      client.socket.send(JSON.stringify(message));
     }
   }
 
-  join(roomName: string, client: RealtimeClient, data: any): void {
+  join(roomName: string, client: RealtimeClient): void {
     this.validateRoom(roomName);
 
     const room = this.getRoom(roomName);
@@ -219,34 +194,55 @@ export class RealtimeHandler {
 
     room.clients.add(client.id);
     client.rooms.add(roomName);
-    this.notify(roomName, "join", {
+    this.notify({
       roomName,
-      user: client.user,
-
-      users: Array.from(room.clients),
+      event: "join",
+      data: {
+        roomName,
+        event: "join",
+        user: client.user,
+        users: Array.from(room.clients),
+      },
     });
   }
 
+  assertClientMessage(
+    data: Record<string, any>,
+  ): asserts data is RealtimeClientMessage {
+    if (!data.roomName) {
+      raiseServerException(400, "No room specified in message");
+    }
+    if (!data.type) {
+      raiseServerException(400, "No type specified in message");
+    }
+  }
   handleMessage(
     client: RealtimeClient,
-    data: RealtimeClientMessage,
+    message: Record<string, any>,
   ): void {
-    switch (data.type) {
+    this.assertClientMessage(message);
+    switch (message.type) {
       case "join":
-        this.join(data.room, client, data);
-        break;
+        this.join(message.roomName, client);
+        return;
       case "leave":
-        this.leave(data.room, client, data);
-        break;
+        this.leave(message.roomName, client);
+        return;
       default:
         break;
+    }
+    const handlers = this.roomHandlers.get(message.roomName);
+    if (handlers) {
+      for (const handler of handlers) {
+        handler(client, message);
+      }
     }
   }
   handleClose(client: RealtimeClient): void {
     const rooms = this.clients.get(client.id)?.rooms;
     if (rooms) {
       for (const room of rooms) {
-        this.leave(room, client, {});
+        this.leave(room, client);
       }
     }
   }
