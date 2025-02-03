@@ -1,0 +1,14 @@
+{
+  "imports": {
+    "#serve": "../packages/serve/mod.ts",
+    "#app": "../packages/easy-app/mod.ts",
+    "#db": "../packages/db/mod.ts",
+    "#log": "../packages/log/mod.ts",
+    "#realtime": "../packages/serve/extensions/realtime/mod.ts"
+  },
+  "tasks": {
+    "server": "deno run -A --watch server.ts",
+    "app": "deno serve -A --watch app.ts",
+    "realtime": "deno run -A --watch realtime.ts"
+  }
+}
