@@ -1,9 +1,10 @@
 import { InRequest } from "#/in-request.ts";
 import { assertResponse, InResponse } from "#/in-response.ts";
-import type { PathHandler } from "#/extension/path-handler.ts";
+import type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
 import type { RequestExtension } from "#/extension/request-extension.ts";
 import {
   ExceptionHandler,
+  ExceptionHandlerResponse,
   isServerException,
   tryCatchServerException,
 } from "#/server-exception.ts";
@@ -126,26 +127,6 @@ export class InSpatialServer<
     return this.#customProperties.get(key) as T;
   }
 
-  /**
-   * Creates a new InSpatialServer instance.
-   * @param config {ServeConfig} The configuration for the server
-   * @returns {Promise<InSpatialServer>} The InSpatialServer instance
-   */
-  static async create<
-    C extends ServeConfig,
-  >(
-    config: C extends ServeConfig<infer EL> ? C : ServeConfig,
-  ): Promise<
-    InSpatialServer<C>
-  > {
-    loadServeConfigFile();
-    const server = new InSpatialServer(config) as InSpatialServer<C>;
-    for (const extension of config?.extensions || []) {
-      await server.#installExtension(extension);
-    }
-
-    return server;
-  }
   constructor(config: C) {
     if (config) {
       this.#config = config;
@@ -157,11 +138,20 @@ export class InSpatialServer<
     if (this.#exceptionHandlers.size === 0) {
       this.#addExceptionHandler({
         name: "default",
-        handler: (serverException) => {
-          log.warn({
-            error: serverException.message,
-            status: serverException.status,
-          });
+        handler: (error) => {
+          if (isServerException(error)) {
+            return {
+              status: error.status,
+              serverMessage: error.message,
+              clientMessage: error.message,
+            };
+          }
+          if (error instanceof Error) {
+            return {
+              status: 500,
+              serverMessage: error.name + ": " + error.message,
+            };
+          }
         },
       });
     }
@@ -294,6 +284,9 @@ export class InSpatialServer<
     return this.#extensions.get(name as string) as R[N];
   }
 
+  /**
+   * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
+   */
   async generateConfigFile() {
     await generateServeConfigFile(this);
   }
@@ -309,7 +302,6 @@ export class InSpatialServer<
     for (const key in configDefinition) {
       const def = configDefinition[key];
       const envKey = def.env!;
-      log.debug(envKey);
       const value = Deno.env.get(envKey) ||
         this.getExtensionConfigValue(extension.name, key) || def.default;
       if (def.required && value === undefined) {
@@ -438,42 +430,68 @@ export class InSpatialServer<
     });
   }
   /**
-   * The main entry point for the server.
+   * The main entry point for the server. This method is an alternative to `deno serve`.
+   *
+   * @example
+   * ```ts
+   * import { InSpatialServer } from "@inspatial/serve";
+   *
+   * const server = new InSpatialServer({
+   *  extensions:[] // add extensions here
+   * });
+   *
+   * server.run();
+   * ```
    */
   run(): Deno.HttpServer<Deno.NetAddr> {
     return this.#serve();
   }
 
-  #handleException(
+  async #handleException(
     err: unknown,
-    inResponse?: InResponse,
+    inResponse: InResponse,
   ) {
     inResponse = inResponse || new InResponse();
-    if (isServerException(err)) {
-      for (const handler of this.#exceptionHandlers.values()) {
-        handler.handler(err);
+    inResponse;
+    const clientMessages: Array<Record<string, any> | string> = [];
+    for (const handler of this.#exceptionHandlers.values()) {
+      const response = await handler.handler(err);
+      if (!response) {
+        continue;
       }
-      return inResponse.error(err.message, err.status);
+      if (response.clientMessage !== undefined) {
+        clientMessages.push(response.clientMessage);
+      }
+      if (response.serverMessage) {
+        log.error(response.serverMessage);
+      }
+      if (response.status) {
+        inResponse.errorStatus = response.status;
+      }
+      if (response.statusText) {
+        inResponse.errorStatusText = response.statusText;
+      }
     }
-
-    if (err instanceof Error) {
-      log.error(err.message);
+    if (!inResponse.errorStatus) {
+      inResponse.errorStatus = 500;
     }
-    // console.error(err);
-    return inResponse.error("Internal server error", 500);
+    if (!inResponse.errorStatusText) {
+      inResponse.errorStatusText = "Internal Server Error";
+    }
+    inResponse.setContent(clientMessages);
+    return inResponse.error();
   }
   async #requestHandler(request: Request): Promise<Response> {
+    const inRequest = new InRequest(
+      request,
+    );
+
+    for (const extension of this.#requestExtensions.values()) {
+      extension.handler(inRequest);
+    }
+
+    const inResponse = new InResponse();
     try {
-      const inRequest = new InRequest(
-        request,
-      );
-
-      for (const extension of this.#requestExtensions.values()) {
-        extension.handler(inRequest);
-      }
-
-      const inResponse = new InResponse();
-
       for (const middleware of this.#middlewares.values()) {
         const response = await middleware.handler(
           this,
@@ -537,7 +555,7 @@ export class InSpatialServer<
       }
       return inResponse.respond();
     } catch (e) {
-      return this.#handleException(e, undefined);
+      return await this.#handleException(e, inResponse);
     }
   }
   #serve(): Deno.HttpServer<Deno.NetAddr> {

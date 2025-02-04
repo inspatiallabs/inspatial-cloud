@@ -1,3 +1,4 @@
+import { log } from "#log";
 import type { HandlerResponse } from "./extension/path-handler.ts";
 
 /**
@@ -8,6 +9,30 @@ export class InResponse {
   cookies: Record<string, string> = {};
 
   _headers: Headers = new Headers();
+
+  #errorStatus?: number;
+  #errorStatusText?: string;
+
+  set errorStatus(status: number) {
+    if (this.#errorStatus) {
+      log.warn(`Error status already set to ${this.#errorStatus}`);
+      return;
+    }
+    this.#errorStatus = status;
+  }
+  get errorStatus(): number | undefined {
+    return this.#errorStatus;
+  }
+  set errorStatusText(statusText: string) {
+    if (this.#errorStatusText) {
+      log.warn(`Error status text already set to ${this.#errorStatusText}`);
+      return;
+    }
+    this.#errorStatusText = statusText;
+  }
+  get errorStatusText(): string | undefined {
+    return this.#errorStatusText;
+  }
 
   constructor() {
     this._headers = new Headers();
@@ -34,7 +59,7 @@ export class InResponse {
     this.cookies[key] = "";
   }
 
-  setContent(content: HandlerResponse): void {
+  setContent(content: HandlerResponse | any[]): void {
     switch (typeof content) {
       case "object":
         this._content = JSON.stringify(content);
@@ -86,8 +111,15 @@ export class InResponse {
     this._headers.set("Set-Cookie", cookieStrings.join("; "));
   }
 
-  error(message: string, code: number, reason?: string): Response {
-    this.setContent({ error: message, code: code, reason: reason });
+  setErrorStatus(status: number, statusText?: string) {
+    this.#errorStatus = status;
+    this.#errorStatusText = statusText;
+  }
+  error(message?: string | any[]): Response {
+    const code = this.#errorStatus || 500;
+    const reason = this.#errorStatusText || "Error";
+
+    // this.setContent({ error: message, code: code, reason: reason });
     this.setResponseCookie();
     return new Response(
       this._content,
@@ -109,8 +141,8 @@ export class InResponse {
       this._content,
       {
         headers: this._headers,
-        status: 200,
-        statusText: "OK",
+        status: this.errorStatus || 200,
+        statusText: this.#errorStatusText || "OK",
       },
     );
   }

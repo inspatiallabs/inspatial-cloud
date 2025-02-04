@@ -92,7 +92,6 @@ export class PostgresClient {
         break;
       }
       case "socket": {
-        log.info("Connecting to postgres via socket");
         this.conn = await Deno.connect({
           transport: "unix",
           path: this.connectionParams.socketPath,
