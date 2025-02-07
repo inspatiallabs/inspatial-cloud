@@ -1,49 +1,5 @@
-import { UserAgent } from "./main.ts";
-
-export interface ParsedUserAgentProp {
-  platformOS: {
-    name: string;
-    version?: string;
-    family?:
-      | "Windows"
-      | "macOS"
-      | "Linux"
-      | "iOS"
-      | "Android"
-      | "AndroidXR"
-      | "HorizonOS"
-      | "visionOS"
-      | "Unknown";
-  };
-  browser: {
-    name: string;
-    version?: string;
-    major?: string;
-    isHeadless?: boolean;
-    isMobile?: boolean;
-  };
-  device: {
-    type:
-      | "mobile"
-      | "tablet"
-      | "desktop"
-      | "console"
-      | "smarttv"
-      | "wearable"
-      | "embedded"
-      | "headMounted";
-    vendor?: string;
-    model?: string;
-    isBot?: boolean;
-  };
-  engine?: {
-    name?: string;
-    version?: string;
-  };
-  cpu?: {
-    architecture?: string;
-  };
-}
+import type { ParsedUserAgentProp } from "#user-agent/types.ts";
+import { UserAgent } from "#user-agent/user-agent.ts";
 
 /**
  * # ParseUserAgent
@@ -208,16 +164,16 @@ export function parseUserAgent(userAgent: string | null): ParsedUserAgentProp {
     // Include engine information if available
     const engine = ua.engine?.name
       ? {
-          name: ua.engine.name,
-          version: ua.engine.version,
-        }
+        name: ua.engine.name,
+        version: ua.engine.version,
+      }
       : undefined;
 
     // Include CPU information if available
     const cpu = ua.cpu?.architecture
       ? {
-          architecture: ua.cpu.architecture,
-        }
+        architecture: ua.cpu.architecture,
+      }
       : undefined;
 
     return {
@@ -326,14 +282,15 @@ export function isXRDevice(ua: string): boolean {
  */
 
 export function detectOSFamily(
-  osName?: string
+  osName?: string,
 ): ParsedUserAgentProp["platformOS"]["family"] {
   if (!osName) return "Unknown";
 
   const osNameLower = osName.toLowerCase();
   if (osNameLower.includes("windows")) return "Windows";
-  if (osNameLower.includes("mac") || osNameLower.includes("ios"))
+  if (osNameLower.includes("mac") || osNameLower.includes("ios")) {
     return "macOS";
+  }
   if (osNameLower.includes("linux")) return "Linux";
   if (osNameLower.includes("ios")) return "iOS";
   if (osNameLower.includes("visionos")) return "visionOS";
@@ -495,7 +452,7 @@ export function detectMobileBrowser(browserName?: string): boolean {
 
 export function determineDeviceType(
   type?: string,
-  ua?: string
+  ua?: string,
 ): ParsedUserAgentProp["device"]["type"] {
   // Check for XR/VR headsets first
   if (ua) {

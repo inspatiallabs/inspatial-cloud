@@ -5,6 +5,7 @@
     "#db": "../packages/db/mod.ts",
     "#log": "../packages/log/mod.ts",
     "#realtime": "../packages/serve/extensions/realtime/mod.ts",
+    "#user-agent": "../packages/serve/extensions/user-agent/mod.ts",
     "@inspatial/serve": "jsr:@inspatial/serve@^0.0.4"
   },
   "tasks": {

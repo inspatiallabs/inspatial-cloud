@@ -9,8 +9,8 @@ export const apiHandler: PathHandler = {
   handler: async (server, inRequest, inResponse) => {
     const data = await inRequest.body;
     const api = server.getExtension("actions-api") as ActionsAPI;
-    const groupParam = inRequest.context.get("apiGroup");
-    const actionParam = inRequest.context.get("apiAction");
+    const groupParam = inRequest.context.get<string>("apiGroup");
+    const actionParam = inRequest.context.get<string>("apiAction");
     if (!groupParam) {
       return api.docs as HandlerResponse;
     }

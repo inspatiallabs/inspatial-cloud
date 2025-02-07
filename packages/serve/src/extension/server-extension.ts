@@ -17,7 +17,7 @@ export class ServerExtension<
   readonly name: N;
   config?: C;
   readonly description: string;
-  readonly requestLifecycle: RequestLifecycle;
+  readonly requestLifecycle: RequestLifecycle<C>;
   readonly middleware: ServerMiddleware[];
   readonly pathHandlers: PathHandler[];
   readonly exceptionHandlers: ExceptionHandler[];
@@ -31,7 +31,7 @@ export class ServerExtension<
 
     config?: C;
     /** The lifecycle handlers for the incoming requests. */
-    requestLifecycle?: Partial<RequestLifecycle>;
+    requestLifecycle?: Partial<RequestLifecycle<C>>;
     /** Request middleware */
     middleware?: ServerMiddleware[];
 

@@ -14,7 +14,6 @@ import {
   loadServeConfigFile,
 } from "#/serve-config/serve-config.ts";
 import type { ServerExtension } from "#/extension/server-extension.ts";
-import type { RequestLifecycle } from "#/extension/request-lifecycle.ts";
 import { serveLogger } from "#/logger/serve-logger.ts";
 
 /**
@@ -70,7 +69,18 @@ export class InSpatialServer<
     this,
   );
 
-  #requestLifecycle: RequestLifecycle;
+  #requestLifecycle: {
+    setup: Array<{
+      name: string;
+      description?: string;
+      handler: (inRequest: InRequest) => Promise<void> | void;
+    }>;
+    cleanup: Array<{
+      name: string;
+      description?: string;
+      handler: (inRequest: InRequest) => Promise<void> | void;
+    }>;
+  };
 
   #exceptionHandlers: Map<string, ExceptionHandler> = new Map();
 
@@ -357,12 +367,28 @@ export class InSpatialServer<
   >(
     extension: E,
   ): E extends ServerExtension<string, infer R> ? R : void {
+    this.#setupExtensionConfig(extension);
     if (extension.requestLifecycle) {
       for (const setup of extension.requestLifecycle.setup) {
-        this.#requestLifecycle.setup.push(setup);
+        const config = this.getExtensionConfig(extension.name);
+
+        this.#requestLifecycle.setup.push({
+          ...setup,
+          handler: (inRequest: InRequest) => {
+            return setup.handler(inRequest, config);
+          },
+        });
       }
       for (const cleanup of extension.requestLifecycle.cleanup) {
-        this.#requestLifecycle.cleanup.push(cleanup);
+        this.#requestLifecycle.cleanup.push({
+          ...cleanup,
+          handler: (inRequest: InRequest) => {
+            return cleanup.handler(
+              inRequest,
+              this.getExtensionConfig(extension.name),
+            );
+          },
+        });
       }
     }
     for (const middleware of extension.middleware) {
@@ -376,7 +402,6 @@ export class InSpatialServer<
       this.#addExceptionHandler(exceptionHandler);
     }
 
-    this.#setupExtensionConfig(extension);
     this.#addExtensionInfo(extension);
     const config = this.getExtensionConfig(extension.name);
     const extensionObject = extension.install(this, config);

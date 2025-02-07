@@ -24,8 +24,8 @@ export class InContext<
     this.#context.set(key, value);
   }
   /** Get a value from the context. */
-  get<K extends keyof Context>(key: K): Context[K] {
-    return this.#context.get(key) as Context[K];
+  get<T = any>(key: string): T | undefined {
+    return this.#context.get(key);
   }
 
   /** Update a value for a given key in the context.

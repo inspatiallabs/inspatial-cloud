@@ -9,7 +9,7 @@
     "./realtime": "./extensions/realtime/mod.ts",
     "./cors": "./extensions/cors/mod.ts",
     "./actions-api": "./extensions/actions-api/mod.ts",
-    "./user-agent": "./src/user-agent/mod.ts"
+    "./user-agent": "./extensions/user-agent/mod.ts"
   },
   "publish": {
     "exclude": [".github"]
@@ -19,7 +19,8 @@
     "#actions-api/": "./extensions/actions-api/src/",
     "#realtime/": "./extensions/realtime/src/",
     "#cors/": "./extensions/cors/src/",
-    "#static/": "./extensions/static/src/"
+    "#static/": "./extensions/static/src/",
+    "#user-agent/": "./extensions/user-agent/src/"
   },
 
   "tasks": {

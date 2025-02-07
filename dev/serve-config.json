@@ -15,5 +15,9 @@
     "DB_SCHEMA": "public"
   },
   "me": {},
-  "you": {}
+  "you": {},
+  "userAgent": {
+    "USER_AGENT_DEBUG": true,
+    "USER_AGENT_ENABLED": true
+  }
 }
