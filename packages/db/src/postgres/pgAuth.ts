@@ -1,0 +1,12 @@
+export const AUTH = {
+  CLEAR_TEXT: 3,
+  GSS_CONTINUE: 8,
+  GSS_STARTUP: 7,
+  MD5: 5,
+  NO_AUTHENTICATION: 0,
+  SASL_CONTINUE: 11,
+  SASL_FINAL: 12,
+  SASL_STARTUP: 10,
+  SCM: 6,
+  SSPI: 9,
+} as const;

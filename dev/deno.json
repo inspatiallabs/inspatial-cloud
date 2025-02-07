@@ -1,0 +1,16 @@
+{
+  "imports": {
+    "#serve": "../packages/serve/mod.ts",
+    "#app": "../packages/easy-app/mod.ts",
+    "#db": "../packages/db/mod.ts",
+    "#log": "../packages/log/mod.ts",
+    "#realtime": "../packages/serve/extensions/realtime/mod.ts",
+    "#user-agent": "../packages/serve/extensions/user-agent/mod.ts",
+    "@inspatial/serve": "jsr:@inspatial/serve@^0.0.4"
+  },
+  "tasks": {
+    "server": "deno run -A --watch server.ts",
+    "app": "deno serve -A --watch app.ts",
+    "realtime": "deno run -A --watch realtime.ts"
+  }
+}
