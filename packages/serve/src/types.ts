@@ -1,6 +1,5 @@
 import type { ServerExtension } from "#/extension/server-extension.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
-import { ServerException } from "#/server-exception.ts";
 
 /**
  * Configuration for InSpatialServer.
@@ -63,3 +62,18 @@ export type ExtensionConfig<C extends ConfigDefinition> = C extends
   : never;
 
 export type ConfigDefinition<K extends string = string> = Record<K, ConfigEnv>;
+
+/*
+ * The request method for the HTTP request.
+ */
+
+export type RequestMethod =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"
+  | "OPTIONS"
+  | "HEAD"
+  | "CONNECT"
+  | "TRACE";

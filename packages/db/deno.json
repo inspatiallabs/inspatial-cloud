@@ -5,14 +5,10 @@
     ".": "./mod.ts"
   },
   "publish": {
-    "exclude": [
-      ".github"
-    ]
+    "exclude": [".github"]
   },
   "imports": {
     "#/": "./src/",
-    "#serve": "../serve/mod.ts",
-    "#log": "../log/mod.ts",
-    "#utils": "../utils/mod.ts"
+    "#serve": "../serve/mod.ts"
   }
 }

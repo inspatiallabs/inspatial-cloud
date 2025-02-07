@@ -1,6 +1,9 @@
 {
   "name": "@inspatial/serve",
   "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/inspatiallabs/inspatial-cloud",
+  "author": "InSpatial Labs",
   "exports": {
     ".": "./mod.ts",
     "./realtime": "./extensions/realtime/mod.ts",
@@ -9,19 +12,14 @@
     "./user-agent": "./src/user-agent/mod.ts"
   },
   "publish": {
-    "exclude": [
-      ".github"
-    ]
+    "exclude": [".github"]
   },
   "imports": {
     "#/": "./src/",
     "#actions-api/": "./extensions/actions-api/src/",
     "#realtime/": "./extensions/realtime/src/",
     "#cors/": "./extensions/cors/src/",
-    "#static/": "./extensions/static/src/",
-    "#log": "../log/mod.ts",
-    "#utils": "../utils/mod.ts",
-    "@vef/types": "jsr:@vef/types@^0.1.30"
+    "#static/": "./extensions/static/src/"
   },
 
   "tasks": {

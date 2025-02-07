@@ -1,24 +1,16 @@
+import { InContext } from "#/in-context.ts";
+import type { RequestMethod } from "#/types.ts";
+
 /**
  * InRequest is a class that wraps the incoming request object and parses it,
  * providing a more convenient way to access the request properties.
  */
-export class InRequest {
+export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
   /**
    * A boolean indicating if the request is a websocket upgrade request.
    * This is determined by checking if the `Connection` header is `upgrade` and the `Upgrade` header is `websocket`.
    */
   upgradeSocket: boolean = false;
-
-  constructor(request: Request) {
-    this.request = request;
-    this.headers = new Headers(request.headers);
-    this.#parseHeaders();
-    this.#parseParams();
-    this.#extractCookies();
-    this.#getAuthToken();
-    this.#checkForSocketUpgrade();
-    this.#checkForFileExtension();
-  }
 
   /**
    * The hostname of the request URL.
@@ -47,21 +39,6 @@ export class InRequest {
    */
   cookies: Map<string, string> = new Map();
 
-  /**
-   * The auth token extracted from the `Authorization` header when `Bearer` is used.
-   */
-  authToken: string | null = null;
-
-  /**
-   * The `group` extracted from the query parameters.
-   */
-  group?: string;
-
-  /**
-   * The `action` extracted from the query parameters
-   */
-  action?: string;
-
   #bodyLoaded = false;
   #body: Map<string, unknown> = new Map();
   /**
@@ -76,21 +53,12 @@ export class InRequest {
   /**
    * The HTTP method of the request.
    */
-  method:
-    | "GET"
-    | "POST"
-    | "PUT"
-    | "DELETE"
-    | "PATCH"
-    | "OPTIONS"
-    | "HEAD"
-    | "CONNECT"
-    | "TRACE" = "GET";
+  method: RequestMethod = "GET";
 
   /**
    * The query parameters of the request other than `group`, `action`, and `authToken`.
    */
-  params: Map<string, unknown> = new Map();
+  params!: URLSearchParams;
 
   /**
    * The path of the request URL.
@@ -117,11 +85,19 @@ export class InRequest {
    * The file extension of the request if it is a file request.
    */
   fileExtension = "";
-  user?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
+
+  /** */
+  readonly context: InContext<CTX>;
+  constructor(request: Request) {
+    this.request = request;
+    this.context = new InContext();
+    this.headers = new Headers(request.headers);
+    this.#parseHeaders();
+    this.#parseUrl();
+    this.#extractCookies();
+    this.#checkForSocketUpgrade();
+    this.#checkForFileExtension();
+  }
 
   /**
    * Sets the `isFile` and `fileExtension` properties if the path has a file extension.
@@ -162,21 +138,6 @@ export class InRequest {
   }
 
   /**
-   * Extracts the auth token from the request headers and sets it to the `authToken` property.
-   * This is called in the constructor.
-   */
-  #getAuthToken() {
-    const authHeader = this.request.headers.get("Authorization");
-
-    if (authHeader) {
-      const parts = authHeader.split(" ");
-      if (parts.length === 2 && parts[0].toLowerCase() === "bearer") {
-        this.authToken = parts[1];
-      }
-    }
-  }
-
-  /**
    * Extracts the cookies from the request headers and sets them to the `cookies` property.
    * This is called in the constructor.
    */
@@ -202,39 +163,15 @@ export class InRequest {
 
   /**
    * Parses the request URL and sets the relevant properties.
-   * Any query parameters other than `group`, `action`, and `authToken` are set to the `params` property and are merged with the body later.
+   * **Note:** The query parameters are set to the `params` property, and are later merged with the body in the `loadBody` method.
    */
-  #parseParams() {
+  #parseUrl() {
     const url = new URL(this.request.url);
-    this.method = this.request.method as
-      | "GET"
-      | "POST"
-      | "PUT"
-      | "DELETE"
-      | "PATCH"
-      | "OPTIONS"
-      | "HEAD"
-      | "CONNECT"
-      | "TRACE";
+    this.method = this.request.method as RequestMethod;
     this.path = url.pathname;
     this.port = parseInt(url.port);
     this.host = url.hostname;
-    const params = url.searchParams;
-    for (const [key, value] of params) {
-      switch (key) {
-        case "group":
-          this.group = value;
-          break;
-        case "action":
-          this.action = value;
-          break;
-        case "authToken":
-          this.authToken = value;
-          break;
-        default:
-          this.params.set(key, value);
-      }
-    }
+    this.params = url.searchParams;
   }
 
   /**

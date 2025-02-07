@@ -32,6 +32,9 @@ const realtimeExtension = new ServerExtension("realtime", {
   },
 });
 
-export default realtimeExtension;
+export default realtimeExtension as ServerExtension<
+  "realtime",
+  RealtimeHandler
+>;
 
 export type { RealtimeHandler };

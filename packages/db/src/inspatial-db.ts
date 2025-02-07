@@ -1,7 +1,6 @@
 import type {
   AdvancedFilter,
   CountGroupedResult,
-  DBColumn,
   DBConfig,
   DBFilter,
   DBListOptions,
@@ -10,9 +9,12 @@ import type {
   ValueType,
 } from "#/types.ts";
 import { PostgresClient } from "#/postgres/pgClient.ts";
-import { log } from "#log";
-import { camelToSnakeCase, toCamelCase } from "#utils";
-import { ColumnType } from "#/postgres/pgTypes.ts";
+import type { ColumnType } from "#/postgres/pgTypes.ts";
+import { serveLogger } from "../../serve/src/logger/serve-logger.ts";
+import {
+  camelToSnakeCase,
+  toCamelCase,
+} from "../../serve/src/utils/string-utils.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -49,7 +51,7 @@ export class InSpatialDB {
       try {
         await client.connect();
       } catch (e) {
-        log.error(`Error connecting to database: ${e}`);
+        serveLogger.warn(`Error connecting to database: ${e}`);
         throw e;
       }
     }
@@ -573,7 +575,7 @@ export class InSpatialDB {
   ): string {
     fieldName = this.#toSnake(fieldName);
     const parentTable = parentAlias ?? `${schema}.${parentTableName}`;
-    return `(SELECT string_agg(values.value, ', ') 
+    return `(SELECT string_agg(values.value, ', ')
     FROM (SELECT value FROM ${schema}.${entryType}_${fieldName}_mc_values WHERE parent_id = ${parentTable}.id) AS values) AS ${fieldName}`;
   }
   #makeFilter(

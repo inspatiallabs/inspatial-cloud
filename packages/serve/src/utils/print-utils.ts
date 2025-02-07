@@ -1,5 +1,8 @@
-import { ColorMe } from "#/colorMe.ts";
-import type { BasicBgColor, BasicFgColor, StyleOptions } from "#/colorMe.ts";
+import ColorMe, {
+  type BasicBgColor,
+  type BasicFgColor,
+  type StyleOptions,
+} from "#/utils/color-me.ts";
 
 const encoder = new TextEncoder();
 

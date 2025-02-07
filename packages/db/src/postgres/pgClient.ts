@@ -20,8 +20,7 @@ import {
 } from "#/postgres/maps/maps.ts";
 import { AUTH } from "#/postgres/pgAuth.ts";
 import { ScramClient } from "#/postgres/scram.ts";
-import { toCamelCase } from "#utils";
-import { log } from "#log";
+import { toCamelCase } from "../../../serve/src/utils/string-utils.ts";
 
 export class PostgresClient {
   private conn!: Deno.Conn;
@@ -403,7 +402,7 @@ export class PostgresClient {
         }
 
         case QR_TYPE.COMMAND_COMPLETE: {
-          const message = this.reader.readAllBytes();
+          const _message = this.reader.readAllBytes();
 
           status = "done";
           break;

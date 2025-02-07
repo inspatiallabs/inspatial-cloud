@@ -1,6 +1,5 @@
 import type { InSpatialServer } from "#/inspatial-server.ts";
-import { joinPath } from "#utils";
-import { log } from "#log";
+import { joinPath } from "#/utils/path-utils.ts";
 
 /**
  * Checks for a serve-config.json file in the current working directory and loads it to the environment variables.

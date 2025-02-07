@@ -4,7 +4,8 @@
     "#app": "../packages/easy-app/mod.ts",
     "#db": "../packages/db/mod.ts",
     "#log": "../packages/log/mod.ts",
-    "#realtime": "../packages/serve/extensions/realtime/mod.ts"
+    "#realtime": "../packages/serve/extensions/realtime/mod.ts",
+    "@inspatial/serve": "jsr:@inspatial/serve@^0.0.4"
   },
   "tasks": {
     "server": "deno run -A --watch server.ts",

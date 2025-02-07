@@ -99,9 +99,8 @@ export class ActionsAPI {
 
   /**
    * Add an action to a group. The action name must be unique within the group.
-   * @param group {string}
-   * @param action {ActionsAPIAction}
-   * @returns {void}
+   * @param group
+   * @param {ActionsAPIAction} action
    */
   addAction(group: string, action: ActionsAPIAction): void {
     const actionGroup = this.getGroup(group);

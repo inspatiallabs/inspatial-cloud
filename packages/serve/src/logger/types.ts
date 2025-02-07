@@ -20,7 +20,7 @@ export interface LogMessage {
 export interface LogOptions {
   subject?: string;
 }
-export interface EasyLogConfig {
+export interface LoggerConfig {
   traceOffset?: number;
   consoleDefaultStyle: "compact" | "full";
 }

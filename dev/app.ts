@@ -4,7 +4,6 @@ import InSpatialApp, {
   AppExtension,
 } from "../packages/app/mod.ts";
 import { ServerExtension } from "#serve";
-import { log } from "#log";
 
 const loginAction = new AppAction("login", {
   params: [{
@@ -32,7 +31,6 @@ const authActionGroup = new AppActionGroup("auth", {
   description: "This is my group",
   actions: [loginAction],
 });
-
 const testActionGroup = new AppActionGroup("db", {
   description: "This is my group",
   actions: [

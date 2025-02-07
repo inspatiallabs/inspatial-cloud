@@ -1,5 +1,5 @@
-import type { StackFrame } from "#/types.ts";
-import ColorMe from "#utils/colorMe";
+import type { StackFrame } from "#/logger/types.ts";
+import ColorMe from "#/utils/color-me.ts";
 
 /**
  * Parse a stack frame (a line from Error().stack) into a StackFrame object
@@ -79,8 +79,6 @@ export function formatStackFrame(
   if (frame.class) {
     callerClass = ColorMe.chain()
       .content(frame.class || "")
-      .color("brightGreen")
-      .content(".")
       .color("white")
       .end();
   }

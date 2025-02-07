@@ -1,23 +1,21 @@
 import { InRequest } from "#/in-request.ts";
-import { assertResponse, InResponse } from "#/in-response.ts";
-import type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
-import type { RequestExtension } from "#/extension/request-extension.ts";
+import { InResponse } from "#/in-response.ts";
+import type { PathHandler } from "#/extension/path-handler.ts";
 import {
-  ExceptionHandler,
-  ExceptionHandlerResponse,
+  type ExceptionHandler,
   isServerException,
-  tryCatchServerException,
 } from "#/server-exception.ts";
 import type { ExtensionMap, ServerExtensionInfo } from "#/extension/types.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
 import type { ServeConfig } from "#/types.ts";
-import type { ConfigDefinition, ExtensionConfig } from "#/types.ts";
+import type { ConfigDefinition } from "#/types.ts";
 import {
   generateServeConfigFile,
   loadServeConfigFile,
 } from "#/serve-config/serve-config.ts";
 import type { ServerExtension } from "#/extension/server-extension.ts";
-import { log } from "#log";
+import type { RequestLifecycle } from "#/extension/request-lifecycle.ts";
+import { serveLogger } from "#/logger/serve-logger.ts";
 
 /**
  * The main server class.
@@ -72,11 +70,8 @@ export class InSpatialServer<
     this,
   );
 
-  /**
-   * The request extensions that have been added to the server.
-   * These are used to modify the InRequest object before it's used in further middleware or request handling.
-   */
-  #requestExtensions: Map<string, RequestExtension> = new Map();
+  #requestLifecycle: RequestLifecycle;
+
   #exceptionHandlers: Map<string, ExceptionHandler> = new Map();
 
   get #defaultPathHandler(): ServerMiddleware | undefined {
@@ -132,6 +127,10 @@ export class InSpatialServer<
       this.#config = config;
     }
     loadServeConfigFile();
+    this.#requestLifecycle = {
+      setup: [],
+      cleanup: [],
+    };
     for (const extension of config?.extensions || []) {
       this.#installExtension(extension);
     }
@@ -162,19 +161,6 @@ export class InSpatialServer<
       this.#config.hostname = Deno.env.get("SERVE_HOSTNAME");
     }
     this.fetch.bind(this);
-  }
-  /**
-   * Adds an extension to the `InRequest` class.
-   * This can be used to add custom functionality to the the request object
-   * before it's used in further middleware or request handling.
-   */
-  #extendRequest(extension: RequestExtension) {
-    if (this.#requestExtensions.has(extension.name)) {
-      throw new Error(
-        `Request extension with name ${extension.name} already exists`,
-      );
-    }
-    this.#requestExtensions.set(extension.name, extension);
   }
 
   /**
@@ -371,8 +357,13 @@ export class InSpatialServer<
   >(
     extension: E,
   ): E extends ServerExtension<string, infer R> ? R : void {
-    for (const requestExtension of extension.requestExtensions) {
-      this.#extendRequest(requestExtension);
+    if (extension.requestLifecycle) {
+      for (const setup of extension.requestLifecycle.setup) {
+        this.#requestLifecycle.setup.push(setup);
+      }
+      for (const cleanup of extension.requestLifecycle.cleanup) {
+        this.#requestLifecycle.cleanup.push(cleanup);
+      }
     }
     for (const middleware of extension.middleware) {
       this.#addMiddleware(middleware);
@@ -414,19 +405,29 @@ export class InSpatialServer<
       };
     }) || [];
 
-    const requestExtensions = extension.requestExtensions?.map((r) => {
-      return {
-        name: r.name,
-        description: r.description,
-      };
-    }) || [];
+    const lifecycleSetupHandlers =
+      extension.requestLifecycle?.setup.map((l) => {
+        return {
+          name: l.name,
+          description: l.description,
+        };
+      }) || [];
+
+    const lifecycleCleanupHandlers =
+      extension.requestLifecycle?.cleanup.map((l) => {
+        return {
+          name: l.name,
+          description: l.description,
+        };
+      }) || [];
     this.#installedExtensions.add({
       name: extension.name,
       config: extension.config,
       description: extension.description,
       middleware,
       pathHandlers,
-      requestExtensions,
+      lifecycleSetupHandlers,
+      lifecycleCleanupHandlers,
     });
   }
   /**
@@ -463,7 +464,7 @@ export class InSpatialServer<
         clientMessages.push(response.clientMessage);
       }
       if (response.serverMessage) {
-        log.error(response.serverMessage);
+        serveLogger.error(response.serverMessage);
       }
       if (response.status) {
         inResponse.errorStatus = response.status;
@@ -486,8 +487,8 @@ export class InSpatialServer<
       request,
     );
 
-    for (const extension of this.#requestExtensions.values()) {
-      extension.handler(inRequest);
+    for (const { handler } of this.#requestLifecycle.setup) {
+      await handler(inRequest);
     }
 
     const inResponse = new InResponse();

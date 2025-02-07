@@ -1,10 +1,10 @@
 import type { ConfigDefinition, ExtensionConfig } from "#/types.ts";
-import type { RequestExtension } from "#/extension/request-extension.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
 import type { PathHandler } from "#/extension/path-handler.ts";
 import type { InSpatialServer } from "#/inspatial-server.ts";
 import type { ExceptionHandler } from "#/server-exception.ts";
-import { camelToSnakeCase } from "#utils";
+import type { RequestLifecycle } from "#/extension/request-lifecycle.ts";
+import { camelToSnakeCase } from "#/utils/string-utils.ts";
 
 /**
  * An extension for InSpatialServer.
@@ -17,31 +17,41 @@ export class ServerExtension<
   readonly name: N;
   config?: C;
   readonly description: string;
-  readonly requestExtensions: RequestExtension[];
+  readonly requestLifecycle: RequestLifecycle;
   readonly middleware: ServerMiddleware[];
   readonly pathHandlers: PathHandler[];
   readonly exceptionHandlers: ExceptionHandler[];
   install: (server: InSpatialServer, config: ExtensionConfig<C>) => R;
   /**
    * Creates a new ServerExtension
-   *
-   * @param name The name of the extension.
-   * @param options The options for the extension.
    */
   constructor(name: N, options: {
+    /** A brief description of the extension */
     description: string;
-    envPrefix?: string;
+
     config?: C;
-    requestExtensions?: RequestExtension[];
+    /** The lifecycle handlers for the incoming requests. */
+    requestLifecycle?: Partial<RequestLifecycle>;
+    /** Request middleware */
     middleware?: ServerMiddleware[];
+
+    /** Path handlers */
     pathHandlers?: PathHandler[];
+    /** Exception handlers */
     exceptionHandlers?: ExceptionHandler[];
+
+    /** The main install function to set up the extension. The loaded config
+     * values are passed to the install function
+     */
     install: (server: InSpatialServer, config: ExtensionConfig<C>) => R;
   }) {
     this.name = name;
     this.config = options.config;
     this.description = options.description;
-    this.requestExtensions = options.requestExtensions || [];
+    this.requestLifecycle = {
+      setup: options.requestLifecycle?.setup || [],
+      cleanup: options.requestLifecycle?.cleanup || [],
+    };
     this.middleware = options.middleware || [];
     this.pathHandlers = options.pathHandlers || [];
     this.exceptionHandlers = options.exceptionHandlers || [];

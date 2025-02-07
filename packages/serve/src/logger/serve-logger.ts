@@ -1,14 +1,17 @@
-import type { LogType } from "#/logging.ts";
-import { formatStackFrame, parseStackFrame } from "#/utils.ts";
 import type {
-  EasyLogConfig,
+  LoggerConfig,
   LogMessage,
   LogOptions,
+  LogType,
   StackFrame,
-} from "#/types.ts";
-import type { BasicFgColor } from "#utils/colorMe";
-import formatUtils from "#utils/formatUtils";
-import printUtils from "#utils/printUtils";
+} from "#/logger/types.ts";
+import {
+  formatStackFrame,
+  parseStackFrame,
+} from "#/logger/stack-formatting.ts";
+import type { BasicFgColor } from "#/utils/color-me.ts";
+import printUtils from "#/utils/print-utils.ts";
+import formatUtils from "#/utils/format-utils.ts";
 
 const colorMap: Record<LogType, BasicFgColor> = {
   info: "brightGreen",
@@ -17,7 +20,7 @@ const colorMap: Record<LogType, BasicFgColor> = {
   debug: "brightBlue",
   message: "white",
 };
-export class EasyLogger {
+export class ServeFileLogger {
   environment: "development" | "production";
   logPath: string;
 
@@ -60,10 +63,10 @@ export class EasyLogger {
   }
 }
 
-export class EasyLog {
-  config: EasyLogConfig;
+export class ServeLogger {
+  config: LoggerConfig;
   private lineChar: string;
-  constructor(config: EasyLogConfig) {
+  constructor(config: LoggerConfig) {
     this.config = config;
     this.lineChar = printUtils.symbol.box.horizontal;
   }
@@ -142,7 +145,7 @@ export class EasyLog {
   }
 
   private formatLogMessage(message: LogMessage) {
-    const { content, type, subject, caller, timestamp } = message;
+    const { content, type, subject, caller, timestamp: _timestamp } = message;
     const color: BasicFgColor = colorMap[type];
     const titleRow = formatUtils.center(subject, this.lineChar, {
       color,
@@ -183,10 +186,15 @@ export class EasyLog {
     const offset = this.config.traceOffset || 0;
     const parts = stack.split("\n");
     for (let i = 0; i < parts.length; i++) {
-      if (parts[i].includes("EasyLog.log")) {
+      if (parts[i].includes("ServeLogger.log")) {
         return parseStackFrame(parts[i + offset + 1]);
       }
     }
     return parseStackFrame(null);
   }
 }
+
+export const serveLogger = new ServeLogger({
+  consoleDefaultStyle: "full",
+  traceOffset: 1,
+});

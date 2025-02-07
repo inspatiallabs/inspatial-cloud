@@ -1,21 +1,10 @@
 {
-  "workspace": [
-    "./packages/serve",
-    "./packages/app",
-    "./packages/db",
-    "./packages/utils",
-    "./packages/log",
-    "./dev"
-  ],
+  "workspace": ["./packages/serve", "./packages/app", "./packages/db", "./dev"],
   "unstable": ["broadcast-channel"],
-  "exclude": [
-    "./packages/easy-app/easyPacks/**"
-  ],
+  "exclude": ["./packages/easy-app/easyPacks/**"],
   "lint": {
     "rules": {
-      "exclude": [
-        "no-explicit-any"
-      ]
+      "exclude": ["no-explicit-any"]
     }
   }
 }

@@ -1,7 +1,6 @@
 import type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
 import { raiseServerException } from "#/server-exception.ts";
 import type { ActionsAPI } from "#actions-api/actions-api.ts";
-import { log } from "#log";
 
 export const apiHandler: PathHandler = {
   name: "api",
@@ -10,28 +9,28 @@ export const apiHandler: PathHandler = {
   handler: async (server, inRequest, inResponse) => {
     const data = await inRequest.body;
     const api = server.getExtension("actions-api") as ActionsAPI;
-    if (!inRequest.group) {
+    const groupParam = inRequest.context.get("apiGroup");
+    const actionParam = inRequest.context.get("apiAction");
+    if (!groupParam) {
       return api.docs as HandlerResponse;
     }
-    const group = api.getGroup(inRequest.group);
+    const group = api.getGroup(groupParam);
     if (!group) {
-      raiseServerException(404, `Group not found: ${inRequest.group}`);
+      raiseServerException(404, `Group not found: ${groupParam}`);
     }
-    if (!inRequest.action) {
-      const groupDocs = api.docs.groups.find((g) =>
-        g.groupName === inRequest.group
-      );
+    if (!actionParam) {
+      const groupDocs = api.docs.groups.find((g) => g.groupName === groupParam);
       if (!groupDocs) {
-        raiseServerException(404, `Group not found: ${inRequest.group}`);
+        raiseServerException(404, `Group not found: ${groupParam}`);
       }
       return groupDocs as Record<string, any>;
     }
-    const action = api.getAction(inRequest.group, inRequest.action);
+    const action = api.getAction(groupParam, actionParam);
 
     if (!action) {
       raiseServerException(
         404,
-        `Action not found for Group: '${inRequest.group}', Action: '${inRequest.action}'`,
+        `Action not found for Group: '${groupParam}', Action: '${actionParam}'`,
       );
     }
     return await action.handler(data, server, inRequest, inResponse);

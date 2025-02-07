@@ -1,4 +1,5 @@
 import { InSpatialServer } from "#/inspatial-server.ts";
+export { ServeLogger } from "#/logger/serve-logger.ts";
 
 export { InSpatialServer } from "#/inspatial-server.ts";
 export { InRequest } from "#/in-request.ts";
@@ -14,6 +15,9 @@ export {
   createServerMiddleware,
   type ServerMiddleware,
 } from "#/extension/server-middleware.ts";
-export type { RequestExtension } from "#/extension/request-extension.ts";
+export type {
+  LifecycleHandler,
+  RequestLifecycle,
+} from "#/extension/request-lifecycle.ts";
 export type { ServeConfig } from "#/types.ts";
 export default InSpatialServer;

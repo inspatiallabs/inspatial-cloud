@@ -17,6 +17,7 @@ import { ServerExtension } from "#/extension/server-extension.ts";
 
 import { apiHandler } from "#actions-api/api-handler.ts";
 import { ActionsAPI } from "#actions-api/actions-api.ts";
+import { apiSetup } from "#actions-api/request-lifecycle.ts";
 
 export { ActionsAPI } from "#actions-api/actions-api.ts";
 export type {
@@ -36,6 +37,9 @@ export type {
  */
 const actionsAPI = new ServerExtension("actions-api", {
   description: "API handler for InSpatialServer",
+  requestLifecycle: {
+    setup: [apiSetup],
+  },
   pathHandlers: [apiHandler],
   install: (_server) => {
     const api = new ActionsAPI();
@@ -57,4 +61,4 @@ const actionsAPI = new ServerExtension("actions-api", {
   },
 });
 
-export default actionsAPI;
+export default actionsAPI as ServerExtension<"actions-api", ActionsAPI>;

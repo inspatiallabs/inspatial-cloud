@@ -1,4 +1,4 @@
-import { addLeadingZeros } from "#/stringUtils.ts";
+import { addLeadingZeros } from "#/utils/string-utils.ts";
 
 function now(): Date {
   return new Date();
@@ -88,8 +88,6 @@ function getPrettyDate(value: string | number, options?: {
   const formatCompact = (date: Date) => {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const currentDay = now.getDate();
 
     const year = date.getFullYear();
     const month = date.getMonth();

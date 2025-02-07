@@ -1,5 +1,5 @@
-import { log } from "#log";
-import type { HandlerResponse } from "./extension/path-handler.ts";
+import type { HandlerResponse } from "#/extension/path-handler.ts";
+import { serveLogger } from "#/logger/serve-logger.ts";
 
 /**
  * A class which simplifies creating responses to client requests.
@@ -15,7 +15,7 @@ export class InResponse {
 
   set errorStatus(status: number) {
     if (this.#errorStatus) {
-      log.warn(`Error status already set to ${this.#errorStatus}`);
+      serveLogger.warn(`Error status already set to ${this.#errorStatus}`);
       return;
     }
     this.#errorStatus = status;
@@ -25,7 +25,9 @@ export class InResponse {
   }
   set errorStatusText(statusText: string) {
     if (this.#errorStatusText) {
-      log.warn(`Error status text already set to ${this.#errorStatusText}`);
+      serveLogger.warn(
+        `Error status text already set to ${this.#errorStatusText}`,
+      );
       return;
     }
     this.#errorStatusText = statusText;
@@ -115,7 +117,7 @@ export class InResponse {
     this.#errorStatus = status;
     this.#errorStatusText = statusText;
   }
-  error(message?: string | any[]): Response {
+  error(_message?: string | any[]): Response {
     const code = this.#errorStatus || 500;
     const reason = this.#errorStatusText || "Error";
 

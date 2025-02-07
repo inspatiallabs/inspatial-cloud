@@ -8,7 +8,7 @@ import type {
   RealtimeRoomDef,
 } from "#realtime/types.ts";
 import { RealtimeRoom } from "#realtime/realtime-room.ts";
-import { log } from "#log";
+import { serveLogger } from "#/logger/serve-logger.ts";
 
 export class RealtimeHandler {
   clients: Map<string, RealtimeClient>;
@@ -17,7 +17,7 @@ export class RealtimeHandler {
   rooms: Map<string, RealtimeRoom> = new Map();
 
   handleError(...args: any) {
-    log.error(args, "RealtimeHandler");
+    serveLogger.error(args, "RealtimeHandler");
   }
   roomHandlers: Map<
     string,
@@ -93,8 +93,8 @@ export class RealtimeHandler {
       let data: Record<string, any> = {};
       try {
         data = JSON.parse(event.data);
-      } catch (e) {
-        log.warn("Error parsing JSON data from client", event.data);
+      } catch (_e) {
+        serveLogger.warn("Error parsing JSON data from client", event.data);
         return;
       }
       try {

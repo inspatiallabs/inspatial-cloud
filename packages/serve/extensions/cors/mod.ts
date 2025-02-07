@@ -14,7 +14,6 @@
  * ```
  */
 import { ServerExtension } from "#/extension/server-extension.ts";
-import { log } from "#log";
 
 /**
  * CORS Extension for {@link InSpatialServer}
@@ -24,7 +23,6 @@ const corsExtension = new ServerExtension(
   "CORS",
   {
     description: "CORS Handler for InSpatialServer",
-    envPrefix: "CORS",
     config: {
       allowedOrigins: {
         description: "Allowed Origins",
@@ -51,4 +49,4 @@ const corsExtension = new ServerExtension(
   },
 );
 
-export default corsExtension;
+export default corsExtension as ServerExtension<"CORS", void>;
