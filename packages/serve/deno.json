@@ -5,7 +5,8 @@
     ".": "./mod.ts",
     "./realtime": "./extensions/realtime/mod.ts",
     "./cors": "./extensions/cors/mod.ts",
-    "./actions-api": "./extensions/actions-api/mod.ts"
+    "./actions-api": "./extensions/actions-api/mod.ts",
+    "./user-agent": "./src/user-agent/mod.ts"
   },
   "publish": {
     "exclude": [
