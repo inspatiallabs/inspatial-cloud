@@ -4,7 +4,35 @@
   "exclude": ["./packages/easy-app/easyPacks/**"],
   "lint": {
     "rules": {
-      "exclude": ["no-explicit-any"]
-    }
+      "tags": ["recommended"],
+      "include": [
+        "no-var",
+        "no-window",
+        "no-unused-vars",
+        "ban-untagged-todo",
+        "no-empty-interface",
+        "no-slow-types",
+        "no-deprecated-deno-api",
+        "no-duplicate-case",
+        "no-dupe-class-members",
+        "camelcase",
+        "no-dupe-args",
+        "no-sloppy-imports",
+        "no-class-assign",
+        "no-unsafe-finally"
+      ],
+      "exclude": ["no-explicit-any", "ban-ts-comment"]
+    },
+    "exclude": [
+      "**/test/**/*",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.test.jsx",
+      "**/*.test.js",
+      "**/*_test.ts",
+      "**/*_test.tsx",
+      "**/*_test.jsx",
+      "**/*_test.js"
+    ]
   }
 }
