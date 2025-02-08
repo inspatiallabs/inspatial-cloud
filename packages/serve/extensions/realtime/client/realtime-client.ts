@@ -14,56 +14,95 @@ export class RealtimeClient {
   #statusListeners: Set<(status: SocketStatus) => void> = new Set();
   #manualClose = false;
 
-  get endpoint(): string {
+  /**
+   * The endpoint of the server.
+   */
+  get #endpoint(): string {
     let url = this.#host;
     if (this.#authToken) {
       url += `?authToken=${this.#authToken}`;
     }
     return url;
   }
+
+  /**
+   * Whether the client is connected to the server.
+   */
   get connected(): boolean {
     return this.#socket?.readyState === WebSocket.OPEN;
   }
 
+  /**
+   * Whether the client is connecting to the server.
+   */
   get connecting(): boolean {
     return this.#socket?.readyState === WebSocket.CONNECTING;
   }
 
+  /**
+   * Whether the client is disconnected from the server.
+   */
   get closed(): boolean {
     return this.#socket?.readyState === WebSocket.CLOSED;
   }
 
+  /**
+   * Create a new RealtimeClient.
+   * @param host The host of the server.
+   *
+   * @example
+   * ```ts
+   * const client = new RealtimeClient("ws://localhost:8080/ws");
+   * client.connect();
+   * ```
+   */
   constructor(host?: string) {
     const protocol = globalThis?.location?.protocol === "https:" ? "wss" : "ws";
     this.#host = host ||
       `${protocol}://${globalThis?.location?.host || "localhost"}/ws`;
   }
 
+  /**
+   * Add a listener for messages from the server.
+   */
   onMessage(
     callback: (room: string, event: string, data: Record<string, any>) => void,
   ): void {
     this.#messageListeners.add(callback);
   }
 
+  /**
+   * Remove a listener for messages from the server.
+   */
   removeMessageListener(
     callback: (room: string, event: string, data: Record<string, any>) => void,
   ): void {
     this.#messageListeners.delete(callback);
   }
 
+  /**
+   * Add a listener for status changes of the websocket connection.
+   */
   onStatusChange(callback: (status: SocketStatus) => void): void {
     this.#statusListeners.add(callback);
   }
 
+  /**
+   * Remove a listener for status changes of the websocket connection.
+   */
   removeStatusListener(callback: (status: SocketStatus) => void): void {
     this.#statusListeners.delete(callback);
   }
 
+  /**
+   * Connect the client to the server.
+   * The client will automatically reconnect and rejoin rooms if the connection is lost.
+   */
   connect(authToken?: string): void {
     if (authToken) {
       this.#authToken = authToken;
     }
-    this.#socket = new WebSocket(this.endpoint);
+    this.#socket = new WebSocket(this.#endpoint);
     this.#manualClose = false;
     this.#notifyStatus("connecting");
     this.#socket.addEventListener("open", (_event) => {
@@ -138,6 +177,9 @@ export class RealtimeClient {
     }
   }
 
+  /**
+   * Join a room.
+   */
   join(roomName: string, event?: string): void {
     if (!this.#rooms.has(roomName)) {
       const roomEvents = new Set<string>();
@@ -152,6 +194,9 @@ export class RealtimeClient {
     this.#send({ type: "join", roomName, event });
   }
 
+  /**
+   * Leave a room.
+   */
   leave(roomName: string, event?: string): void {
     if (event) {
       this.#rooms.get(roomName)?.delete(event);
@@ -161,6 +206,9 @@ export class RealtimeClient {
     this.#send({ type: "leave", roomName, event });
   }
 
+  /**
+   * Disconnect the client from the server.
+   */
   disconnect() {
     this.#manualClose = true;
     this.#socket.close();
@@ -173,5 +221,13 @@ export class RealtimeClient {
     this.#socket.send(JSON.stringify(message));
   }
 }
-type SocketStatus = "open" | "closed" | "connecting" | "error";
+/**
+ * The status of the websocket connection.
+ */
+export type SocketStatus = "open" | "closed" | "connecting" | "error";
+
+/**
+ * RealtimeClient is a WebSocket client to connect to the Realtime Extension of InSpatial Server.
+ * It provides an easy way to join and leave rooms and add listeners for messages from the rooms.
+ */
 export default RealtimeClient;

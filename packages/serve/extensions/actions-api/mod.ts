@@ -28,8 +28,11 @@ export type {
   ActionsAPIGroup,
   ActionsAPIGroupDocs,
   DocsActionParam,
+  OptionalParams,
   ParamsMap,
+  ParamTypeMap,
   ParamTypeProp,
+  RequiredParams,
 } from "#actions-api/types.ts";
 
 /**
@@ -61,4 +64,18 @@ const actionsAPI = new ServerExtension("actions-api", {
   },
 });
 
+/**
+ * API Extension for {@link InSpatialServer}
+ * @example
+ * ```ts
+ * import { InSpatialServer } from "@inspatial/serve";
+ * import actionsAPI from "@inspatial/serve/actions-api";
+ *
+ * const server = await InSpatialServer.create({
+ *  extensions: [actionsAPI],
+ * });
+ *
+ * server.run();
+ * ```
+ */
 export default actionsAPI as ServerExtension<"actions-api", ActionsAPI>;

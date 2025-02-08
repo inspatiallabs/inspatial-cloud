@@ -10,15 +10,18 @@ import type {
  * ActionsAPI is a class that provides the main interface for the ActionsAPI extension for InSpatialServer.
  */
 export class ActionsAPI {
+  /**
+   * A map of action groups.
+   */
   actionGroups: Map<string, ActionsAPIGroup>;
 
-  #_docs: ActionsAPIDocs | null = null;
+  #docs: ActionsAPIDocs | null = null;
 
   /**
    * Get a JSON object representing the API groups and actions.
    */
   get docs(): ActionsAPIDocs {
-    if (this.#_docs) return this.#_docs;
+    if (this.#docs) return this.#docs;
     const docs: ActionsAPIDocs = {
       groups: [],
     };
@@ -45,7 +48,7 @@ export class ActionsAPI {
       });
       docs.groups.push(groupDocs);
     });
-    this.#_docs = docs;
+    this.#docs = docs;
     return docs;
   }
 

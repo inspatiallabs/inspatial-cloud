@@ -7,6 +7,10 @@ import type { InSpatialServer } from "#/inspatial-server.ts";
  * The full documentation for an ActionsAPI instance in JSON format.
  */
 export interface ActionsAPIDocs extends Record<string, unknown> {
+  /**
+   * An array of groups in the API.
+   * Each group contains an array of actions.
+   */
   groups: ActionsAPIGroupDocs[];
 }
 
@@ -14,31 +18,102 @@ export interface ActionsAPIDocs extends Record<string, unknown> {
  * The documentation for an ActionsAPI group in JSON format.
  */
 export interface ActionsAPIGroupDocs {
+  /**
+   * The name of the group.
+   */
   groupName: string;
+
+  /**
+   * A description of the group.
+   */
   description: string;
+  /**
+   * An array of actions in the group.
+   */
   actions: ActionsAPIActionDocs[];
 }
 
+/**
+ * A single action parameter configuration in JSON format.
+ */
 export interface DocsActionParam {
+  /**
+   * The name of the parameter.
+   */
   paramName: string;
+  /**
+   * Whether the parameter is required.
+   */
   required: boolean;
+  /**
+   * A description of the parameter.
+   */
   description: string;
+  /**
+   * The type of the parameter
+   */
   type: ParamTypeProp;
 }
+
+/**
+ * The documentation for an ActionsAPI action in JSON format.
+ */
 export interface ActionsAPIActionDocs {
+  /**
+   * The name of the action.
+   */
   actionName: string;
+  /**
+   * A description of the action.
+   */
   description: string;
+  /**
+   * An array of parameters for the action.
+   */
   params?: Array<DocsActionParam>;
 }
+
+/**
+ * An API group definition.
+ */
 export interface ActionsAPIGroup {
+  /**
+   * The name of the group.
+   */
   groupName: string;
+
+  /**
+   * A description of the group.
+   */
   description: string;
+  /**
+   * A map of actions in the group.
+   */
   actions: Map<string, ActionsAPIAction>;
 }
+
+/**
+ * An API action definition.
+ */
 export interface ActionsAPIAction {
+  /**
+   * The name of the action.
+   */
   actionName: string;
+
+  /**
+   * A description of the action
+   */
   description: string;
+
+  /**
+   * An array of parameters for the action.
+   */
   params: Array<ActionParamProp>;
+
+  /**
+   * The handler function for the action.
+   */
   handler: (
     data: Record<string, unknown>,
     server: InSpatialServer,
@@ -47,6 +122,9 @@ export interface ActionsAPIAction {
   ) => Promise<HandlerResponse> | HandlerResponse;
 }
 
+/**
+ * The type of a parameter for an action.
+ */
 export type ParamTypeProp =
   | "string"
   | "number"
@@ -54,6 +132,9 @@ export type ParamTypeProp =
   | "object"
   | "array";
 
+/**
+ * A map of parameter types to their JavaScript types.
+ */
 export type ParamTypeMap = {
   string: string;
   number: number;
@@ -62,35 +143,51 @@ export type ParamTypeMap = {
   array: any[];
 };
 
-type ExtractParamType<T> = T extends ActionParamProp<infer K>
-  ? T["required"] extends true ? ParamTypeMap[T["type"]]
-  : ParamTypeMap[T["type"]] | undefined
-  : never;
+/**
+ * A single parameter configuration for an action.
+ */
 export type ActionParamProp<K extends PropertyKey = PropertyKey> = {
+  /**
+   * The key for the parameter.
+   */
   key: K;
+  /**
+   * Whether the parameter is required.
+   */
   required?: boolean;
+  /**
+   * The type of the parameter.
+   */
   type: ParamTypeProp;
+  /**
+   * A label for the parameter.
+   */
   label?: string;
+  /**
+   * A description of the parameter
+   */
   description?: string;
 };
 
-// export type ParamsMap<T> = T extends [] ? undefined
-//   : T extends Array<ActionParamProp<infer K>> ? {
-//       [K in T[number] as K["key"]]: K["required"] extends true
-//         ? ParamTypeMap[K["type"]]
-//         : ParamTypeMap[K["type"]] | undefined;
-//     }
-//   : never;
-
+/**
+ * A typed map of parameters passed to an action handler.
+ */
 export type ParamsMap<T> = RequiredParams<T> & OptionalParams<T>;
 
-type RequiredParams<T> = T extends Array<ActionParamProp<infer K>> ? {
+/**
+ * A typed map of required parameters passed to an action handler.
+ */
+
+export type RequiredParams<T> = T extends Array<ActionParamProp<infer K>> ? {
     [K in T[number] as K["required"] extends true ? K["key"] : never]:
       ParamTypeMap[K["type"]];
   }
   : never;
 
-type OptionalParams<T> = T extends Array<ActionParamProp<infer K>> ? {
+/**
+ * A typed map of optional parameters passed to an action handler.
+ */
+export type OptionalParams<T> = T extends Array<ActionParamProp<infer K>> ? {
     [K in T[number] as K["required"] extends true ? never : K["key"]]?:
       | ParamTypeMap[K["type"]]
       | undefined;
