@@ -49,4 +49,18 @@ const corsExtension = new ServerExtension(
   },
 );
 
+/**
+ * CORS Extension for {@link InSpatialServer}
+ * @example
+ * ```ts
+ * import { InSpatialServer } from "@inspatial/serve";
+ * import corsExtension from "@inspatial/serve/cors";
+ *
+ * const server = await InSpatialServer.create({
+ *   extensions: [corsExtension],
+ * });
+ *
+ * server.run();
+ * ```
+ */
 export default corsExtension as ServerExtension<"CORS", void>;
