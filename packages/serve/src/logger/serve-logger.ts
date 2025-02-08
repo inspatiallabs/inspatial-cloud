@@ -63,67 +63,147 @@ export class ServeFileLogger {
   }
 }
 
+/**
+ * A logger for the InSpatialServer
+ */
 export class ServeLogger {
+  /**
+   * The configuration for the logger
+   */
   config: LoggerConfig;
-  private lineChar: string;
+  #lineChar: string;
+  /**
+   * Create a new ServeLogger
+   * @param config The configuration for the logger
+   * @example
+   * ```ts
+   * const logger = new ServeLogger({
+   *  consoleDefaultStyle: "full",
+   *  traceOffset: 1,
+   * });
+   * ```
+   */
   constructor(config: LoggerConfig) {
     this.config = config;
-    this.lineChar = printUtils.symbol.box.horizontal;
+    this.#lineChar = printUtils.symbol.box.horizontal;
   }
 
+  /**
+   * Log a debug message
+   */
   debug(content: any | any[]): void;
+  /**
+   * Log a debug message
+   */
   debug(content: any | any[], subject: string): void;
+  /**
+   * Log a debug message
+   */
   debug(content: any | any[], options: LogOptions): void;
+  /**
+   * Log a debug message
+   */
   debug(content: any | any[], subject: string, options: LogOptions): void;
+
+  /**
+   * Log a debug message
+   */
   debug(
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
-    this.log("debug", content, subjectOrOptions, options);
+    this.#log("debug", content, subjectOrOptions, options);
   }
+
+  /**
+   * Log an info message
+   */
   info(content: any | any[]): void;
+  /**
+   * Log an info message
+   */
   info(content: any | any[], subject: string): void;
+  /**
+   * Log an info message
+   */
   info(content: any | any[], options: LogOptions): void;
+  /**
+   * Log an info message
+   */
   info(content: any | any[], subject: string, options: LogOptions): void;
+  /**
+   * Log an info message
+   */
   info(
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
-    this.log("info", content, subjectOrOptions, options);
+    this.#log("info", content, subjectOrOptions, options);
   }
 
+  /**
+   * Log a warning message
+   */
   warn(content: any | any[]): void;
+  /**
+   * Log a warning message
+   */
   warn(content: any | any[], subject: string): void;
+  /**
+   * Log a warning message
+   */
   warn(content: any | any[], options: LogOptions): void;
+  /**
+   * Log a warning message
+   */
   warn(content: any | any[], subject: string, options: LogOptions): void;
+  /**
+   * Log a warning message
+   */
   warn(
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
-    this.log("warning", content, subjectOrOptions, options);
+    this.#log("warning", content, subjectOrOptions, options);
   }
+
+  /**
+   * Log an error message
+   */
   error(content: any | any[]): void;
+  /**
+   * Log an error message and subject
+   */
   error(content: any | any[], subject: string): void;
+  /**
+   * Log an error message and options
+   */
   error(content: any | any[], options: LogOptions): void;
+  /**
+   * Log an error message, subject, and options
+   */
   error(content: any | any[], subject: string, options: LogOptions): void;
+  /**
+   * Log an error message, subject, and options
+   */
   error(
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
-    this.log("error", content, subjectOrOptions, options);
+    this.#log("error", content, subjectOrOptions, options);
   }
 
-  private log(
+  #log(
     type: LogType,
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
-    const frame = this.getCallFrame();
+    const frame = this.#getCallFrame();
     switch (typeof subjectOrOptions) {
       case "string":
         options = { subject: subjectOrOptions, ...options };
@@ -140,14 +220,17 @@ export class ServeLogger {
       caller: frame,
       timestamp: new Date(),
     };
-    const formatted = this.formatLogMessage(logMessage);
+    const formatted = this.#formatLogMessage(logMessage);
     console.log(formatted);
   }
 
-  private formatLogMessage(message: LogMessage) {
+  /**
+   * Format the log message into a colored and styled string to be printed to the console
+   */
+  #formatLogMessage(message: LogMessage) {
     const { content, type, subject, caller, timestamp: _timestamp } = message;
     const color: BasicFgColor = colorMap[type];
-    const titleRow = formatUtils.center(subject, this.lineChar, {
+    const titleRow = formatUtils.center(subject, this.#lineChar, {
       color,
     });
     const frame = formatStackFrame(caller, true);
@@ -161,7 +244,7 @@ export class ServeLogger {
 
       return JSON.stringify(c, null, 2);
     });
-    const endRow = formatUtils.fill(this.lineChar, {
+    const endRow = formatUtils.fill(this.#lineChar, {
       color,
     });
 
@@ -178,7 +261,10 @@ export class ServeLogger {
     ];
     return lines.join("\n");
   }
-  private getCallFrame(): StackFrame {
+  /**
+   * Get the call frame of the function that called the logger
+   */
+  #getCallFrame(): StackFrame {
     const stack = new Error().stack;
     if (!stack) {
       return parseStackFrame(null);

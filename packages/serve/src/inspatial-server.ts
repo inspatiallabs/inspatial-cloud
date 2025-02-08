@@ -1,13 +1,10 @@
 import { InRequest } from "#/in-request.ts";
 import { InResponse } from "#/in-response.ts";
 import type { PathHandler } from "#/extension/path-handler.ts";
-import {
-  type ExceptionHandler,
-  isServerException,
-} from "#/server-exception.ts";
+import { isServerException } from "#/server-exception.ts";
 import type { ExtensionMap, ServerExtensionInfo } from "#/extension/types.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
-import type { ServeConfig } from "#/types.ts";
+import type { ExceptionHandler, ServeConfig } from "#/types.ts";
 import type { ConfigDefinition } from "#/types.ts";
 import {
   generateServeConfigFile,
@@ -114,6 +111,10 @@ export class InSpatialServer<
     return Array.from(this.#installedExtensions);
   }
 
+  /**
+   * Adds a custom property to the server instance.
+   * @param prop The property to add.
+   */
   addCustomProperty(prop: {
     key: string;
     description: string;
@@ -128,10 +129,26 @@ export class InSpatialServer<
     this.#customProperties.set(prop.key, prop.value);
   }
 
+  /**
+   * Gets a custom property from the server instance that was added using `addCustomProperty`.
+   * @param key The key of the custom property to get.
+   */
   getCustomProperty<T>(key: string): T | undefined {
     return this.#customProperties.get(key) as T;
   }
 
+  /**
+   * Creates a new InSpatialServer instance.
+   * @param config The configuration for the server.
+   * @example
+   * ```ts
+   * import { InSpatialServer } from "@inspatial/serve";
+   *
+   * const server = new InSpatialServer({
+   *  extensions: [], // add extensions here
+   * });
+   * ```
+   */
   constructor(config: C) {
     if (config) {
       this.#config = config;

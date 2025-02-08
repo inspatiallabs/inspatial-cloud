@@ -1,4 +1,5 @@
 import { InSpatialServer } from "#/inspatial-server.ts";
+export { InContext } from "#/in-context.ts";
 export { ServeLogger } from "#/logger/serve-logger.ts";
 
 export { InSpatialServer } from "#/inspatial-server.ts";
@@ -10,7 +11,7 @@ export {
   raiseServerException,
   ServerException,
 } from "#/server-exception.ts";
-export type { PathHandler } from "#/extension/path-handler.ts";
+export type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
 export {
   createServerMiddleware,
   type ServerMiddleware,
@@ -19,5 +20,29 @@ export type {
   LifecycleHandler,
   RequestLifecycle,
 } from "#/extension/request-lifecycle.ts";
-export type { ServeConfig } from "#/types.ts";
+export type {
+  ConfigDefinition,
+  ConfigEnv,
+  ConfigEnvTypeMap,
+  ExceptionHandler,
+  ExceptionHandlerResponse,
+  ExtensionConfig,
+  ExtractConfigEnvValue,
+  RequestMethod,
+  ServeConfig,
+} from "#/types.ts";
+
+export type {
+  DetailInfo,
+  ExtensionMap,
+  ServerExtensionInfo,
+} from "#/extension/types.ts";
+
+export type {
+  LoggerConfig,
+  LogMessage,
+  LogOptions,
+  LogType,
+  StackFrame,
+} from "#/logger/types.ts";
 export default InSpatialServer;

@@ -21,7 +21,10 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
    */
   host: string = "";
 
-  headers: Headers;
+  /**
+   * The headers received in the request.
+   */
+  readonly headers: Headers;
 
   /**
    * The origin of the request extracted from the `Origin` header.
@@ -86,8 +89,15 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
    */
   fileExtension = "";
 
-  /** */
+  /**
+   * The context object for the request.
+   */
   readonly context: InContext<CTX>;
+
+  /**
+   * Creates a new InRequest instance.
+   * @param request - The incoming {@link Request} object to parse
+   */
   constructor(request: Request) {
     this.request = request;
     this.context = new InContext();
