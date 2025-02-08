@@ -7,14 +7,11 @@ import type {
   PostgresColumn,
   QueryResultFormatted,
   ValueType,
-} from "#/types.ts";
-import { PostgresClient } from "#/postgres/pgClient.ts";
-import type { ColumnType } from "#/postgres/pgTypes.ts";
-import { serveLogger } from "../../serve/src/logger/serve-logger.ts";
-import {
-  camelToSnakeCase,
-  toCamelCase,
-} from "../../serve/src/utils/string-utils.ts";
+} from "#db/types.ts";
+import { PostgresClient } from "#db/postgres/pgClient.ts";
+import type { ColumnType } from "#db/postgres/pgTypes.ts";
+
+import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -51,7 +48,7 @@ export class InSpatialDB {
       try {
         await client.connect();
       } catch (e) {
-        serveLogger.warn(`Error connecting to database: ${e}`);
+        console.warn(`Error connecting to database: ${e}`);
         throw e;
       }
     }

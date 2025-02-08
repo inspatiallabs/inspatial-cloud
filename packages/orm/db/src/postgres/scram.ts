@@ -8,7 +8,7 @@ function decodeBase64(data: string): Uint8Array {
 
 /** Number of random bytes used to generate a nonce */
 const defaultNonceSize = 16;
-const text_encoder = new TextEncoder();
+const textEncoder = new TextEncoder();
 
 enum AuthenticationState {
   Init,
@@ -47,9 +47,6 @@ function assert(cond: unknown): asserts cond {
   }
 }
 
-// TODO
-// Handle mapping and maybe unicode normalization.
-// Add tests for invalid string values
 /**
  * Normalizes string per SASLprep.
  * @see {@link https://tools.ietf.org/html/rfc3454}
@@ -66,11 +63,11 @@ function assertValidScramString(str: string) {
 
 async function computeScramSignature(
   message: string,
-  raw_key: Uint8Array,
+  rawKey: Uint8Array,
 ): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey(
     "raw",
-    raw_key,
+    rawKey,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -80,7 +77,7 @@ async function computeScramSignature(
     await crypto.subtle.sign(
       { name: "HMAC", hash: "SHA-256" },
       key,
-      text_encoder.encode(message),
+      textEncoder.encode(message),
     ),
   );
 }
@@ -101,9 +98,9 @@ async function deriveKeySignatures(
   salt: Uint8Array,
   iterations: number,
 ): Promise<KeySignatures> {
-  const pbkdf2_password = await crypto.subtle.importKey(
+  const pbkdf2Password = await crypto.subtle.importKey(
     "raw",
-    text_encoder.encode(password),
+    textEncoder.encode(password),
     "PBKDF2",
     false,
     ["deriveBits", "deriveKey"],
@@ -115,17 +112,17 @@ async function deriveKeySignatures(
       name: "PBKDF2",
       salt,
     },
-    pbkdf2_password,
+    pbkdf2Password,
     { name: "HMAC", hash: "SHA-256", length: 256 },
     false,
     ["sign"],
   );
 
   const client = new Uint8Array(
-    await crypto.subtle.sign("HMAC", key, text_encoder.encode("Client Key")),
+    await crypto.subtle.sign("HMAC", key, textEncoder.encode("Client Key")),
   );
   const server = new Uint8Array(
-    await crypto.subtle.sign("HMAC", key, text_encoder.encode("Server Key")),
+    await crypto.subtle.sign("HMAC", key, textEncoder.encode("Server Key")),
   );
   const stored = new Uint8Array(await crypto.subtle.digest("SHA-256", client));
 
@@ -150,10 +147,8 @@ function parseScramAttributes(message: string): Record<string, string> {
       throw new Error(Reason.BadMessage);
     }
 
-    // TODO
-    // Replace with String.prototype.substring
-    const key = entry.substr(0, pos);
-    const value = entry.substr(pos + 1);
+    const key = entry.substring(0, pos);
+    const value = entry.substring(pos + 1);
     attrs[key] = value;
   }
 
@@ -166,11 +161,11 @@ function parseScramAttributes(message: string): Record<string, string> {
  * @see {@link https://tools.ietf.org/html/rfc5802}
  */
 export class ScramClient {
-  #auth_message: string;
-  #client_nonce: string;
-  #key_signatures?: KeySignatures;
+  #authMessage: string;
+  #clientNonce: string;
+  #keySignatures?: KeySignatures;
   #password: string;
-  #server_nonce?: string;
+  #serverNonce?: string;
   #state: AuthenticationState;
   #username: string;
 
@@ -178,8 +173,8 @@ export class ScramClient {
     assertValidScramString(password);
     assertValidScramString(username);
 
-    this.#auth_message = "";
-    this.#client_nonce = nonce ?? generateRandomNonce(defaultNonceSize);
+    this.#authMessage = "";
+    this.#clientNonce = nonce ?? generateRandomNonce(defaultNonceSize);
     this.#password = password;
     this.#state = AuthenticationState.Init;
     this.#username = escape(username);
@@ -195,10 +190,10 @@ export class ScramClient {
       // "n" for no channel binding, then an empty authzid option follows.
       const header = "n,,";
 
-      const challenge = `n=${this.#username},r=${this.#client_nonce}`;
+      const challenge = `n=${this.#username},r=${this.#clientNonce}`;
       const message = header + challenge;
 
-      this.#auth_message += challenge;
+      this.#authMessage += challenge;
       this.#state = AuthenticationState.ClientChallenge;
       return message;
     } catch (e) {
@@ -217,10 +212,10 @@ export class ScramClient {
       const attrs = parseScramAttributes(challenge);
 
       const nonce = attrs.r;
-      if (!attrs.r || !attrs.r.startsWith(this.#client_nonce)) {
+      if (!attrs.r || !attrs.r.startsWith(this.#clientNonce)) {
         throw new Error(Reason.BadServerNonce);
       }
-      this.#server_nonce = nonce;
+      this.#serverNonce = nonce;
 
       let salt: Uint8Array | undefined;
       if (!attrs.s) {
@@ -239,13 +234,13 @@ export class ScramClient {
         throw new Error(Reason.BadIterationCount);
       }
 
-      this.#key_signatures = await deriveKeySignatures(
+      this.#keySignatures = await deriveKeySignatures(
         this.#password,
         salt,
         iterCount,
       );
 
-      this.#auth_message += "," + challenge;
+      this.#authMessage += "," + challenge;
       this.#state = AuthenticationState.ServerChallenge;
     } catch (e) {
       this.#state = AuthenticationState.Failed;
@@ -258,22 +253,22 @@ export class ScramClient {
    */
   async composeResponse(): Promise<string> {
     assert(this.#state === AuthenticationState.ServerChallenge);
-    assert(this.#key_signatures);
-    assert(this.#server_nonce);
+    assert(this.#keySignatures);
+    assert(this.#serverNonce);
 
     try {
       // "biws" is the base-64 encoded form of the gs2-header "n,,".
-      const responseWithoutProof = `c=biws,r=${this.#server_nonce}`;
+      const responseWithoutProof = `c=biws,r=${this.#serverNonce}`;
 
-      this.#auth_message += "," + responseWithoutProof;
+      this.#authMessage += "," + responseWithoutProof;
 
       const proof = encodeBase64(
         computeScramProof(
           await computeScramSignature(
-            this.#auth_message,
-            this.#key_signatures.stored,
+            this.#authMessage,
+            this.#keySignatures.stored,
           ),
-          this.#key_signatures.client,
+          this.#keySignatures.client,
         ),
       );
       const message = `${responseWithoutProof},p=${proof}`;
@@ -291,7 +286,7 @@ export class ScramClient {
    */
   async receiveResponse(response: string) {
     assert(this.#state === AuthenticationState.ClientResponse);
-    assert(this.#key_signatures);
+    assert(this.#keySignatures);
 
     try {
       const attrs = parseScramAttributes(response);
@@ -302,8 +297,8 @@ export class ScramClient {
 
       const verifier = encodeBase64(
         await computeScramSignature(
-          this.#auth_message,
-          this.#key_signatures.server,
+          this.#authMessage,
+          this.#keySignatures.server,
         ),
       );
       if (attrs.v !== verifier) {

@@ -1,0 +1,17 @@
+{
+  "name": "@inspatial/orm",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/inspatiallabs/inspatial-cloud",
+  "author": "InSpatial Labs",
+  "imports": {
+    "#/": "./src/",
+    "#db": "./db/mod.ts",
+    "#db/": "./db/src/",
+    "@inspatial/serve": "jsr:@inspatial/serve@^0.1.2"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./db": "./db/mod.ts"
+  }
+}

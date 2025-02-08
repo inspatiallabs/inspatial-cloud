@@ -1,13 +1,18 @@
 // import ormExtension, { type EasyOrm } from "../../easy-orm/mod.ts";
 import type { AppExtension } from "#/app-extension.ts";
-import InSpatialServer, { InResponse, type ServerExtension } from "#serve";
+import InSpatialServer, {
+  InResponse,
+  type ServerExtension,
+} from "@inspatial/serve";
 import { dbExtension, type InSpatialDB } from "#db";
 import actionsAPI, {
   type ActionsAPI,
   type ActionsAPIAction,
-} from "#serve/actions-api";
-import corsExtension from "#serve/cors";
-import realtimeExtension, { type RealtimeHandler } from "#serve/realtime";
+} from "@inspatial/serve/actions-api";
+import corsExtension from "@inspatial/serve/cors";
+import realtimeExtension, {
+  type RealtimeHandler,
+} from "@inspatial/serve/realtime";
 import type { AppActionGroup } from "./app-action.ts";
 import { InRequest } from "../../serve/src/in-request.ts";
 import type { ReturnActionMap, RunActionMap } from "./types.ts";

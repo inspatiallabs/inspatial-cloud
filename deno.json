@@ -1,7 +1,11 @@
 {
-  "workspace": ["./packages/serve", "./packages/app", "./packages/db", "./dev"],
+  "workspace": [
+    "./packages/serve",
+    "./packages/app",
+    "./packages/orm",
+    "./dev"
+  ],
   "unstable": ["broadcast-channel"],
-  "exclude": ["./packages/easy-app/easyPacks/**"],
   "lint": {
     "rules": {
       "tags": ["recommended"],

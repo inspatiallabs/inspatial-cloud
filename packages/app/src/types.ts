@@ -1,6 +1,6 @@
 import type { InSpatialApp } from "./inspatial-app.ts";
-import type { InRequest, InResponse } from "#serve";
-import type { ActionParamProp } from "#serve/actions-api";
+import type { InRequest, InResponse } from "@inspatial/serve";
+import type { ActionParamProp } from "@inspatial/serve/actions-api";
 import type { AppAction } from "./app-action.ts";
 import type { AppExtension } from "../mod.ts";
 

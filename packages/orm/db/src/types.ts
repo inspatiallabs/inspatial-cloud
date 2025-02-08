@@ -20,10 +20,33 @@ export interface DBConnectionConfigSocket extends DBConnectionConfig {
 export type ClientConnectionType =
   | DBConnectionConfigTCP
   | DBConnectionConfigSocket;
+
 export interface DBConfig {
   connection: ClientConnectionType;
 }
 
+export type PgDataType =
+  | "boolean"
+  | "text"
+  | "character varying"
+  | "timestamp with time zone"
+  | "integer"
+  | "jsonb";
+
+export interface PgColumnDefinition {
+  columnName: string;
+  dataType: PgDataType;
+  columnDefault?: any | null;
+  characterMaximumLength?: number | null;
+  characterOctetLength?: number | null;
+  numericPrecision?: number | null;
+  numericPrecisionRadix?: number | null;
+  numericScale?: number | null;
+  datetimePrecision?: number | null;
+  intervalType?: string;
+  intervalPrecision?: number;
+  isNullable?: "YES" | "NO";
+}
 export interface PostgresColumn {
   tableCatalog: string;
   tableSchema: string;
@@ -32,13 +55,7 @@ export interface PostgresColumn {
   ordinalPosition: number;
   columnDefault: any | null;
   isNullable: "YES" | "NO";
-  dataType:
-    | "boolean"
-    | "text"
-    | "character varying"
-    | "timestamp with time zone"
-    | "integer"
-    | "jsonb";
+  dataType: PgDataType;
   characterMaximumLength: number | null;
   characterOctetLength: number | null;
   numericPrecision: number | null;

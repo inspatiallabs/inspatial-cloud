@@ -1,4 +1,4 @@
-import type { ServerExtension } from "#serve";
+import type { ServerExtension } from "@inspatial/serve";
 // import { EntryType } from "../../easyOrm/src/entry/entry/entryType/entryType.ts";
 // import { SettingsType } from "../../easyOrm/src/entry/settings/settingsType.ts";
 interface SettingsType {}

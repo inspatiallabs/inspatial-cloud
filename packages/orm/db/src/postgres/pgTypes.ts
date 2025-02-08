@@ -1,8 +1,11 @@
-import { ClientConnectionType, DBConfig } from "#/types.ts";
+import { ClientConnectionType } from "#db/types.ts";
 
 interface ConnectionOptions {
+  // deno-lint-ignore camelcase
   application_name?: string;
+  // deno-lint-ignore camelcase
   client_encoding?: string;
+  // deno-lint-ignore camelcase
   idle_session_timeout?: number;
   dateStyle?: string;
   TimeZone?: string;
@@ -11,6 +14,16 @@ interface ConnectionOptions {
 export type PgClientConfig = ClientConnectionType & {
   options?: ConnectionOptions;
 };
+
+export interface PgPoolConfig {
+  clientConfig: PgClientConfig;
+  pool: {
+    size: number;
+    lazy: boolean;
+    maxSize: number;
+    idleTimeout: number;
+  };
+}
 export interface DataTypeMap {
   16: "bool";
   17: "bytea";

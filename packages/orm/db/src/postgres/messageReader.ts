@@ -1,4 +1,4 @@
-import type { ServerMessageType } from "#orm/database/adapter/adapters/postgres/pgTypes.ts";
+import { ServerMessageType } from "#db/postgres/pgTypes.ts";
 
 export class MessageReader {
   offset: number;

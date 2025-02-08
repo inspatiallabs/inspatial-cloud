@@ -1,8 +1,8 @@
 //https://www.postgresql.org/docs/16/protocol-flow.html
 //https://www.postgresql.org/docs/16/protocol-message-formats.html
 
-import { errorCodeMap, pgErrorMap } from "#/postgres/maps/errorMap.ts";
-import { PgError } from "#/postgres/pgError.ts";
+import { errorCodeMap, pgErrorMap } from "#db/postgres/maps/errorMap.ts";
+import { PgError } from "#db/postgres/pgError.ts";
 import {
   type ColumnDescription,
   type PgClientConfig,
@@ -10,17 +10,17 @@ import {
   type QueryResponse,
   type ServerStatus,
   type SimpleQueryResponse,
-} from "#/postgres/pgTypes.ts";
-import { MessageWriter } from "#/postgres/messageWriter.ts";
-import { MessageReader } from "#/postgres/messageReader.ts";
+} from "#db/postgres/pgTypes.ts";
+import { MessageWriter } from "#db/postgres/messageWriter.ts";
+import { MessageReader } from "#db/postgres/messageReader.ts";
 import {
   convertToDataType,
   getDataType,
   statusMap,
-} from "#/postgres/maps/maps.ts";
-import { AUTH } from "#/postgres/pgAuth.ts";
-import { ScramClient } from "#/postgres/scram.ts";
-import { toCamelCase } from "../../../serve/src/utils/string-utils.ts";
+} from "#db/postgres/maps/maps.ts";
+import { AUTH } from "#db/postgres/pgAuth.ts";
+import { ScramClient } from "#db/postgres/scram.ts";
+import { toCamelCase } from "#db/utils.ts";
 
 export class PostgresClient {
   private conn!: Deno.Conn;

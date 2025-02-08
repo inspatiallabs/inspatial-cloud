@@ -1,14 +1,10 @@
+import { PostgresClient } from "#db/postgres/pgClient.ts";
 import {
-  PostgresClient,
-} from "#orm/database/adapter/adapters/postgres/pgClient.ts";
-
-import type { PostgresConfig } from "#orm/database/adapter/adapters/pgAdapter.ts";
-import type {
   PgClientConfig,
+  PgPoolConfig,
   QueryResponse,
-} from "#orm/database/adapter/adapters/postgres/pgTypes.ts";
-import { raiseOrmException } from "#orm/ormException.ts";
-import { PgError } from "#orm/database/adapter/adapters/postgres/pgError.ts";
+} from "#db/postgres/pgTypes.ts";
+import { PgError } from "#db/postgres/pgError.ts";
 
 class PostgresPoolClient {
   locked: boolean;
@@ -29,7 +25,9 @@ class PostgresPoolClient {
     await this.client.reset();
     this.locked = false;
   }
-  async query<T>(query: string): Promise<QueryResponse<T>> {
+  async query<T extends Record<string, any>>(
+    query: string,
+  ): Promise<QueryResponse<T>> {
     const response = await this.client.query<T>(query).catch(async (e) => {
       if (e instanceof PgError && e.name === "terminate") {
         this.client = new PostgresClient(this.config);
@@ -54,21 +52,19 @@ export class PostgresPool {
   private readonly clientConfig: PgClientConfig;
   private readonly maxWait: number;
   private readonly maxClients: number;
-  constructor(config: PostgresConfig) {
+  constructor(config: PgPoolConfig) {
+    const { pool, clientConfig } = config;
     this.clients = [];
-    this.maxClients = 10;
-    const options = config.clientOptions;
-    if (options?.unixPath && (options?.host || options?.port)) {
-      throw new Error("Cannot use both unixPath and host/port");
-    }
-    this.clientConfig = options;
-    this.size = config.size || 1;
+    this.maxClients = pool.maxSize || 10;
+    this.clientConfig = clientConfig;
+
+    this.size = pool.size || 1;
 
     if (this.size > this.maxClients) {
       this.maxClients = this.size;
     }
-    this.lazy = config.lazy || false;
-    this.maxWait = 5000;
+    this.lazy = pool.lazy || false;
+    this.maxWait = pool.idleTimeout || 5000;
     for (let i = 0; i < this.size; i++) {
       this.clients.push(new PostgresPoolClient(this.clientConfig));
     }
@@ -87,10 +83,10 @@ export class PostgresPool {
     const start = Date.now();
     while (!client) {
       if (Date.now() - start > this.maxWait) {
-        raiseOrmException(
-          "DatabaseError",
-          "Timeout waiting for connection pool client",
-        );
+        throw new PgError({
+          message: "Timeout waiting for client",
+          name: "timeout",
+        });
       }
       client = this.clients.find((c) => !c.locked);
       if (!client) {
@@ -108,7 +104,9 @@ export class PostgresPool {
   private replaceClient(client: PostgresPoolClient) {
     client.client = new PostgresClient(this.clientConfig);
   }
-  async query<T>(query: string): Promise<QueryResponse<T>> {
+  async query<T extends Record<string, any>>(
+    query: string,
+  ): Promise<QueryResponse<T>> {
     const client = await this.getClient();
     const result = await client.query<T>(query);
 

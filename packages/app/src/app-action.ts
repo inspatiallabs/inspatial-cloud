@@ -1,7 +1,11 @@
-import { type InRequest, type InResponse, raiseServerException } from "#serve";
+import {
+  type InRequest,
+  type InResponse,
+  raiseServerException,
+} from "@inspatial/serve";
 import type { InSpatialApp } from "./inspatial-app.ts";
 import type { ActionParamProp } from "./types.ts";
-import type { ParamsMap } from "#serve/actions-api";
+import type { ParamsMap } from "@inspatial/serve/actions-api";
 
 export class AppAction<
   N extends string,

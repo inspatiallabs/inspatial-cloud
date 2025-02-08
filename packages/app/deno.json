@@ -5,16 +5,11 @@
     ".": "./mod.ts"
   },
   "publish": {
-    "exclude": [
-      ".github"
-    ]
+    "exclude": [".github"]
   },
   "imports": {
     "#/": "./src/",
     "#db": "../db/mod.ts",
-    "#serve": "../serve/mod.ts",
-    "#serve/realtime": "../serve/extensions/realtime/mod.ts",
-    "#serve/cors": "../serve/extensions/cors/mod.ts",
-    "#serve/actions-api": "../serve/extensions/actions-api/mod.ts"
+    "@inspatial/serve": "jsr:@inspatial/serve@^0.1.2"
   }
 }
