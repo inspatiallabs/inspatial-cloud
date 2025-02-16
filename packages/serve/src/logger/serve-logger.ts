@@ -1,5 +1,6 @@
 import type {
   LoggerConfig,
+  LogLevel,
   LogMessage,
   LogOptions,
   LogType,
@@ -68,9 +69,20 @@ export class ServeFileLogger {
  */
 export class ServeLogger {
   /**
+   * The name of the logger
+   */
+  name: string;
+  /**
    * The configuration for the logger
    */
   config: LoggerConfig;
+
+  get #envLoaded(): boolean {
+    return this.#logLevel !== undefined;
+  }
+
+  #logLevel?: LogLevel;
+
   #lineChar: string;
   /**
    * Create a new ServeLogger
@@ -85,7 +97,28 @@ export class ServeLogger {
    */
   constructor(config: LoggerConfig) {
     this.config = config;
+    this.name = config.name || "";
     this.#lineChar = printUtils.symbol.box.horizontal;
+    this.#loadEnv();
+  }
+
+  #loadEnv() {
+    if (this.#envLoaded) {
+      return;
+    }
+    const env = Deno.env.get("LOG_LEVEL");
+    console.log(`log level: ${env}`);
+    if (!env) {
+      return;
+    }
+    if (env) {
+      const logLevel = env.toLowerCase() as LogLevel;
+      if (!["debug", "info", "warning", "error"].includes(logLevel)) {
+        return;
+      }
+      this.#logLevel = logLevel;
+      console.log(`log level: ${logLevel}`);
+    }
   }
 
   /**
@@ -113,6 +146,9 @@ export class ServeLogger {
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
+    if (this.#logLevel && this.#logLevel !== "debug") {
+      return;
+    }
     this.#log("debug", content, subjectOrOptions, options);
   }
 
@@ -140,6 +176,12 @@ export class ServeLogger {
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
+    if (
+      this.#logLevel &&
+      (this.#logLevel !== "info" && this.#logLevel !== "debug")
+    ) {
+      return;
+    }
     this.#log("info", content, subjectOrOptions, options);
   }
 
@@ -203,6 +245,7 @@ export class ServeLogger {
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ) {
+    this.#loadEnv();
     const frame = this.#getCallFrame();
     switch (typeof subjectOrOptions) {
       case "string":
@@ -230,7 +273,11 @@ export class ServeLogger {
   #formatLogMessage(message: LogMessage) {
     const { content, type, subject, caller, timestamp: _timestamp } = message;
     const color: BasicFgColor = colorMap[type];
-    const titleRow = formatUtils.center(subject, this.#lineChar, {
+    let title = subject;
+    if (this.name) {
+      title = `${this.name} - ${subject}`;
+    }
+    const titleRow = formatUtils.center(title, this.#lineChar, {
       color,
     });
     const frame = formatStackFrame(caller, true);
@@ -272,7 +319,7 @@ export class ServeLogger {
     const offset = this.config.traceOffset || 0;
     const parts = stack.split("\n");
     for (let i = 0; i < parts.length; i++) {
-      if (parts[i].includes("ServeLogger.log")) {
+      if (parts[i].includes("ServeLogger.#log")) {
         return parseStackFrame(parts[i + offset + 1]);
       }
     }

@@ -1,7 +1,10 @@
-import { FieldDefMap, ORMFieldMap } from "#/field/types.ts";
+import { FieldDefMap, FieldDefType, ORMFieldMap } from "#/field/types.ts";
 import { PgColumnDefinition } from "#db/types.ts";
 
-export class ORMField<T extends keyof FieldDefMap = keyof FieldDefMap> {
+/**
+ * A class that represents a field type configuration for InSpatial ORM.
+ */
+export class ORMField<T extends FieldDefType = FieldDefType> {
   readonly type: T;
   description?: string;
   #dbLoad: (value: any, fieldDef: FieldDefMap[T]) => ORMFieldMap[T];

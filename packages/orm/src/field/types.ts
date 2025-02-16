@@ -42,6 +42,9 @@ export type FieldDefMap = {
   ListField: ListFieldDef;
   CurrencyField: CurrencyFieldDef;
 };
+
+export type FieldDefType = keyof FieldDefMap;
+
 interface BaseFieldDef {
   key: string;
   label: string;

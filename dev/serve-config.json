@@ -1,23 +1,23 @@
 {
+  "serve": {
+    "LOG_LEVEL": "warning"
+  },
   "actions-api": {},
   "CORS": {
-    "ALLOWED_ORIGINS": []
+    "ALLOWED_ORIGINS": ["*"]
   },
   "realtime": {},
   "db": {
     "DB_CONNECTION_TYPE": "socket",
     "DB_SOCKET_PATH": "/var/run/postgresql/.s.PGSQL.5432",
-    "DB_NAME": "postgres",
-    "DB_HOST": "localhost",
-    "DB_PORT": 5432,
-    "DB_USER": "postgres",
-    "DB_PASSWORD": "postgres",
+    "DB_NAME": "inspatial",
+    "DB_USER": "eliveffer",
     "DB_SCHEMA": "public"
   },
   "me": {},
   "you": {},
   "userAgent": {
-    "USER_AGENT_DEBUG": true,
-    "USER_AGENT_ENABLED": true
+    "USER_AGENT_DEBUG": false,
+    "USER_AGENT_ENABLED": false
   }
 }

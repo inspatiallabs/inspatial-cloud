@@ -13,9 +13,12 @@ import corsExtension from "@inspatial/serve/cors";
 import realtimeExtension, {
   type RealtimeHandler,
 } from "@inspatial/serve/realtime";
-import type { AppActionGroup } from "./app-action.ts";
-import { InRequest } from "../../serve/src/in-request.ts";
-import type { ReturnActionMap, RunActionMap } from "./types.ts";
+import type { AppActionGroup } from "#/app-action.ts";
+import { InRequest } from "@inspatial/serve";
+import type { ReturnActionMap, RunActionMap } from "#/types.ts";
+
+import { EntryType, InSpatialOrm, SettingsType } from "#orm";
+import { ormExtension } from "../app-extensions/orm/mod.ts";
 export class InSpatialApp<
   N extends string = string,
   P extends Array<AppExtension> = [],
@@ -38,7 +41,8 @@ export class InSpatialApp<
   get db(): InSpatialDB {
     return this.server.getExtension("db") as InSpatialDB;
   }
-  // orm!: EasyOrm;
+
+  orm: InSpatialOrm;
 
   ready: Promise<boolean>;
 
@@ -61,8 +65,12 @@ export class InSpatialApp<
       // ormExtension,
     ];
 
+    const appEntries: Array<EntryType> = [];
+    const appSettings: Array<SettingsType> = [];
     this.#ActionGroups = new Map();
     this.#appExtensions = new Map();
+    this.#appExtensions.set("orm", ormExtension);
+
     // this._easyPacks.set(basePack.key, basePack);
     if (config?.appExtensions) {
       for (const appExtension of config.appExtensions) {
@@ -71,6 +79,9 @@ export class InSpatialApp<
             `EasyPack with key ${appExtension.key} already exists`,
           );
         }
+        const { entryTypes, settingsTypes } = appExtension;
+        appEntries.push(...entryTypes);
+        appSettings.push(...settingsTypes);
         this.#appExtensions.set(appExtension.key, appExtension);
         extensions.push(...appExtension.serverExtensions);
       }
@@ -78,6 +89,12 @@ export class InSpatialApp<
     this.server = new InSpatialServer({
       extensions,
     });
+    this.orm = new InSpatialOrm({
+      db: this.db,
+      entries: appEntries,
+      settings: appSettings,
+    });
+
     this.#setup();
     this.ready = new Promise((resolve) => {
       this.boot().then(() => {

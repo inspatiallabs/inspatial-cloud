@@ -1,5 +1,7 @@
 import type { InSpatialServer } from "#/inspatial-server.ts";
 import { joinPath } from "#/utils/path-utils.ts";
+import { ConfigDefinition } from "#/types.ts";
+import { serveEnvConfig } from "#/serve-config/serve-env.ts";
 
 /**
  * Checks for a serve-config.json file in the current working directory and loads it to the environment variables.
@@ -14,7 +16,7 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
       const extensionConfig = config[key];
       for (const subKey in extensionConfig) {
         const value = extensionConfig[subKey];
-
+        console.log(`Setting ${subKey} to ${value}`);
         Deno.env.set(subKey, value);
       }
     }
@@ -33,9 +35,7 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
 export async function generateServeConfigFile(server: InSpatialServer) {
   const filePath = joinPath(Deno.cwd(), "serve-config_generated.json");
   const masterConfig = new Map<string, any>();
-  server.installedExtensions.forEach((extension) => {
-    const configDef = extension.config;
-
+  const mapConfig = (configDef: ConfigDefinition) => {
     const mappedConfig = new Map<string, any>();
     for (const key in configDef) {
       const config = configDef[key];
@@ -55,6 +55,14 @@ export async function generateServeConfigFile(server: InSpatialServer) {
 
       mappedConfig.set(config.env!, value);
     }
+    return mappedConfig;
+  };
+  const mappedServeConfig = mapConfig(serveEnvConfig);
+  masterConfig.set("serve", Object.fromEntries(mappedServeConfig));
+  server.installedExtensions.forEach((extension) => {
+    const configDef = extension.config;
+
+    const mappedConfig = mapConfig(configDef);
     masterConfig.set(extension.name, Object.fromEntries(mappedConfig));
   });
   const config = Object.fromEntries(masterConfig);

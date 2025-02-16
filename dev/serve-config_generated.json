@@ -1,4 +1,7 @@
 {
+  "serve": {
+    "LOG_LEVEL": "info"
+  },
   "actions-api": {},
   "CORS": {
     "ALLOWED_ORIGINS": [

@@ -9,7 +9,8 @@
   },
   "imports": {
     "#/": "./src/",
-    "#db": "../db/mod.ts",
+    "#db": "../orm/db/mod.ts",
+    "#orm": "../orm/mod.ts",
     "@inspatial/serve": "jsr:@inspatial/serve@^0.1.2"
   }
 }

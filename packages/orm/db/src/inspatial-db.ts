@@ -12,6 +12,8 @@ import { PostgresClient } from "#db/postgres/pgClient.ts";
 import type { ColumnType } from "#db/postgres/pgTypes.ts";
 
 import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
+import { serveLogger } from "../../../serve/src/logger/serve-logger.ts";
+import { ormLogger } from "#/logger.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -48,11 +50,11 @@ export class InSpatialDB {
       try {
         await client.connect();
       } catch (e) {
-        console.warn(`Error connecting to database: ${e}`);
+        ormLogger.warn(`Error connecting to database: ${e}`);
         throw e;
       }
     }
-    return client.query<T>(query);
+    return await client.query<T>(query);
   }
 
   constructor(config: DBConfig) {
@@ -64,6 +66,7 @@ export class InSpatialDB {
   async query<T extends Record<string, any> = Record<string, any>>(
     query: string,
   ): Promise<QueryResultFormatted<T>> {
+    ormLogger.debug(`Query: ${query}`);
     const result = await this.#query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
     return {
@@ -126,8 +129,8 @@ export class InSpatialDB {
     const query = `SELECT ${
       formattedColumns.join(", ")
     } FROM information_schema.columns WHERE table_schema = '${this.schema}' AND table_name = '${tableName}'`;
+    ormLogger.debug(query, "DB Query");
     const result = await this.query<PostgresColumn>(query);
-
     return result.rows.map((row) => {
       return {
         ...row,

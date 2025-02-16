@@ -4,6 +4,10 @@
 export type LogType = "error" | "info" | "warning" | "debug" | "message";
 
 /**
+ * The log levels
+ */
+export type LogLevel = "error" | "info" | "warning" | "debug";
+/**
  * A parsed stack frame
  */
 export interface StackFrame {
@@ -74,6 +78,10 @@ export interface LogOptions {
  * The configuration for the logger
  */
 export interface LoggerConfig {
+  /**
+   * The name of the logger
+   */
+  name?: string;
   /**
    * The offset to use when isolating the stack trace call frame
    */
