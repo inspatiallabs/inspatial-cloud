@@ -8,4 +8,12 @@ export const serveEnvConfig: ConfigDefinition = {
     type: "string",
     env: "LOG_LEVEL",
   },
+  logTrace: {
+    description:
+      "Whether to include the file and line number in the log output for info, warning and debug logs",
+    required: false,
+    default: false,
+    type: "boolean",
+    env: "LOG_TRACE",
+  },
 };

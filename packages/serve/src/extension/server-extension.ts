@@ -8,7 +8,7 @@ import type { PathHandler } from "#/extension/path-handler.ts";
 import type { InSpatialServer } from "#/inspatial-server.ts";
 
 import type { RequestLifecycle } from "#/extension/request-lifecycle.ts";
-import { camelToSnakeCase } from "#/utils/string-utils.ts";
+import { camelToSnakeCase } from "#/utils/convert-string.ts";
 
 /**
  * An extension for InSpatialServer.

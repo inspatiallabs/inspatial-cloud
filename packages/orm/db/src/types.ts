@@ -31,7 +31,9 @@ export type PgDataType =
   | "character varying"
   | "timestamp with time zone"
   | "integer"
-  | "jsonb";
+  | "jsonb"
+  | "numeric"
+  | "bigint";
 
 export interface PgColumnDefinition {
   columnName: string;
@@ -46,6 +48,21 @@ export interface PgColumnDefinition {
   intervalType?: string;
   intervalPrecision?: number;
   isNullable?: "YES" | "NO";
+  unique?: boolean;
+  isIdentity?: boolean;
+}
+
+export interface TableConstraint {
+  constraintSchema: string;
+  constraintName: string;
+  columnName: string;
+  tableSchema: string;
+  tableName: string;
+  constraintType: "CHECK" | "FOREIGN KEY" | "PRIMARY KEY" | "UNIQUE";
+  isDeferrable: "YES" | "NO";
+  initiallyDeferred: "YES" | "NO";
+  enforced: "YES" | "NO";
+  nullsDistinct: null;
 }
 export interface PostgresColumn {
   tableCatalog: string;

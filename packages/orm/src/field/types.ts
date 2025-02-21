@@ -18,7 +18,8 @@ export type ORMFieldDef =
   | RichTextFieldDef
   | URLFieldDef
   | ListFieldDef
-  | CurrencyFieldDef;
+  | CurrencyFieldDef
+  | IDFieldDef;
 
 export type FieldDefMap = {
   DataField: DataFieldDef;
@@ -41,6 +42,7 @@ export type FieldDefMap = {
   URLField: URLFieldDef;
   ListField: ListFieldDef;
   CurrencyField: CurrencyFieldDef;
+  IDField: IDFieldDef;
 };
 
 export type FieldDefType = keyof FieldDefMap;
@@ -51,6 +53,11 @@ interface BaseFieldDef {
   description?: string;
   required?: boolean;
   readOnly?: boolean;
+  unique?: boolean;
+}
+interface IDFieldDef extends BaseFieldDef {
+  type: "IDField";
+  idType: "hex16" | "hex24" | "hex32" | "uuid" | "autoincrement";
 }
 
 interface DataFieldDef extends BaseFieldDef {

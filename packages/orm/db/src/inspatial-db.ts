@@ -4,8 +4,10 @@ import type {
   DBConfig,
   DBFilter,
   DBListOptions,
+  PgColumnDefinition,
   PostgresColumn,
   QueryResultFormatted,
+  TableConstraint,
   ValueType,
 } from "#db/types.ts";
 import { PostgresClient } from "#db/postgres/pgClient.ts";
@@ -14,6 +16,7 @@ import type { ColumnType } from "#db/postgres/pgTypes.ts";
 import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
 import { serveLogger } from "../../../serve/src/logger/serve-logger.ts";
 import { ormLogger } from "#/logger.ts";
+import { convertString } from "../../../serve/src/utils/mod.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -138,77 +141,83 @@ export class InSpatialDB {
       };
     });
   }
+  async addTableComment(tableName: string, comment: string): Promise<void> {
+    tableName = this.#toSnake(tableName);
+    const query =
+      `COMMENT ON TABLE ${this.schema}.${tableName} IS '${comment}'`;
+    await this.query(query);
+  }
+  async getTableComment(tableName: string): Promise<string> {
+    tableName = this.#toSnake(tableName);
+    const query =
+      `SELECT obj_description('${this.schema}.${tableName}'::regclass, 'pg_class') as comment`;
+    const result = await this.query<{ comment: string }>(query);
+    console.log(result);
+    return result.rows[0].comment;
+  }
   async addColumn(
     tableName: string,
-    columnName: string,
-    columnType: ColumnType,
-    options?: {
-      unique?: boolean;
-    },
+    column: PgColumnDefinition,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
-    columnName = camelToSnakeCase(columnName);
+    const columnName = convertString(column.columnName, "snake", true);
 
     let query = `ALTER TABLE ${this.schema}.${tableName} ADD "${columnName}"`;
 
-    switch (columnType.type) {
-      case "varchar":
+    switch (column.dataType) {
+      case "character varying":
         query += ` VARCHAR`;
-        if (columnType.length) {
-          query += `(${columnType.length})`;
+        if (column.characterMaximumLength) {
+          query += `(${column.characterMaximumLength})`;
         }
         break;
       case "text":
         query += ` TEXT`;
         break;
-      case "bool":
+      case "boolean":
         query += ` BOOLEAN`;
         break;
-      case "int":
+      case "integer":
         query += ` INTEGER`;
         break;
-      case "float":
-        query += ` FLOAT`;
-        if (columnType.precision) {
-          query += `(${columnType.precision})`;
-        }
+      case "bigint":
+        query += ` BIGINT`;
         break;
       case "numeric":
         query += ` NUMERIC`;
-        if (columnType.precision) {
-          query += `(${columnType.precision}`;
-          if (columnType.scale) {
-            query += `, ${columnType.scale}`;
+        if (column.numericPrecision) {
+          query += `(${column.numericPrecision}`;
+          if (column.numericScale) {
+            query += `, ${column.numericScale}`;
           }
           query += ")";
         }
         break;
-      case "json":
-        query += ` JSON`;
-        break;
       case "jsonb":
         query += ` JSONB`;
         break;
-      case "date":
-        query += ` DATE`;
-        break;
-      case "timestamp":
-        query += ` TIMESTAMP`;
-        break;
-      case "timestamptz":
+      case "timestamp with time zone":
         query += ` TIMESTAMP WITH TIME ZONE`;
         break;
       default:
         query += ` TEXT`;
         break;
     }
-    // return query;
-    await this.query(query);
-    if (options?.unique) {
-      await this.makeColumnUnique(tableName, columnName);
+    if (column.isIdentity) {
+      query += ` PRIMARY KEY`;
+    }
+    if (column.isNullable === "NO") {
+      query += ` NOT NULL`;
+    }
+    if (column.columnDefault) {
+      query += ` DEFAULT ${column.columnDefault}`;
     }
 
-    await this.removeColumnUnique(tableName, columnName);
+    // return query;
+    await this.query(query);
+    if (column.unique) {
+      await this.makeColumnUnique(tableName, columnName);
+    }
   }
 
   async getTableNames(): Promise<string[]> {
@@ -230,9 +239,7 @@ export class InSpatialDB {
     tableName: string,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
-    const query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} (
-      id VARCHAR(16) PRIMARY KEY
-    )`;
+    const query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} ();`;
     await this.query(query);
   }
 
@@ -552,6 +559,28 @@ export class InSpatialDB {
     const query =
       `ALTER TABLE ${this.schema}.${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
     await this.query(query);
+  }
+  async getTableConstraints(
+    tableName: string,
+  ): Promise<Array<TableConstraint>> {
+    tableName = this.#toSnake(tableName);
+    const query =
+      // `SELECT * FROM information_schema.table_constraints WHERE table_name = '${tableName}' AND table_schema = '${this.schema}'`;
+      `SELECT
+        tc.constraint_name,
+        tc.constraint_type,
+        kcu.column_name
+    FROM information_schema.table_constraints AS tc
+    JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+    WHERE tc.table_name = '${tableName}'
+        AND tc.table_schema = '${this.schema}'`;
+    // AND tc.constraint_type = 'UNIQUE';`;
+
+    const result = await this.query<
+      TableConstraint
+    >(query);
+    return result.rows;
   }
   #makeOrFilter(
     filters: DBFilter,

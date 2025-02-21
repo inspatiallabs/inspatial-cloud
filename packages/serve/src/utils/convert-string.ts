@@ -92,15 +92,14 @@ function camelToTitleCase(inputString: string): string {
   return toTitleCase(camelToSnakeCase(inputString));
 }
 
-/** */
-export {
-  camelToSnakeCase,
-  camelToTitleCase,
-  toCamelCase,
-  toPascalCase,
-  toSnakeCase,
-  toTitleCase,
-};
+/**
+ * Converts a string to kebab case
+ * @param {string} inputString
+ */
+
+function toKebabCase(inputString: string): string {
+  return sanitizeString(inputString).replace(/_/g, "-");
+}
 
 /**
  * Effectively converts a string to snake case
@@ -145,12 +144,60 @@ function generateRandomString(length: number = 24): string {
  * @param {number | string} value - value to add leading zeros to
  * @param {number} length - length of the resulting string (default is 2)
  */
-function addLeadingZeros(value: number | string, length: number = 2): string {
+function addLeadingZeros(
+  value: number | string,
+  length: number = 2,
+): string {
   value = value.toString();
   if (value.length >= length) {
     return value;
   }
   return "0".repeat(length - value.length) + value;
 }
-export { addLeadingZeros, generateRandomString, sanitizeString };
-export default { addLeadingZeros, generateRandomString, sanitizeString };
+
+type StringFormat = "snake" | "camel" | "pascal" | "title" | "kebab";
+
+function convertString(
+  inputString: string,
+  toFormat: StringFormat,
+  fromCamelCase?: boolean,
+): string {
+  if (fromCamelCase) {
+    // strip leading and trailing whitespace and delimiters
+    inputString = inputString.trim().replace(/[^a-zA-Z0-9_]/g, "_");
+    // substitute capital letters with underscore and lowercase
+    inputString = inputString.replace(/(?<!^)(?=[A-Z])/g, "_").toLowerCase();
+
+    //insert an underscore before any digit that is preceded by a letter
+    inputString = inputString.replace(/(?<=[a-zA-Z])(?=\d)/g, "_");
+  }
+  switch (toFormat) {
+    case "snake":
+      return toSnakeCase(inputString);
+    case "camel":
+      return toCamelCase(inputString);
+    case "pascal":
+      return toPascalCase(inputString);
+    case "title":
+      return toTitleCase(inputString);
+    case "kebab":
+      return toKebabCase(inputString);
+  }
+}
+
+/** */
+export {
+  addLeadingZeros,
+  camelToSnakeCase,
+  camelToTitleCase,
+  convertString,
+  generateRandomString,
+  sanitizeString,
+  toCamelCase,
+  toKebabCase,
+  toPascalCase,
+  toSnakeCase,
+  toTitleCase,
+};
+
+export default convertString;

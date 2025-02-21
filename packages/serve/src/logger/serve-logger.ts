@@ -82,7 +82,7 @@ export class ServeLogger {
   }
 
   #logLevel?: LogLevel;
-
+  #logTrace: boolean = true;
   #lineChar: string;
   /**
    * Create a new ServeLogger
@@ -107,7 +107,11 @@ export class ServeLogger {
       return;
     }
     const env = Deno.env.get("LOG_LEVEL");
-    console.log(`log level: ${env}`);
+    const logTrace = Deno.env.get("LOG_TRACE");
+    if (logTrace) {
+      this.#logTrace = logTrace === "true";
+    }
+    // console.log(`log level: ${env}`);
     if (!env) {
       return;
     }
@@ -117,7 +121,8 @@ export class ServeLogger {
         return;
       }
       this.#logLevel = logLevel;
-      console.log(`log level: ${logLevel}`);
+
+      // console.log(`log level: ${logLevel}`);
     }
   }
 
@@ -298,14 +303,16 @@ export class ServeLogger {
     const lines = [
       " ",
       titleRow,
-      " ",
-      formatUtils.center(frame),
-      " ",
-      ...formattedContent,
-      " ",
-      endRow,
-      " ",
     ];
+    lines.push(" ");
+    if (type == "error" || this.#logTrace) {
+      lines.push(formatUtils.center(frame));
+      lines.push(" ");
+    }
+    lines.push(...formattedContent);
+    lines.push(" ");
+    lines.push(endRow);
+    lines.push(" ");
     return lines.join("\n");
   }
   /**

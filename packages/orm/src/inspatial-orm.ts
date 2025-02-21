@@ -1,20 +1,43 @@
 import { InSpatialDB } from "#db";
 import { ListOptions } from "#/types.ts";
-import { FieldDefType } from "#/field/types.ts";
+import { FieldDefMap, FieldDefType } from "#/field/types.ts";
 import { ORMField } from "#/field/orm-field.ts";
 import { ormFields } from "#/field/fields.ts";
-import { migrateEntryType } from "#/migrate/migrate-db.ts";
+import {
+  EntryTypeMigrator,
+  migrateEntryType,
+  MigrationPlan,
+  MigrationPlanner,
+} from "#/migrate/migrate-db.ts";
 import { EntryType } from "#/entry/entry-type.ts";
 import { serveLogger } from "../../serve/src/logger/serve-logger.ts";
 import { SettingsType } from "#/settings/settings-type.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { ormLogger } from "#/logger.ts";
+import { buildEntry } from "#/entry/build-entry.ts";
+import { Entry } from "#/entry/entry.ts";
 
 export class InSpatialOrm {
   db: InSpatialDB;
-  fieldTypes: Map<FieldDefType, ORMField>;
+  fieldTypes: Map<FieldDefType, ORMField<any>>;
   entryTypes: Map<string, EntryType>;
+  #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType>;
+  #rootPath: string;
+  get #entriesPath() {
+    return `${this.#rootPath}/_generated/entries`;
+  }
+  _getFieldType<T extends FieldDefType = FieldDefType>(
+    fieldType: T,
+  ): ORMField<T> {
+    const fieldTypeDef = this.fieldTypes.get(fieldType);
+    if (!fieldTypeDef) {
+      raiseORMException(
+        `Field type ${fieldType} does not exist in ORM`,
+      );
+    }
+    return fieldTypeDef;
+  }
   constructor(
     /**
      * A configuration object that will be used to initialize the InSpatial ORM.
@@ -32,14 +55,24 @@ export class InSpatialOrm {
        * A list of SettingsTypes that will be used to define the structure of the settings
        */
       settings: Array<SettingsType>;
+
+      /**
+       * The root path of the application. This is used to determine the location for the generated files.
+       * If not provided, the current working directory will be used.
+       */
+      rootPath?: string;
     },
   ) {
+    this.#rootPath = config.rootPath || Deno.cwd();
+    this.#rootPath = `${this.#rootPath}/.inspatial`;
+
     this.fieldTypes = new Map();
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMField);
     }
     this.db = config.db;
     this.entryTypes = new Map();
+    this.#entryClasses = new Map();
     this.settingsTypes = new Map();
     for (const entryType of config.entries) {
       this.#addEntryType(entryType);
@@ -47,8 +80,14 @@ export class InSpatialOrm {
     for (const settingsType of config.settings) {
       this.#addSettingsType(settingsType);
     }
+    this.#build();
   }
-
+  #build() {
+    for (const entryType of this.entryTypes.values()) {
+      const entryClass = buildEntry(entryType, this.#entriesPath);
+      this.#entryClasses.set(entryType.name, entryClass);
+    }
+  }
   #addEntryType(entryType: EntryType) {
     if (this.entryTypes.has(entryType.name)) {
       raiseORMException(
@@ -66,16 +105,46 @@ export class InSpatialOrm {
     }
     this.settingsTypes.set(settingsType.name, settingsType);
   }
+  #getEntryInstance(entryType: string) {
+    const entryClass = this.#entryClasses.get(entryType);
+    if (!entryClass) {
+      raiseORMException(
+        `EntryType ${entryType} is not a valid entry type.`,
+      );
+    }
+    return new entryClass(this, entryType);
+  }
 
   // Single Entry Operations
-  async createEntry<E extends string>(entryType: E, entry: any): Promise<any> {}
-  async getEntry<E extends string>(entryType: E, id: string): Promise<any> {}
+  async createEntry<E extends string>(
+    entryType: E,
+    data: Record<string, any>,
+  ): Promise<Entry> {
+    const entry = this.#getEntryInstance(entryType);
+    await entry.new();
+    entry.update(data);
+    await entry.save();
+    return entry;
+  }
+  async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
+    const entry = this.#getEntryInstance(entryType);
+    await entry.load(id);
+    return entry;
+  }
   async updateEntry<E extends string>(
     entryType: E,
-    entry: any,
+    id: any,
     data: Record<string, any>,
-  ): Promise<any> {}
-  async deleteEntry<E extends string>(entryType: E, id: string): Promise<any> {}
+  ): Promise<any> {
+    const entry = await this.getEntry(entryType, id);
+    entry.update(data);
+    await entry.save();
+  }
+  async deleteEntry<E extends string>(entryType: E, id: string): Promise<any> {
+    const entry = await this.getEntry(entryType, id);
+    await entry.delete();
+    return entry;
+  }
 
   // Multiple Entry Operations
 
@@ -107,14 +176,24 @@ export class InSpatialOrm {
   ): Promise<any> {}
 
   async migrate() {
-    serveLogger.info(`Migrating database...`);
-    for (const entryType of this.entryTypes.values()) {
-      await migrateEntryType(entryType, this, (message) => {
+    const migrationPlanner = new MigrationPlanner(
+      Array.from(this.entryTypes.values()),
+      this,
+      (message) => {
         ormLogger.info(message);
-      });
-    }
-    return {
-      success: true,
-    };
+      },
+    );
+    return await migrationPlanner.migrate();
+  }
+
+  async planMigration() {
+    const migrationPlanner = new MigrationPlanner(
+      Array.from(this.entryTypes.values()),
+      this,
+      (message) => {
+        ormLogger.info(message);
+      },
+    );
+    return await migrationPlanner.createMigrationPlan();
   }
 }

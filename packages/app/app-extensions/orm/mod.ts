@@ -7,7 +7,12 @@ const migrateAction = new AppAction("migrate", {
   },
   params: [],
 });
-
+const planMigrationAction = new AppAction("planMigration", {
+  async run({ app }) {
+    return await app.orm.planMigration();
+  },
+  params: [],
+});
 const entryTypesInfo = new AppAction("entryTypes", {
   description: "Get EntryType Definitions",
   run({ app }) {
@@ -19,7 +24,7 @@ const entryTypesInfo = new AppAction("entryTypes", {
 
 const ormGroup = new AppActionGroup("orm", {
   description: "ORM Actions",
-  actions: [migrateAction, entryTypesInfo],
+  actions: [planMigrationAction, migrateAction, entryTypesInfo],
 });
 export const ormExtension = new AppExtension({
   key: "orm",

@@ -9,7 +9,8 @@
     "./realtime": "./extensions/realtime/mod.ts",
     "./cors": "./extensions/cors/mod.ts",
     "./actions-api": "./extensions/actions-api/mod.ts",
-    "./user-agent": "./extensions/user-agent/mod.ts"
+    "./user-agent": "./extensions/user-agent/mod.ts",
+    "./utils": "./src/utils/mod.ts"
   },
   "publish": {
     "exclude": [".github"]

@@ -1,6 +1,7 @@
 {
   "serve": {
-    "LOG_LEVEL": "warning"
+    "LOG_LEVEL": "debug",
+    "LOG_TRACE": false
   },
   "actions-api": {},
   "CORS": {

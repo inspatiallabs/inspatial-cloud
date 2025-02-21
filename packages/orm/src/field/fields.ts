@@ -18,6 +18,7 @@ import phoneField from "#/field/fields/phone-field.ts";
 import richTextField from "#/field/fields/rich-text-field.ts";
 import timestampField from "#/field/fields/timestamp-field.ts";
 import urlField from "#/field/fields/url-field.ts";
+import idField from "#/field/fields/id-field.ts";
 
 export const ormFields = [
   bigIntField,
@@ -40,4 +41,5 @@ export const ormFields = [
   textField,
   timestampField,
   urlField,
+  idField,
 ];

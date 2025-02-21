@@ -4,7 +4,7 @@ export default new ORMField("TimeStampField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "timestamp with time zone",
     };
   },
   dbLoad(value, fieldDef) {

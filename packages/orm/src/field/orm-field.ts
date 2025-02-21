@@ -11,6 +11,7 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
   #validate: (value: any, fieldDef: FieldDefMap[T]) => boolean;
   #dbSave: (value: any, fieldDef: FieldDefMap[T]) => any;
   #dbColumn: (fieldDef: FieldDefMap[T]) => PgColumnDefinition;
+  #normalize: (value: any, fieldDef: FieldDefMap[T]) => ORMFieldMap[T];
 
   constructor(fieldType: T, config: {
     description?: string;
@@ -25,7 +26,14 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
      * A validator function that will be used to validate the field
      * before saving it to the database.
      */
+
     validate: (value: any, fieldDef: FieldDefMap[T]) => boolean;
+
+    /**
+     * A normalizer function that will be used to convert the field
+     * to the correct/normalized orm format when being set on the entry.
+     */
+    normalize?: (value: any, fieldDef: FieldDefMap[T]) => ORMFieldMap[T];
     /**
      * A parser function that will be used to save the field to the
      * database in the correct format once it has been validated.
@@ -37,10 +45,17 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
     this.#validate = config.validate;
     this.#dbSave = config.dbSave;
     this.#dbColumn = config.dbColumn;
+    this.#normalize = config.normalize ?? ((value) => value);
   }
 
   generateDbColumn(fieldDef: FieldDefMap[T]): PgColumnDefinition {
-    return this.#dbColumn(fieldDef);
+    const dbColumn = this.#dbColumn(fieldDef);
+    dbColumn.isNullable = fieldDef.required ? "NO" : "YES";
+    if (fieldDef.unique) {
+      dbColumn.unique = true;
+    }
+
+    return dbColumn;
   }
   parseDbValue(value: any, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
     return this.#dbLoad(value, fieldDef);
@@ -48,6 +63,10 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
 
   validate(value: any, fieldDef: FieldDefMap[T]): boolean {
     return this.#validate(value, fieldDef);
+  }
+
+  normalize(value: any, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
+    return this.#normalize(value, fieldDef);
   }
 
   prepareForDB(

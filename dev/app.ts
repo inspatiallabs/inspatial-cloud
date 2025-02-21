@@ -36,6 +36,7 @@ const userEntry = new EntryType("user", {
     label: "Email",
     description: "The user's email address used for login",
     required: true,
+    unique: true,
   }, {
     type: "PasswordField",
     key: "password",
@@ -43,6 +44,7 @@ const userEntry = new EntryType("user", {
     description: "The user's password used for login",
   }],
 });
+
 const extension = new AppExtension({
   key: "my-extension",
   title: "My Extension",
