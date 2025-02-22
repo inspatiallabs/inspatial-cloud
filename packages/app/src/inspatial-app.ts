@@ -62,29 +62,28 @@ export class InSpatialApp<
       corsExtension,
       realtimeExtension,
       dbExtension,
-      // ormExtension,
     ];
 
     const appEntries: Array<EntryType> = [];
     const appSettings: Array<SettingsType> = [];
     this.#ActionGroups = new Map();
     this.#appExtensions = new Map();
-    this.#appExtensions.set("orm", ormExtension);
-
-    // this._easyPacks.set(basePack.key, basePack);
+    const appExtensions: Array<AppExtension> = [ormExtension];
     if (config?.appExtensions) {
-      for (const appExtension of config.appExtensions) {
-        if (this.#appExtensions.has(appExtension.key)) {
-          throw new Error(
-            `EasyPack with key ${appExtension.key} already exists`,
-          );
-        }
-        const { entryTypes, settingsTypes } = appExtension;
-        appEntries.push(...entryTypes);
-        appSettings.push(...settingsTypes);
-        this.#appExtensions.set(appExtension.key, appExtension);
-        extensions.push(...appExtension.serverExtensions);
+      appExtensions.push(...config.appExtensions);
+    }
+
+    for (const appExtension of appExtensions) {
+      if (this.#appExtensions.has(appExtension.key)) {
+        throw new Error(
+          `AppExtention with key ${appExtension.key} already exists`,
+        );
       }
+      const { entryTypes, settingsTypes } = appExtension;
+      appEntries.push(...entryTypes);
+      appSettings.push(...settingsTypes);
+      this.#appExtensions.set(appExtension.key, appExtension);
+      extensions.push(...appExtension.serverExtensions);
     }
     this.server = new InSpatialServer({
       extensions,
@@ -144,12 +143,6 @@ export class InSpatialApp<
       });
     }
 
-    for (const entryType of entryTypes) {
-      // this.orm.addEntryType(entryType);
-    }
-    for (const settingsType of appExtension.settingsTypes) {
-      // this.orm.addSettingsType(settingsType);
-    }
     appExtension.install(this);
   }
 

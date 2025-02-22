@@ -17,4 +17,7 @@ export const dataField = new ORMField("DataField", {
   dbSave(value) {
     return value;
   },
+  normalize(value) {
+    return value;
+  },
 });

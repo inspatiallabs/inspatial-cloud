@@ -1,21 +1,15 @@
 import { InSpatialDB } from "#db";
-import { ListOptions } from "#/types.ts";
-import { FieldDefMap, FieldDefType } from "#/field/types.ts";
+import { FieldDefType } from "#/field/types.ts";
 import { ORMField } from "#/field/orm-field.ts";
 import { ormFields } from "#/field/fields.ts";
-import {
-  EntryTypeMigrator,
-  migrateEntryType,
-  MigrationPlan,
-  MigrationPlanner,
-} from "#/migrate/migrate-db.ts";
+import { MigrationPlanner } from "#/migrate/migrate-db.ts";
 import { EntryType } from "#/entry/entry-type.ts";
-import { serveLogger } from "../../serve/src/logger/serve-logger.ts";
 import { SettingsType } from "#/settings/settings-type.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { ormLogger } from "#/logger.ts";
 import { buildEntry } from "#/entry/build-entry.ts";
 import { Entry } from "#/entry/entry.ts";
+import { DBListOptions, ListOptions } from "#db/types.ts";
 
 export class InSpatialOrm {
   db: InSpatialDB;
@@ -37,6 +31,12 @@ export class InSpatialOrm {
       );
     }
     return fieldTypeDef;
+  }
+  getEntryType<T extends EntryType = EntryType>(entryType: string): T {
+    if (!this.entryTypes.has(entryType)) {
+      raiseORMException(`EntryType ${entryType} does not exist in ORM`);
+    }
+    return this.entryTypes.get(entryType)! as T;
   }
   constructor(
     /**
@@ -126,6 +126,12 @@ export class InSpatialOrm {
     await entry.save();
     return entry;
   }
+
+  async getNewEntry<E extends string>(entryType: E): Promise<Entry> {
+    const entry = this.#getEntryInstance(entryType);
+    await entry.new();
+    return entry;
+  }
   async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
     await entry.load(id);
@@ -151,7 +157,41 @@ export class InSpatialOrm {
   async getEntryList<E extends string>(
     entryType: E,
     options?: ListOptions,
-  ): Promise<any> {}
+  ): Promise<any> {
+    const entryTypeObj = this.getEntryType(entryType);
+    const tableName = entryTypeObj.config.tableName;
+    let dbOptions: DBListOptions = {
+      limit: 100,
+      columns: Array.from(entryTypeObj.defaultListFields),
+    };
+    if (options?.columns && Array.isArray(options.columns)) {
+      const columns: string[] = [];
+      options.columns.forEach((column) => {
+        const field = entryTypeObj.fields.get(column);
+        if (!field) {
+          raiseORMException(
+            `Field with key ${column} does not exist in EntryType ${entryType}`,
+          );
+        }
+        if (field.hidden) {
+          raiseORMException(
+            `Field with key ${column} is hidden in EntryType ${entryType}`,
+          );
+        }
+        columns.push(column);
+      });
+      if (columns.length > 0) {
+        dbOptions.columns = columns;
+      }
+    }
+    if (options) {
+      delete options.columns;
+      dbOptions = { ...dbOptions, ...options };
+    }
+
+    const result = await this.db.getRows(tableName, dbOptions);
+    return result;
+  }
 
   // Special Operations
 

@@ -45,7 +45,10 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
     this.#validate = config.validate;
     this.#dbSave = config.dbSave;
     this.#dbColumn = config.dbColumn;
-    this.#normalize = config.normalize ?? ((value) => value);
+    this.#normalize = (value: any, fieldDef: FieldDefMap[T]) => value;
+    if (config.normalize) {
+      this.#normalize = config.normalize;
+    }
   }
 
   generateDbColumn(fieldDef: FieldDefMap[T]): PgColumnDefinition {

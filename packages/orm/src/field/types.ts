@@ -1,25 +1,28 @@
-export type ORMFieldDef =
-  | DataFieldDef
-  | TextFieldDef
-  | IntFieldDef
-  | BigIntFieldDef
-  | DecimalFieldDef
-  | DateFieldDef
-  | TimeStampFieldDef
-  | BooleanFieldDef
-  | PasswordFieldDef
-  | ChoicesFieldDef
-  | MultiChoiceFieldDef
-  | EmailFieldDef
-  | ImageFieldDef
-  | JSONFieldDef
-  | PhoneFieldDef
-  | ConnectionFieldDef
-  | RichTextFieldDef
-  | URLFieldDef
-  | ListFieldDef
-  | CurrencyFieldDef
-  | IDFieldDef;
+export type ORMFieldDef<S extends string = string> =
+  & BaseFieldDef<S>
+  & (
+    | DataFieldDef
+    | TextFieldDef
+    | IntFieldDef
+    | BigIntFieldDef
+    | DecimalFieldDef
+    | DateFieldDef
+    | TimeStampFieldDef
+    | BooleanFieldDef
+    | PasswordFieldDef
+    | ChoicesFieldDef
+    | MultiChoiceFieldDef
+    | EmailFieldDef
+    | ImageFieldDef
+    | JSONFieldDef
+    | PhoneFieldDef
+    | ConnectionFieldDef
+    | RichTextFieldDef
+    | URLFieldDef
+    | ListFieldDef
+    | CurrencyFieldDef
+    | IDFieldDef
+  );
 
 export type FieldDefMap = {
   DataField: DataFieldDef;
@@ -47,17 +50,19 @@ export type FieldDefMap = {
 
 export type FieldDefType = keyof FieldDefMap;
 
-interface BaseFieldDef {
-  key: string;
+interface BaseFieldDef<S extends string = string> {
+  key: S;
   label: string;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
   unique?: boolean;
+  defaultValue?: any;
+  hidden?: boolean;
 }
 interface IDFieldDef extends BaseFieldDef {
   type: "IDField";
-  idType: "hex16" | "hex24" | "hex32" | "uuid" | "autoincrement";
+  idMode: IDMode;
 }
 
 interface DataFieldDef extends BaseFieldDef {
@@ -65,6 +70,7 @@ interface DataFieldDef extends BaseFieldDef {
    * `DataField` is a string of up to a maximum of 255 characters.
    */
   type: "DataField";
+  defaultValue?: ORMFieldMap["DataField"];
 }
 
 interface TextFieldDef extends BaseFieldDef {
@@ -72,6 +78,7 @@ interface TextFieldDef extends BaseFieldDef {
    * `TextField` is a string of up to a maximum of 65535 characters.
    */
   type: "TextField";
+  defaultValue?: ORMFieldMap["TextField"];
 }
 
 interface IntFieldDef extends BaseFieldDef {
@@ -81,76 +88,98 @@ interface IntFieldDef extends BaseFieldDef {
   type: "IntField";
   min?: number;
   max?: number;
+  defaultValue?: ORMFieldMap["IntField"];
 }
 
 interface BigIntFieldDef extends BaseFieldDef {
   type: "BigIntField";
+  min?: bigint;
+  max?: bigint;
+  defaultValue?: ORMFieldMap["BigIntField"];
 }
 
 interface DecimalFieldDef extends BaseFieldDef {
   type: "DecimalField";
+  min?: number;
+  max?: number;
+  defaultValue?: ORMFieldMap["DecimalField"];
 }
 
 interface DateFieldDef extends BaseFieldDef {
   type: "DateField";
+  defaultValue?: ORMFieldMap["DateField"];
 }
 
 interface TimeStampFieldDef extends BaseFieldDef {
   type: "TimeStampField";
+  defaultValue?: ORMFieldMap["TimeStampField"];
 }
 
 interface BooleanFieldDef extends BaseFieldDef {
   type: "BooleanField";
+  defaultValue?: ORMFieldMap["BooleanField"];
 }
 
 interface PasswordFieldDef extends BaseFieldDef {
   type: "PasswordField";
+  defaultValue?: ORMFieldMap["PasswordField"];
 }
 
 interface ChoicesFieldDef extends BaseFieldDef {
   type: "ChoicesField";
   choices: string[];
+  defaultValue?: ORMFieldMap["ChoicesField"];
 }
 
 interface MultiChoiceFieldDef extends BaseFieldDef {
   type: "MultiChoiceField";
   choices: string[];
+  defaultValue?: ORMFieldMap["MultiChoiceField"];
 }
 
 interface EmailFieldDef extends BaseFieldDef {
   type: "EmailField";
+  defaultValue?: ORMFieldMap["EmailField"];
 }
 
 interface ImageFieldDef extends BaseFieldDef {
   type: "ImageField";
+  defaultValue?: ORMFieldMap["ImageField"];
 }
 
 interface JSONFieldDef extends BaseFieldDef {
   type: "JSONField";
+  defaultValue?: ORMFieldMap["JSONField"];
 }
 
 interface PhoneFieldDef extends BaseFieldDef {
   type: "PhoneField";
+  defaultValue?: ORMFieldMap["PhoneField"];
 }
 
 interface ConnectionFieldDef extends BaseFieldDef {
   type: "ConnectionField";
+  defaultValue?: ORMFieldMap["ConnectionField"];
 }
 
 interface RichTextFieldDef extends BaseFieldDef {
   type: "RichTextField";
+  defaultValue?: ORMFieldMap["RichTextField"];
 }
 
 interface URLFieldDef extends BaseFieldDef {
   type: "URLField";
+  defaultValue?: ORMFieldMap["URLField"];
 }
 
 interface ListFieldDef extends BaseFieldDef {
   type: "ListField";
+  defaultValue?: ORMFieldMap["ListField"];
 }
 
 interface CurrencyFieldDef extends BaseFieldDef {
   type: "CurrencyField";
+  defaultValue?: ORMFieldMap["CurrencyField"];
 }
 
 export type ORMFieldType = keyof ORMFieldMap;
@@ -253,7 +282,10 @@ export type ORMFieldMap = {
    * This is a connection field type.
    * This is a field that references an entry from another entry type,
    */
-  ConnectionField: string;
+  ConnectionField: {
+    id: string;
+    display: string;
+  };
 
   /**
    * Not implemented yet!
@@ -275,3 +307,5 @@ export type ORMFieldMap = {
 
   CurrencyField: number;
 };
+
+export type IDMode = "uuid" | "ulid" | "auto";

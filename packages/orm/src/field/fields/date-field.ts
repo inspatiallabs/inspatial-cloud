@@ -4,7 +4,7 @@ export default new ORMField("DateField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "date",
     };
   },
   dbLoad(value, fieldDef) {

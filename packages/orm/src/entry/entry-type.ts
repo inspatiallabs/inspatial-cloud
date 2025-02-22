@@ -1,25 +1,32 @@
-import { ORMFieldDef } from "#/field/types.ts";
+import { IDMode, ORMFieldDef } from "#/field/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { convertString } from "@inspatial/serve/utils";
-export class EntryType<N extends string = string> {
+
+export class EntryType<
+  N extends string = string,
+  S extends string = string,
+  F extends Array<ORMFieldDef<S>> = Array<ORMFieldDef<S>>,
+> {
   name: N;
   config: {
     tableName: string;
     label: string;
     description: string;
-    idMode: "hex16" | "hex24" | "hex32" | "uuid" | "autoincrement";
+    idMode: IDMode;
   };
+  defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
   fields: Map<string, ORMFieldDef> = new Map();
   constructor(name: N, config: {
     description?: string;
     label?: string;
-    idMode?: "hex16" | "hex24" | "hex32" | "uuid" | "autoincrement";
-    fields: Array<ORMFieldDef>;
+    idMode?: IDMode;
+    defaultListFields?: Array<F[number]["key"]>;
+    fields: F;
   }) {
     this.fields.set("id", {
       key: "id",
       type: "IDField",
-      idType: config.idMode || "hex16",
+      idMode: config.idMode || "auto",
       label: "ID",
       readOnly: true,
       required: true,
@@ -45,7 +52,7 @@ export class EntryType<N extends string = string> {
     this.config = {
       tableName: this.#generateTableName(),
       label,
-      idMode: config.idMode || "hex16",
+      idMode: config.idMode || "ulid",
       description: config.description ||
         `${label} entry type for InSpatial ORM`,
     };
@@ -56,6 +63,16 @@ export class EntryType<N extends string = string> {
         );
       }
       this.fields.set(field.key, field);
+    }
+    if (config.defaultListFields) {
+      for (const fieldKey of config.defaultListFields) {
+        if (!this.fields.has(fieldKey)) {
+          raiseORMException(
+            `Field with key ${fieldKey} does not exist in EntryType ${this.name}`,
+          );
+        }
+        this.defaultListFields.add(fieldKey);
+      }
     }
   }
 

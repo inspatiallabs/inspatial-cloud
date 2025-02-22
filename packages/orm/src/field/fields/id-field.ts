@@ -9,15 +9,16 @@ export default new ORMField("IDField", {
       isNullable: "NO",
       isIdentity: true,
     };
-    switch (fieldDef.idType) {
-      case "hex16":
+    switch (fieldDef.idMode) {
+      case "ulid":
         pgColumn.dataType = "character varying",
-          pgColumn.characterMaximumLength = 16;
+          pgColumn.characterMaximumLength = 26;
         break;
-      case "autoincrement":
+      case "auto":
         pgColumn.dataType = "integer";
-
-        pgColumn.columnDefault = "nextval('autoincrement')";
+        break;
+      case "uuid":
+        pgColumn.dataType = "text";
         break;
     }
     return pgColumn;

@@ -33,12 +33,10 @@ export type PgDataType =
   | "integer"
   | "jsonb"
   | "numeric"
-  | "bigint";
-
-export interface PgColumnDefinition {
-  columnName: string;
+  | "bigint"
+  | "date";
+export interface PgDataTypeDefinition {
   dataType: PgDataType;
-  columnDefault?: any | null;
   characterMaximumLength?: number | null;
   characterOctetLength?: number | null;
   numericPrecision?: number | null;
@@ -47,6 +45,10 @@ export interface PgColumnDefinition {
   datetimePrecision?: number | null;
   intervalType?: string;
   intervalPrecision?: number;
+}
+export interface PgColumnDefinition extends PgDataTypeDefinition {
+  columnName: string;
+  columnDefault?: any | null;
   isNullable?: "YES" | "NO";
   unique?: boolean;
   isIdentity?: boolean;
@@ -64,7 +66,7 @@ export interface TableConstraint {
   enforced: "YES" | "NO";
   nullsDistinct: null;
 }
-export interface PostgresColumn {
+export interface PostgresColumn extends PgDataTypeDefinition {
   tableCatalog: string;
   tableSchema: string;
   tableName: string;
@@ -72,17 +74,7 @@ export interface PostgresColumn {
   ordinalPosition: number;
   columnDefault: any | null;
   isNullable: "YES" | "NO";
-  dataType: PgDataType;
-  characterMaximumLength: number | null;
-  characterOctetLength: number | null;
-  numericPrecision: number | null;
-  numericPrecisionRadix: number | null;
-  numericScale: number | null;
-  datetimePrecision: number | null;
-  intervalType: string;
-  intervalPrecision: number;
   udtCatalog: string;
-
   udtSchema: string;
   udtName: string;
   isIdentity: "YES" | "NO";
@@ -131,6 +123,16 @@ export interface AdvancedFilter {
     | "="
     | "!=";
   value: any;
+}
+
+export interface ListOptions {
+  columns?: string[];
+  filter?: DBFilter;
+  orFilter?: DBFilter;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
 }
 
 export type DBFilter = Record<

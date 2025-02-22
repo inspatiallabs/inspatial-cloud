@@ -168,14 +168,21 @@ export class InSpatialServer<
           if (isServerException(error)) {
             return {
               status: error.status,
-              serverMessage: error.message,
+              serverMessage: {
+                content: error.message,
+                type: "error",
+                subject: error.name,
+              },
               clientMessage: error.message,
             };
           }
           if (error instanceof Error) {
             return {
               status: 500,
-              serverMessage: error.name + ": " + error.message,
+              serverMessage: {
+                content: error.name + ": " + error.message,
+                subject: "Unknown Error",
+              },
             };
           }
         },
@@ -505,8 +512,30 @@ export class InSpatialServer<
       if (response.clientMessage !== undefined) {
         clientMessages.push(response.clientMessage);
       }
-      if (response.serverMessage) {
-        serveLogger.error(response.serverMessage);
+      const { serverMessage } = response;
+      if (serverMessage) {
+        const { content, subject, type } = serverMessage;
+        switch (type) {
+          case "error":
+            serveLogger.error(content, {
+              subject,
+            });
+            break;
+          case "warning":
+            serveLogger.warn(content, {
+              subject,
+            });
+            break;
+          case "info":
+            serveLogger.info(content, {
+              subject,
+            });
+            break;
+          default:
+            serveLogger.error(content, {
+              subject,
+            });
+        }
       }
       if (response.status) {
         inResponse.errorStatus = response.status;

@@ -18,6 +18,8 @@ const authActionGroup = new AppActionGroup("auth", {
   actions: [getUserAgentAction],
 });
 const userEntry = new EntryType("user", {
+  idMode: "ulid",
+  defaultListFields: ["firstName", "lastName"],
   fields: [{
     type: "DataField",
     key: "firstName",
@@ -42,6 +44,12 @@ const userEntry = new EntryType("user", {
     key: "password",
     label: "Password",
     description: "The user's password used for login",
+    hidden: true,
+  }, {
+    key: "dateOfBirth",
+    type: "DateField",
+    label: "Date of Birth",
+    description: "The user's date of birth",
   }],
 });
 

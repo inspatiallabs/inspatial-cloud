@@ -14,6 +14,10 @@ export default new ORMField("TimeStampField", {
     return true;
   },
   dbSave(value, fieldDef) {
+    value = new Date(value).toUTCString();
+    if (value === "Invalid Date") {
+      value = null;
+    }
     return value;
   },
 });

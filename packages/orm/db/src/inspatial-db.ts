@@ -5,6 +5,7 @@ import type {
   DBFilter,
   DBListOptions,
   PgColumnDefinition,
+  PgDataTypeDefinition,
   PostgresColumn,
   QueryResultFormatted,
   TableConstraint,
@@ -17,6 +18,7 @@ import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
 import { serveLogger } from "../../../serve/src/logger/serve-logger.ts";
 import { ormLogger } from "#/logger.ts";
 import { convertString } from "../../../serve/src/utils/mod.ts";
+import { IDMode } from "#/field/types.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -152,72 +154,7 @@ export class InSpatialDB {
     const query =
       `SELECT obj_description('${this.schema}.${tableName}'::regclass, 'pg_class') as comment`;
     const result = await this.query<{ comment: string }>(query);
-    console.log(result);
     return result.rows[0].comment;
-  }
-  async addColumn(
-    tableName: string,
-    column: PgColumnDefinition,
-  ): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    const columnName = convertString(column.columnName, "snake", true);
-
-    let query = `ALTER TABLE ${this.schema}.${tableName} ADD "${columnName}"`;
-
-    switch (column.dataType) {
-      case "character varying":
-        query += ` VARCHAR`;
-        if (column.characterMaximumLength) {
-          query += `(${column.characterMaximumLength})`;
-        }
-        break;
-      case "text":
-        query += ` TEXT`;
-        break;
-      case "boolean":
-        query += ` BOOLEAN`;
-        break;
-      case "integer":
-        query += ` INTEGER`;
-        break;
-      case "bigint":
-        query += ` BIGINT`;
-        break;
-      case "numeric":
-        query += ` NUMERIC`;
-        if (column.numericPrecision) {
-          query += `(${column.numericPrecision}`;
-          if (column.numericScale) {
-            query += `, ${column.numericScale}`;
-          }
-          query += ")";
-        }
-        break;
-      case "jsonb":
-        query += ` JSONB`;
-        break;
-      case "timestamp with time zone":
-        query += ` TIMESTAMP WITH TIME ZONE`;
-        break;
-      default:
-        query += ` TEXT`;
-        break;
-    }
-    if (column.isIdentity) {
-      query += ` PRIMARY KEY`;
-    }
-    if (column.isNullable === "NO") {
-      query += ` NOT NULL`;
-    }
-    if (column.columnDefault) {
-      query += ` DEFAULT ${column.columnDefault}`;
-    }
-
-    // return query;
-    await this.query(query);
-    if (column.unique) {
-      await this.makeColumnUnique(tableName, columnName);
-    }
   }
 
   async getTableNames(): Promise<string[]> {
@@ -237,9 +174,23 @@ export class InSpatialDB {
 
   async createTable(
     tableName: string,
+    idMode?: IDMode,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
-    const query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} ();`;
+    idMode = idMode || "ulid";
+    let query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} ( id`;
+    switch (idMode) {
+      case "auto":
+        query += ` bigint GENERATED ALWAYS AS IDENTITY`;
+        break;
+
+      case "ulid":
+        query += ` CHAR(26)`;
+        break;
+      case "uuid":
+        query += ` UUID`;
+    }
+    query += ` PRIMARY KEY )`;
     await this.query(query);
   }
 
@@ -256,7 +207,7 @@ export class InSpatialDB {
   async insertRow<T extends Record<string, any> = Record<string, any>>(
     tableName: string,
     data: Record<string, any>,
-  ): Promise<QueryResultFormatted<T>> {
+  ): Promise<QueryResultFormatted<T>["rows"][number]> {
     tableName = this.#toSnake(tableName);
     const columnKeys = Object.keys(data);
     const columns = columnKeys.map((key) => {
@@ -269,7 +220,8 @@ export class InSpatialDB {
     const query = `INSERT INTO ${this.schema}.${tableName} (${
       columns.join(", ")
     }) VALUES (${values.join(", ")}) RETURNING *`;
-    return await this.query<T>(query);
+    const result = await this.query<T>(query);
+    return result.rows[0];
   }
 
   /**
@@ -544,8 +496,78 @@ export class InSpatialDB {
     const query = `VACUUM ANALYZE ${this.schema}.${tableName}`;
     return await this.query(query);
   }
+  /* Column Operations */
+  async addColumn(
+    tableName: string,
+    column: PgColumnDefinition,
+  ): Promise<void> {
+    tableName = this.#toSnake(tableName);
+    const columnName = convertString(column.columnName, "snake", true);
+
+    let query = `ALTER TABLE ${this.schema}.${tableName} ADD "${columnName}"`;
+
+    switch (column.dataType) {
+      case "character varying":
+        query += ` VARCHAR`;
+        if (column.characterMaximumLength) {
+          query += `(${column.characterMaximumLength})`;
+        }
+        break;
+      case "numeric":
+        query += ` NUMERIC`;
+        if (column.numericPrecision) {
+          query += `(${column.numericPrecision}`;
+          if (column.numericScale) {
+            query += `, ${column.numericScale}`;
+          }
+          query += ")";
+        }
+        break;
+      default:
+        query += ` ${column.dataType || "TEXT"}`;
+        break;
+    }
+    if (column.isNullable === "NO") {
+      query += ` NOT NULL`;
+    }
+    if (column.columnDefault) {
+      query += ` DEFAULT ${column.columnDefault}`;
+    }
+
+    // return query;
+    await this.query(query);
+    if (column.unique) {
+      await this.makeColumnUnique(tableName, columnName);
+    }
+  }
+
+  async changeColumnDataType(
+    tableName: string,
+    columnName: string,
+    columnDataType: PgDataTypeDefinition,
+  ): Promise<void> {
+    tableName = this.#toSnake(tableName);
+    columnName = this.#formatColumnName(columnName);
+    let query =
+      `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName}`;
+    const { dataType } = columnDataType;
+    switch (dataType) {
+      case "character varying":
+        query += ` TYPE VARCHAR`;
+        if (columnDataType.characterMaximumLength) {
+          query += `(${columnDataType.characterMaximumLength})`;
+        }
+        break;
+      default:
+        query += ` TYPE ${dataType}`;
+        break;
+    }
+    await this.query(query);
+  }
+
   async makeColumnUnique(tableName: string, columnName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
+    columnName = this.#formatColumnName(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${columnName})`;
     await this.query(query);
@@ -556,10 +578,27 @@ export class InSpatialDB {
     columnName: string,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
+    columnName = this.#formatColumnName(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
     await this.query(query);
   }
+
+  async setColumnNull(
+    tableName: string,
+    columnName: string,
+    allowNull: boolean,
+  ): Promise<void> {
+    tableName = this.#toSnake(tableName);
+    columnName = this.#formatColumnName(columnName);
+    const query =
+      `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} ${
+        allowNull ? "DROP NOT NULL" : "SET NOT NULL"
+      }`;
+    await this.query(query);
+  }
+
+  /* End column operations */
   async getTableConstraints(
     tableName: string,
   ): Promise<Array<TableConstraint>> {

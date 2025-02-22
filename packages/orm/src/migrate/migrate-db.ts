@@ -4,9 +4,12 @@ import { InSpatialDB } from "#db";
 import {
   PgColumnDefinition,
   PgDataType,
+  PgDataTypeDefinition,
   PostgresColumn,
   TableConstraint,
 } from "#db/types.ts";
+import { ormLogger } from "#/logger.ts";
+import { FieldDefMap, IDMode } from "#/field/types.ts";
 
 export async function migrateEntryType(
   entryType: EntryType,
@@ -21,6 +24,7 @@ export class EntryMigrationPlan {
   table: {
     tableName: string;
     create: boolean;
+    idMode: IDMode;
     updateDescription?: {
       from: string;
       to: string;
@@ -35,6 +39,7 @@ export class EntryMigrationPlan {
     this.entryType = entryType;
     this.table = {
       tableName: "",
+      idMode: "ulid",
       create: false,
     };
     this.columns = {
@@ -48,8 +53,8 @@ export class EntryMigrationPlan {
 interface ColumnMigrationPlan {
   columnName: string;
   dataType?: {
-    from: any;
-    to: any;
+    from: PgDataTypeDefinition;
+    to: PgDataTypeDefinition;
   };
   nullable?: {
     from: PgColumnDefinition["isNullable"];
@@ -113,7 +118,7 @@ export class MigrationPlanner {
   async #createMissingTables() {
     for (const plan of this.migrationPlan) {
       if (plan.table.create) {
-        await this.db.createTable(plan.table.tableName);
+        await this.db.createTable(plan.table.tableName, plan.table.idMode);
         this.onOutput(`Created table ${plan.table.tableName}`);
       }
     }
@@ -150,19 +155,22 @@ export class MigrationPlanner {
   }
 
   async #modifyColumns(plan: EntryMigrationPlan) {
+    const tableName = plan.table.tableName;
+
     for (const column of plan.columns.modify) {
-      if (column.unique) {
-        switch (column.unique.to) {
+      const { nullable, dataType, unique } = column;
+      if (unique) {
+        switch (unique.to) {
           case true:
             await this.db.makeColumnUnique(
-              plan.table.tableName,
+              tableName,
               column.columnName,
             );
             this.#logResult(`Made column ${column.columnName} unique`);
             break;
           case false:
             await this.db.removeColumnUnique(
-              plan.table.tableName,
+              tableName,
               column.columnName,
             );
             this.#logResult(
@@ -170,6 +178,20 @@ export class MigrationPlanner {
             );
             break;
         }
+      }
+      if (nullable) {
+        await this.db.setColumnNull(
+          tableName,
+          column.columnName,
+          nullable.to === "YES",
+        );
+      }
+      if (dataType) {
+        await this.db.changeColumnDataType(
+          tableName,
+          column.columnName,
+          dataType.to,
+        );
       }
     }
   }
@@ -235,6 +257,7 @@ export class EntryTypeMigrator {
       return this.migrationPlan;
     }
     await this.#loadExistingColumns();
+    ormLogger.debug(this.existingColumns);
     await this.#loadExistingConstraints();
     this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
@@ -276,6 +299,11 @@ export class EntryTypeMigrator {
   }
   #loadTargetColumns() {
     for (const field of this.entryType.fields.values()) {
+      if (field.key == "id") {
+        const idField = field as FieldDefMap["IDField"];
+        this.migrationPlan.table.idMode = idField.idMode;
+        continue;
+      }
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);
       this.targetColumns.set(field.key, dbColumn);
@@ -284,6 +312,9 @@ export class EntryTypeMigrator {
 
   #checkForColumnsToDrop() {
     for (const column of this.existingColumns.values()) {
+      if (column.columnName == "id") {
+        continue;
+      }
       if (!this.targetColumns.has(column.columnName)) {
         this.migrationPlan.columns.drop.push({
           columnName: column.columnName,
@@ -312,7 +343,6 @@ export class EntryTypeMigrator {
       return;
     }
     const existingDescription = await this.db.getTableComment(this.#tableName);
-    console.log({ existingDescription });
     this.migrationPlan.table.create = false;
     if (existingDescription != newDescription) {
       this.migrationPlan.table.updateDescription = {
@@ -368,31 +398,35 @@ function compareDataTypes(
   existing: PostgresColumn,
   newColumn: PgColumnDefinition,
 ) {
-  switch (existing.dataType) {
-    case "character varying":
-      if (existing.characterMaximumLength != newColumn.characterMaximumLength) {
-        return {
-          from: {
-            dataType: existing.dataType,
-            characterMaximumLength: existing.characterMaximumLength,
-          },
-
-          to: {
-            dataType: newColumn.dataType,
-            characterMaximumLength: newColumn.characterMaximumLength,
-          },
-        };
-      }
-      return;
-    default:
-      if (existing.dataType === newColumn.dataType) {
-        return;
-      }
-      return {
-        from: existing.dataType,
-        to: newColumn.dataType,
-      };
+  const properties: Array<keyof PgDataTypeDefinition> = [
+    "dataType",
+    "characterMaximumLength",
+    "characterOctetLength",
+    "numericPrecision",
+    "numericPrecisionRadix",
+    "numericScale",
+    "datetimePrecision",
+    "intervalType",
+    "intervalPrecision",
+  ];
+  const from: Record<string, any> = {};
+  const to: Record<string, any> = {};
+  let hasChanges = false;
+  for (const property of properties) {
+    if (property in newColumn && existing[property] !== newColumn[property]) {
+      hasChanges = true;
+      from[property] = existing[property];
+      to[property] = newColumn[property];
+    }
   }
+
+  if (!hasChanges) {
+    return;
+  }
+  return {
+    from: from as PgDataTypeDefinition,
+    to: to as PgDataTypeDefinition,
+  };
 }
 function compareNullable(
   existing: PostgresColumn,
@@ -402,10 +436,6 @@ function compareNullable(
     return;
   }
 
-  console.log({
-    existing,
-    newColumn,
-  });
   return {
     from: existing.isNullable,
     to: newColumn.isNullable,

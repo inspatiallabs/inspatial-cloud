@@ -1,5 +1,6 @@
 import type { ServerExtension } from "#/extension/server-extension.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
+import { LogType } from "../mod.ts";
 
 /**
  * Configuration for InSpatialServer.
@@ -166,7 +167,11 @@ export interface ExceptionHandlerResponse {
   /**
    * The message to log on the server
    */
-  serverMessage?: Record<string, any> | string;
+  serverMessage?: {
+    subject?: string;
+    type?: LogType;
+    content: Record<string, any> | string;
+  };
   /**
    * The http status code to send to the client
    * @default 500
