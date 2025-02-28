@@ -1,0 +1,51 @@
+import { EntryBase } from "#orm";
+export interface User extends EntryBase {
+  _name: "user";
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **First Name** (DataField)
+   * @description The user's first name
+   * @type {string}
+   * @required true
+   */
+  firstName: string;
+  /**
+   * **Last Name** (DataField)
+   * @description The user's last names
+   * @type {string}
+   * @required true
+   */
+  lastName: string;
+  /**
+   * **Email** (EmailField)
+   * @description The user's email address used for login
+   * @type {string}
+   * @required true
+   */
+  email: string;
+  /**
+   * **Password** (PasswordField)
+   * @description The user's password used for login
+   * @type {string}
+   */
+  password?: string;
+}

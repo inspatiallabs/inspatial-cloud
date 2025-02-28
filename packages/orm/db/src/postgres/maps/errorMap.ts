@@ -1,3 +1,7 @@
+export enum PGErrorCode {
+  NO_NULL_VALUE = "23502",
+}
+
 export const pgErrorMap = {
   "00000": "successful_completion",
 

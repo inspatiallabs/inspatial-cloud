@@ -1,59 +1,80 @@
-import InSpatialApp, {
-  AppAction,
-  AppActionGroup,
-  AppExtension,
-} from "../packages/app/mod.ts";
+import InSpatialCloud, {
+  CloudAction,
+  CloudActionGroup,
+  CloudExtension,
+} from "../packages/cloud/mod.ts";
 import userAgentExtension from "#user-agent";
 import { EntryType } from "#orm";
+import { User } from "./.inspatial/_generated/entries/user.ts";
 
-const getUserAgentAction = new AppAction("getUserAgent", {
+const getUserAgentAction = new CloudAction("getUserAgent", {
   params: [],
   run({ inRequest }) {
     return inRequest.context.get("userAgent");
   },
 });
 
-const authActionGroup = new AppActionGroup("auth", {
+const authActionGroup = new CloudActionGroup("auth", {
   description: "This is my amazing",
   actions: [getUserAgentAction],
 });
-const userEntry = new EntryType("user", {
+const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
   defaultListFields: ["firstName", "lastName"],
   fields: [{
-    type: "DataField",
     key: "firstName",
+    type: "DataField",
     label: "First Name",
     description: "The user's first name",
     required: true,
   }, {
-    type: "DataField",
     key: "lastName",
+    type: "DataField",
     label: "Last Name",
-    description: "The user's last name",
+    description: "The user's last names",
     required: true,
   }, {
-    type: "EmailField",
     key: "email",
+    type: "EmailField",
     label: "Email",
     description: "The user's email address used for login",
     required: true,
     unique: true,
   }, {
-    type: "PasswordField",
-    key: "password",
-    label: "Password",
+    key: "fullName",
+    type: "DataField",
+    label: "Full Name",
     description: "The user's password used for login",
-    hidden: true,
-  }, {
-    key: "dateOfBirth",
-    type: "DateField",
-    label: "Date of Birth",
-    description: "The user's date of birth",
+    readOnly: true,
   }],
+  actions: [
+    {
+      key: "login",
+      async action({ user, orm, data }) {
+        data.email;
+        data.password;
+        data.number;
+        return {
+          ...data,
+        };
+      },
+      params: [{
+        key: "email",
+        type: "string",
+        label: "Password",
+        required: true,
+      }, {
+        key: "password",
+        type: "string",
+        description: "The user's password used for login",
+        required: false,
+      }],
+    },
+  ],
+  hooks: {},
 });
 
-const extension = new AppExtension({
+const extension = new CloudExtension({
   key: "my-extension",
   title: "My Extension",
   description: "This is my extension",
@@ -64,7 +85,7 @@ const extension = new AppExtension({
   actionGroups: [authActionGroup],
 });
 
-const myApp = new InSpatialApp("My App", {
+const myApp = new InSpatialCloud("My App", {
   appExtensions: [extension],
 });
 

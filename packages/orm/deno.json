@@ -13,5 +13,10 @@
   "exports": {
     ".": "./mod.ts",
     "./db": "./db/mod.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-unused-vars"]
+    }
   }
 }

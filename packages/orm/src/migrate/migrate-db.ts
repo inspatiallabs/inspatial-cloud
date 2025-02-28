@@ -1,5 +1,5 @@
 import { EntryType } from "#/entry/entry-type.ts";
-import { InSpatialOrm } from "#/inspatial-orm.ts";
+import { InSpatialORM } from "#/inspatial-orm.ts";
 import { InSpatialDB } from "#db";
 import {
   PgColumnDefinition,
@@ -13,7 +13,7 @@ import { FieldDefMap, IDMode } from "#/field/types.ts";
 
 export async function migrateEntryType(
   entryType: EntryType,
-  orm: InSpatialOrm,
+  orm: InSpatialORM,
   onOutput: (message: string) => void,
 ) {
   const migrator = new EntryTypeMigrator({ entryType, orm, onOutput });
@@ -68,14 +68,14 @@ interface ColumnMigrationPlan {
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator>;
-  orm: InSpatialOrm;
+  orm: InSpatialORM;
   db: InSpatialDB;
   migrationPlan: Array<EntryMigrationPlan>;
   onOutput: (message: string) => void;
-  #results: Array<any>;
+  #results: Array<string>;
   constructor(
     entryTypes: EntryType[],
-    orm: InSpatialOrm,
+    orm: InSpatialORM,
     onOutput: (message: string) => void,
   ) {
     this.entryTypes = new Map();
@@ -97,7 +97,7 @@ export class MigrationPlanner {
     this.#results.push(message);
   }
 
-  async createMigrationPlan() {
+  async createMigrationPlan(): Promise<EntryMigrationPlan[]> {
     this.migrationPlan = [];
     for (const migrator of this.entryTypes.values()) {
       const plan = await migrator.planMigration();
@@ -107,7 +107,7 @@ export class MigrationPlanner {
     return this.migrationPlan;
   }
 
-  async migrate() {
+  async migrate(): Promise<Array<string>> {
     await this.createMigrationPlan();
     await this.#createMissingTables();
     await this.#updateTablesDescriptions();
@@ -196,7 +196,7 @@ export class MigrationPlanner {
     }
   }
 
-  async #dropColumns(plan: EntryMigrationPlan) {
+  #dropColumns(plan: EntryMigrationPlan) {
     for (const column of plan.columns.drop) {
       this.#logResult(
         `skipping drop column ${column.columnName}, not implemented with data protection`,
@@ -207,7 +207,7 @@ export class MigrationPlanner {
 
 export class EntryTypeMigrator {
   entryType: EntryType;
-  orm: InSpatialOrm;
+  orm: InSpatialORM;
   log: (message: string) => void;
   db: InSpatialDB;
   existingColumns: Map<string, PostgresColumn>;
@@ -224,7 +224,7 @@ export class EntryTypeMigrator {
   constructor(
     config: {
       entryType: EntryType;
-      orm: InSpatialOrm;
+      orm: InSpatialORM;
       onOutput: (message: string) => void;
     },
   ) {

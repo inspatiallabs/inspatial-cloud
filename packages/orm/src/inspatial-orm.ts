@@ -2,7 +2,7 @@ import { InSpatialDB } from "#db";
 import { FieldDefType } from "#/field/types.ts";
 import { ORMField } from "#/field/orm-field.ts";
 import { ormFields } from "#/field/fields.ts";
-import { MigrationPlanner } from "#/migrate/migrate-db.ts";
+import { EntryMigrationPlan, MigrationPlanner } from "#/migrate/migrate-db.ts";
 import { EntryType } from "#/entry/entry-type.ts";
 import { SettingsType } from "#/settings/settings-type.ts";
 import { raiseORMException } from "#/orm-exception.ts";
@@ -10,16 +10,38 @@ import { ormLogger } from "#/logger.ts";
 import { buildEntry } from "#/entry/build-entry.ts";
 import { Entry } from "#/entry/entry.ts";
 import { DBListOptions, ListOptions } from "#db/types.ts";
+import { GlobalEntryHooks } from "#/types.ts";
+import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
 
-export class InSpatialOrm {
+export class InSpatialORM {
   db: InSpatialDB;
   fieldTypes: Map<FieldDefType, ORMField<any>>;
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType>;
+  #globalEntryHooks: GlobalEntryHooks = {
+    beforeValidate: [],
+    validate: [],
+    beforeCreate: [],
+    afterCreate: [],
+    beforeUpdate: [],
+    afterUpdate: [],
+    beforeDelete: [],
+    afterDelete: [],
+  };
+
   #rootPath: string;
   get #entriesPath() {
     return `${this.#rootPath}/_generated/entries`;
+  }
+  async _runGlobalHooks(hookType: keyof GlobalEntryHooks, entry: Entry) {
+    for (const hook of this.#globalEntryHooks[hookType]) {
+      await hook({
+        entryType: entry._name,
+        entry,
+        orm: this,
+      });
+    }
   }
   _getFieldType<T extends FieldDefType = FieldDefType>(
     fieldType: T,
@@ -61,6 +83,8 @@ export class InSpatialOrm {
        * If not provided, the current working directory will be used.
        */
       rootPath?: string;
+
+      globalEntryHooks?: GlobalEntryHooks;
     },
   ) {
     this.#rootPath = config.rootPath || Deno.cwd();
@@ -80,13 +104,42 @@ export class InSpatialOrm {
     for (const settingsType of config.settings) {
       this.#addSettingsType(settingsType);
     }
+    if (config.globalEntryHooks) {
+      this.#setupHooks(config.globalEntryHooks);
+    }
     this.#build();
   }
+
   #build() {
     for (const entryType of this.entryTypes.values()) {
-      const entryClass = buildEntry(entryType, this.#entriesPath);
+      const entryClass = buildEntry(entryType);
       this.#entryClasses.set(entryType.name, entryClass);
     }
+  }
+
+  #setupHooks(globalHooks: GlobalEntryHooks) {
+    this.#globalEntryHooks.validate.push(...globalHooks.validate);
+    this.#globalEntryHooks.beforeValidate.push(
+      ...globalHooks.beforeValidate,
+    );
+    this.#globalEntryHooks.beforeCreate.push(
+      ...globalHooks.beforeCreate,
+    );
+    this.#globalEntryHooks.afterCreate.push(
+      ...globalHooks.afterCreate,
+    );
+    this.#globalEntryHooks.beforeUpdate.push(
+      ...globalHooks.beforeUpdate,
+    );
+    this.#globalEntryHooks.afterUpdate.push(
+      ...globalHooks.afterUpdate,
+    );
+    this.#globalEntryHooks.beforeDelete.push(
+      ...globalHooks.beforeDelete,
+    );
+    this.#globalEntryHooks.afterDelete.push(
+      ...globalHooks.afterDelete,
+    );
   }
   #addEntryType(entryType: EntryType) {
     if (this.entryTypes.has(entryType.name)) {
@@ -121,7 +174,7 @@ export class InSpatialOrm {
     data: Record<string, any>,
   ): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
-    await entry.new();
+    await entry.create();
     entry.update(data);
     await entry.save();
     return entry;
@@ -129,7 +182,7 @@ export class InSpatialOrm {
 
   async getNewEntry<E extends string>(entryType: E): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
-    await entry.new();
+    await entry.create();
     return entry;
   }
   async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
@@ -215,7 +268,7 @@ export class InSpatialOrm {
     field: string,
   ): Promise<any> {}
 
-  async migrate() {
+  async migrate(): Promise<Array<string>> {
     const migrationPlanner = new MigrationPlanner(
       Array.from(this.entryTypes.values()),
       this,
@@ -226,7 +279,7 @@ export class InSpatialOrm {
     return await migrationPlanner.migrate();
   }
 
-  async planMigration() {
+  async planMigration(): Promise<Array<EntryMigrationPlan>> {
     const migrationPlanner = new MigrationPlanner(
       Array.from(this.entryTypes.values()),
       this,
@@ -235,5 +288,15 @@ export class InSpatialOrm {
       },
     );
     return await migrationPlanner.createMigrationPlan();
+  }
+  generateInterfaces(): { generatedEntries: string[] } {
+    const generatedEntries: string[] = [];
+    for (const entryType of this.entryTypes.values()) {
+      generateEntryInterface(entryType, this.#entriesPath);
+      generatedEntries.push(entryType.name);
+    }
+    return {
+      generatedEntries,
+    };
   }
 }

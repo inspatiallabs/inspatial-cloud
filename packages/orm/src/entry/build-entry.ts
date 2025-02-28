@@ -1,12 +1,11 @@
 import { EntryType } from "#/entry/entry-type.ts";
-import { ormLogger } from "#/logger.ts";
-import { convertString } from "@inspatial/serve/utils";
-import { FieldDefType, ORMFieldDef } from "#/field/types.ts";
+import { ORMFieldDef } from "#/field/types.ts";
 import { Entry } from "#/entry/entry.ts";
-import { InSpatialOrm } from "#/inspatial-orm.ts";
+import { InSpatialORM } from "#/inspatial-orm.ts";
 import { raiseORMException } from "#/orm-exception.ts";
+import { EntryActionDefinition } from "#/entry/types.ts";
 
-export function buildEntry(entryType: EntryType, entriesPath: string) {
+export function buildEntry(entryType: EntryType) {
   const changeableFields = new Map<string, ORMFieldDef>();
   for (const field of entryType.fields.values()) {
     if (
@@ -16,10 +15,13 @@ export function buildEntry(entryType: EntryType, entriesPath: string) {
       changeableFields.set(field.key, field);
     }
   }
-  const entryClass = class extends Entry {
+  entryType.config;
+  const entryClass = class extends Entry<any> {
     override _fields: Map<string, ORMFieldDef> = entryType.fields;
     override _changeableFields = changeableFields;
-    constructor(orm: InSpatialOrm) {
+    override _actions: Map<string, EntryActionDefinition> = entryType.actions;
+
+    constructor(orm: InSpatialORM) {
       super(orm, entryType.name);
     }
   };
@@ -56,7 +58,7 @@ function makeFields(entryType: EntryType, entryClass: typeof Entry) {
         const isValid = fieldType.validate(value, fieldDef);
         if (!isValid) {
           raiseORMException(
-            `${value} is not a valid value for field ${field.key} in entry ${entry.name}`,
+            `${value} is not a valid value for field ${field.key} in entry ${entry._name}`,
           );
         }
         entry._data.set(field.key, value);
@@ -64,90 +66,3 @@ function makeFields(entryType: EntryType, entryClass: typeof Entry) {
     });
   }
 }
-export function buildEntryFile(entryType: EntryType, entriesPath: string) {
-  Deno.mkdirSync(entriesPath, { recursive: true });
-
-  const fileName = `${convertString(entryType.name, "kebab")}.ts`;
-  const filePath = `${entriesPath}/${fileName}`;
-  ormLogger.debug(`Building entry for ${entryType.name}`);
-  ormLogger.debug(filePath);
-  const outLines: string[] = [];
-
-  outLines.push(`import { Entry } from "#orm";`);
-
-  const fieldLines = generateFields(entryType);
-  const className = convertString(entryType.name, "pascal");
-  outLines.push(`class ${className} extends Entry {`);
-  outLines.push(`name:string = "${entryType.name}"`);
-  // outLines.push(generateConstructor());
-  outLines.push(...fieldLines);
-  outLines.push("}");
-  outLines.push(`export default ${className};`);
-  writeEntryFile(filePath, outLines.join("\n"));
-  formatEntryFile(filePath);
-}
-async function formatEntryFile(filePath: string) {
-  const process = new Deno.Command(Deno.execPath(), {
-    args: ["fmt", filePath],
-  }).spawn();
-  const status = await process.status;
-  return status.success;
-}
-function writeEntryFile(filePath: string, content: string) {
-  Deno.writeTextFileSync(filePath, content);
-}
-
-function generateFields(entryType: EntryType): Array<string> {
-  const lines: Array<string> = [];
-  for (const field of entryType.fields.values()) {
-    const fieldLines = makeField(field);
-    lines.push(...fieldLines);
-  }
-  return lines;
-}
-
-function makeField(field: ORMFieldDef) {
-  const lines = [
-    `get ${field.key}(): ${fieldTypeMap[field.type]}{`,
-    `return this._data.get("${field.key}");`,
-    `}`,
-    `set ${field.key}(value: ${fieldTypeMap[field.type]}){`,
-    `this._orm.fieldTypes.get("${field.type}")`,
-    `this._data.set("${field.key}", value);`,
-    `}`,
-  ];
-  return lines;
-}
-
-function generateConstructor() {
-  const lines = [
-    "private constructor(db: InSpatialDB) {",
-    "super(db)",
-    "}",
-  ];
-  return lines.join("\n");
-}
-
-const fieldTypeMap: Record<FieldDefType, string> = {
-  URLField: "string",
-  BigIntField: "number",
-  BooleanField: "boolean",
-  ChoicesField: "string",
-  ConnectionField: "string",
-  CurrencyField: "string",
-  DataField: "string",
-  DateField: "string",
-  DecimalField: "number",
-  EmailField: "string",
-  ImageField: "string",
-  IntField: "number",
-  JSONField: "Record<string, any>",
-  ListField: "Array<string>",
-  TimeStampField: "number",
-  TextField: "string",
-  MultiChoiceField: "Array<string>",
-  PasswordField: "string",
-  PhoneField: "string",
-  RichTextField: "string",
-  IDField: "string",
-};

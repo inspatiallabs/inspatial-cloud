@@ -1,13 +1,13 @@
 import { ServerExtension } from "@inspatial/serve";
 import { PgError } from "../../../orm/db/src/postgres/pgError.ts";
+import { ORMException } from "../../../orm/src/orm-exception.ts";
 
 export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",
-  install(app) {},
+  install(_app) {},
   exceptionHandlers: [{
     name: "orm",
     handler(error) {
-      console.log("PgError");
       if (error instanceof PgError) {
         return {
           serverMessage: {
@@ -18,6 +18,18 @@ export const ormServeExtension = new ServerExtension("orm", {
           clientMessage: "An error occurred while processing your request",
           status: 500,
           statusText: "Internal Server Error",
+        };
+      }
+      if (error instanceof ORMException) {
+        return {
+          serverMessage: {
+            content: `${error.message}`,
+            subject: error.subject,
+            type: error.type,
+          },
+          clientMessage: error.message,
+          status: error.responseCode || 500,
+          statusText: error.subject || "Internal Server Error",
         };
       }
     },

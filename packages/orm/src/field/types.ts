@@ -1,5 +1,5 @@
-export type ORMFieldDef<S extends string = string> =
-  & BaseFieldDef<S>
+export type ORMFieldDef =
+  & BaseFieldDef
   & (
     | DataFieldDef
     | TextFieldDef
@@ -50,8 +50,8 @@ export type FieldDefMap = {
 
 export type FieldDefType = keyof FieldDefMap;
 
-interface BaseFieldDef<S extends string = string> {
-  key: S;
+interface BaseFieldDef {
+  key: string;
   label: string;
   description?: string;
   required?: boolean;
@@ -127,7 +127,7 @@ interface PasswordFieldDef extends BaseFieldDef {
 
 interface ChoicesFieldDef extends BaseFieldDef {
   type: "ChoicesField";
-  choices: string[];
+  choices: Array<Choice>;
   defaultValue?: ORMFieldMap["ChoicesField"];
 }
 
@@ -182,6 +182,10 @@ interface CurrencyFieldDef extends BaseFieldDef {
   defaultValue?: ORMFieldMap["CurrencyField"];
 }
 
+interface Choice {
+  key: string;
+  label: string;
+}
 export type ORMFieldType = keyof ORMFieldMap;
 export type ORMFieldMap = {
   /**

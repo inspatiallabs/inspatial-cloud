@@ -37,7 +37,7 @@ export class PostgresClient {
   serverStatus: ServerStatus;
   private status: "connected" | "notConnected" = "notConnected";
 
-  get connected() {
+  get connected(): boolean {
     return this.status === "connected";
   }
 

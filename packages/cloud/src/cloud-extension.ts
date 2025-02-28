@@ -1,16 +1,19 @@
 import type { ServerExtension } from "@inspatial/serve";
 
-import { AppAction, type AppActionGroup } from "#/app-action.ts";
-import type { InSpatialApp } from "#/inspatial-app.ts";
-import { EntryType, SettingsType } from "#orm";
+import { type CloudActionGroup } from "#/cloud-action.ts";
+import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import { type EntryType, SettingsType } from "#orm";
+import { AppEntryHooks } from "#/types.ts";
 export type PackInstallFunction<R = any> = (
-  app: InSpatialApp,
+  app: InSpatialCloud,
 ) => R;
-export type PackBootFunction = (app: InSpatialApp) => void;
+export type PackBootFunction = (app: InSpatialCloud) => void;
 
-export class AppExtension<
+export class CloudExtension<
   S extends Array<ServerExtension> = Array<ServerExtension>,
-  AG extends Array<AppActionGroup> = Array<AppActionGroup>,
+  AG extends Array<CloudActionGroup> = Array<CloudActionGroup>,
+  N extends string = string,
+  E extends Array<EntryType> = Array<EntryType>,
 > {
   key: string;
   title: string;
@@ -19,6 +22,7 @@ export class AppExtension<
   serverExtensions: S;
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
+  ormGlobalHooks: AppEntryHooks;
   actionGroups: AG;
   install: PackInstallFunction;
   boot: PackBootFunction;
@@ -29,8 +33,9 @@ export class AppExtension<
     description: string;
     version: string;
     serverExtensions?: S;
-    entryTypes?: EntryType[];
+    entryTypes?: E;
     settingsTypes?: SettingsType[];
+    ormGlobalHooks?: Partial<AppEntryHooks>;
     actionGroups?: AG;
     install: PackInstallFunction;
     boot?: PackBootFunction;
@@ -39,6 +44,17 @@ export class AppExtension<
     this.title = config.title;
     this.description = config.description;
     this.version = config.version;
+    const globalHooks = config.ormGlobalHooks;
+    this.ormGlobalHooks = {
+      beforeValidate: globalHooks?.beforeValidate || [],
+      validate: globalHooks?.validate || [],
+      beforeCreate: globalHooks?.beforeCreate || [],
+      afterCreate: globalHooks?.afterCreate || [],
+      beforeUpdate: globalHooks?.beforeUpdate || [],
+      afterUpdate: globalHooks?.afterUpdate || [],
+      beforeDelete: globalHooks?.beforeDelete || [],
+      afterDelete: globalHooks?.afterDelete || [],
+    };
     this.serverExtensions = [] as any;
     for (const serverExtension of config.serverExtensions || []) {
       this.serverExtensions.push(serverExtension);
@@ -53,19 +69,3 @@ export class AppExtension<
     this.boot = config.boot || (() => {});
   }
 }
-const action = new AppAction("test", {
-  run({ params }) {
-  },
-  params: [
-    {
-      key: "test",
-      type: "string",
-      required: true,
-    },
-    {
-      key: "test2",
-      type: "number",
-      required: false,
-    },
-  ],
-});

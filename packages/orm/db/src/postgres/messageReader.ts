@@ -19,20 +19,27 @@ export class MessageReader {
     this.conn = conn;
     this.headerBuffer = new Uint8Array(5);
   }
-
-  async nextMessage() {
+  async #readHeader() {
     this.headerBuffer = new Uint8Array(5);
-    const res = await this.conn.read(this.headerBuffer);
-    if (res === null) {
-      return;
+    let bytesRead = 0;
+    while (bytesRead < 5) {
+      const res = await this.conn.read(this.headerBuffer.subarray(bytesRead));
+      if (res === null) {
+        throw new Error("Failed to read header");
+      }
+      bytesRead += res;
     }
     this.messageType = this.decode(
       this.headerBuffer.slice(0, 1),
     ) as ServerMessageType;
-    this.messageLength = new DataView(this.headerBuffer.buffer).getUint32(
-      1,
-      false,
-    );
+    this.messageLength = new DataView(this.headerBuffer.buffer)
+      .getUint32(
+        1,
+        false,
+      );
+  }
+  async nextMessage() {
+    await this.#readHeader();
     // read from the connection until we have the full message length
     this.currentMessage = new Uint8Array(this.messageLength);
     let bytesRead = 0;

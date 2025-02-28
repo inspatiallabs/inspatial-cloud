@@ -49,125 +49,126 @@ _Reality is your canvas_
 
 ---
 
-## 🛠️ InSpatial Serve (🟡 Preview)
+## 🗃 InSpatial ORM (🔴 Unstable)
 
-_Your entry point into InSpatial Cloud_
 
-`InSpatialServer` is used under the hood by `InSpatialCloud` and handles the web
-server setup, configuration and core functionality.
+`InSpatialORM` is a high-level object-relational mapping library for Deno powered by `InSpatialDB` to connect to `PostgreSQL`.
 
-It is designed as a standalone module that can be used as a web server for any
-Deno project.
+It is designed to work with InSpatial Cloud and can be used as a standalone module for any Deno project.
 
-## 🌟 Features
+InSpatial ORM is currently in development and is not recommended for production use.
 
-- 🚀 Simple API
-- 🧩 Built-in extensions
-- 📦 Easy to extend
-- 🌐 Fully compatible with [Deno Deploy](https://deno.com/deploy)
-- 💪 Compatible with `deno serve`
-- 🔍 User-Agent parsing
 
-## 📦 Install InSpatial Serve:
-
-Choose your preferred package manager:
+## 📦 Install InSpatial ORM
 
 ```bash
-deno install jsr:@inspatial/serve
+deno add jsr:@inspatial/orm
 ```
 
-##
 
-```bash
-npx jsr add @inspatial/serve
-```
+## Basic Usage
 
-##
-
-```bash
-yarn dlx jsr add @inspatial/serve
-```
-
-##
-
-```bash
-pnpm dlx jsr add @inspatial/serve
-```
-
-##
-
-```bash
-bunx jsr add @inspatial/serve
-```
-
-## 🛠️ Usage
-
-### Basic Usage
-
+### Define an EntryType
 ```ts
-// main.ts
-import InSpatialServer from "@inspatial/serve";
 
-const server = new InSpatialServer({
-  extensions: [], // Add extensions here
+// user.ts
+export const userEntry = new EntryType("user", {
+  idMode: "ulid",
+  defaultListFields: ["firstName", "lastName"],
+  fields: [{
+    key: "firstName",
+    type: "DataField",
+    label: "First Name",
+    description: "The user's first name",
+    required: true,
+  }, {
+    key: "lastName",
+    type: "DataField",
+    label: "Last Name",
+    description: "The user's last names",
+    required: true,
+  }, {
+    key: "email",
+    type: "EmailField",
+    label: "Email",
+    description: "The user's email address used for login",
+    required: true,
+    unique: true,
+  }, {
+    key: "fullName",
+    type: "DataField",
+    label: "Full Name",
+    description: "The user's password used for login",
+    readOnly: true,
+  }],
+  actions: [
+    {
+      key: "sayHello",
+      async action({ user, orm, data }) {
+        return {
+          message: `${user.fullName} says: "Hello, ${data.friendName}!"`,
+        };
+      },
+      params: [{
+        key: "friendName",
+        type: "string",
+        label: "Friend's Name",
+        required: true,
+      }],
+    },
+  ],
+  hooks: {
+    beforeUpdate: [{
+      name: "Generate Name",
+      description: "Generate the full name of the user",
+      async handler({
+        user,
+      }) {
+        user.fullName = `${user.firstName} ${user.lastName}`;
+      },
+    }],
+  },
+});
+```
+
+### Create an ORM instance
+```ts
+import { InSpatialORM, InSpatialDB } from "@inspatial/orm";
+import { userEntry } from "./user.ts";
+
+const orm = new InSpatialORM({
+  db: new InSpatialDB({
+    connection:{
+        connectionType: "tcp",
+        host: "localhost",
+        port: 5432,
+        user: "postgres",
+        schema: "public", // optional, default is public
+        password: "password",
+        database: "inspatial" // database name, be sure to create it first with postgres `createdb <database>`
+    }
+  }),
+  entries: [userEntry], // array of defined `EntryType` objects
+  settings: [], // array of defined `SettingType` objects
 });
 
-server.run();
+await orm.migrate(); // create tables and indexes
+
 ```
 
-run the server using `deno run`:
-
-```shell
-deno run -A main.ts
-```
-
-### With Deno Serve
-
-`InSpatialServer` is also compatible with `deno serve`. This is useful when you
-want to use features like parallel processing.
-
+### Use the ORM
 ```ts
-// main.ts
-import InSpatialServer from "@inspatial/serve";
 
-const server = new InSpatialServer({
-  extensions: [], // Add extensions here
-});
+// create a new user entry
+const user = await orm.createEntry("user", {
+  firstName: "Some",
+  lastName: "Dev",
+  email: "some@dev.email",
+  });
 
-export default server;
+
+// run an action on the user entry
+const result = await user.runAction("sayHello", { friendName: "Other Dev" });
+
+console.log(result.message); // Some Dev says: "Hello, Other Dev!"
 ```
-
-Now you can run the server using `deno serve`:
-
-```shell
-deno serve --parallel main.ts
-```
-
-## 🚀 Getting Started
-
-To begin your journey with InSpatial Serve, visit our comprehensive
-documentation at [inspatial.cloud](https://www.inspatial.cloud).
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Please read our
-[Contributing Guidelines](CONTRIBUTING.md) to get started.
-
----
-
-## 📄 License
-
-InSpatial Serve is released under the Apache 2.0 License. See the
-[LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-<strong>Ready to supercharge your spatial development?</strong>
-<br>
-<a href="https://www.inspatial.app">Get Started with InSpatial App</a>
-
-</div>

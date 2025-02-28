@@ -1,0 +1,17 @@
+export interface EntryBase {
+  _name: string;
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **First Name** (DataField)
+   * @description The user's first name
+   * @type {string}
+   * @required true
+   */
+}

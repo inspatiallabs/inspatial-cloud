@@ -1,27 +1,32 @@
 import { IDMode, ORMFieldDef } from "#/field/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { convertString } from "@inspatial/serve/utils";
+import {
+  EntryActionDefinition,
+  EntryHookDefinition,
+  EntryInfo,
+  EntryTypeConfig,
+} from "#/entry/types.ts";
+import { EntryBase } from "#/entry/entry-base.ts";
+import { EntryHookName } from "#/types.ts";
 
 export class EntryType<
+  E extends EntryBase = EntryBase & { [key: string]: any },
   N extends string = string,
-  S extends string = string,
-  F extends Array<ORMFieldDef<S>> = Array<ORMFieldDef<S>>,
 > {
   name: N;
-  config: {
-    tableName: string;
-    label: string;
-    description: string;
-    idMode: IDMode;
-  };
+  config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
   fields: Map<string, ORMFieldDef> = new Map();
+  actions: Map<string, EntryActionDefinition> = new Map();
   constructor(name: N, config: {
     description?: string;
     label?: string;
     idMode?: IDMode;
-    defaultListFields?: Array<F[number]["key"]>;
-    fields: F;
+    defaultListFields?: Array<keyof E>;
+    fields: Array<ORMFieldDef>;
+    actions: Array<EntryActionDefinition<E>>;
+    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
   }) {
     this.fields.set("id", {
       key: "id",
@@ -56,6 +61,7 @@ export class EntryType<
       description: config.description ||
         `${label} entry type for InSpatial ORM`,
     };
+
     for (const field of config.fields) {
       if (this.fields.has(field.key)) {
         raiseORMException(
@@ -65,22 +71,36 @@ export class EntryType<
       this.fields.set(field.key, field);
     }
     if (config.defaultListFields) {
-      for (const fieldKey of config.defaultListFields) {
+      const defaultListFields = new Set(config.defaultListFields) as Set<
+        string
+      >;
+      for (const fieldKey of defaultListFields) {
         if (!this.fields.has(fieldKey)) {
           raiseORMException(
-            `Field with key ${fieldKey} does not exist in EntryType ${this.name}`,
+            `Field with key ${fieldKey.toString()} does not exist in EntryType ${this.name}`,
           );
         }
         this.defaultListFields.add(fieldKey);
       }
     }
+
+    for (const actionKey in config.actions) {
+      if (this.actions.has(actionKey)) {
+        raiseORMException(
+          `Action with key ${actionKey} already exists in EntryType ${this.name}`,
+        );
+      }
+      const action = config.actions[actionKey];
+      this.actions.set(actionKey, action);
+    }
   }
 
-  get info() {
+  get info(): EntryInfo {
     return {
       name: this.name,
       config: this.config,
       fields: Array.from(this.fields.values()),
+      actions: Array.from(this.actions.values()),
     };
   }
   #generateTableName(): string {

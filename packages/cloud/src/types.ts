@@ -1,8 +1,10 @@
-import type { InSpatialApp } from "./inspatial-app.ts";
+import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { InRequest, InResponse } from "@inspatial/serve";
 import type { ActionParamProp } from "@inspatial/serve/actions-api";
-import type { AppAction } from "./app-action.ts";
-import type { AppExtension } from "../mod.ts";
+import type { CloudAction } from "#/cloud-action.ts";
+import type { CloudExtension } from "../mod.ts";
+import { EntryHookName } from "../../orm/src/types.ts";
+import { Entry, InSpatialORM } from "#orm";
 
 type AppActionConfig<
   K extends string,
@@ -23,7 +25,7 @@ type AppActionConfig<
    */
   hideFromApi?: boolean;
   run: (args: {
-    app: InSpatialApp;
+    app: InSpatialCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -33,20 +35,28 @@ type AppActionConfig<
 
 export type { ActionParamProp, AppActionConfig };
 
-export type RunActionMap<AE extends Array<AppExtension>> = {
+export type RunActionMap<AE extends Array<CloudExtension>> = {
   [K in AE[number]["actionGroups"][number] as K["groupName"]]: {
     [K2 in K["actions"][number] as K2["actionName"]]: K2 extends
-      AppAction<infer N, infer K, infer P, infer D, infer R>
+      CloudAction<infer N, infer K, infer P, infer D, infer R>
       ? P extends never[] ? undefined : D
       : never;
   };
 };
 
-export type ReturnActionMap<AE extends Array<AppExtension>> = {
+export type ReturnActionMap<AE extends Array<CloudExtension>> = {
   [K in AE[number]["actionGroups"][number] as K["groupName"]]: {
     [K2 in K["actions"][number] as K2["actionName"]]: K2 extends
-      AppAction<infer N, infer K, infer P, infer D, infer R>
+      CloudAction<infer N, infer K, infer P, infer D, infer R>
       ? R extends (args: any) => any ? ReturnType<R> : never
       : never;
   };
 };
+
+export type AppEntryHooks = Record<EntryHookName, Array<AppHookFunction>>;
+
+export type AppHookFunction = (app: InSpatialCloud, hookParams: {
+  entryType: string;
+  entry: Entry;
+  orm: InSpatialORM;
+}) => Promise<void> | void;

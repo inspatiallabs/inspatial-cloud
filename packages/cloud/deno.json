@@ -1,5 +1,5 @@
 {
-  "name": "@inspatial/cloud-app",
+  "name": "@inspatial/cloud",
   "version": "0.1.0",
   "exports": {
     ".": "./mod.ts"

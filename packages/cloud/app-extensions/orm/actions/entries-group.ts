@@ -1,8 +1,6 @@
-import { AppAction, AppActionGroup } from "#/app-action.ts";
-import { ormLogger } from "../../../../orm/src/logger.ts";
-import ulid from "../../../../orm/src/utils/ulid.ts";
+import { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
 
-const getEntryAction = new AppAction("getEntry", {
+const getEntryAction = new CloudAction("getEntry", {
   description: "Get a singe entry for a given Entry Type",
   async run({ app, inRequest, params }) {
     const { entryType, id } = params;
@@ -24,7 +22,7 @@ const getEntryAction = new AppAction("getEntry", {
   }],
 });
 
-const newEntryAction = new AppAction("getNewEntry", {
+const newEntryAction = new CloudAction("getNewEntry", {
   description:
     "Get the default values for a new entry, not saved to the database",
   async run({ app, inRequest, params }) {
@@ -41,7 +39,7 @@ const newEntryAction = new AppAction("getNewEntry", {
   }],
 });
 
-const updateEntryAction = new AppAction("updateEntry", {
+const updateEntryAction = new CloudAction("updateEntry", {
   description: "Update an existing entry",
   async run({ app, inRequest, params }) {
     const { entryType, id, data } = params;
@@ -71,7 +69,7 @@ const updateEntryAction = new AppAction("updateEntry", {
   }],
 });
 
-const createEntryAction = new AppAction("createEntry", {
+const createEntryAction = new CloudAction("createEntry", {
   description: "Create a new entry",
   async run({ app, inRequest, params }) {
     const { entryType, data } = params;
@@ -93,7 +91,42 @@ const createEntryAction = new AppAction("createEntry", {
   }],
 });
 
-const deleteEntryAction = new AppAction("deleteEntry", {
+const runEntryAction = new CloudAction("runEntryAction", {
+  description: "Run an action on an entry",
+  async run({ app, inRequest, params }) {
+    const { entryType, id, action, data } = params;
+
+    const entry = await app.orm.getEntry(entryType, id);
+    return await entry.runAction(action, data);
+  },
+  params: [{
+    key: "entryType",
+    type: "string",
+    label: "Entry Type",
+    description: "The Entry Type to run the action on",
+    required: true,
+  }, {
+    key: "id",
+    type: "string",
+    label: "ID",
+    description: "The ID of the Entry to run the action on",
+    required: true,
+  }, {
+    key: "action",
+    type: "string",
+    label: "Action",
+    description: "The action to run",
+    required: true,
+  }, {
+    key: "data",
+    type: "object",
+    label: "Data",
+    description: "The data to run the action with",
+    required: false,
+  }],
+});
+
+const deleteEntryAction = new CloudAction("deleteEntry", {
   description: "Delete an existing entry",
   async run({ app, inRequest, params }) {
     const { entryType, id } = params;
@@ -115,7 +148,7 @@ const deleteEntryAction = new AppAction("deleteEntry", {
   }],
 });
 
-const getEntryListAction = new AppAction("getEntryList", {
+const getEntryListAction = new CloudAction("getEntryList", {
   description: "Get a list of entries for a given Entry Type",
   async run({ app, inRequest, params }) {
     const { entryType, options } = params;
@@ -136,10 +169,11 @@ const getEntryListAction = new AppAction("getEntryList", {
     required: false,
   }],
 });
-const entriesGroup = new AppActionGroup("entry", {
+const entriesGroup = new CloudActionGroup("entry", {
   description: "CRUD actions for InSpatial ORM Entries",
   actions: [
     getEntryAction,
+    runEntryAction,
     updateEntryAction,
     newEntryAction,
     createEntryAction,

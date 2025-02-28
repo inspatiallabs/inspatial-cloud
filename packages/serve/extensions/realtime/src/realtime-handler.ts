@@ -196,6 +196,18 @@ export class RealtimeHandler {
     );
     this.#channel.postMessage(message);
   }
+
+  announce(message: string | Record<string, any>) {
+    this.#clients.forEach((client) => {
+      if (client.socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      client.socket.send(JSON.stringify({
+        event: "announce",
+        data: message,
+      }));
+    });
+  }
   #validateRoom(room: string) {
     if (!this.#rooms.has(room)) {
       this.addRoom({

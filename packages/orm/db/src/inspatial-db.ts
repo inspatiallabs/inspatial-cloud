@@ -19,6 +19,7 @@ import { serveLogger } from "../../../serve/src/logger/serve-logger.ts";
 import { ormLogger } from "#/logger.ts";
 import { convertString } from "../../../serve/src/utils/mod.ts";
 import { IDMode } from "#/field/types.ts";
+import { IDValue } from "#/entry/types.ts";
 
 export class InSpatialDB {
   config: DBConfig;
@@ -39,7 +40,7 @@ export class InSpatialDB {
     return this.#version;
   }
 
-  get client() {
+  get client(): PostgresClient {
     if (!this.#client) {
       this.#client = new PostgresClient(this.config.connection);
     }
@@ -256,7 +257,7 @@ export class InSpatialDB {
     tableName: string,
     id: string | number,
     data: Record<string, any>,
-  ) {
+  ): Promise<QueryResultFormatted<T>> {
     tableName = this.#toSnake(tableName);
     const values = Object.entries(data).map(([key, value]) => {
       return `${this.#formatColumnName(key)} = ${this.#formatValue(value)}`;
@@ -274,7 +275,7 @@ export class InSpatialDB {
    * @param tableName
    * @param id
    */
-  async deleteRow(tableName: string, id: string): Promise<void> {
+  async deleteRow(tableName: string, id: IDValue): Promise<void> {
     tableName = this.#toSnake(tableName);
     const query = `DELETE FROM ${this.schema}.${tableName} WHERE id = ${
       this.#formatValue(id)
@@ -487,7 +488,7 @@ export class InSpatialDB {
     await this.query(query);
   }
 
-  async vacuumAnalyze(tableName?: string) {
+  async vacuumAnalyze(tableName?: string): Promise<QueryResultFormatted> {
     if (!tableName) {
       const query = `VACUUM ANALYZE`;
       return await this.query(query);

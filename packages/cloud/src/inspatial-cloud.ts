@@ -1,5 +1,5 @@
 // import ormExtension, { type EasyOrm } from "../../easy-orm/mod.ts";
-import type { AppExtension } from "#/app-extension.ts";
+import type { CloudExtension } from "#/cloud-extension.ts";
 import InSpatialServer, {
   InResponse,
   type ServerExtension,
@@ -13,15 +13,17 @@ import corsExtension from "@inspatial/serve/cors";
 import realtimeExtension, {
   type RealtimeHandler,
 } from "@inspatial/serve/realtime";
-import type { AppActionGroup } from "#/app-action.ts";
+import type { CloudActionGroup } from "#/cloud-action.ts";
 import { InRequest } from "@inspatial/serve";
-import type { ReturnActionMap, RunActionMap } from "#/types.ts";
+import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 
-import { EntryType, InSpatialOrm, SettingsType } from "#orm";
+import { EntryType, InSpatialORM, SettingsType } from "#orm";
 import { ormExtension } from "../app-extensions/orm/mod.ts";
-export class InSpatialApp<
+import { GlobalEntryHooks, GlobalHookFunction } from "../../orm/src/types.ts";
+
+export class InSpatialCloud<
   N extends string = string,
-  P extends Array<AppExtension> = [],
+  P extends Array<CloudExtension> = [],
 > {
   readonly appName: N;
   server: InSpatialServer<{
@@ -42,13 +44,13 @@ export class InSpatialApp<
     return this.server.getExtension("db") as InSpatialDB;
   }
 
-  orm: InSpatialOrm;
+  orm: InSpatialORM;
 
   ready: Promise<boolean>;
 
-  #ActionGroups: Map<string, AppActionGroup> = new Map();
+  #ActionGroups: Map<string, CloudActionGroup> = new Map();
 
-  #appExtensions: Map<string, AppExtension> = new Map();
+  #appExtensions: Map<string, CloudExtension> = new Map();
 
   fetch!: Deno.ServeHandler;
 
@@ -66,9 +68,19 @@ export class InSpatialApp<
 
     const appEntries: Array<EntryType> = [];
     const appSettings: Array<SettingsType> = [];
+    const globalHooks: GlobalEntryHooks = {
+      beforeValidate: [],
+      validate: [],
+      beforeCreate: [],
+      afterCreate: [],
+      beforeUpdate: [],
+      afterUpdate: [],
+      beforeDelete: [],
+      afterDelete: [],
+    };
     this.#ActionGroups = new Map();
     this.#appExtensions = new Map();
-    const appExtensions: Array<AppExtension> = [ormExtension];
+    const appExtensions: Array<CloudExtension> = [ormExtension];
     if (config?.appExtensions) {
       appExtensions.push(...config.appExtensions);
     }
@@ -79,19 +91,33 @@ export class InSpatialApp<
           `AppExtention with key ${appExtension.key} already exists`,
         );
       }
-      const { entryTypes, settingsTypes } = appExtension;
+      const { entryTypes, settingsTypes, ormGlobalHooks } = appExtension;
       appEntries.push(...entryTypes);
       appSettings.push(...settingsTypes);
       this.#appExtensions.set(appExtension.key, appExtension);
       extensions.push(...appExtension.serverExtensions);
+      if (ormGlobalHooks) {
+        for (const hookName of Object.keys(ormGlobalHooks)) {
+          const hooks = ormGlobalHooks[hookName as keyof AppEntryHooks];
+          for (const hook of hooks) {
+            const newHook: GlobalHookFunction = async (
+              { entry, entryType, orm },
+            ) => {
+              return await hook(this, { entry, entryType, orm });
+            };
+            globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
+          }
+        }
+      }
     }
     this.server = new InSpatialServer({
       extensions,
     });
-    this.orm = new InSpatialOrm({
+    this.orm = new InSpatialORM({
       db: this.db,
       entries: appEntries,
       settings: appSettings,
+      globalEntryHooks: globalHooks,
     });
 
     this.#setup();
@@ -109,8 +135,8 @@ export class InSpatialApp<
     }
   }
 
-  #installAppExtension(appExtension: AppExtension) {
-    const { actionGroups, entryTypes } = appExtension;
+  #installAppExtension(appExtension: CloudExtension) {
+    const { actionGroups } = appExtension;
 
     for (const actionGroup of actionGroups) {
       if (this.#ActionGroups.has(actionGroup.groupName)) {
@@ -126,7 +152,7 @@ export class InSpatialApp<
           actionName: action.actionName,
           description: action.description,
           params: Array.from(action.params.values()),
-          handler: async (data, server, inRequest, inResponse) => {
+          handler: async (data, _server, inRequest, inResponse) => {
             return await action.run({
               app: this,
               params: data,

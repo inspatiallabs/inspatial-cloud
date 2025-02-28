@@ -1,16 +1,21 @@
 import { EntryType } from "#/entry/entry-type.ts";
-import { InSpatialOrm } from "#/inspatial-orm.ts";
+import { InSpatialORM } from "#/inspatial-orm.ts";
 import { InSpatialDB } from "#db";
 
 import type { FieldDefMap, ORMFieldDef } from "#/field/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { ORMField } from "#/field/orm-field.ts";
-import { ormLogger } from "#/logger.ts";
 import ulid from "#/utils/ulid.ts";
+import { PgError } from "#db/postgres/pgError.ts";
+import { PGErrorCode } from "#db/postgres/maps/errorMap.ts";
+import { convertString } from "@inspatial/serve/utils";
+import { EntryActionDefinition, IDValue } from "#/entry/types.ts";
 
-export class Entry {
-  name: string;
-  get id() {
+export class Entry<
+  N extends string = string,
+> {
+  _name: N;
+  get id(): IDValue {
     return this._data.get("id");
   }
 
@@ -18,7 +23,8 @@ export class Entry {
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
   }
-  _orm: InSpatialOrm;
+  _actions: Map<string, EntryActionDefinition> = new Map();
+  _orm: InSpatialORM;
   _db: InSpatialDB;
   _data: Map<string, any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
@@ -26,12 +32,12 @@ export class Entry {
   _changeableFields: Map<string, ORMFieldDef> = new Map();
 
   get _entryType(): EntryType {
-    if (!this._orm.entryTypes.has(this.name)) {
-      raiseORMException(`EntryType ${this.name} does not exist in ORM`);
+    if (!this._orm.entryTypes.has(this._name)) {
+      raiseORMException(`EntryType ${this._name} does not exist in ORM`);
     }
-    return this._orm.entryTypes.get(this.name)!;
+    return this._orm.entryTypes.get(this._name)!;
   }
-  get data() {
+  get data(): Record<string, any> {
     return Object.fromEntries(this._data.entries());
   }
   _getFieldType<T extends keyof FieldDefMap>(fieldType: T): ORMField<T> {
@@ -47,14 +53,14 @@ export class Entry {
     const fieldDef = this._fields.get(fieldKey);
     if (!fieldDef) {
       raiseORMException(
-        `Field with key ${fieldKey} does not exist in EntryType ${this.name}`,
+        `Field with key ${fieldKey} does not exist in EntryType ${this._name}`,
       );
     }
     return fieldDef as unknown as FieldDefMap[T];
   }
 
-  constructor(orm: InSpatialOrm, name: string) {
-    this.name = name;
+  constructor(orm: InSpatialORM, name: N) {
+    this._name = name;
     this._orm = orm;
     this._db = orm.db;
     this._data = new Map();
@@ -63,7 +69,7 @@ export class Entry {
    * Creates a new instance of this entry type, and sets all the fields to their default values.
    * Note: This does not save the entry to the database. You must call the save method to do that.
    */
-  async new() {
+  create(): void {
     this._data.clear();
     for (const field of this._fields.values()) {
       if (
@@ -79,21 +85,23 @@ export class Entry {
     this._data.set("id", "_new_");
   }
 
-  async load(id: string) {
+  async load(id: IDValue): Promise<void> {
     this._data.clear();
     this._modifiedValues.clear();
     // Load the main table row
     const dbRow = await this._db.getRow(this._entryType.config.tableName, id);
     if (!dbRow) {
       raiseORMException(
-        `${this._entryType.config.label} with id ${id} does not exist in table ${this._entryType.config.tableName}`,
+        `${this._entryType.config.label} with id ${id} does not exist!`,
+        "EntryNotFound",
+        404,
       );
     }
     for (const [key, value] of Object.entries(dbRow)) {
       const fieldDef = this._entryType.fields.get(key);
       if (!fieldDef) {
         raiseORMException(
-          `Field with key ${key} does not exist in EntryType ${this.name}`,
+          `Field with key ${key} does not exist in EntryType ${this._name}`,
         );
       }
       const fieldType = this._getFieldType(fieldDef.type);
@@ -101,17 +109,24 @@ export class Entry {
     }
   }
 
-  async save() {
+  async save(): Promise<void> {
     this["updatedAt" as keyof this] = Date.now() as any;
-    if (this.#isNew) {
-      this["createdAt" as keyof this] = Date.now() as any;
+    switch (this.#isNew) {
+      case true:
+        this["createdAt" as keyof this] = Date.now() as any;
+        await this.#beforeCreate();
+        break;
+      default:
+        await this.#beforeUpdate();
     }
+
     const data: Record<string, any> = {};
     for (const [key, value] of this._modifiedValues.entries()) {
       const fieldDef = this._getFieldDef(key);
       const fieldType = this._getFieldType(fieldDef.type);
       data[key] = fieldType.prepareForDB(value.to, fieldDef);
     }
+
     if (this.#isNew) {
       return await this.#insertNew(data);
     }
@@ -121,13 +136,16 @@ export class Entry {
       this._entryType.config.tableName,
       this.id,
       data,
-    );
+    ).catch((e) => this.#handlePGError(e));
     // Reload the entry to get the updated values
     await this.load(this.id);
+    await this.#afterUpdate();
   }
 
-  async delete() {
+  async delete(): Promise<boolean> {
+    await this.#beforeDelete();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
+    await this.#afterDelete();
     return true;
   }
 
@@ -137,7 +155,6 @@ export class Entry {
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
   update(data: Record<string, any>) {
-    ormLogger.debug(data);
     for (const [key, value] of Object.entries(data)) {
       if (!this._changeableFields.has(key)) {
         continue;
@@ -145,6 +162,31 @@ export class Entry {
       this[key as keyof this] = value;
     }
   }
+  /* Lifecycle Hooks */
+  async #beforeValidate() {
+    await this._orm._runGlobalHooks("beforeValidate", this);
+  }
+  async #validate() {
+    await this.#beforeValidate();
+    await this._orm._runGlobalHooks("validate", this);
+  }
+  async #beforeCreate() {
+    await this.#validate();
+    await this._orm._runGlobalHooks("beforeCreate", this);
+  }
+  async #afterCreate() {
+    await this._orm._runGlobalHooks("afterCreate", this);
+  }
+  async #beforeUpdate() {
+    await this.#validate();
+    await this._orm._runGlobalHooks("beforeUpdate", this);
+  }
+  async #afterUpdate() {
+    await this._orm._runGlobalHooks("afterUpdate", this);
+  }
+  async #beforeDelete() {}
+  async #afterDelete() {}
+  /* End Lifecycle Hooks */
   async #insertNew(data: Record<string, any>) {
     const id = this.#generateId();
 
@@ -154,8 +196,12 @@ export class Entry {
     const result = await this._db.insertRow(
       this._entryType.config.tableName,
       data,
-    );
+    ).catch((e) => this.#handlePGError(e));
+    if (!result) {
+      return;
+    }
     await this.load(result.id);
+    await this.#afterCreate();
   }
   #generateId() {
     const idMode = this._entryType.config.idMode;
@@ -173,5 +219,54 @@ export class Entry {
         raiseORMException(`Invalid idMode ${idMode}`);
     }
     return id;
+  }
+  #getAndValidateAction(actionKey: string, data?: Record<string, any>) {
+    const dataMap = new Map(Object.entries(data || {}));
+    const action = this._actions.get(actionKey);
+    if (!action) {
+      raiseORMException(
+        `Action ${actionKey} not found in entry type ${this._entryType.name}`,
+      );
+    }
+    if (action.params) {
+      for (const param of action.params) {
+        if (param.required && !dataMap.has(param.key)) {
+          raiseORMException(
+            `Missing required param ${param.key} for action ${actionKey} in entry type ${this._entryType.name}`,
+          );
+        }
+      }
+    }
+    return action;
+  }
+  #handlePGError(e: unknown) {
+    if (!(e instanceof PgError)) {
+      throw e;
+    }
+
+    switch (e.code) {
+      case PGErrorCode.NO_NULL_VALUE: {
+        const fieldKey = convertString(e.fullMessage.columnName, "camel");
+        raiseORMException(
+          `Field ${fieldKey} is required for ${this._entryType.config.label} entry`,
+          "RequiredField",
+          400,
+        );
+      }
+    }
+  }
+  async runAction(
+    actionKey: string,
+    data?: Record<string, any>,
+  ): Promise<any> {
+    const action = this.#getAndValidateAction(actionKey, data);
+
+    data = data || {};
+    return await action.action({
+      orm: this._orm,
+      data,
+      [this._name]: this as any,
+      entry: this as any,
+    });
   }
 }

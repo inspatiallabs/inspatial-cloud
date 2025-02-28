@@ -3,22 +3,22 @@ import {
   type InResponse,
   raiseServerException,
 } from "@inspatial/serve";
-import type { InSpatialApp } from "./inspatial-app.ts";
-import type { ActionParamProp } from "./types.ts";
+import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { ActionParamProp } from "#/types.ts";
 import type { ParamsMap } from "@inspatial/serve/actions-api";
 
-export class AppAction<
+export class CloudAction<
   N extends string,
   K extends string,
   P extends Array<ActionParamProp<K>>,
   D extends ParamsMap<P>,
   R extends (args: {
-    app: InSpatialApp;
+    app: InSpatialCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;
   }) => Promise<any> | any = (args: {
-    app: InSpatialApp;
+    app: InSpatialCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -33,7 +33,7 @@ export class AppAction<
   requiredParams: string[] = [];
 
   #_run: (args: {
-    app: InSpatialApp;
+    app: InSpatialCloud;
     params: any;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -136,7 +136,7 @@ export class AppAction<
   }
 
   async run(args: {
-    app: InSpatialApp;
+    app: InSpatialCloud;
     params?: Record<string, any>;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -152,13 +152,13 @@ export class AppAction<
   }
 }
 
-export class AppActionGroup<
+export class CloudActionGroup<
   G extends string = string,
   N extends string = string,
   K extends string = string,
   P extends Array<ActionParamProp<K>> = Array<ActionParamProp<K>>,
   D extends ParamsMap<P> = ParamsMap<P>,
-  A extends Array<AppAction<N, K, P, D>> = Array<AppAction<N, K, P, D>>,
+  A extends Array<CloudAction<N, K, P, D>> = Array<CloudAction<N, K, P, D>>,
 > {
   groupName: G;
   description: string;
