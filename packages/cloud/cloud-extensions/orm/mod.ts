@@ -1,9 +1,9 @@
-import { CloudExtension } from "#/app-extension.ts";
-import ormGroup from "./actions/orm-group.ts";
-import entriesGroup from "./actions/entries-group.ts";
-import { ormServeExtension } from "./serveExtension.ts";
-import { AppEntryHooks, AppHookFunction } from "#/types.ts";
-const afterUpdateHook: AppHookFunction = async (
+import { CloudExtension } from "#/cloud-extension.ts";
+import ormGroup from "#extension/orm/actions/orm-group.ts";
+import entriesGroup from "#extension/orm/actions/entries-group.ts";
+import { ormServeExtension } from "#extension/orm/serveExtension.ts";
+import { AppHookFunction } from "#/types.ts";
+const afterUpdateHook: AppHookFunction = (
   app,
   { entry, entryType, orm },
 ) => {
@@ -14,7 +14,7 @@ const afterUpdateHook: AppHookFunction = async (
   });
 };
 
-const afterCreateHook: AppHookFunction = async (
+const afterCreateHook: AppHookFunction = (
   app,
   { entry, entryType, orm },
 ) => {
@@ -25,7 +25,7 @@ const afterCreateHook: AppHookFunction = async (
   });
 };
 
-const afterDeleteHook: AppHookFunction = async (
+const afterDeleteHook: AppHookFunction = (
   app,
   { entry, entryType, orm },
 ) => {

@@ -71,9 +71,9 @@ export class EntryType<
       this.fields.set(field.key, field);
     }
     if (config.defaultListFields) {
-      const defaultListFields = new Set(config.defaultListFields) as Set<
-        string
-      >;
+      const defaultListFields = new Set<string>(
+        config.defaultListFields as string[],
+      );
       for (const fieldKey of defaultListFields) {
         if (!this.fields.has(fieldKey)) {
           raiseORMException(

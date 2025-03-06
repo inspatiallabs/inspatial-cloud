@@ -12,7 +12,8 @@
   },
   "exports": {
     ".": "./mod.ts",
-    "./db": "./db/mod.ts"
+    "./db": "./db/mod.ts",
+    "./types": "./types.ts"
   },
   "lint": {
     "rules": {

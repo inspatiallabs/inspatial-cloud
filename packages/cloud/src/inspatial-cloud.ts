@@ -18,8 +18,8 @@ import { InRequest } from "@inspatial/serve";
 import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 
 import { EntryType, InSpatialORM, SettingsType } from "#orm";
-import { ormExtension } from "../app-extensions/orm/mod.ts";
-import { GlobalEntryHooks, GlobalHookFunction } from "../../orm/src/types.ts";
+import { GlobalEntryHooks, GlobalHookFunction } from "#orm/types";
+import { ormExtension } from "#extension/orm/mod.ts";
 
 export class InSpatialCloud<
   N extends string = string,
