@@ -5,7 +5,9 @@ import fields from "#extension/auth/entry-types/user/fields.ts";
 const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
   titleField: "fullName",
+  label: "User",
   defaultListFields: ["firstName", "lastName"],
+  description: "A user of the system",
   fields: fields,
   actions: [
     {
@@ -18,6 +20,7 @@ const userEntry = new EntryType<User>("user", {
           ...data,
         };
       },
+
       params: [{
         key: "email",
         type: "string",
@@ -31,7 +34,17 @@ const userEntry = new EntryType<User>("user", {
       }],
     },
   ],
-  hooks: {},
+  hooks: {
+    beforeUpdate: [{
+      name: "setFullName",
+      description: "Set the full name of the user",
+      handler({
+        user,
+      }) {
+        user.fullName = `${user.firstName} ${user.lastName}`;
+      },
+    }],
+  },
 });
 
 export default userEntry;

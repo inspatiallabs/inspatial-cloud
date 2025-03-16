@@ -9,7 +9,13 @@ import ulid from "#/utils/ulid.ts";
 import { PgError } from "#db/postgres/pgError.ts";
 import { PGErrorCode } from "#db/postgres/maps/errorMap.ts";
 import { convertString } from "@inspatial/serve/utils";
-import { EntryActionDefinition, IDValue } from "#/entry/types.ts";
+import {
+  EntryActionDefinition,
+  EntryHookDefinition,
+  IDValue,
+} from "#/entry/types.ts";
+import { EntryHookName } from "../../types.ts";
+import { GenericEntry } from "#/entry/entry-base.ts";
 
 export class Entry<
   N extends string = string,
@@ -30,7 +36,18 @@ export class Entry<
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
   _fields: Map<string, ORMFieldDef> = new Map();
   _changeableFields: Map<string, ORMFieldDef> = new Map();
-
+  _hooks: {
+    [key in EntryHookName]?: Array<EntryHookDefinition>;
+  } = {
+    beforeValidate: [],
+    validate: [],
+    beforeCreate: [],
+    afterCreate: [],
+    beforeUpdate: [],
+    afterUpdate: [],
+    beforeDelete: [],
+    afterDelete: [],
+  };
   get _entryType(): EntryType {
     if (!this._orm.entryTypes.has(this._name)) {
       raiseORMException(`EntryType ${this._name} does not exist in ORM`);
@@ -163,29 +180,52 @@ export class Entry<
     }
   }
   /* Lifecycle Hooks */
+
+  async #runHooks(hookName: EntryHookName) {
+    for (const hook of this._entryType.hooks[hookName]) {
+      await hook.handler({
+        orm: this._orm,
+        entry: this as any,
+        [this._entryType.name]: this as any,
+      });
+    }
+  }
   async #beforeValidate() {
+    await this.#runHooks("beforeValidate");
     await this._orm._runGlobalHooks("beforeValidate", this);
   }
   async #validate() {
     await this.#beforeValidate();
+    await this.#runHooks("validate");
     await this._orm._runGlobalHooks("validate", this);
   }
   async #beforeCreate() {
     await this.#validate();
+    await this.#runHooks("beforeUpdate");
+    await this.#runHooks("beforeCreate");
     await this._orm._runGlobalHooks("beforeCreate", this);
   }
   async #afterCreate() {
+    await this.#runHooks("afterCreate");
     await this._orm._runGlobalHooks("afterCreate", this);
   }
   async #beforeUpdate() {
     await this.#validate();
+    await this.#runHooks("beforeUpdate");
     await this._orm._runGlobalHooks("beforeUpdate", this);
   }
   async #afterUpdate() {
+    await this.#runHooks("afterUpdate");
     await this._orm._runGlobalHooks("afterUpdate", this);
   }
-  async #beforeDelete() {}
-  async #afterDelete() {}
+  async #beforeDelete() {
+    await this.#runHooks("beforeDelete");
+    await this._orm._runGlobalHooks("beforeDelete", this);
+  }
+  async #afterDelete() {
+    await this.#runHooks("afterDelete");
+    await this._orm._runGlobalHooks("afterDelete", this);
+  }
   /* End Lifecycle Hooks */
   async #insertNew(data: Record<string, any>) {
     const id = this.#generateId();

@@ -184,6 +184,7 @@ export class InSpatialCloud<
         actions.set(action.actionName, {
           actionName: action.actionName,
           description: action.description,
+          label: action.label,
           params: Array.from(action.params.values()),
           handler: async (data, _server, inRequest, inResponse) => {
             return await action.run({
@@ -197,6 +198,7 @@ export class InSpatialCloud<
       }
       this.api.addGroup({
         groupName: actionGroup.groupName,
+        label: actionGroup.label,
         description: actionGroup.description,
         actions: actions,
       });

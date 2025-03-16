@@ -243,8 +243,9 @@ export class MigrationPlanner {
 
   #dropColumns(plan: EntryMigrationPlan) {
     for (const column of plan.columns.drop) {
+      this.db.removeColumn(plan.table.tableName, column.columnName);
       this.#logResult(
-        `skipping drop column ${column.columnName}, not implemented with data protection`,
+        `Dropped column ${column.columnName} from table ${plan.table.tableName}`,
       );
     }
   }

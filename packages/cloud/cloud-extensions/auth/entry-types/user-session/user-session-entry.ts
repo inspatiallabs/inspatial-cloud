@@ -4,6 +4,7 @@ import { UserSession } from "#extension/auth/entry-types/generated-types/user-se
 
 const userSessionEntry = new EntryType<UserSession>("userSession", {
   label: "User Session",
+  description: "An authenticated user session",
   idMode: "ulid",
   fields: fields,
   actions: [],

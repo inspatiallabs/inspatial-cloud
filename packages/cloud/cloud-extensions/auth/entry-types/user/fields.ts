@@ -25,4 +25,10 @@ export default [{
   label: "Full Name",
   description: "The user's password used for login",
   readOnly: true,
+}, {
+  key: "password",
+  type: "PasswordField",
+  label: "Password",
+  hidden: true,
+  description: "The user's password used for login",
 }] satisfies Array<ORMFieldDef>;

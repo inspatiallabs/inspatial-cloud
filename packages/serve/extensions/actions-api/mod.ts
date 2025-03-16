@@ -39,7 +39,7 @@ export type {
  * API Extension for {@link InSpatialServer}
  */
 const actionsAPI = new ServerExtension("actions-api", {
-  description: "API handler for InSpatialServer",
+  description: "API handler for InSpatialServer ",
   requestLifecycle: {
     setup: [apiSetup],
   },
@@ -48,11 +48,13 @@ const actionsAPI = new ServerExtension("actions-api", {
     const api = new ActionsAPI();
     api.addGroup({
       groupName: "api",
-      description: "API",
+      description: "Actions related to the API",
+      label: "API",
       actions: new Map(),
     });
     api.addAction("api", {
       actionName: "getDocs",
+      label: "Get Docs",
       description: "Get API documentation",
       params: [],
       handler: () => {

@@ -4,8 +4,8 @@ import { convertString } from "@inspatial/serve/utils";
 import {
   EntryActionDefinition,
   EntryHookDefinition,
-  EntryInfo,
   EntryTypeConfig,
+  EntryTypeInfo,
 } from "#/entry/types.ts";
 import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 import type { EntryHookName } from "#/types.ts";
@@ -18,9 +18,20 @@ export class EntryType<
   name: N;
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
+  displayFields: Map<string, ORMFieldDef> = new Map();
   fields: Map<string, ORMFieldDef> = new Map();
   connectionTitleFields: Map<string, ORMFieldDef> = new Map();
   actions: Map<string, EntryActionDefinition> = new Map();
+  hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
+    beforeUpdate: [],
+    afterCreate: [],
+    afterDelete: [],
+    afterUpdate: [],
+    beforeCreate: [],
+    beforeDelete: [],
+    beforeValidate: [],
+    validate: [],
+  };
   constructor(name: N, config: {
     description?: string;
     /**
@@ -38,7 +49,7 @@ export class EntryType<
       key: "id",
       type: "IDField",
       idMode: config.idMode || "auto",
-      label: "ID",
+      label: config.label || "ID",
       readOnly: true,
       required: true,
     });
@@ -90,6 +101,9 @@ export class EntryType<
         this.defaultListFields.add(fieldKey);
       }
     }
+    if (this.config.titleField) {
+      this.defaultListFields.add(this.config.titleField);
+    }
 
     for (const actionKey in config.actions) {
       if (this.actions.has(actionKey)) {
@@ -100,15 +114,23 @@ export class EntryType<
       const action = config.actions[actionKey];
       this.actions.set(actionKey, action);
     }
+
+    this.hooks = {
+      ...this.hooks,
+      ...config.hooks,
+    };
+    this.#setDisplayFields();
   }
 
-  get info(): EntryInfo {
+  get info(): EntryTypeInfo {
     return {
       name: this.name,
+      label: this.config.label,
       config: this.config,
       fields: Array.from(this.fields.values()),
       titleFields: Array.from(this.connectionTitleFields.values()),
       actions: Array.from(this.actions.values()),
+      displayFields: Array.from(this.displayFields.values()),
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
       ),
@@ -121,5 +143,17 @@ export class EntryType<
   }
   #sanitizeName<N>(name: string): N {
     return name as N;
+  }
+
+  #setDisplayFields(): void {
+    for (const field of this.fields.values()) {
+      if (field.hidden) {
+        continue;
+      }
+      if (["id", "createdAt", "updatedAt"].includes(field.key)) {
+        continue;
+      }
+      this.displayFields.set(field.key, field);
+    }
   }
 }

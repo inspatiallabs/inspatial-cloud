@@ -1,6 +1,7 @@
 import { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
 
 const getEntryAction = new CloudAction("getEntry", {
+  label: "Get Entry",
   description: "Get a singe entry for a given Entry Type",
   async run({ app, inRequest, params }) {
     const { entryType, id } = params;
@@ -23,6 +24,7 @@ const getEntryAction = new CloudAction("getEntry", {
 });
 
 const newEntryAction = new CloudAction("getNewEntry", {
+  label: "Get New Entry",
   description:
     "Get the default values for a new entry, not saved to the database",
   async run({ app, inRequest, params }) {
@@ -40,7 +42,9 @@ const newEntryAction = new CloudAction("getNewEntry", {
 });
 
 const updateEntryAction = new CloudAction("updateEntry", {
+  label: "Update Entry",
   description: "Update an existing entry",
+
   async run({ app, inRequest, params }) {
     const { entryType, id, data } = params;
     const entry = await app.orm.getEntry(entryType, id);
@@ -70,6 +74,7 @@ const updateEntryAction = new CloudAction("updateEntry", {
 });
 
 const createEntryAction = new CloudAction("createEntry", {
+  label: "Create Entry",
   description: "Create a new entry",
   async run({ app, inRequest, params }) {
     const { entryType, data } = params;
@@ -92,6 +97,7 @@ const createEntryAction = new CloudAction("createEntry", {
 });
 
 const runEntryAction = new CloudAction("runEntryAction", {
+  label: "Run Entry Action",
   description: "Run an action on an entry",
   async run({ app, inRequest, params }) {
     const { entryType, id, action, data } = params;
@@ -127,11 +133,16 @@ const runEntryAction = new CloudAction("runEntryAction", {
 });
 
 const deleteEntryAction = new CloudAction("deleteEntry", {
+  label: "Delete Entry",
   description: "Delete an existing entry",
   async run({ app, inRequest, params }) {
     const { entryType, id } = params;
     await app.orm.deleteEntry(entryType, id);
-    return true;
+    return {
+      entryType,
+      id,
+      deleted: true,
+    };
   },
   params: [{
     key: "entryType",
@@ -149,6 +160,7 @@ const deleteEntryAction = new CloudAction("deleteEntry", {
 });
 
 const getEntryListAction = new CloudAction("getEntryList", {
+  label: "Get Entry List",
   description: "Get a list of entries for a given Entry Type",
   async run({ app, inRequest, params }) {
     const { entryType, options } = params;

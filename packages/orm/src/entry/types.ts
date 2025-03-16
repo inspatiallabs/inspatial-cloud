@@ -114,13 +114,15 @@ export type OptionalParams<T> = T extends Record<infer R, ActionParamProp> ? {
   }
   : never;
 
-export interface EntryInfo {
+export interface EntryTypeInfo {
   name: string;
   config: EntryTypeConfig;
+  label: string;
   fields: Array<ORMFieldDef>;
   titleFields: Array<ORMFieldDef>;
   actions: Array<Omit<EntryActionDefinition, "action">>;
   defaultListFields: Array<ORMFieldDef>;
+  displayFields: Array<ORMFieldDef>;
 }
 
 export interface EntryTypeConfig {

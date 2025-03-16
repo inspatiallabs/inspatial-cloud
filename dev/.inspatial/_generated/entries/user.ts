@@ -48,4 +48,10 @@ export interface User extends EntryBase {
    * @type {string}
    */
   fullName?: string;
+  /**
+   * **Password** (PasswordField)
+   * @description The user's password used for login
+   * @type {string}
+   */
+  password?: string;
 }

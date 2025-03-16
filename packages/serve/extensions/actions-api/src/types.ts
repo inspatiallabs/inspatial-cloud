@@ -30,6 +30,11 @@ export interface ActionsAPIGroupDocs {
   /**
    * An array of actions in the group.
    */
+
+  /**
+   * A label for the group to display in the UI.
+   */
+  label?: string;
   actions: ActionsAPIActionDocs[];
 }
 
@@ -49,6 +54,7 @@ export interface DocsActionParam {
    * A description of the parameter.
    */
   description: string;
+
   /**
    * The type of the parameter
    */
@@ -70,6 +76,11 @@ export interface ActionsAPIActionDocs {
   /**
    * An array of parameters for the action.
    */
+
+  /**
+   * A label for the action to display in the UI.
+   */
+  label?: string;
   params?: Array<DocsActionParam>;
 }
 
@@ -89,6 +100,11 @@ export interface ActionsAPIGroup {
   /**
    * A map of actions in the group.
    */
+
+  /**
+   * A label for the group to display in the UI.
+   */
+  label?: string;
   actions: Map<string, ActionsAPIAction>;
 }
 
@@ -106,6 +122,10 @@ export interface ActionsAPIAction {
    */
   description: string;
 
+  /**
+   *  A label for the action to display in the UI.
+   */
+  label?: string;
   /**
    * An array of parameters for the action.
    */

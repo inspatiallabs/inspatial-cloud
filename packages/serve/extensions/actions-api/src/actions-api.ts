@@ -22,15 +22,19 @@ export class ActionsAPI {
    */
   get docs(): ActionsAPIDocs {
     if (this.#docs) return this.#docs;
+
     const docs: ActionsAPIDocs = {
       groups: [],
     };
+
     this.actionGroups.forEach((group, groupName) => {
       const groupDocs: ActionsAPIGroupDocs = {
         groupName,
         description: group.description,
+        label: group.label,
         actions: [],
       };
+
       group.actions.forEach((action, actionName) => {
         const params: ActionsAPIActionDocs["params"] =
           action.params.map((param) => ({
@@ -43,6 +47,7 @@ export class ActionsAPI {
         groupDocs.actions.push({
           actionName,
           description: action.description,
+          label: action.label,
           params,
         });
       });

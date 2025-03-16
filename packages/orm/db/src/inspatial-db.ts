@@ -542,6 +542,14 @@ export class InSpatialDB {
     }
   }
 
+  async removeColumn(tableName: string, columnName: string): Promise<void> {
+    tableName = this.#toSnake(tableName);
+    columnName = this.#formatColumnName(columnName);
+    const query =
+      `ALTER TABLE ${this.schema}.${tableName} DROP COLUMN ${columnName}`;
+    await this.query(query);
+  }
+
   async changeColumnDataType(
     tableName: string,
     columnName: string,

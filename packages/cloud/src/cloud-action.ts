@@ -25,6 +25,7 @@ export class CloudAction<
   }) => Promise<any> | any,
 > {
   description: string = "This is an easy action";
+  label?: string;
   actionName: N;
   authRequired: boolean = true;
 
@@ -48,6 +49,7 @@ export class CloudAction<
     config: {
       run: R;
       description?: string;
+      label?: string;
       authRequired?: boolean;
       hideFromApi?: boolean;
       params: P;
@@ -55,6 +57,7 @@ export class CloudAction<
   ) {
     this.#_run = config.run;
     this.actionName = actionName;
+    this.label = config.label || this.label;
     this.description = config.description || this.description;
     this.authRequired = config.authRequired || this.authRequired;
     this.includeInAPI = config.hideFromApi
@@ -162,14 +165,17 @@ export class CloudActionGroup<
 > {
   groupName: G;
   description: string;
+  label?: string;
   actions: A;
 
   constructor(groupName: G, config: {
     description: string;
+    label?: string;
     actions: A;
   }) {
     this.groupName = groupName;
     this.description = config.description;
+    this.label = config.label;
     this.actions = config.actions;
   }
 }
