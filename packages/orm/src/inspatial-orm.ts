@@ -1,5 +1,5 @@
 import { InSpatialDB } from "#db";
-import { FieldDefType } from "#/field/types.ts";
+import { FieldDefType } from "#/field/field-def-types.ts";
 import { ORMField } from "#/field/orm-field.ts";
 import { ormFields } from "#/field/fields.ts";
 import { EntryMigrationPlan, MigrationPlanner } from "#/migrate/migrate-db.ts";
@@ -12,6 +12,8 @@ import { Entry } from "#/entry/entry.ts";
 import { DBListOptions, ListOptions } from "#db/types.ts";
 import { GlobalEntryHooks } from "#/types.ts";
 import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
+import { validateEntryType } from "#/setup/validate-entry-type.ts";
+import { buildEntryType } from "#/setup/build-entry-types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -107,6 +109,7 @@ export class InSpatialORM {
     if (config.globalEntryHooks) {
       this.#setupHooks(config.globalEntryHooks);
     }
+    this.#setupEntryTypes();
     this.#build();
   }
 
@@ -140,6 +143,14 @@ export class InSpatialORM {
     this.#globalEntryHooks.afterDelete.push(
       ...globalHooks.afterDelete,
     );
+  }
+  #setupEntryTypes() {
+    for (const entryType of this.entryTypes.values()) {
+      buildEntryType(this, entryType);
+    }
+    for (const entryType of this.entryTypes.values()) {
+      validateEntryType(this, entryType);
+    }
   }
   #addEntryType(entryType: EntryType) {
     if (this.entryTypes.has(entryType.name)) {
@@ -292,7 +303,7 @@ export class InSpatialORM {
   generateInterfaces(): { generatedEntries: string[] } {
     const generatedEntries: string[] = [];
     for (const entryType of this.entryTypes.values()) {
-      generateEntryInterface(entryType, this.#entriesPath);
+      generateEntryInterface(this, entryType, this.#entriesPath);
       generatedEntries.push(entryType.name);
     }
     return {

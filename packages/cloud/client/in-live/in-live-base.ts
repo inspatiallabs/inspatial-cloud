@@ -1,4 +1,4 @@
-import { SocketStatus } from "#/in-live/client/in-live-types.ts";
+import { SocketStatus } from "#client/in-live/in-live-types.ts";
 
 /**
  * RealtimeClient is a WebSocket client to connect to the Realtime Extension of InSpatial Server.

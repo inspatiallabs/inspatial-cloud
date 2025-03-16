@@ -15,3 +15,7 @@ export interface EntryBase {
    * @required true
    */
 }
+
+export interface GenericEntry extends EntryBase {
+  [key: string]: any;
+}

@@ -1,4 +1,4 @@
-import { IDMode, ORMFieldDef } from "#/field/types.ts";
+import { IDMode } from "#/field/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { convertString } from "@inspatial/serve/utils";
 import {
@@ -7,20 +7,26 @@ import {
   EntryInfo,
   EntryTypeConfig,
 } from "#/entry/types.ts";
-import { EntryBase } from "#/entry/entry-base.ts";
-import { EntryHookName } from "#/types.ts";
+import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
+import type { EntryHookName } from "#/types.ts";
+import { ORMFieldDef } from "#/field/field-def-types.ts";
 
 export class EntryType<
-  E extends EntryBase = EntryBase & { [key: string]: any },
+  E extends GenericEntry = GenericEntry,
   N extends string = string,
 > {
   name: N;
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
   fields: Map<string, ORMFieldDef> = new Map();
+  connectionTitleFields: Map<string, ORMFieldDef> = new Map();
   actions: Map<string, EntryActionDefinition> = new Map();
   constructor(name: N, config: {
     description?: string;
+    /**
+     * The field to use as the display value instead of the ID.
+     */
+    titleField?: keyof E;
     label?: string;
     idMode?: IDMode;
     defaultListFields?: Array<keyof E>;
@@ -57,6 +63,7 @@ export class EntryType<
     this.config = {
       tableName: this.#generateTableName(),
       label,
+      titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
       description: config.description ||
         `${label} entry type for InSpatial ORM`,
@@ -100,7 +107,11 @@ export class EntryType<
       name: this.name,
       config: this.config,
       fields: Array.from(this.fields.values()),
+      titleFields: Array.from(this.connectionTitleFields.values()),
       actions: Array.from(this.actions.values()),
+      defaultListFields: Array.from(this.defaultListFields).map((f) =>
+        this.fields.get(f)!
+      ),
     };
   }
   #generateTableName(): string {

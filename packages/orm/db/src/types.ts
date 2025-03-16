@@ -66,6 +66,13 @@ export interface TableConstraint {
   enforced: "YES" | "NO";
   nullsDistinct: null;
 }
+export interface ForeignKeyConstraint {
+  tableName: string;
+  columnName: string;
+  foreignTableName: string;
+  constraintName: string;
+  foreignColumnName: string;
+}
 export interface PostgresColumn extends PgDataTypeDefinition {
   tableCatalog: string;
   tableSchema: string;

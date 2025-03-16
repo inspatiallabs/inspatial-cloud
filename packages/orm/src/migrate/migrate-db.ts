@@ -2,6 +2,7 @@ import { EntryType } from "#/entry/entry-type.ts";
 import { InSpatialORM } from "#/inspatial-orm.ts";
 import { InSpatialDB } from "#db";
 import {
+  ForeignKeyConstraint,
   PgColumnDefinition,
   PgDataType,
   PgDataTypeDefinition,
@@ -9,7 +10,8 @@ import {
   TableConstraint,
 } from "#db/types.ts";
 import { ormLogger } from "#/logger.ts";
-import { FieldDefMap, IDMode } from "#/field/types.ts";
+import { IDMode } from "#/field/types.ts";
+import { FieldDefMap } from "#/field/field-def-types.ts";
 
 export async function migrateEntryType(
   entryType: EntryType,
@@ -31,9 +33,15 @@ export class EntryMigrationPlan {
     };
   };
   columns: {
-    create: Array<PgColumnDefinition>;
+    create: Array<ColumnCreatePlan>;
     drop: Array<any>;
     modify: Array<ColumnMigrationPlan>;
+  };
+  constraints: {
+    foreignKey: {
+      create: Array<ForeignKeyConstraint>;
+      drop: Array<ForeignKeyConstraint>;
+    };
   };
   constructor(entryType: string) {
     this.entryType = entryType;
@@ -46,6 +54,13 @@ export class EntryMigrationPlan {
       create: [],
       drop: [],
       modify: [],
+    };
+
+    this.constraints = {
+      foreignKey: {
+        create: [],
+        drop: [],
+      },
     };
   }
 }
@@ -63,6 +78,18 @@ interface ColumnMigrationPlan {
   unique?: {
     from: boolean;
     to: boolean;
+  };
+  foreignKey?: {
+    drop?: string;
+    create?: ForeignKeyConstraint;
+  };
+}
+
+interface ColumnCreatePlan {
+  columnName: string;
+  column: PgColumnDefinition;
+  foreignKey?: {
+    create: ForeignKeyConstraint;
   };
 }
 
@@ -146,10 +173,13 @@ export class MigrationPlanner {
     }
   }
   async #createMissingColumns(plan: EntryMigrationPlan) {
-    for (const column of plan.columns.create) {
-      await this.db.addColumn(plan.table.tableName, column);
+    for (const columnPlan of plan.columns.create) {
+      await this.db.addColumn(plan.table.tableName, columnPlan.column);
+      if (columnPlan.foreignKey?.create) {
+        await this.db.addForeignKey(columnPlan.foreignKey.create);
+      }
       this.#logResult(
-        `Added column ${column.columnName} to table ${plan.table.tableName}`,
+        `Added column ${columnPlan.columnName} to table ${plan.table.tableName}`,
       );
     }
   }
@@ -158,7 +188,7 @@ export class MigrationPlanner {
     const tableName = plan.table.tableName;
 
     for (const column of plan.columns.modify) {
-      const { nullable, dataType, unique } = column;
+      const { nullable, dataType, unique, foreignKey } = column;
       if (unique) {
         switch (unique.to) {
           case true:
@@ -193,6 +223,21 @@ export class MigrationPlanner {
           dataType.to,
         );
       }
+      if (foreignKey) {
+        const { drop, create } = foreignKey;
+        if (create) {
+          await this.db.addForeignKey({
+            columnName: create.columnName,
+            foreignColumnName: create.foreignColumnName,
+            foreignTableName: create.foreignTableName,
+            constraintName: create.constraintName,
+            tableName: create.tableName,
+          });
+          this.#logResult(
+            `Added foreign key constraint ${create.constraintName} to column ${create.columnName}`,
+          );
+        }
+      }
     }
   }
 
@@ -217,6 +262,11 @@ export class EntryTypeMigrator {
     primaryKey: Map<string, TableConstraint>;
     foreignKey: Map<string, TableConstraint>;
   };
+  targetConstraints: {
+    unique: Map<string, TableConstraint>;
+    primaryKey: Map<string, TableConstraint>;
+    foreignKey: Map<string, ForeignKeyConstraint>;
+  };
   migrationPlan: EntryMigrationPlan;
   get #tableName() {
     return this.entryType.config.tableName;
@@ -240,6 +290,11 @@ export class EntryTypeMigrator {
       primaryKey: new Map(),
       foreignKey: new Map(),
     };
+    this.targetConstraints = {
+      unique: new Map(),
+      primaryKey: new Map(),
+      foreignKey: new Map(),
+    };
     this.migrationPlan = new EntryMigrationPlan(entryType.name);
   }
   async migrate() {
@@ -257,8 +312,8 @@ export class EntryTypeMigrator {
       return this.migrationPlan;
     }
     await this.#loadExistingColumns();
-    ormLogger.debug(this.existingColumns);
     await this.#loadExistingConstraints();
+    ormLogger.debug(this.existingConstraints);
     this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
     this.#checkForColumnsToModify();
@@ -306,6 +361,16 @@ export class EntryTypeMigrator {
       }
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);
+      if (field.type === "ConnectionField") {
+        const connectionEntry = this.orm.getEntryType(field.entryType);
+        this.targetConstraints.foreignKey.set(field.key, {
+          columnName: field.key,
+          constraintName: `${this.#tableName}_${field.key}_fk`,
+          foreignColumnName: "id",
+          foreignTableName: connectionEntry.config.tableName,
+          tableName: this.#tableName,
+        });
+      }
       this.targetColumns.set(field.key, dbColumn);
     }
   }
@@ -325,9 +390,19 @@ export class EntryTypeMigrator {
   #checkForColumnsToCreate() {
     for (const column of this.targetColumns.values()) {
       if (!this.existingColumns.has(column.columnName)) {
-        this.migrationPlan.columns.create.push({
-          ...column,
-        });
+        const foreignKey = this.#getColumnForeignKeyConstraint(
+          column.columnName,
+        );
+        const columnPlan: ColumnCreatePlan = {
+          columnName: column.columnName,
+          column: column,
+        };
+        if (foreignKey?.create) {
+          columnPlan.foreignKey = {
+            create: foreignKey.create,
+          };
+        }
+        this.migrationPlan.columns.create.push(columnPlan);
       }
     }
   }
@@ -377,7 +452,11 @@ export class EntryTypeMigrator {
             to: true,
           };
         }
-
+        const foreignKey = this.#getColumnForeignKeyConstraint(columnName);
+        if (foreignKey) {
+          hasChanges = true;
+          columnPlan.foreignKey = foreignKey;
+        }
         if (dataTypes) {
           hasChanges = true;
           columnPlan.dataType = dataTypes;
@@ -390,6 +469,27 @@ export class EntryTypeMigrator {
           this.migrationPlan.columns.modify.push(columnPlan);
         }
       }
+    }
+  }
+
+  #getColumnForeignKeyConstraint(
+    columnName: string,
+  ): ColumnMigrationPlan["foreignKey"] {
+    const existing = this.existingConstraints.foreignKey.get(columnName);
+    const target = this.targetConstraints.foreignKey.get(columnName);
+    if (existing && target) {
+      return;
+    }
+    if (existing && !target) {
+      return {
+        drop: existing.constraintName,
+      };
+    }
+
+    if (!existing && target) {
+      return {
+        create: target,
+      };
     }
   }
 }

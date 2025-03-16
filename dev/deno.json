@@ -3,6 +3,7 @@
     "#serve": "../packages/serve/mod.ts",
     "#app": "../packages/easy-app/mod.ts",
     "#orm": "../packages/orm/mod.ts",
+    "#orm/types": "../packages/orm/types.ts",
     "#db": "../packages/orm/db/mod.ts",
     "#log": "../packages/log/mod.ts",
     "#realtime": "../packages/serve/extensions/realtime/mod.ts",

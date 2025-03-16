@@ -4,8 +4,8 @@ import {
   EntryTypeEvent,
   EntryTypeListener,
   EntyCallbackMap,
-} from "#/in-live/client/in-live-types.ts";
-import { InLiveClientBase } from "#/in-live/client/in-live-base.ts";
+} from "#client/in-live/in-live-types.ts";
+import { InLiveClientBase } from "#client/in-live/in-live-base.ts";
 
 export class InLiveClient {
   #client: InLiveClientBase;

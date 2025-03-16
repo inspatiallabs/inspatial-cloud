@@ -20,6 +20,7 @@
     "DB_PASSWORD": "postgres",
     "DB_SCHEMA": "public"
   },
+  "auth": {},
   "orm": {},
   "userAgent": {
     "USER_AGENT_DEBUG": true,

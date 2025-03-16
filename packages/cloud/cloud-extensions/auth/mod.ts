@@ -1,4 +1,7 @@
-import { ServerExtension } from "../../../serve/src/extension/server-extension.ts";
+import { ServerExtension } from "@inspatial/serve";
+import { CloudExtension } from "#/cloud-extension.ts";
+import userEntry from "#extension/auth/entry-types/user/user-entry.ts";
+import userSessionEntry from "#extension/auth/entry-types/user-session/user-session-entry.ts";
 
 const authServerExtension = new ServerExtension("auth", {
   description: "Auth extension",
@@ -18,3 +21,17 @@ const authServerExtension = new ServerExtension("auth", {
   },
   install(server) {},
 });
+
+const authCloudExtension = new CloudExtension({
+  key: "auth",
+  title: "Authentication",
+  description: "Auth extension",
+  install() {},
+  version: "1.0.0",
+  serverExtensions: [authServerExtension],
+  entryTypes: [userEntry, userSessionEntry],
+  actionGroups: [],
+  settingsTypes: [],
+});
+
+export default authCloudExtension;

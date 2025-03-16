@@ -2,7 +2,7 @@ import { EntryType } from "#/entry/entry-type.ts";
 import { InSpatialORM } from "#/inspatial-orm.ts";
 import { InSpatialDB } from "#db";
 
-import type { FieldDefMap, ORMFieldDef } from "#/field/types.ts";
+import type { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { ORMField } from "#/field/orm-field.ts";
 import ulid from "#/utils/ulid.ts";

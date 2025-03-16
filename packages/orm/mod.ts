@@ -1,3 +1,5 @@
+export { ORMException, raiseORMException } from "#/orm-exception.ts";
+
 export { SettingsType } from "#/settings/settings-type.ts";
 export { EntryType } from "#/entry/entry-type.ts";
 export { Entry } from "#/entry/entry.ts";

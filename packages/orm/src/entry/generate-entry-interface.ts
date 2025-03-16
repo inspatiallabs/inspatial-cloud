@@ -1,28 +1,31 @@
 import { EntryType } from "#/entry/entry-type.ts";
-import convertString from "../../../serve/src/utils/convert-string.ts";
-import { FieldDefType } from "#/field/types.ts";
+import { convertString } from "@inspatial/serve/utils";
+
 import { ormLogger } from "#/logger.ts";
 import { raiseORMException } from "#/orm-exception.ts";
+import { InSpatialORM } from "#/inspatial-orm.ts";
+import { FieldDefType } from "#/field/field-def-types.ts";
 
 export function generateEntryInterface(
+  orm: InSpatialORM,
   entryType: EntryType,
   entriesPath: string,
 ) {
   Deno.mkdirSync(entriesPath, { recursive: true });
 
-  const fileName = `${convertString(entryType.name, "kebab")}.ts`;
+  const fileName = `${convertString(entryType.name, "kebab", true)}.ts`;
   const filePath = `${entriesPath}/${fileName}`;
   ormLogger.debug(`Building entry for ${entryType.name}`);
   ormLogger.debug(filePath);
   const outLines: string[] = [
-    'import { EntryBase } from "#orm";',
+    'import { EntryBase } from "#orm/types";',
     `export interface ${
-      convertString(entryType.name, "pascal")
+      convertString(entryType.name, "pascal", true)
     } extends EntryBase {`,
-    ` _name:"${convertString(entryType.name, "camel")}"`,
+    ` _name:"${convertString(entryType.name, "camel", true)}"`,
   ];
 
-  const fields = buildFields(entryType);
+  const fields = buildFields(orm, entryType);
   outLines.push(...fields);
 
   outLines.push("}");
@@ -30,14 +33,41 @@ export function generateEntryInterface(
   formatEntryFile(filePath);
 }
 
-function buildFields(entryType: EntryType) {
+function buildFields(orm: InSpatialORM, entryType: EntryType) {
   const fields: string[] = [];
   entryType.fields.forEach((field) => {
+    const { label, description, required } = field;
     let fieldType = fieldTypeMap[field.type];
     if (field.type === "ChoicesField") {
       fieldType = field.choices?.map((choice) => {
         return `'${choice.key as string}'`;
       }).join(" | ") || "string";
+    }
+    const titleField = [];
+    if (field.type === "ConnectionField") {
+      const connection = orm.getEntryType(field.entryType);
+      let valueType = "string";
+      switch (connection.config.idMode) {
+        case "auto":
+          valueType = "number";
+          break;
+        case "ulid":
+        case "uuid":
+          valueType = "string";
+          break;
+      }
+      fieldType = valueType;
+
+      if (connection.config.titleField) {
+        const titleFieldDef = connection.fields.get(
+          connection.config.titleField,
+        )!;
+        titleField.push(
+          `_${field.key}Title${required ? "?" : ""}: ${
+            fieldTypeMap[titleFieldDef.type]
+          } `,
+        );
+      }
     }
     if (!fieldType) {
       raiseORMException(
@@ -46,11 +76,15 @@ function buildFields(entryType: EntryType) {
         400,
       );
     }
-    const { label, description, required } = field;
+
     const doc = [
       `/**`,
       ` * **${label || ""}** (${field.type})`,
     ];
+    if (field.type === "ConnectionField") {
+      doc.push(" *");
+      doc.push(` * **EntryType** \`${field.entryType}\``);
+    }
     if (description) {
       doc.push(` * @description ${description}`);
     }
@@ -64,6 +98,7 @@ function buildFields(entryType: EntryType) {
     ];
 
     fields.push([...doc, ...row].join("\n"));
+    fields.push(...titleField);
   });
   return fields;
 }

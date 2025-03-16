@@ -19,6 +19,6 @@
   "you": {},
   "userAgent": {
     "USER_AGENT_DEBUG": false,
-    "USER_AGENT_ENABLED": false
+    "USER_AGENT_ENABLED": true
   }
 }

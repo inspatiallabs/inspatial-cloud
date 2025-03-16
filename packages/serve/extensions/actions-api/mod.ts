@@ -60,6 +60,18 @@ const actionsAPI = new ServerExtension("actions-api", {
       },
     });
 
+    api.addAction("api", {
+      actionName: "ping",
+      description: "Ping the server",
+      params: [],
+      handler: () => {
+        return {
+          message: "pong",
+          timestamp: Date.now(),
+        };
+      },
+    });
+
     return api;
   },
 });

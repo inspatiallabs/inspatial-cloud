@@ -12,7 +12,7 @@
       "include": [
         "no-var",
         "no-window",
-        "no-unused-vars",
+
         "ban-untagged-todo",
         "no-empty-interface",
         "no-slow-types",
@@ -25,7 +25,7 @@
         "no-class-assign",
         "no-unsafe-finally"
       ],
-      "exclude": ["no-explicit-any", "ban-ts-comment"]
+      "exclude": ["no-explicit-any", "ban-ts-comment", "no-unused-vars"]
     },
     "exclude": [
       "**/test/**/*",

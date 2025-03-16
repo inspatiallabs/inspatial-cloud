@@ -599,6 +599,72 @@ export class InSpatialDB {
     await this.query(query);
   }
 
+  async addForeignKey(foreignKey: {
+    tableName: string;
+    columnName: string;
+    foreignTableName: string;
+    foreignColumnName: string;
+    constraintName: string;
+    options?: {
+      onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
+      onUpdate?: "cascade" | "null" | "restrict" | "no action"; // default no action
+    };
+  }): Promise<void> {
+    let {
+      tableName,
+      columnName,
+      foreignTableName,
+      foreignColumnName,
+      options,
+    } = foreignKey;
+    tableName = this.#toSnake(tableName);
+    const formattedCol = this.#formatColumnName(columnName);
+    foreignTableName = this.#toSnake(foreignTableName);
+    foreignColumnName = this.#formatColumnName(foreignColumnName);
+    let query =
+      `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES ${this.schema}.${foreignTableName} (${foreignColumnName})`;
+    if (options?.onDelete) {
+      switch (options.onDelete) {
+        case "cascade":
+          query += ` ON DELETE CASCADE`;
+          break;
+        case "null":
+          query += ` ON DELETE SET NULL`;
+          break;
+        case "restrict":
+          query += ` ON DELETE RESTRICT`;
+          break;
+        case "no action":
+          query += ` ON DELETE NO ACTION`;
+          break;
+      }
+    }
+    if (options?.onUpdate) {
+      switch (options.onUpdate) {
+        case "cascade":
+          query += ` ON UPDATE CASCADE`;
+          break;
+        case "null":
+          query += ` ON UPDATE SET NULL`;
+          break;
+        case "restrict":
+          query += ` ON UPDATE RESTRICT`;
+          break;
+        case "no action":
+          query += ` ON UPDATE NO ACTION`;
+          break;
+      }
+    }
+    query += `;`;
+
+    await this.query(query);
+    await this.createIndex({
+      tableName,
+      indexName: `fki_${foreignKey.constraintName}`,
+      columns: [columnName],
+    });
+  }
+
   /* End column operations */
   async getTableConstraints(
     tableName: string,

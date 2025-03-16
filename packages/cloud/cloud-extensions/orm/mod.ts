@@ -36,7 +36,7 @@ const afterDeleteHook: AppHookFunction = (
   });
 };
 
-export const ormExtension = new CloudExtension({
+const ormCloudExtension = new CloudExtension({
   key: "orm",
   description: "ORM Extension",
   install(app) {
@@ -53,3 +53,5 @@ export const ormExtension = new CloudExtension({
     ormServeExtension,
   ],
 });
+
+export default ormCloudExtension;

@@ -2,7 +2,9 @@
   "name": "@inspatial/cloud",
   "version": "0.1.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./client": "./client/mod.ts",
+    "./extensions": "./cloud-extensions/mod.ts"
   },
   "publish": {
     "exclude": [".github"]
@@ -10,6 +12,7 @@
   "imports": {
     "#/": "./src/",
     "#extension/": "./cloud-extensions/",
+    "#client/": "./client/",
     "#db": "../orm/db/mod.ts",
     "#orm": "../orm/mod.ts",
     "#orm/types": "../orm/types.ts",

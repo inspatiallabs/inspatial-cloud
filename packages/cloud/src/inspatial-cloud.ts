@@ -1,4 +1,3 @@
-// import ormExtension, { type EasyOrm } from "../../easy-orm/mod.ts";
 import type { CloudExtension } from "#/cloud-extension.ts";
 import InSpatialServer, {
   InResponse,
@@ -19,7 +18,10 @@ import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 
 import { EntryType, InSpatialORM, SettingsType } from "#orm";
 import { GlobalEntryHooks, GlobalHookFunction } from "#orm/types";
-import { ormExtension } from "#extension/orm/mod.ts";
+import ormCloudExtension from "#extension/orm/mod.ts";
+import authCloudExtension from "#extension/auth/mod.ts";
+import cloudLogger from "#/cloud-logger.ts";
+import { ORMException } from "#orm";
 
 export class InSpatialCloud<
   N extends string = string,
@@ -56,6 +58,20 @@ export class InSpatialCloud<
 
   constructor(appName: N, config?: {
     appExtensions?: P;
+    /**
+     * Built-in extensions configuration.
+     * These extensions are enabled by default, and can be disabled by setting the value to `false`.
+     */
+    builtInExtensions?: {
+      /**
+       * Enable or disable the ORM extension.
+       */
+      orm?: boolean;
+      /**
+       * Enable or disable the Auth extension.
+       */
+      auth?: boolean;
+    };
   }) {
     this.appName = appName;
 
@@ -80,7 +96,19 @@ export class InSpatialCloud<
     };
     this.#ActionGroups = new Map();
     this.#appExtensions = new Map();
-    const appExtensions: Array<CloudExtension> = [ormExtension];
+
+    const builtInExtensions = {
+      orm: config?.builtInExtensions?.orm ?? true,
+      auth: config?.builtInExtensions?.auth ?? true,
+    };
+
+    const appExtensions: Array<CloudExtension> = [];
+    if (builtInExtensions.auth) {
+      appExtensions.push(authCloudExtension);
+    }
+    if (builtInExtensions.orm) {
+      appExtensions.push(ormCloudExtension);
+    }
     if (config?.appExtensions) {
       appExtensions.push(...config.appExtensions);
     }
@@ -110,15 +138,20 @@ export class InSpatialCloud<
         }
       }
     }
-    this.server = new InSpatialServer({
-      extensions,
-    });
-    this.orm = new InSpatialORM({
-      db: this.db,
-      entries: appEntries,
-      settings: appSettings,
-      globalEntryHooks: globalHooks,
-    });
+    try {
+      this.server = new InSpatialServer({
+        extensions,
+      });
+
+      this.orm = new InSpatialORM({
+        db: this.db,
+        entries: appEntries,
+        settings: appSettings,
+        globalEntryHooks: globalHooks,
+      });
+    } catch (e) {
+      this.#handleInitError(e);
+    }
 
     this.#setup();
     this.ready = new Promise((resolve) => {
@@ -214,5 +247,24 @@ export class InSpatialCloud<
     await this.ready;
 
     this.server.run();
+  }
+
+  #handleInitError(e: unknown): never {
+    if (e instanceof ORMException) {
+      cloudLogger.warn(e.message, e.subject || "ORM Error");
+      cloudLogger.warn(
+        "Exiting due to ORM initialization error",
+        "Cloud Init",
+      );
+      Deno.exit(1);
+    }
+    if (e instanceof Error) {
+      cloudLogger.error(e.message, e.stack || "No stack trace available");
+    }
+    cloudLogger.error(
+      "Exiting due to errors in cloud initialization",
+      "Cloud Init",
+    );
+    Deno.exit(1);
   }
 }
