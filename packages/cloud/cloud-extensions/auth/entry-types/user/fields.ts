@@ -31,4 +31,24 @@ export default [{
   label: "Password",
   hidden: true,
   description: "The user's password used for login",
+}, {
+  key: "resetPasswordToken",
+  label: "Reset Password Token",
+  type: "PasswordField",
+  description: "The token used to reset the user's password",
+  readOnly: true,
+  hidden: true,
+}, {
+  key: "systemAdmin",
+  label: "System Administrator",
+  type: "BooleanField",
+  readOnly: true,
+  description:
+    "Is the user a system administrator? (admin users have access to all parts of the system)",
+}, {
+  key: "apiToken",
+  label: "API Token",
+  type: "PasswordField",
+  description: "The user's API token",
+  readOnly: true,
 }] satisfies Array<ORMFieldDef>;

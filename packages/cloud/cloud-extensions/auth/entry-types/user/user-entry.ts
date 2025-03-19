@@ -6,7 +6,7 @@ const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
   titleField: "fullName",
   label: "User",
-  defaultListFields: ["firstName", "lastName"],
+  defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
   fields: fields,
   actions: [

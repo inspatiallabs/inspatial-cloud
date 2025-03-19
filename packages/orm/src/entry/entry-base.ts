@@ -14,6 +14,8 @@ export interface EntryBase {
    * @type {string}
    * @required true
    */
+
+  save(): Promise<void>;
 }
 
 export interface GenericEntry extends EntryBase {

@@ -2,7 +2,7 @@ import { EntryBase } from "#orm/types";
 export interface UserSession extends EntryBase {
   _name: "userSession";
   /**
-   * **ID** (IDField)
+   * **User Session** (IDField)
    * @type {string}
    * @required true
    */

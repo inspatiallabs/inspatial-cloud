@@ -2,7 +2,7 @@ import { EntryBase } from "#orm/types";
 export interface User extends EntryBase {
   _name: "user";
   /**
-   * **ID** (IDField)
+   * **User** (IDField)
    * @type {string}
    * @required true
    */
@@ -48,4 +48,28 @@ export interface User extends EntryBase {
    * @type {string}
    */
   fullName?: string;
+  /**
+   * **Password** (PasswordField)
+   * @description The user's password used for login
+   * @type {string}
+   */
+  password?: string;
+  /**
+   * **Reset Password Token** (PasswordField)
+   * @description The token used to reset the user's password
+   * @type {string}
+   */
+  resetPasswordToken?: string;
+  /**
+   * **System Administrator** (BooleanField)
+   * @description Is the user a system administrator? (admin users have access to all parts of the system)
+   * @type {boolean}
+   */
+  systemAdmin?: boolean;
+  /**
+   * **API Token** (PasswordField)
+   * @description The user's API token
+   * @type {string}
+   */
+  apiToken?: string;
 }
