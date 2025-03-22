@@ -1,6 +1,8 @@
-import { ServerExtension } from "@inspatial/serve";
+import { ExceptionHandlerResponse, ServerExtension } from "@inspatial/serve";
 import { PgError } from "../../../orm/db/src/postgres/pgError.ts";
+import { PGErrorCode } from "#db";
 import { ORMException } from "../../../orm/src/orm-exception.ts";
+import { convertString } from "../../../serve/src/utils/mod.ts";
 
 export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",
@@ -9,9 +11,10 @@ export const ormServeExtension = new ServerExtension("orm", {
     name: "orm",
     handler(error) {
       if (error instanceof PgError) {
-        return {
+        const response: ExceptionHandlerResponse = {
           serverMessage: {
-            content: `${error.name}: ${error.message}\n\tQuery: ${error.query}`,
+            content:
+              `${error.name}(${error.code}): ${error.message}\n\tQuery: ${error.query}`,
             subject: "InSpatial ORM - Postgres Error",
             type: error.severity === "ERROR" ? "error" : "warning",
           },
@@ -19,6 +22,18 @@ export const ormServeExtension = new ServerExtension("orm", {
           status: 500,
           statusText: "Internal Server Error",
         };
+        switch (error.code) {
+          case PGErrorCode.UndefinedColumn:
+            response.clientMessage = `${
+              convertString(
+                error.message.split('"')[1],
+                "camel",
+              )
+            } field does not exist in the database. You may need to run a migration`;
+            response.status = 400;
+            response.statusText = "Bad Request";
+        }
+        return response;
       }
       if (error instanceof ORMException) {
         return {

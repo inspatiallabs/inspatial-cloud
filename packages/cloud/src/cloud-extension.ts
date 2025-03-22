@@ -13,7 +13,7 @@ export class CloudExtension<
   S extends Array<ServerExtension> = Array<ServerExtension>,
   AG extends Array<CloudActionGroup> = Array<CloudActionGroup>,
   N extends string = string,
-  E extends Array<EntryType> = Array<EntryType>,
+  E extends Array<EntryType<any>> = Array<EntryType<any>>,
 > {
   key: string;
   title: string;

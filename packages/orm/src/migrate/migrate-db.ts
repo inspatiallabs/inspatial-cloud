@@ -314,7 +314,6 @@ export class EntryTypeMigrator {
     }
     await this.#loadExistingColumns();
     await this.#loadExistingConstraints();
-    ormLogger.debug(this.existingConstraints);
     this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
     this.#checkForColumnsToModify();

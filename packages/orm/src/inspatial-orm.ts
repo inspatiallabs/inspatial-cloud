@@ -185,7 +185,7 @@ export class InSpatialORM {
     data: Record<string, any>,
   ): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
-    await entry.create();
+    entry.create();
     entry.update(data);
     await entry.save();
     return entry;
@@ -193,7 +193,7 @@ export class InSpatialORM {
 
   async getNewEntry<E extends string>(entryType: E): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
-    await entry.create();
+    entry.create();
     return entry;
   }
   async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
@@ -252,7 +252,6 @@ export class InSpatialORM {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options };
     }
-
     const result = await this.db.getRows(tableName, dbOptions);
     return result;
   }

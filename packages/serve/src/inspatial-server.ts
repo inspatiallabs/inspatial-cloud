@@ -1,6 +1,6 @@
 import { InRequest } from "#/in-request.ts";
 import { InResponse } from "#/in-response.ts";
-import type { PathHandler } from "#/extension/path-handler.ts";
+import type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
 import { isServerException } from "#/server-exception.ts";
 import type { ExtensionMap, ServerExtensionInfo } from "#/extension/types.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
@@ -12,6 +12,37 @@ import {
 } from "#/serve-config/serve-config.ts";
 import type { ServerExtension } from "#/extension/server-extension.ts";
 import { serveLogger } from "#/logger/serve-logger.ts";
+
+class ServePathHandler {
+  name: string;
+  description: string;
+  path: string | Array<string>;
+  handler: (
+    server: InSpatialServer,
+    inRequest: InRequest,
+    inResponse: InResponse,
+  ) =>
+    | Promise<HandlerResponse>
+    | HandlerResponse;
+
+  constructor(
+    name: string,
+    description: string,
+    path: string | Array<string>,
+    handler: (
+      server: InSpatialServer,
+      inRequest: InRequest,
+      inResponse: InResponse,
+    ) =>
+      | Promise<HandlerResponse>
+      | HandlerResponse,
+  ) {
+    this.name = name;
+    this.description = description;
+    this.path = path;
+    this.handler = handler;
+  }
+}
 
 /**
  * The main server class.
@@ -235,7 +266,13 @@ export class InSpatialServer<
       if (this.#pathHandlers.has(path)) {
         throw new Error(`Path handler for path ${path} already exists`);
       }
-      this.#pathHandlers.set(path, handler);
+      const handlerInstance = new ServePathHandler(
+        handler.name,
+        handler.description,
+        path,
+        handler.handler,
+      );
+      this.#pathHandlers.set(path, handlerInstance);
     }
   }
 
@@ -519,6 +556,7 @@ export class InSpatialServer<
           case "error":
             serveLogger.error(content, {
               subject,
+              stackTrace: (err as Error).stack,
             });
             break;
           case "warning":

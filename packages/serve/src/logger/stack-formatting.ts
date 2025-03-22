@@ -23,7 +23,7 @@ export function parseStackFrame(frame: string | null): StackFrame {
     const [, class_, method, path, line, column] = match;
     return {
       ...stackFrame,
-      class: class_,
+      class: class_.replace("async ", ""),
       method,
       path,
       fileName: path.split("/").pop() || "",
@@ -35,6 +35,9 @@ export function parseStackFrame(frame: string | null): StackFrame {
   match = frame.match(/at\s+(.*)\s+\((.*):(\d+):(\d+)\)/);
   if (match) {
     const [, method, path, line, column] = match;
+    if (method === "eventLoopTick") {
+      return stackFrame;
+    }
     return {
       ...stackFrame,
       method,
@@ -78,8 +81,8 @@ export function formatStackFrame(
   }
   if (frame.class) {
     callerClass = ColorMe.chain()
-      .content(frame.class || "")
-      .color("white")
+      .content(frame.class ? `${frame.class}.` : "")
+      .color("brightGreen")
       .end();
   }
   const path = ColorMe.chain()
@@ -94,5 +97,5 @@ export function formatStackFrame(
     .content(frame.column)
     .color("brightYellow")
     .end();
-  return `${callerClass}${callerMethod} ${path}`;
+  return `${callerClass}${callerMethod}() ${path}`;
 }

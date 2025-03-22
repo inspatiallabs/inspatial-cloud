@@ -15,8 +15,7 @@ export function generateEntryInterface(
 
   const fileName = `${convertString(entryType.name, "kebab", true)}.ts`;
   const filePath = `${entriesPath}/${fileName}`;
-  ormLogger.debug(`Building entry for ${entryType.name}`);
-  ormLogger.debug(filePath);
+
   const outLines: string[] = [
     'import { EntryBase } from "#orm/types";',
     `export interface ${

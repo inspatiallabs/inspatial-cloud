@@ -60,7 +60,12 @@ export class InSpatialDB {
         throw e;
       }
     }
-    return await client.query<T>(query);
+    await client.ready;
+    const result = await client.query<T>(query).catch((e) => {
+      client.resetReady();
+      throw e;
+    });
+    return result;
   }
 
   constructor(config: DBConfig) {
@@ -135,7 +140,6 @@ export class InSpatialDB {
     const query = `SELECT ${
       formattedColumns.join(", ")
     } FROM information_schema.columns WHERE table_schema = '${this.schema}' AND table_name = '${tableName}'`;
-    ormLogger.debug(query, "DB Query");
     const result = await this.query<PostgresColumn>(query);
     return result.rows.map((row) => {
       return {

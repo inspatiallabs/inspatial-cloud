@@ -12,7 +12,7 @@ import corsExtension from "@inspatial/serve/cors";
 import realtimeExtension, {
   type RealtimeHandler,
 } from "@inspatial/serve/realtime";
-import type { CloudActionGroup } from "#/cloud-action.ts";
+import type { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
 import { InRequest } from "@inspatial/serve";
 import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 
@@ -22,6 +22,36 @@ import ormCloudExtension from "#extension/orm/mod.ts";
 import authCloudExtension from "#extension/auth/mod.ts";
 import cloudLogger from "#/cloud-logger.ts";
 import { ORMException } from "#orm";
+
+class ApiAction {
+  actionName: string;
+  description: string;
+  label?: string;
+  params: Array<any>;
+  handler: (
+    data: any,
+    server: InSpatialServer,
+    inRequest: InRequest,
+    inResponse: InResponse,
+  ) => Promise<any>;
+  constructor(
+    action: CloudAction<any, any, any, any>,
+    app: InSpatialCloud,
+  ) {
+    this.actionName = action.actionName;
+    this.description = action.description;
+    this.label = action.label;
+    this.params = Array.from(action.params.values());
+    this.handler = async (data, server, inRequest, inResponse) => {
+      return await action.run({
+        app: app,
+        params: data,
+        inRequest,
+        inResponse,
+      });
+    };
+  }
+}
 
 export class InSpatialCloud<
   N extends string = string,
@@ -181,7 +211,7 @@ export class InSpatialCloud<
       const actions = new Map<string, ActionsAPIAction>();
 
       for (const action of actionGroup.actions) {
-        actions.set(action.actionName, {
+        const actionObject: ActionsAPIAction = {
           actionName: action.actionName,
           description: action.description,
           label: action.label,
@@ -194,7 +224,9 @@ export class InSpatialCloud<
               inResponse,
             });
           },
-        });
+        };
+
+        actions.set(action.actionName, actionObject);
       }
       this.api.addGroup({
         groupName: actionGroup.groupName,

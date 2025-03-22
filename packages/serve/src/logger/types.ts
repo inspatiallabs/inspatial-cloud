@@ -57,7 +57,7 @@ export interface LogMessage {
   /**
    * The stack frame of the caller
    */
-  caller: StackFrame;
+  caller: StackFrame | Array<StackFrame>;
   /**
    * The timestamp of the log message
    */
@@ -72,6 +72,7 @@ export interface LogOptions {
    * The subject of the log message
    */
   subject?: string;
+  stackTrace?: any;
 }
 
 /**

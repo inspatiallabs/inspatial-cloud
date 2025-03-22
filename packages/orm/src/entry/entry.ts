@@ -16,6 +16,7 @@ import {
 } from "#/entry/types.ts";
 import { EntryHookName } from "../../types.ts";
 import { GenericEntry } from "#/entry/entry-base.ts";
+import { ormLogger } from "#/logger.ts";
 
 export class Entry<
   N extends string = string,
@@ -237,10 +238,11 @@ export class Entry<
       this._entryType.config.tableName,
       data,
     ).catch((e) => this.#handlePGError(e));
-    if (!result) {
+    if (!result?.id) {
       return;
     }
     await this.load(result.id);
+
     await this.#afterCreate();
   }
   #generateId() {
@@ -285,7 +287,7 @@ export class Entry<
     }
 
     switch (e.code) {
-      case PGErrorCode.NO_NULL_VALUE: {
+      case PGErrorCode.NotNullViolation: {
         const fieldKey = convertString(e.fullMessage.columnName, "camel");
         raiseORMException(
           `Field ${fieldKey} is required for ${this._entryType.config.label} entry`,

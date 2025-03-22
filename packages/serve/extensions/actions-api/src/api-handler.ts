@@ -33,6 +33,7 @@ export const apiHandler: PathHandler = {
         `Action not found for Group: '${groupParam}', Action: '${actionParam}'`,
       );
     }
+
     return await action.handler(data, server, inRequest, inResponse);
   },
 };

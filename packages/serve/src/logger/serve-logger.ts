@@ -251,7 +251,6 @@ export class ServeLogger {
     options?: LogOptions,
   ) {
     this.#loadEnv();
-    const frame = this.#getCallFrame();
     switch (typeof subjectOrOptions) {
       case "string":
         options = { subject: subjectOrOptions, ...options };
@@ -260,6 +259,8 @@ export class ServeLogger {
         options = subjectOrOptions;
         break;
     }
+
+    const frame = this.#getCallFrame(options?.stackTrace);
     // console.log(formatStackFrame(frame, false));
     const logMessage: LogMessage = {
       type,
@@ -285,13 +286,28 @@ export class ServeLogger {
     const titleRow = formatUtils.center(title, this.#lineChar, {
       color,
     });
-    const frame = formatStackFrame(caller, true);
+    let frame = "";
+    if (Array.isArray(caller)) {
+      frame = caller.filter((c) => c.class || c.method).map((c) =>
+        formatStackFrame(c, true)
+      ).join("\n");
+    } else {
+      frame = formatStackFrame(caller, true);
+    }
     const formattedContent = content.map((c) => {
       if (typeof c === "string") {
         return formatUtils.center(c);
       }
       if (c instanceof Map) {
         return JSON.stringify(Object.fromEntries(c), null, 2);
+      }
+      if (Array.isArray(c)) {
+        return c.map((item) => {
+          if (typeof item === "string") {
+            return formatUtils.center(item);
+          }
+          return JSON.stringify(item, null, 2);
+        }).join("\n");
       }
 
       return JSON.stringify(c, null, 2);
@@ -306,7 +322,7 @@ export class ServeLogger {
     ];
     lines.push(" ");
     if (type == "error" || this.#logTrace) {
-      lines.push(formatUtils.center(frame));
+      lines.push(frame);
       lines.push(" ");
     }
     lines.push(...formattedContent);
@@ -318,13 +334,18 @@ export class ServeLogger {
   /**
    * Get the call frame of the function that called the logger
    */
-  #getCallFrame(): StackFrame {
-    const stack = new Error().stack;
+  #getCallFrame(stackTrace?: string): StackFrame | Array<StackFrame> {
+    const stack = stackTrace || new Error().stack;
     if (!stack) {
       return parseStackFrame(null);
     }
     const offset = this.config.traceOffset || 0;
     const parts = stack.split("\n");
+    if (stackTrace) {
+      return parts.map((part) => {
+        return parseStackFrame(part);
+      });
+    }
     for (let i = 0; i < parts.length; i++) {
       if (parts[i].includes("ServeLogger.#log")) {
         return parseStackFrame(parts[i + offset + 1]);
