@@ -180,6 +180,9 @@ export class InSpatialORM {
   }
 
   // Single Entry Operations
+  /**
+   * Creates a new entry in the database with the provided data.
+   */
   async createEntry<E extends string>(
     entryType: E,
     data: Record<string, any>,
@@ -190,17 +193,26 @@ export class InSpatialORM {
     await entry.save();
     return entry;
   }
-
-  async getNewEntry<E extends string>(entryType: E): Promise<Entry> {
+  /**
+   * Gets an instance of a new entry with default values set. This is not saved to the database.
+   */
+  getNewEntry<E extends string>(entryType: E): Entry {
     const entry = this.#getEntryInstance(entryType);
     entry.create();
     return entry;
   }
+  /**
+   * Gets an entry from the database by its ID.
+   */
   async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
     await entry.load(id);
     return entry;
   }
+  /**
+   * Updates an entry in the database with the provided data.
+   * The data object should contain the fields that need to be updated with their new values.
+   */
   async updateEntry<E extends string>(
     entryType: E,
     id: any,
@@ -210,6 +222,10 @@ export class InSpatialORM {
     entry.update(data);
     await entry.save();
   }
+
+  /**
+   * Deletes an entry from the database.
+   */
   async deleteEntry<E extends string>(entryType: E, id: string): Promise<any> {
     const entry = await this.getEntry(entryType, id);
     await entry.delete();
@@ -218,6 +234,9 @@ export class InSpatialORM {
 
   // Multiple Entry Operations
 
+  /**
+   * Gets a list of entries for a specific EntryType.
+   */
   async getEntryList<E extends string>(
     entryType: E,
     options?: ListOptions,
@@ -258,6 +277,9 @@ export class InSpatialORM {
 
   // Special Operations
 
+  /**
+   * Gets the value of a specific field in an entry.
+   */
   async getEntryValue<E extends string>(
     entryType: E,
     id: string,
@@ -266,18 +288,29 @@ export class InSpatialORM {
 
   // Settings
 
+  /**
+   * Gets the settings for a specific settings type.
+   */
   async getSettings<S extends string>(settingsType: S): Promise<any> {}
-
+  /**
+   * Updates the settings for a specific settings type.
+   */
   async updateSettings<S extends string>(
     settingsType: S,
     data: Record<string, any>,
   ): Promise<any> {}
 
+  /**
+   * Gets the value of a specific setting field.
+   */
   async getSettingsValue<S extends string>(
     settingsType: S,
     field: string,
   ): Promise<any> {}
 
+  /**
+   * Makes the necessary changes to the database based on the output of the planMigration method.
+   */
   async migrate(): Promise<Array<string>> {
     const migrationPlanner = new MigrationPlanner(
       Array.from(this.entryTypes.values()),
@@ -289,6 +322,10 @@ export class InSpatialORM {
     return await migrationPlanner.migrate();
   }
 
+  /**
+   * Plans a migration for the ORM. This will return the details of the changes that will be made to the database.
+   * This method does not make any changes to the database.
+   */
   async planMigration(): Promise<Array<EntryMigrationPlan>> {
     const migrationPlanner = new MigrationPlanner(
       Array.from(this.entryTypes.values()),
@@ -299,6 +336,10 @@ export class InSpatialORM {
     );
     return await migrationPlanner.createMigrationPlan();
   }
+  /**
+   * Generates TypeScript interfaces for all EntryTypes in the ORM.
+   * The generated interfaces will be saved in the `.inspatial/_generated/entries` directory in the root path of the application.
+   */
   generateInterfaces(): { generatedEntries: string[] } {
     const generatedEntries: string[] = [];
     for (const entryType of this.entryTypes.values()) {

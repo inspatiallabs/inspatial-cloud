@@ -22,7 +22,7 @@ const authServerExtension = new ServerExtension("auth", {
   install(server) {},
 });
 
-const authCloudExtension = new CloudExtension({
+const authCloudExtension: CloudExtension = new CloudExtension({
   key: "auth",
   title: "Authentication",
   description: "Auth extension",

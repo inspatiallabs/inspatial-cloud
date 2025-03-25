@@ -3,6 +3,7 @@ import ormGroup from "#extension/orm/actions/orm-group.ts";
 import entriesGroup from "#extension/orm/actions/entries-group.ts";
 import { ormServeExtension } from "#extension/orm/serveExtension.ts";
 import { AppHookFunction } from "#/types.ts";
+import { ServerExtension } from "../../../serve/mod.ts";
 const afterUpdateHook: AppHookFunction = (
   app,
   { entry, entryType, orm },
@@ -36,7 +37,7 @@ const afterDeleteHook: AppHookFunction = (
   });
 };
 
-const ormCloudExtension = new CloudExtension({
+const ormCloudExtension: CloudExtension = new CloudExtension({
   key: "orm",
   description: "ORM Extension",
   install(app) {

@@ -51,4 +51,4 @@ export default [{
   type: "PasswordField",
   description: "The user's API token",
   readOnly: true,
-}] satisfies Array<ORMFieldDef>;
+}] as Array<ORMFieldDef>;

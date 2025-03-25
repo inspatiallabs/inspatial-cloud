@@ -1,18 +1,20 @@
-import {
+import type {
   EntryEvent,
   EntryListener,
   EntryTypeEvent,
   EntryTypeListener,
   EntyCallbackMap,
+  SocketStatus,
 } from "#client/in-live/in-live-types.ts";
 import { InLiveClientBase } from "#client/in-live/in-live-base.ts";
+import type { Entry } from "#client/types.ts";
 
 export class InLiveClient {
   #client: InLiveClientBase;
   #callbacks: EntyCallbackMap = new Map();
   #statusCallbacks: Map<
     string,
-    (status: "open" | "closed" | "connecting" | "error") => Promise<void> | void
+    (status: SocketStatus) => Promise<void> | void
   > = new Map();
 
   constructor(host?: string) {
@@ -25,6 +27,9 @@ export class InLiveClient {
    * @param authToken The authentication token to use for the connection.
    */
   start(authToken?: string) {
+    if (this.#client.connected) {
+      return;
+    }
     this.#client.connect(authToken);
   }
 
@@ -39,10 +44,14 @@ export class InLiveClient {
    * Add a listener for a specific entry event by `EntyType` and `id`.
    * If this is the first listener for the entry, the client will join the server room for the entry.
    */
-  onEntry<T, E extends EntryEvent<T> = EntryEvent<T>>(
+  onEntry<
+    T extends Entry = Entry,
+    E extends EntryEvent<T> = EntryEvent<T>,
+    L extends EntryListener<T, E> = EntryListener<T, E>,
+  >(
     entryType: string,
     id: string,
-    listener: EntryListener<T, E>,
+    listener: L,
   ) {
     const entryListeners = this.#ensureEntry(entryType, id);
     if (entryListeners.has(listener.name)) {
@@ -84,7 +93,7 @@ export class InLiveClient {
    * If this is the first listener for the entry type, the client will join the server room for the entry type.
    */
   onEntryType<T, E extends EntryTypeEvent<T> = EntryTypeEvent<T>>(
-    entryType: E,
+    entryType: string,
     listener: EntryTypeListener<T, E>,
   ) {
     const listenerMap = this.#ensureEntryType(entryType);
@@ -95,6 +104,7 @@ export class InLiveClient {
 
     this.#joinEntryTypeRoom(entryType);
   }
+
   /**
    * Remove a listener for a specific entry type.
    * If this is the last listener for the entry type, the client will leave the server room for the entry type.
@@ -113,7 +123,7 @@ export class InLiveClient {
    * This will also leave the server room for the entry type,
    * so no more events will be sent to this client for this entry type.
    */
-  leaveEntryType(entryType: string) {
+  leaveEntryType(entryType: string): void {
     const entryTypeListeners = this.#ensureEntryType(entryType);
     entryTypeListeners.listeners.clear();
     this.#leaveEntryTypeRoom(entryType);
@@ -125,8 +135,8 @@ export class InLiveClient {
    * @returns The id of the listener, which can be used to remove the listener
    */
   onConnectionStatus(
-    listener: (status: "open" | "closed" | "connecting" | "error") => void,
-  ) {
+    listener: (status: SocketStatus) => void,
+  ): string {
     const id = this.#statusCallbacks.size.toString();
     this.#statusCallbacks.set(id, listener);
     return id;
@@ -139,6 +149,7 @@ export class InLiveClient {
   removeConnectionStatusListener(id: string) {
     this.#statusCallbacks.delete(id);
   }
+
   #joinEntryRoom(
     entryType: string,
     id: string,

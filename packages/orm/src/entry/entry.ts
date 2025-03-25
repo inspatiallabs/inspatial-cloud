@@ -297,6 +297,9 @@ export class Entry<
       }
     }
   }
+  /**
+   * Runs an action on the entry that is defined in the entry type `actions` property.
+   */
   async runAction(
     actionKey: string,
     data?: Record<string, any>,

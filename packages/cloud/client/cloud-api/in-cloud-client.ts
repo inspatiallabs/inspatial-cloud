@@ -1,8 +1,14 @@
-import { ListOptions } from "#orm/types";
-import { ErrorInfo } from "#client/cloud-api/api-client-types.ts";
+import type { ErrorInfo } from "#client/cloud-api/api-client-types.ts";
 import { EntryGroup } from "#client/cloud-api/groups/entry-group.ts";
 import { SettingsGroup } from "#client/cloud-api/groups/settings-group.ts";
-
+import { AuthGroup } from "#client/cloud-api/groups/auth-group.ts";
+import { ORMGroup } from "#client/cloud-api/groups/orm-group.ts";
+import { ActionsAPIDocs } from "@inspatial/serve/actions-api";
+interface NotificationInfo {
+  title: string;
+  message: string;
+  type: "success" | "error" | "warning" | "info";
+}
 export class InCloudClient {
   host: string;
   headers: Headers;
@@ -11,18 +17,63 @@ export class InCloudClient {
    */
   entry: EntryGroup;
   settings: SettingsGroup;
-  constructor(host?: string) {
+  auth: AuthGroup;
+  orm: ORMGroup;
+
+  #notify: (
+    info: NotificationInfo,
+  ) => Promise<void> | void = (info) => {
+    const { title, message } = info;
+    switch (info.type) {
+      case "error":
+        console.error(`${title}: ${message}`);
+        break;
+      case "success":
+        console.log(`${title}: ${message}`);
+        break;
+      case "warning":
+        console.warn(`${title}: ${message}`);
+        break;
+      case "info":
+        console.info(`${title}: ${message}`);
+        break;
+    }
+  };
+  constructor(
+    host?: string,
+    onNotify?: (info: NotificationInfo) => Promise<void> | void,
+  ) {
     this.host = host || "/api";
+
     this.headers = new Headers();
     this.headers.append("Content-Type", "application/json");
     this.entry = new EntryGroup(this.call.bind(this));
     this.settings = new SettingsGroup(this.call.bind(this));
+    this.auth = new AuthGroup(this.call.bind(this));
+    this.orm = new ORMGroup(this.call.bind(this));
+    if (onNotify) {
+      this.#notify = onNotify;
+    }
   }
 
-  async getApiInfo() {
+  async getApiInfo(): Promise<ActionsAPIDocs> {
     return await this.call("api", "getDocs");
   }
-
+  async ping(): Promise<boolean> {
+    const url = `${this.host}?group=api&action=ping`;
+    let hasServer = false;
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+      headers: this.headers,
+    }).catch((e) => {
+      hasServer = false;
+    });
+    if (response && response.ok) {
+      hasServer = true;
+    }
+    return hasServer;
+  }
   async call<T = any>(
     group: string,
     action: string,
@@ -66,11 +117,6 @@ export class InCloudClient {
     return await response.json();
   }
 
-  #notify(
-    info: { message: string; title: string; type: string },
-  ) {
-    console.error(info);
-  }
   #parseError(response: Response, errorContent: string) {
     const info = {} as ErrorInfo;
     info.statusCode = response.status;

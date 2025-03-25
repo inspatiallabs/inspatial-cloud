@@ -5,4 +5,4 @@ export default [{
   label: "User",
   type: "ConnectionField",
   entryType: "user",
-}] satisfies Array<ORMFieldDef>;
+}] as Array<ORMFieldDef>;

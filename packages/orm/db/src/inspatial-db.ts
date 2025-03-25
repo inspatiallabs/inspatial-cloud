@@ -12,25 +12,42 @@ import type {
   ValueType,
 } from "#db/types.ts";
 import { PostgresClient } from "#db/postgres/pgClient.ts";
-import type { ColumnType } from "#db/postgres/pgTypes.ts";
 
 import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
-import { serveLogger } from "../../../serve/src/logger/serve-logger.ts";
 import { ormLogger } from "#/logger.ts";
-import { convertString } from "../../../serve/src/utils/mod.ts";
+import { convertString } from "@inspatial/serve/utils";
 import { IDMode } from "#/field/types.ts";
 import { IDValue } from "#/entry/types.ts";
-
+/**
+ * InSpatialDB is an interface for interacting with a Postgres database
+ */
 export class InSpatialDB {
+  /**
+   * The configuration for the database
+   */
   config: DBConfig;
+  /**
+   * The name of the database to connect to
+   */
   dbName: string;
+  /**
+   * The schema to use for the database. Default is 'public'
+   */
   schema: string;
-
+  /**
+   * The Postgres client used to interact with the database
+   */
   #client?: PostgresClient;
 
+  /**
+   * The version of the database
+   */
   #version: string | undefined;
 
-  async version(): Promise<any> {
+  /**
+   * Get the version number of the postgres database
+   */
+  async version(): Promise<string> {
     if (!this.#version) {
       const response = await this.query<{ version: string }>(
         "SELECT version();",
@@ -40,6 +57,9 @@ export class InSpatialDB {
     return this.#version;
   }
 
+  /**
+   * Get a PostgresClient instance for interacting with the database
+   */
   get client(): PostgresClient {
     if (!this.#client) {
       this.#client = new PostgresClient(this.config.connection);
@@ -48,6 +68,9 @@ export class InSpatialDB {
     return this.#client;
   }
 
+  /**
+   * Send a query to the database
+   */
   async #query<T extends Record<string, any>>(
     query: string,
   ) {
@@ -67,13 +90,20 @@ export class InSpatialDB {
     });
     return result;
   }
-
+  /**
+   * InSpatialDB is an interface for interacting with a Postgres database
+   */
   constructor(config: DBConfig) {
     this.config = config;
     this.dbName = config.connection.database;
     this.schema = config.connection.schema || "public";
   }
 
+  /**
+   * Send a query to the database and return the result.
+   * The result is formatted to use camelCase for column names
+   * @param query The query to send to the database
+   */
   async query<T extends Record<string, any> = Record<string, any>>(
     query: string,
   ): Promise<QueryResultFormatted<T>> {
@@ -86,6 +116,10 @@ export class InSpatialDB {
       columns,
     };
   }
+
+  /**
+   * Get a list of column definitions for a table
+   */
   async getTableColumns(tableName: string): Promise<PostgresColumn[]> {
     tableName = this.#toSnake(tableName);
     const columns = [
@@ -148,12 +182,20 @@ export class InSpatialDB {
       };
     });
   }
+
+  /**
+   * Add a comment to a table
+   */
   async addTableComment(tableName: string, comment: string): Promise<void> {
     tableName = this.#toSnake(tableName);
     const query =
       `COMMENT ON TABLE ${this.schema}.${tableName} IS '${comment}'`;
     await this.query(query);
   }
+
+  /**
+   * Get the comment for a table
+   */
   async getTableComment(tableName: string): Promise<string> {
     tableName = this.#toSnake(tableName);
     const query =
@@ -161,7 +203,9 @@ export class InSpatialDB {
     const result = await this.query<{ comment: string }>(query);
     return result.rows[0].comment;
   }
-
+  /**
+   * Get a list of table names in the database
+   */
   async getTableNames(): Promise<string[]> {
     const query =
       `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}'`;
@@ -169,6 +213,9 @@ export class InSpatialDB {
     return result.rows.map((row) => this.#snakeToCamel(row.tableName));
   }
 
+  /**
+   * Check if a table exists in the database
+   */
   async tableExists(tableName: string): Promise<boolean> {
     tableName = this.#toSnake(tableName);
     const query =
@@ -177,6 +224,11 @@ export class InSpatialDB {
     return result.rowCount > 0;
   }
 
+  /**
+   * Create a table in the database. If the table already exists, this will do nothing.
+   * @param tableName The name of the table to create
+   * @param idMode The mode for the id column. Default is 'ulid'. Options are `auto` which is an auto incremented integer, 'ulid', 'uuid'
+   */
   async createTable(
     tableName: string,
     idMode?: IDMode,
@@ -308,7 +360,11 @@ export class InSpatialDB {
     }
     await this.query(query);
   }
-
+  /**
+   * Get multiple rows from a table
+   * @param tableName The name of the table
+   * @param options {DBListOptions}  The options for the query
+   */
   async getRows<T extends Record<string, any> = Record<string, any>>(
     tableName: string,
     options?: DBListOptions,
@@ -381,15 +437,18 @@ export class InSpatialDB {
     };
   }
 
-  async batchUpdateField(
+  /**
+   * Update the value of a column in multiple rows of a table based on the provided filters
+   */
+  async batchUpdateColumn(
     tableName: string,
-    field: string,
+    column: string,
     value: any,
-    filters: Record<string, any>,
+    filters: DBFilter,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
     let query = `UPDATE ${this.schema}.${tableName} SET ${
-      this.#formatColumnName(field)
+      this.#formatColumnName(column)
     } = ${this.#formatValue(value)}`;
     if (filters) {
       query += " WHERE ";
@@ -397,21 +456,28 @@ export class InSpatialDB {
     }
     await this.query(query);
   }
-  async getValue<T>(
+  /**
+   * Get a single value from a table by row id
+   */
+  async getValue<T = any>(
     tableName: string,
     id: string,
-    field: string,
+    column: string,
   ): Promise<T | undefined> {
     tableName = this.#toSnake(tableName);
     const query = `SELECT ${
-      this.#formatColumnName(field)
+      this.#formatColumnName(column)
     } FROM ${this.schema}.${tableName} WHERE id = ${this.#formatValue(id)}`;
     const result = await this.query<Record<string, T>>(query);
     if (result.rowCount === 0) {
       return undefined;
     }
-    return result.rows[0][field];
+    return result.rows[0][column];
   }
+
+  /**
+   * Count the number of rows in a table that match the filter
+   */
   async count<K extends Array<PropertyKey>>(
     tableName: string,
     options?: {
@@ -456,10 +522,16 @@ export class InSpatialDB {
     const countResult = await this.query<{ count: number }>(countQuery);
     return countResult.rows[0].count;
   }
+  /**
+   * Drop a table from the database
+   */
   dropTable(tableName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
     throw new Error(`dropTable not implemented for postgres`);
   }
+  /**
+   * Create an index on a table based on the provided columns
+   */
   async createIndex(
     options: {
       tableName: string;
@@ -485,13 +557,19 @@ export class InSpatialDB {
       `CREATE ${uniqueStr} INDEX IF NOT EXISTS ${indexName} ON ${this.schema}.${tableNameSnake} (${fieldsStr}) ${includeStr}`;
     await this.query(query);
   }
-
+  /**
+   * Drop an index from the database by index name
+   * @param tableName The name of the table
+   * @param indexName The name of the index
+   */
   async dropIndex(tableName: string, indexName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
     const query = `DROP INDEX ${indexName}`;
     await this.query(query);
   }
-
+  /**
+   * Run a VACUUM ANALYZE on the database or a specific table
+   */
   async vacuumAnalyze(tableName?: string): Promise<QueryResultFormatted> {
     if (!tableName) {
       const query = `VACUUM ANALYZE`;
@@ -502,6 +580,10 @@ export class InSpatialDB {
     return await this.query(query);
   }
   /* Column Operations */
+
+  /**
+   * Add a column to a table
+   */
   async addColumn(
     tableName: string,
     column: PgColumnDefinition,
@@ -545,7 +627,9 @@ export class InSpatialDB {
       await this.makeColumnUnique(tableName, columnName);
     }
   }
-
+  /**
+   * Drop a column from a table
+   */
   async removeColumn(tableName: string, columnName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
     columnName = this.#formatColumnName(columnName);
@@ -554,6 +638,9 @@ export class InSpatialDB {
     await this.query(query);
   }
 
+  /**
+   * Change the data type of a column.
+   */
   async changeColumnDataType(
     tableName: string,
     columnName: string,
@@ -578,6 +665,11 @@ export class InSpatialDB {
     await this.query(query);
   }
 
+  /**
+   * Add a unique constraint to a column
+   * @param tableName The name of the table
+   * @param columnName The name of the column
+   */
   async makeColumnUnique(tableName: string, columnName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
     columnName = this.#formatColumnName(columnName);
@@ -585,7 +677,9 @@ export class InSpatialDB {
       `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${columnName})`;
     await this.query(query);
   }
-
+  /**
+   * Remove a unique constraint from a column
+   */
   async removeColumnUnique(
     tableName: string,
     columnName: string,
@@ -597,6 +691,12 @@ export class InSpatialDB {
     await this.query(query);
   }
 
+  /**
+   * Set a column to allow null values or not
+   * @param tableName The name of the table
+   * @param columnName The name of the column
+   * @param allowNull Whether the column should allow null values
+   */
   async setColumnNull(
     tableName: string,
     columnName: string,
@@ -611,11 +711,29 @@ export class InSpatialDB {
     await this.query(query);
   }
 
+  /**
+   * Add a foreign key constraint to a column
+   */
   async addForeignKey(foreignKey: {
+    /**
+     * The name of the table
+     */
     tableName: string;
+    /**
+     * The name of the column
+     */
     columnName: string;
+    /**
+     * The name of the foreign table
+     */
     foreignTableName: string;
+    /**
+     * The name of the foreign column
+     */
     foreignColumnName: string;
+    /**
+     * The name of the constraint
+     */
     constraintName: string;
     options?: {
       onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
@@ -678,6 +796,10 @@ export class InSpatialDB {
   }
 
   /* End column operations */
+
+  /**
+   * Get the constraints for a table: primary key, foreign key, and unique constraints
+   */
   async getTableConstraints(
     tableName: string,
   ): Promise<Array<TableConstraint>> {
@@ -842,7 +964,9 @@ export class InSpatialDB {
 
     return filterStrings.filter((filter) => filter !== "");
   }
-
+  /**
+   * Format a column name for use in a query. Keywords are escaped with double quotes
+   */
   #formatColumnName(column: string): string {
     column = this.#toSnake(column);
     const reservedWords = ["order", "user"];
@@ -851,12 +975,22 @@ export class InSpatialDB {
     }
     return column;
   }
+
+  /**
+   * Convert a camelCase string to snake_case
+   */
   #toSnake(value: string): string {
     return camelToSnakeCase(value);
   }
+  /**
+   * Convert a snake_case string to camelCase
+   */
   #snakeToCamel(value: string): string {
     return toCamelCase(value);
   }
+  /**
+   * Format a value for use in a query
+   */
   #formatValue<Join extends boolean>(
     value: any,
     joinList?: Join,

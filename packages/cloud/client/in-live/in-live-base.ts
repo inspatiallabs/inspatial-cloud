@@ -1,4 +1,4 @@
-import { SocketStatus } from "#client/in-live/in-live-types.ts";
+import type { SocketStatus } from "#client/in-live/in-live-types.ts";
 
 /**
  * RealtimeClient is a WebSocket client to connect to the Realtime Extension of InSpatial Server.
@@ -7,6 +7,7 @@ import { SocketStatus } from "#client/in-live/in-live-types.ts";
 export class InLiveClientBase {
   #socket!: WebSocket;
   readonly #host: string;
+  #isReconnect: boolean = false;
 
   #authToken?: string;
   #rooms: Set<string> = new Set();
@@ -109,6 +110,10 @@ export class InLiveClientBase {
     this.#notifyStatus("connecting");
     this.#socket.addEventListener("open", (_event) => {
       this.#notifyStatus("open");
+      if (this.#isReconnect) {
+        this.#notifyStatus("reconnected");
+        this.#isReconnect = false;
+      }
       this.#rejoinRooms();
       this.#socket.addEventListener("close", (_event) => {
         this.#notifyStatus("closed");
@@ -145,6 +150,7 @@ export class InLiveClientBase {
 
   #retryReconnect(attempts: number): void {
     let count = 0;
+    this.#isReconnect = true;
     const interval = setInterval(() => {
       if (count >= attempts) {
         clearInterval(interval);

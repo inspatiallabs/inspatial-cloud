@@ -11,8 +11,6 @@
     "@inspatial/serve": "jsr:@inspatial/serve@^0.0.4"
   },
   "tasks": {
-    "server": "deno run -A --watch server.ts",
-    "app": "deno serve -A --watch app.ts",
-    "realtime": "deno run -A --watch realtime.ts"
+    "app": "deno serve -A --watch app.ts"
   }
 }
