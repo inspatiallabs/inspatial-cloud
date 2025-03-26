@@ -14,6 +14,8 @@ import { GlobalEntryHooks } from "#/types.ts";
 import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
 import { validateEntryType } from "#/setup/validate-entry-type.ts";
 import { buildEntryType } from "#/setup/build-entry-types.ts";
+import { Settings } from "#/settings/settings.ts";
+import { buildSettingsType } from "#/setup/build-settings-types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -21,6 +23,7 @@ export class InSpatialORM {
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType>;
+  #settingsClasses: Map<string, typeof Settings>;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
@@ -100,6 +103,7 @@ export class InSpatialORM {
     this.entryTypes = new Map();
     this.#entryClasses = new Map();
     this.settingsTypes = new Map();
+    this.#settingsClasses = new Map();
     for (const entryType of config.entries) {
       this.#addEntryType(entryType);
     }
@@ -110,6 +114,7 @@ export class InSpatialORM {
       this.#setupHooks(config.globalEntryHooks);
     }
     this.#setupEntryTypes();
+    this.#setupSettingsTypes();
     this.#build();
   }
 
@@ -144,14 +149,7 @@ export class InSpatialORM {
       ...globalHooks.afterDelete,
     );
   }
-  #setupEntryTypes() {
-    for (const entryType of this.entryTypes.values()) {
-      buildEntryType(this, entryType);
-    }
-    for (const entryType of this.entryTypes.values()) {
-      validateEntryType(this, entryType);
-    }
-  }
+
   #addEntryType(entryType: EntryType) {
     if (this.entryTypes.has(entryType.name)) {
       raiseORMException(
@@ -160,7 +158,14 @@ export class InSpatialORM {
     }
     this.entryTypes.set(entryType.name, entryType);
   }
-
+  #setupEntryTypes() {
+    for (const entryType of this.entryTypes.values()) {
+      buildEntryType(this, entryType);
+    }
+    for (const entryType of this.entryTypes.values()) {
+      validateEntryType(this, entryType);
+    }
+  }
   #addSettingsType(settingsType: SettingsType) {
     if (this.settingsTypes.has(settingsType.name)) {
       raiseORMException(
@@ -168,6 +173,11 @@ export class InSpatialORM {
       );
     }
     this.settingsTypes.set(settingsType.name, settingsType);
+  }
+  #setupSettingsTypes() {
+    for (const settingsType of this.settingsTypes.values()) {
+      buildSettingsType(this, settingsType);
+    }
   }
   #getEntryInstance(entryType: string) {
     const entryClass = this.#entryClasses.get(entryType);

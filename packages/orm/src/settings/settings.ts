@@ -1,2 +1,2 @@
-export class Settings<T> {
+export class Settings {
 }

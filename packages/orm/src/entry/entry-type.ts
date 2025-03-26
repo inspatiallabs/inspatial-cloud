@@ -10,16 +10,15 @@ import {
 import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 import type { EntryHookName } from "#/types.ts";
 import { ORMFieldDef } from "#/field/field-def-types.ts";
+import { BaseType } from "#/shared/base-type-class.ts";
 
 export class EntryType<
   E extends GenericEntry = GenericEntry,
   N extends string = string,
-> {
-  name: N;
+> extends BaseType<N> {
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
-  displayFields: Map<string, ORMFieldDef> = new Map();
-  fields: Map<string, ORMFieldDef> = new Map();
+
   connectionTitleFields: Map<string, ORMFieldDef> = new Map();
   actions: Map<string, EntryActionDefinition> = new Map();
   hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
@@ -45,6 +44,7 @@ export class EntryType<
     actions: Array<EntryActionDefinition<E>>;
     hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
   }) {
+    super(name, config);
     this.fields.set("id", {
       key: "id",
       type: "IDField",
@@ -53,6 +53,7 @@ export class EntryType<
       readOnly: true,
       required: true,
     });
+
     this.fields.set("createdAt", {
       key: "createdAt",
       label: "Created At",
@@ -69,7 +70,6 @@ export class EntryType<
       description: "The date and time this entry was last updated",
       required: true,
     });
-    this.name = this.#sanitizeName(name);
     const label: string = config.label || convertString(name, "title", true);
     this.config = {
       tableName: this.#generateTableName(),
@@ -80,14 +80,6 @@ export class EntryType<
         `${label} entry type for InSpatial ORM`,
     };
 
-    for (const field of config.fields) {
-      if (this.fields.has(field.key)) {
-        raiseORMException(
-          `Field with key ${field.key} already exists in EntryType ${this.name}`,
-        );
-      }
-      this.fields.set(field.key, field);
-    }
     if (config.defaultListFields) {
       const defaultListFields = new Set<string>(
         config.defaultListFields as string[],
@@ -119,7 +111,6 @@ export class EntryType<
       ...this.hooks,
       ...config.hooks,
     };
-    this.#setDisplayFields();
   }
 
   get info(): EntryTypeInfo {
@@ -140,20 +131,5 @@ export class EntryType<
     convertString;
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;
-  }
-  #sanitizeName<N>(name: string): N {
-    return name as N;
-  }
-
-  #setDisplayFields(): void {
-    for (const field of this.fields.values()) {
-      if (field.hidden) {
-        continue;
-      }
-      if (["id", "createdAt", "updatedAt"].includes(field.key)) {
-        continue;
-      }
-      this.displayFields.set(field.key, field);
-    }
   }
 }
