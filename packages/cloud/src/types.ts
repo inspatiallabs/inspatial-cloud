@@ -60,3 +60,10 @@ export type AppHookFunction = (app: InSpatialCloud, hookParams: {
   entry: Entry;
   orm: InSpatialORM;
 }) => Promise<void> | void;
+
+export interface CloudExtensionInfo {
+  key: string;
+  title: string;
+  description: string;
+  version: string;
+}

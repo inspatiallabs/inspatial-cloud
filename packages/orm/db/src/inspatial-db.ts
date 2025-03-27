@@ -231,7 +231,7 @@ export class InSpatialDB {
    */
   async createTable(
     tableName: string,
-    idMode?: IDMode,
+    idMode?: IDMode | "manual",
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
     idMode = idMode || "ulid";
@@ -246,6 +246,9 @@ export class InSpatialDB {
         break;
       case "uuid":
         query += ` UUID`;
+        break;
+      case "manual":
+        query += ` CHAR(255)`;
     }
     query += ` PRIMARY KEY )`;
     await this.query(query);
@@ -566,6 +569,31 @@ export class InSpatialDB {
     tableName = this.#toSnake(tableName);
     const query = `DROP INDEX ${indexName}`;
     await this.query(query);
+  }
+
+  /**
+   * Check if an index exists on a table
+   */
+  async hasIndex(tableName: string, indexName: string): Promise<boolean> {
+    tableName = this.#toSnake(tableName);
+    const query =
+      `SELECT indexname FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
+    const result = await this.query<{ indexname: string }>(query);
+    return result.rowCount > 0;
+  }
+
+  /**
+   * Get an index info from a table
+   */
+  async getIndex(tableName: string, indexName: string): Promise<any> {
+    tableName = this.#toSnake(tableName);
+    const query =
+      `SELECT * FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
+    const result = await this.query(query);
+    if (result.rowCount === 0) {
+      return undefined;
+    }
+    return result.rows[0];
   }
   /**
    * Run a VACUUM ANALYZE on the database or a specific table

@@ -16,6 +16,7 @@ import { validateEntryType } from "#/setup/validate-entry-type.ts";
 import { buildEntryType } from "#/setup/build-entry-types.ts";
 import { Settings } from "#/settings/settings.ts";
 import { buildSettingsType } from "#/setup/build-settings-types.ts";
+import { installSettingsTable } from "#/settings/install-settings-table.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -55,15 +56,30 @@ export class InSpatialORM {
     if (!fieldTypeDef) {
       raiseORMException(
         `Field type ${fieldType} does not exist in ORM`,
+        "ORMField",
+        400,
       );
     }
     return fieldTypeDef;
   }
   getEntryType<T extends EntryType = EntryType>(entryType: string): T {
     if (!this.entryTypes.has(entryType)) {
-      raiseORMException(`EntryType ${entryType} does not exist in ORM`);
+      raiseORMException(
+        `EntryType ${entryType} does not exist in ORM`,
+        "EntryType",
+        400,
+      );
     }
     return this.entryTypes.get(entryType)! as T;
+  }
+
+  getSettingsType<T extends SettingsType = SettingsType>(
+    settingsType: string,
+  ): T {
+    if (!this.settingsTypes.has(settingsType)) {
+      raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
+    }
+    return this.settingsTypes.get(settingsType)! as T;
   }
   constructor(
     /**
@@ -301,7 +317,8 @@ export class InSpatialORM {
   /**
    * Gets the settings for a specific settings type.
    */
-  async getSettings<S extends string>(settingsType: S): Promise<any> {}
+  async getSettings<S extends string>(settingsType: S): Promise<any> {
+  }
   /**
    * Updates the settings for a specific settings type.
    */
@@ -322,6 +339,7 @@ export class InSpatialORM {
    * Makes the necessary changes to the database based on the output of the planMigration method.
    */
   async migrate(): Promise<Array<string>> {
+    await installSettingsTable(this);
     const migrationPlanner = new MigrationPlanner(
       Array.from(this.entryTypes.values()),
       this,

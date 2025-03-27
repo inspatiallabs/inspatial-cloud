@@ -181,9 +181,26 @@ const getEntryListAction = new CloudAction("getEntryList", {
     required: false,
   }],
 });
+
+const getEntryTypeInfoAction = new CloudAction("getEntryTypeInfo", {
+  label: "Get Entry Type Info",
+  description: "Get the Entry Type definition for a given Entry Type",
+  run({ app, inRequest, params }) {
+    const entryType = app.orm.getEntryType(params.entryType);
+    return entryType.info;
+  },
+  params: [{
+    key: "entryType",
+    type: "string",
+    label: "Entry Type",
+    description: "The Entry Type to get the schema for",
+    required: true,
+  }],
+});
 const entriesGroup = new CloudActionGroup("entry", {
   description: "CRUD actions for InSpatial ORM Entries",
   actions: [
+    getEntryTypeInfoAction,
     getEntryAction,
     runEntryAction,
     updateEntryAction,

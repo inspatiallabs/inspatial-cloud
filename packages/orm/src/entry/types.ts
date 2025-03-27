@@ -2,6 +2,7 @@ import { InSpatialORM } from "#/inspatial-orm.ts";
 import { EntryBase } from "#/entry/entry-base.ts";
 import { IDMode } from "#/field/types.ts";
 import { ORMFieldDef } from "#/field/field-def-types.ts";
+import { BaseTypeConfig, BaseTypeInfo } from "#/shared/shared-types.ts";
 /* Hooks */
 type EntryHookFunction<
   E extends EntryBase = EntryBase,
@@ -114,22 +115,15 @@ export type OptionalParams<T> = T extends Record<infer R, ActionParamProp> ? {
   }
   : never;
 
-export interface EntryTypeInfo {
-  name: string;
+export interface EntryTypeInfo extends BaseTypeInfo {
   config: EntryTypeConfig;
-  label: string;
-  fields: Array<ORMFieldDef>;
-  titleFields: Array<ORMFieldDef>;
   actions: Array<Omit<EntryActionDefinition, "action">>;
   defaultListFields: Array<ORMFieldDef>;
-  displayFields: Array<ORMFieldDef>;
 }
 
-export interface EntryTypeConfig {
+export interface EntryTypeConfig extends BaseTypeConfig {
   tableName: string;
-  label: string;
   titleField?: string;
-  description: string;
   idMode: IDMode;
 }
 

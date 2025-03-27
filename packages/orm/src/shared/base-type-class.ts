@@ -8,6 +8,7 @@ export class BaseType<N extends string = string> {
    */
   fields: Map<string, ORMFieldDef> = new Map();
   displayFields: Map<string, ORMFieldDef> = new Map();
+  connectionTitleFields: Map<string, ORMFieldDef> = new Map();
   constructor(
     name: N,
     config: {

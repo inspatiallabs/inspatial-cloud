@@ -20,8 +20,20 @@ const entryTypesInfo = new CloudAction("entryTypes", {
   description: "Get EntryType Definitions",
   label: "Entry Types",
   run({ app }) {
-    const entryTypes = Array.from(app.orm.entryTypes.values());
-    return entryTypes.map((entryType) => entryType.info);
+    return Array.from(
+      app.orm.entryTypes.values().map((entryType) => entryType.info),
+    );
+  },
+  params: [],
+});
+
+const settingsTypesInfo = new CloudAction("settingsTypes", {
+  description: "Get SettingsType Definitions",
+  label: "Settings Types",
+  run({ app }) {
+    return Array.from(
+      app.orm.settingsTypes.values().map((settingsType) => settingsType.info),
+    );
   },
   params: [],
 });
@@ -42,6 +54,7 @@ const ormGroup = new CloudActionGroup("orm", {
     planMigrationAction,
     migrateAction,
     entryTypesInfo,
+    settingsTypesInfo,
     generateInterfaces,
   ],
 });

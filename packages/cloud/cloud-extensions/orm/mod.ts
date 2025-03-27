@@ -3,7 +3,7 @@ import ormGroup from "#extension/orm/actions/orm-group.ts";
 import entriesGroup from "#extension/orm/actions/entries-group.ts";
 import { ormServeExtension } from "#extension/orm/serveExtension.ts";
 import { AppHookFunction } from "#/types.ts";
-import { ServerExtension } from "../../../serve/mod.ts";
+import settingsGroup from "#extension/orm/actions/settings-group.ts";
 const afterUpdateHook: AppHookFunction = (
   app,
   { entry, entryType, orm },
@@ -44,7 +44,7 @@ const ormCloudExtension: CloudExtension = new CloudExtension({
   },
   title: "ORM Extension",
   version: "0.0.1",
-  actionGroups: [ormGroup, entriesGroup],
+  actionGroups: [ormGroup, entriesGroup, settingsGroup],
   ormGlobalHooks: {
     afterUpdate: [afterUpdateHook],
     afterCreate: [afterCreateHook],

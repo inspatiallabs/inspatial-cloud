@@ -3,7 +3,7 @@ import type { ServerExtension } from "@inspatial/serve";
 import { type CloudActionGroup } from "#/cloud-action.ts";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import { type EntryType, SettingsType } from "#orm";
-import { AppEntryHooks } from "#/types.ts";
+import { AppEntryHooks, CloudExtensionInfo } from "#/types.ts";
 export type PackInstallFunction<R = any> = (
   app: InSpatialCloud,
 ) => R;
@@ -67,5 +67,38 @@ export class CloudExtension<
     }
     this.install = config.install;
     this.boot = config.boot || (() => {});
+    this.#setup();
+    Object.freeze(this);
+  }
+
+  #setup() {
+    for (const entryType of this.entryTypes) {
+      entryType.config.extension = {
+        ...this.info,
+        extensionType: {
+          key: "cloud",
+          title: "Cloud Extension",
+        },
+      };
+    }
+
+    for (const settingType of this.settingsTypes) {
+      settingType.config.extension = {
+        ...this.info,
+        extensionType: {
+          key: "cloud",
+          title: "Cloud Extension",
+        },
+      };
+    }
+  }
+
+  get info(): CloudExtensionInfo {
+    return {
+      key: this.key,
+      title: this.title,
+      description: this.description,
+      version: this.version,
+    };
   }
 }

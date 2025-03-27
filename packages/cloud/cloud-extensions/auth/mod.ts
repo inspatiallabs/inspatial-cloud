@@ -2,6 +2,7 @@ import { ServerExtension } from "@inspatial/serve";
 import { CloudExtension } from "#/cloud-extension.ts";
 import userEntry from "#extension/auth/entry-types/user/user-entry.ts";
 import userSessionEntry from "#extension/auth/entry-types/user-session/user-session-entry.ts";
+import authSettings from "#extension/auth/settings-types/auth-settings/auth-settings.ts";
 
 const authServerExtension = new ServerExtension("auth", {
   description: "Auth extension",
@@ -30,8 +31,9 @@ const authCloudExtension: CloudExtension = new CloudExtension({
   version: "1.0.0",
   serverExtensions: [authServerExtension],
   entryTypes: [userEntry, userSessionEntry],
+
   actionGroups: [],
-  settingsTypes: [],
+  settingsTypes: [authSettings],
 });
 
 export default authCloudExtension;

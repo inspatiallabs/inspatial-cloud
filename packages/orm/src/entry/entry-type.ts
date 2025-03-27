@@ -19,7 +19,6 @@ export class EntryType<
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
 
-  connectionTitleFields: Map<string, ORMFieldDef> = new Map();
   actions: Map<string, EntryActionDefinition> = new Map();
   hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
     beforeUpdate: [],
@@ -128,7 +127,6 @@ export class EntryType<
     };
   }
   #generateTableName(): string {
-    convertString;
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;
   }
