@@ -1,8 +1,6 @@
-import { ORMFieldDef } from "#/field/field-def-types.ts";
-import { convertString } from "@inspatial/serve/utils";
-import { raiseORMException } from "#/orm-exception.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { BaseType } from "#/shared/base-type-class.ts";
-import { SettingsTypeConfig, SettingsTypeInfo } from "#/settings/types.ts";
+import type { SettingsTypeConfig, SettingsTypeInfo } from "#/settings/types.ts";
 
 /**
  * Defines a settings type for the ORM.

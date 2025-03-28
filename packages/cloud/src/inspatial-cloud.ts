@@ -16,8 +16,8 @@ import type { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
 import { InRequest } from "@inspatial/serve";
 import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 
-import { EntryType, InSpatialORM, SettingsType } from "#orm";
-import { GlobalEntryHooks, GlobalHookFunction } from "#orm/types";
+import { type EntryType, InSpatialORM, type SettingsType } from "#orm";
+import type { GlobalEntryHooks, GlobalHookFunction } from "#orm/types";
 import ormCloudExtension from "#extension/orm/mod.ts";
 import authCloudExtension from "#extension/auth/mod.ts";
 import cloudLogger from "#/cloud-logger.ts";
@@ -192,13 +192,13 @@ export class InSpatialCloud<
     });
   }
 
-  #setup() {
+  #setup(): void {
     for (const appExtension of this.#appExtensions.values()) {
       this.#installAppExtension(appExtension);
     }
   }
 
-  #installAppExtension(appExtension: CloudExtension) {
+  #installAppExtension(appExtension: CloudExtension): void {
     const { actionGroups } = appExtension;
 
     for (const actionGroup of actionGroups) {
@@ -270,14 +270,14 @@ export class InSpatialCloud<
     });
   }
 
-  async generateConfigFile() {
+  async generateConfigFile(): Promise<void> {
     await this.server.generateConfigFile();
   }
-  private async boot() {
+  private async boot(): Promise<void> {
     // await this.orm.init();
   }
 
-  async run() {
+  async run(): Promise<void> {
     await this.ready;
 
     this.server.run();

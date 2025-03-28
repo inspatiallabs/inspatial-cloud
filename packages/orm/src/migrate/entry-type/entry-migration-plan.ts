@@ -1,0 +1,47 @@
+import { ForeignKeyConstraint } from "#db/types.ts";
+import { IDMode } from "#/field/types.ts";
+import { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
+
+export class EntryMigrationPlan {
+  entryType: string;
+  table: {
+    tableName: string;
+    create: boolean;
+    idMode: IDMode;
+    updateDescription?: {
+      from: string;
+      to: string;
+    };
+  };
+  columns: {
+    create: Array<ColumnCreatePlan>;
+    drop: Array<any>;
+    modify: Array<ColumnMigrationPlan>;
+  };
+  constraints: {
+    foreignKey: {
+      create: Array<ForeignKeyConstraint>;
+      drop: Array<ForeignKeyConstraint>;
+    };
+  };
+  constructor(entryType: string) {
+    this.entryType = entryType;
+    this.table = {
+      tableName: "",
+      idMode: "ulid",
+      create: false,
+    };
+    this.columns = {
+      create: [],
+      drop: [],
+      modify: [],
+    };
+
+    this.constraints = {
+      foreignKey: {
+        create: [],
+        drop: [],
+      },
+    };
+  }
+}

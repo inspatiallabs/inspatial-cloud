@@ -1,22 +1,23 @@
-import { InSpatialDB } from "#db";
-import { FieldDefType } from "#/field/field-def-types.ts";
-import { ORMField } from "#/field/orm-field.ts";
+import type { InSpatialDB } from "#db";
+import type { FieldDefType } from "#/field/field-def-types.ts";
+import type { ORMField } from "#/field/orm-field.ts";
 import { ormFields } from "#/field/fields.ts";
-import { EntryMigrationPlan, MigrationPlanner } from "#/migrate/migrate-db.ts";
-import { EntryType } from "#/entry/entry-type.ts";
-import { SettingsType } from "#/settings/settings-type.ts";
+import type { EntryType } from "#/entry/entry-type.ts";
+import type { SettingsType } from "#/settings/settings-type.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { ormLogger } from "#/logger.ts";
 import { buildEntry } from "#/entry/build-entry.ts";
-import { Entry } from "#/entry/entry.ts";
-import { DBListOptions, ListOptions } from "#db/types.ts";
-import { GlobalEntryHooks } from "#/types.ts";
+import type { Entry } from "#/entry/entry.ts";
+import type { DBListOptions, ListOptions } from "#db/types.ts";
+import type { GlobalEntryHooks } from "#/types.ts";
 import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
 import { validateEntryType } from "#/setup/validate-entry-type.ts";
 import { buildEntryType } from "#/setup/build-entry-types.ts";
-import { Settings } from "#/settings/settings.ts";
+import type { Settings } from "#/settings/settings.ts";
 import { buildSettingsType } from "#/setup/build-settings-types.ts";
 import { installSettingsTable } from "#/settings/install-settings-table.ts";
+import { MigrationPlanner } from "#/migrate/migration-planner.ts";
+import type { EntryMigrationPlan } from "#/migrate/entry-type/entry-migration-plan.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -37,10 +38,13 @@ export class InSpatialORM {
   };
 
   #rootPath: string;
-  get #entriesPath() {
+  get #entriesPath(): string {
     return `${this.#rootPath}/_generated/entries`;
   }
-  async _runGlobalHooks(hookType: keyof GlobalEntryHooks, entry: Entry) {
+  async _runGlobalHooks(
+    hookType: keyof GlobalEntryHooks,
+    entry: Entry,
+  ): Promise<void> {
     for (const hook of this.#globalEntryHooks[hookType]) {
       await hook({
         entryType: entry._name,
@@ -134,14 +138,14 @@ export class InSpatialORM {
     this.#build();
   }
 
-  #build() {
+  #build(): void {
     for (const entryType of this.entryTypes.values()) {
       const entryClass = buildEntry(entryType);
       this.#entryClasses.set(entryType.name, entryClass);
     }
   }
 
-  #setupHooks(globalHooks: GlobalEntryHooks) {
+  #setupHooks(globalHooks: GlobalEntryHooks): void {
     this.#globalEntryHooks.validate.push(...globalHooks.validate);
     this.#globalEntryHooks.beforeValidate.push(
       ...globalHooks.beforeValidate,
@@ -166,7 +170,7 @@ export class InSpatialORM {
     );
   }
 
-  #addEntryType(entryType: EntryType) {
+  #addEntryType(entryType: EntryType): void {
     if (this.entryTypes.has(entryType.name)) {
       raiseORMException(
         `EntryType with name ${entryType.name} already exists.`,
@@ -174,7 +178,7 @@ export class InSpatialORM {
     }
     this.entryTypes.set(entryType.name, entryType);
   }
-  #setupEntryTypes() {
+  #setupEntryTypes(): void {
     for (const entryType of this.entryTypes.values()) {
       buildEntryType(this, entryType);
     }
@@ -182,7 +186,7 @@ export class InSpatialORM {
       validateEntryType(this, entryType);
     }
   }
-  #addSettingsType(settingsType: SettingsType) {
+  #addSettingsType(settingsType: SettingsType): void {
     if (this.settingsTypes.has(settingsType.name)) {
       raiseORMException(
         `SettingsType with name ${settingsType.name} already exists.`,
@@ -190,12 +194,12 @@ export class InSpatialORM {
     }
     this.settingsTypes.set(settingsType.name, settingsType);
   }
-  #setupSettingsTypes() {
+  #setupSettingsTypes(): void {
     for (const settingsType of this.settingsTypes.values()) {
       buildSettingsType(this, settingsType);
     }
   }
-  #getEntryInstance(entryType: string) {
+  #getEntryInstance(entryType: string): Entry {
     const entryClass = this.#entryClasses.get(entryType);
     if (!entryClass) {
       raiseORMException(

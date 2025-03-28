@@ -1,4 +1,4 @@
-import { ORMFieldDef } from "#/field/field-def-types.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 
 export class BaseType<N extends string = string> {

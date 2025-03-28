@@ -41,12 +41,12 @@ export async function installSettingsTable(orm: InSpatialORM) {
     }
     await db.addColumn("inSettings", column);
   }
-  const hasIndex = await db.hasIndex("inSettings", "in_settings_settingsType");
+  const hasIndex = await db.hasIndex("inSettings", "in_settings_settings_type");
   if (!hasIndex) {
     await db.createIndex({
       tableName: "inSettings",
       columns: ["settingsType"],
-      indexName: "in_settings_settingsType",
+      indexName: "in_settings_settings_type",
     });
   }
 }
