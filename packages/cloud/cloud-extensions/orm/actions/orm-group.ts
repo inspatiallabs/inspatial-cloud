@@ -2,6 +2,7 @@ import { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
 import type { EntryMigrationPlan } from "../../../../orm/src/migrate/entry-type/entry-migration-plan.ts";
 import type { EntryTypeInfo } from "#orm/types";
 import type { SettingsTypeInfo } from "../../../../orm/src/settings/types.ts";
+import type { MigrationPlan } from "../../../../orm/src/migrate/migration-plan.ts";
 
 const migrateAction = new CloudAction("migrate", {
   label: "Migrate Database",
@@ -14,7 +15,7 @@ const migrateAction = new CloudAction("migrate", {
 const planMigrationAction = new CloudAction("planMigration", {
   description: "Generate Migration Plan",
   label: "Plan Migration",
-  async run({ app }): Promise<Array<EntryMigrationPlan>> {
+  async run({ app }): Promise<MigrationPlan> {
     return await app.orm.planMigration();
   },
   params: [],

@@ -352,7 +352,12 @@ export class InSpatialORM {
   async updateSettings<S extends string>(
     settingsType: S,
     data: Record<string, any>,
-  ): Promise<any> {}
+  ): Promise<any> {
+    const settings = this.#getSettingsInstance(settingsType);
+    settings.update(data);
+    await settings.save();
+    return settings;
+  }
 
   /**
    * Gets the value of a specific setting field.

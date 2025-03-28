@@ -40,9 +40,7 @@ const updateSettingsAction = new CloudAction("updateSettings", {
   description: "Update the settings for a given settings type",
   async run({ app, inRequest, params }): Promise<any> {
     const { settingsType, data } = params;
-    const settings = await app.orm.getSettings(settingsType);
-    settings.update(data);
-    await settings.save();
+    const settings = await app.orm.updateSettings(settingsType, data);
     return settings.data;
   },
   params: [{
