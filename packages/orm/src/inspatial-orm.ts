@@ -366,6 +366,8 @@ export class InSpatialORM {
     settingsType: S,
     field: string,
   ): Promise<any> {
+    const settings = this.#getSettingsInstance(settingsType);
+    return await settings.getValue(field);
   }
 
   /**

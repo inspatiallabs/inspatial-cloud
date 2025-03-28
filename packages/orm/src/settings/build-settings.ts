@@ -7,7 +7,9 @@ export function buildSettings(
   settingsType: SettingsType,
 ): typeof Settings {
   const changeableFields = new Map<string, ORMFieldDef>();
+  const fieldIds = new Map<string, string>();
   for (const field of settingsType.fields.values()) {
+    fieldIds.set(field.key, `${settingsType.name}:${field.key}`);
     if (
       !field.readOnly && !field.hidden
     ) {
@@ -17,6 +19,7 @@ export function buildSettings(
   const settingsClass = class extends Settings<any> {
     override _fields: Map<string, ORMFieldDef> = settingsType.fields;
     override _changeableFields = changeableFields;
+    override _fieldIds: Map<string, string> = fieldIds;
     constructor(orm: any) {
       super(orm, settingsType.name);
     }

@@ -2,6 +2,7 @@ import { BaseClass } from "#/shared/base-class.ts";
 import type { SettingsRow } from "#/settings/types.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
+  _fieldIds!: Map<string, string>;
   constructor(orm: any, name: N) {
     super(orm, name);
   }
@@ -9,6 +10,15 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     return Object.fromEntries(this._data.entries());
   }
 
+  getFieldId(fieldKey: string): string {
+    const fieldId = this._fieldIds.get(fieldKey);
+    if (!fieldId) {
+      throw new Error(
+        `Field with key ${fieldKey} does not exist in SettingsType ${this._name}`,
+      );
+    }
+    return fieldId;
+  }
   async load(): Promise<void> {
     this._data.clear();
     this._modifiedValues.clear();
@@ -27,6 +37,20 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       );
     }
   }
+
+  async getValue(
+    fieldKey: string,
+  ): Promise<any> {
+    const fieldDef = this._getFieldDef(fieldKey);
+    const fieldType = this._getFieldType(fieldDef.type);
+
+    const dbValue = await this._db.getValue(
+      "inSettings",
+      this.getFieldId(fieldKey),
+      "value",
+    );
+    return fieldType.parseDbValue(dbValue.value.value, fieldDef);
+  }
   update(data: Record<string, any>): void {
     for (const [key, value] of Object.entries(data)) {
       if (!this._changeableFields.has(key)) {
@@ -41,7 +65,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       const fieldType = this._getFieldType(fieldDef.type);
       const dbValue = fieldType.prepareForDB(value.to, fieldDef);
       const fieldId = `${this._name}:${key}`;
-      await this._db.updateRow("inSettings", fieldId, {
+      await this._db.updateRow("inSettings", this.getFieldId(key), {
         value: {
           value: dbValue,
           type: fieldDef.type,
