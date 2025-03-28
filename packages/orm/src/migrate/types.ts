@@ -3,6 +3,8 @@ import type {
   PgColumnDefinition,
   PgDataTypeDefinition,
 } from "#db/types.ts";
+import type { EntryMigrationPlan } from "#/migrate/entry-type/entry-migration-plan.ts";
+import type { SettingsMigrationPlan } from "#/migrate/settings-type/settings-migration-plan.ts";
 
 export interface ColumnMigrationPlan {
   columnName: string;

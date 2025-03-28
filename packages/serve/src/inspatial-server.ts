@@ -344,7 +344,7 @@ export class InSpatialServer<
   /**
    * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
    */
-  async generateConfigFile() {
+  async generateConfigFile(): Promise<void> {
     await generateServeConfigFile(this);
   }
   #setupExtensionConfig(
@@ -475,7 +475,7 @@ export class InSpatialServer<
   /**
    * Adds information about the installed extension.
    */
-  #addExtensionInfo(extension: ServerExtension<any, any>) {
+  #addExtensionInfo(extension: ServerExtension<any, any>): void {
     const middleware = extension.middleware?.map((m) => {
       return {
         name: m.name,
@@ -537,7 +537,7 @@ export class InSpatialServer<
   async #handleException(
     err: unknown,
     inResponse: InResponse,
-  ) {
+  ): Promise<Response> {
     inResponse = inResponse || new InResponse();
     inResponse;
     const clientMessages: Array<Record<string, any> | string> = [];

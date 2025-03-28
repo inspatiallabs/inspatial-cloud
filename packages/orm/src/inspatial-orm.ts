@@ -11,13 +11,13 @@ import type { Entry } from "#/entry/entry.ts";
 import type { DBListOptions, ListOptions } from "#db/types.ts";
 import type { GlobalEntryHooks } from "#/types.ts";
 import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
-import { validateEntryType } from "#/setup/validate-entry-type.ts";
-import { buildEntryType } from "#/setup/build-entry-types.ts";
+import { validateEntryType } from "./setup/entry-type/validate-entry-type.ts";
+import { buildEntryType } from "./setup/entry-type/build-entry-types.ts";
 import type { Settings } from "#/settings/settings.ts";
-import { buildSettingsType } from "#/setup/build-settings-types.ts";
-import { installSettingsTable } from "#/settings/install-settings-table.ts";
+import { buildSettingsType } from "./setup/settings-type/build-settings-types.ts";
 import { MigrationPlanner } from "#/migrate/migration-planner.ts";
-import type { EntryMigrationPlan } from "#/migrate/entry-type/entry-migration-plan.ts";
+import type { MigrationPlan } from "#/migrate/migration-plan.ts";
+import { buildSettings } from "#/settings/build-settings.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -143,6 +143,10 @@ export class InSpatialORM {
       const entryClass = buildEntry(entryType);
       this.#entryClasses.set(entryType.name, entryClass);
     }
+    for (const settingsType of this.settingsTypes.values()) {
+      const settingsClass = buildSettings(settingsType);
+      this.#settingsClasses.set(settingsType.name, settingsClass);
+    }
   }
 
   #setupHooks(globalHooks: GlobalEntryHooks): void {
@@ -207,6 +211,16 @@ export class InSpatialORM {
       );
     }
     return new entryClass(this, entryType);
+  }
+
+  #getSettingsInstance(settingsType: string): Settings {
+    const settingsClass = this.#settingsClasses.get(settingsType);
+    if (!settingsClass) {
+      raiseORMException(
+        `SettingsType ${settingsType} is not a valid settings type.`,
+      );
+    }
+    return new settingsClass(this, settingsType);
   }
 
   // Single Entry Operations
@@ -314,7 +328,13 @@ export class InSpatialORM {
     entryType: E,
     id: string,
     field: string,
-  ): Promise<any> {}
+  ): Promise<any> {
+    raiseORMException(
+      `getEntryValue is not implemented yet. Use getEntry instead.`,
+      "ORMField",
+      501,
+    );
+  }
 
   // Settings
 
@@ -322,6 +342,9 @@ export class InSpatialORM {
    * Gets the settings for a specific settings type.
    */
   async getSettings<S extends string>(settingsType: S): Promise<any> {
+    const settings = this.#getSettingsInstance(settingsType);
+    await settings.load();
+    return settings;
   }
   /**
    * Updates the settings for a specific settings type.
@@ -337,20 +360,21 @@ export class InSpatialORM {
   async getSettingsValue<S extends string>(
     settingsType: S,
     field: string,
-  ): Promise<any> {}
+  ): Promise<any> {
+  }
 
   /**
    * Makes the necessary changes to the database based on the output of the planMigration method.
    */
   async migrate(): Promise<Array<string>> {
-    await installSettingsTable(this);
-    const migrationPlanner = new MigrationPlanner(
-      Array.from(this.entryTypes.values()),
-      this,
-      (message) => {
+    const migrationPlanner = new MigrationPlanner({
+      entryTypes: Array.from(this.entryTypes.values()),
+      settingsTypes: Array.from(this.settingsTypes.values()),
+      orm: this,
+      onOutput: (message) => {
         ormLogger.info(message);
       },
-    );
+    });
     return await migrationPlanner.migrate();
   }
 
@@ -358,14 +382,16 @@ export class InSpatialORM {
    * Plans a migration for the ORM. This will return the details of the changes that will be made to the database.
    * This method does not make any changes to the database.
    */
-  async planMigration(): Promise<Array<EntryMigrationPlan>> {
-    const migrationPlanner = new MigrationPlanner(
-      Array.from(this.entryTypes.values()),
-      this,
-      (message) => {
+  async planMigration(): Promise<MigrationPlan> {
+    ormLogger.info("Planning migration...");
+    const migrationPlanner = new MigrationPlanner({
+      entryTypes: Array.from(this.entryTypes.values()),
+      settingsTypes: Array.from(this.settingsTypes.values()),
+      orm: this,
+      onOutput: (message) => {
         ormLogger.info(message);
       },
-    );
+    });
     return await migrationPlanner.createMigrationPlan();
   }
   /**

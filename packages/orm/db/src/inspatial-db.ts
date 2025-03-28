@@ -18,6 +18,8 @@ import { ormLogger } from "#/logger.ts";
 import { convertString } from "@inspatial/serve/utils";
 import type { IDMode } from "#/field/types.ts";
 import type { IDValue } from "#/entry/types.ts";
+import { PgError } from "#db/postgres/pgError.ts";
+import { raiseORMException } from "#/orm-exception.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -1038,27 +1040,52 @@ export class InSpatialDB {
     if (value === '"') {
       return '""' as ValueType<Join>;
     }
-    if (typeof value === "string") {
-      if (value === "") {
-        return "''" as ValueType<Join>;
-      }
-      // escape single quotes
+    switch (typeof value) {
+      case "string":
+        if (value === "") {
+          return "''" as ValueType<Join>;
+        }
+        // escape single quotes
 
-      value = value.replaceAll(/'/g, "''");
-      if (noQuotes) {
+        value = value.replaceAll(/'/g, "''");
+        if (noQuotes) {
+          return value as ValueType<Join>;
+        }
+        return `'${value}'` as ValueType<Join>;
+      case "number":
+      case "bigint":
+        if (Number.isNaN(value)) {
+          return "null" as ValueType<Join>;
+        }
         return value as ValueType<Join>;
-      }
-      return `'${value}'` as ValueType<Join>;
+      case "boolean":
+        if (value === true) {
+          return "true" as ValueType<Join>;
+        }
+        if (value === false) {
+          return "false" as ValueType<Join>;
+        }
+        return "null" as ValueType<Join>;
+      case "undefined":
+        return "null" as ValueType<Join>;
+      case "object":
+        if (value === null) {
+          return "null" as ValueType<Join>;
+        }
+        try {
+          return `'${JSON.stringify(value) as ValueType<Join>}'` as ValueType<
+            Join
+          >;
+        } catch (e) {
+          ormLogger.error(`Error formatting value: ${value}`);
+          raiseORMException(
+            `Error formatting value for database: ${value.toString()}`,
+            "InSpatialDB",
+          );
+        }
+        break;
+      default:
+        return value;
     }
-    if (value === false) {
-      return "false" as ValueType<Join>;
-    }
-    if (typeof value === "number") {
-      return value as ValueType<Join>;
-    }
-    if (!value) {
-      return "null" as ValueType<Join>;
-    }
-    return value;
   }
 }

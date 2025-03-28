@@ -1,11 +1,12 @@
 import type { InSpatialORM } from "#/inspatial-orm.ts";
 import type { EntryType } from "#/entry/entry-type.ts";
 import type { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
+import { buildConnectionFields } from "#/setup/setup-utils.ts";
 
 export function buildEntryType(
   orm: InSpatialORM,
   entryType: EntryType,
-) {
+): void {
   // if (entryType.config.statusField) {
   //   entryType.statusField = entryType.config.statusField;
   // }
@@ -28,55 +29,6 @@ export function buildEntryType(
   //   actions: entryType.actions,
   //   connections: [],
   // };
-}
-
-function buildConnectionFields(orm: InSpatialORM, entryType: EntryType) {
-  for (const field of entryType.fields.values()) {
-    if (field.type !== "ConnectionField") {
-      continue;
-    }
-    const connectionEntryType = orm.getEntryType(field.entryType);
-    const titleField = buildConnectionTitleField(
-      orm,
-      field,
-      connectionEntryType,
-    );
-    if (!titleField) {
-      continue;
-    }
-    field.connectionIdMode = connectionEntryType.config.idMode;
-
-    entryType.connectionTitleFields.set(field.key, titleField);
-  }
-}
-
-function buildConnectionTitleField(
-  orm: InSpatialORM,
-  field: FieldDefMap["ConnectionField"],
-  connectionEntryType: EntryType,
-) {
-  const titleFieldKey = connectionEntryType.config.titleField;
-  if (!titleFieldKey) {
-    return;
-  }
-
-  const entryTitleField = connectionEntryType.fields.get(titleFieldKey);
-  if (!entryTitleField) {
-    return;
-  }
-
-  const titleField = {
-    ...entryTitleField,
-    key: `_${field.key}Title`,
-    readOnly: true,
-    label: `${field.label} Title`,
-    fetchField: {
-      connectionField: field.key,
-      fetchField: titleFieldKey,
-    },
-  } as ORMFieldDef;
-
-  return titleField;
 }
 
 // function getFilteredDisplayFieldGroups(

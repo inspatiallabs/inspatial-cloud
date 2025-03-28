@@ -16,27 +16,21 @@ import type {
 } from "#/entry/types.ts";
 import type { EntryHookName } from "../../types.ts";
 import type { GenericEntry } from "#/entry/entry-base.ts";
-import type { ormLogger } from "#/logger.ts";
+import { ormLogger } from "#/logger.ts";
+import { BaseClass } from "#/shared/base-class.ts";
 
 export class Entry<
   N extends string = string,
-> {
-  _name: N;
+> extends BaseClass<N> {
   get id(): IDValue {
     return this._data.get("id");
   }
 
-  get #isNew() {
+  get #isNew(): boolean {
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
   }
   _actions: Map<string, EntryActionDefinition> = new Map();
-  _orm: InSpatialORM;
-  _db: InSpatialDB;
-  _data: Map<string, any>;
-  _modifiedValues: Map<string, { from: any; to: any }> = new Map();
-  _fields: Map<string, ORMFieldDef> = new Map();
-  _changeableFields: Map<string, ORMFieldDef> = new Map();
   _hooks: {
     [key in EntryHookName]?: Array<EntryHookDefinition>;
   } = {
@@ -58,30 +52,9 @@ export class Entry<
   get data(): Record<string, any> {
     return Object.fromEntries(this._data.entries());
   }
-  _getFieldType<T extends keyof FieldDefMap>(fieldType: T): ORMField<T> {
-    const fieldTypeDef = this._orm.fieldTypes.get(fieldType);
-    if (!fieldTypeDef) {
-      raiseORMException(
-        `Field type ${fieldType} does not exist in ORM`,
-      );
-    }
-    return fieldTypeDef as unknown as ORMField<T>;
-  }
-  _getFieldDef<T extends keyof FieldDefMap>(fieldKey: string): FieldDefMap[T] {
-    const fieldDef = this._fields.get(fieldKey);
-    if (!fieldDef) {
-      raiseORMException(
-        `Field with key ${fieldKey} does not exist in EntryType ${this._name}`,
-      );
-    }
-    return fieldDef as unknown as FieldDefMap[T];
-  }
 
   constructor(orm: InSpatialORM, name: N) {
-    this._name = name;
-    this._orm = orm;
-    this._db = orm.db;
-    this._data = new Map();
+    super(orm, name);
   }
   /**
    * Creates a new instance of this entry type, and sets all the fields to their default values.
@@ -116,12 +89,7 @@ export class Entry<
       );
     }
     for (const [key, value] of Object.entries(dbRow)) {
-      const fieldDef = this._entryType.fields.get(key);
-      if (!fieldDef) {
-        raiseORMException(
-          `Field with key ${key} does not exist in EntryType ${this._name}`,
-        );
-      }
+      const fieldDef = this._getFieldDef(key);
       const fieldType = this._getFieldType(fieldDef.type);
       this._data.set(key, fieldType.parseDbValue(value, fieldDef));
     }
@@ -172,7 +140,7 @@ export class Entry<
    * as it will only update the fields that are allowed to be changed.
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
-  update(data: Record<string, any>) {
+  update(data: Record<string, any>): void {
     for (const [key, value] of Object.entries(data)) {
       if (!this._changeableFields.has(key)) {
         continue;
@@ -182,7 +150,7 @@ export class Entry<
   }
   /* Lifecycle Hooks */
 
-  async #runHooks(hookName: EntryHookName) {
+  async #runHooks(hookName: EntryHookName): Promise<void> {
     for (const hook of this._entryType.hooks[hookName]) {
       await hook.handler({
         orm: this._orm,
@@ -191,44 +159,44 @@ export class Entry<
       });
     }
   }
-  async #beforeValidate() {
+  async #beforeValidate(): Promise<void> {
     await this.#runHooks("beforeValidate");
     await this._orm._runGlobalHooks("beforeValidate", this);
   }
-  async #validate() {
+  async #validate(): Promise<void> {
     await this.#beforeValidate();
     await this.#runHooks("validate");
     await this._orm._runGlobalHooks("validate", this);
   }
-  async #beforeCreate() {
+  async #beforeCreate(): Promise<void> {
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this.#runHooks("beforeCreate");
     await this._orm._runGlobalHooks("beforeCreate", this);
   }
-  async #afterCreate() {
+  async #afterCreate(): Promise<void> {
     await this.#runHooks("afterCreate");
     await this._orm._runGlobalHooks("afterCreate", this);
   }
-  async #beforeUpdate() {
+  async #beforeUpdate(): Promise<void> {
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this._orm._runGlobalHooks("beforeUpdate", this);
   }
-  async #afterUpdate() {
+  async #afterUpdate(): Promise<void> {
     await this.#runHooks("afterUpdate");
     await this._orm._runGlobalHooks("afterUpdate", this);
   }
-  async #beforeDelete() {
+  async #beforeDelete(): Promise<void> {
     await this.#runHooks("beforeDelete");
     await this._orm._runGlobalHooks("beforeDelete", this);
   }
-  async #afterDelete() {
+  async #afterDelete(): Promise<void> {
     await this.#runHooks("afterDelete");
     await this._orm._runGlobalHooks("afterDelete", this);
   }
   /* End Lifecycle Hooks */
-  async #insertNew(data: Record<string, any>) {
+  async #insertNew(data: Record<string, any>): Promise<void> {
     const id = this.#generateId();
 
     if (id) {
@@ -245,7 +213,7 @@ export class Entry<
 
     await this.#afterCreate();
   }
-  #generateId() {
+  #generateId(): string | undefined {
     const idMode = this._entryType.config.idMode;
     let id: string;
     switch (idMode) {
@@ -262,7 +230,10 @@ export class Entry<
     }
     return id;
   }
-  #getAndValidateAction(actionKey: string, data?: Record<string, any>) {
+  #getAndValidateAction(
+    actionKey: string,
+    data?: Record<string, any>,
+  ): EntryActionDefinition {
     const dataMap = new Map(Object.entries(data || {}));
     const action = this._actions.get(actionKey);
     if (!action) {
@@ -281,7 +252,7 @@ export class Entry<
     }
     return action;
   }
-  #handlePGError(e: unknown) {
+  #handlePGError(e: unknown): never {
     if (!(e instanceof PgError)) {
       throw e;
     }
@@ -294,7 +265,19 @@ export class Entry<
           "RequiredField",
           400,
         );
+        break;
       }
+      case PGErrorCode.UniqueViolation: {
+        const fieldKey = convertString(e.fullMessage.columnName, "camel");
+        raiseORMException(
+          `Field ${fieldKey} must be unique for ${this._entryType.config.label} entry`,
+          "UniqueField",
+          400,
+        );
+        break;
+      }
+      default:
+        throw e;
     }
   }
   /**

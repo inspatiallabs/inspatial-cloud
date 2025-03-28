@@ -1,45 +1,13 @@
 import type { InSpatialORM } from "#/inspatial-orm.ts";
 import type { EntryType } from "#/entry/entry-type.ts";
-import { raiseORMException } from "#/orm-exception.ts";
-import type { SettingsType } from "#/settings/settings-type.ts";
+import { validateConnectionFields } from "#/setup/setup-utils.ts";
 
 export function validateEntryType(
   orm: InSpatialORM,
   entryType: EntryType,
-) {
+): void {
   validateConnectionFields(orm, entryType);
   // validateFetchFields(orm, entryType);
-}
-
-export function validateSettingsType(
-  orm: InSpatialORM,
-  settingsType: SettingsType,
-) {
-}
-
-function validateConnectionFields(
-  orm: InSpatialORM,
-  entryOrSettingsType: EntryType | SettingsType,
-) {
-  for (const field of entryOrSettingsType.fields.values()) {
-    if (field.type !== "ConnectionField") {
-      continue;
-    }
-    if (field.type === "ConnectionField") {
-      if (!field.entryType) {
-        raiseORMException(
-          `Connection field '${field.key}' in '${entryOrSettingsType.name}' is missing a connection EntryType`,
-        );
-      }
-    }
-
-    if (!orm.entryTypes.has(field.entryType)) {
-      raiseORMException(
-        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsType.name}' EntryType does not exist`,
-        "Invalid Connection",
-      );
-    }
-  }
 }
 
 // function validateFetchFields(orm: EasyOrm, entryType: EntryTypeDef) {

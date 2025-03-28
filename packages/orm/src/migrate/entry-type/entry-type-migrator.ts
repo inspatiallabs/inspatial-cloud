@@ -30,7 +30,7 @@ export class EntryTypeMigrator {
     foreignKey: Map<string, ForeignKeyConstraint>;
   };
   migrationPlan: EntryMigrationPlan;
-  get #tableName() {
+  get #tableName(): string {
     return this.entryType.config.tableName;
   }
   constructor(
@@ -59,7 +59,7 @@ export class EntryTypeMigrator {
     };
     this.migrationPlan = new EntryMigrationPlan(entryType.name);
   }
-  async migrate() {
+  async migrate(): Promise<EntryMigrationPlan> {
     await this.planMigration();
     return this.migrationPlan;
   }
@@ -81,13 +81,13 @@ export class EntryTypeMigrator {
     return this.migrationPlan;
   }
 
-  async #loadExistingColumns() {
+  async #loadExistingColumns(): Promise<void> {
     const columns = await this.db.getTableColumns(this.#tableName);
     for (const column of columns) {
       this.existingColumns.set(column.columnName, column);
     }
   }
-  async #loadExistingConstraints() {
+  async #loadExistingConstraints(): Promise<void> {
     const constraints = await this.db.getTableConstraints(this.#tableName);
 
     for (const constraint of constraints) {
@@ -113,7 +113,7 @@ export class EntryTypeMigrator {
       }
     }
   }
-  #loadTargetColumns() {
+  #loadTargetColumns(): void {
     for (const field of this.entryType.fields.values()) {
       if (field.key == "id") {
         const idField = field as FieldDefMap["IDField"];
@@ -136,7 +136,7 @@ export class EntryTypeMigrator {
     }
   }
 
-  #checkForColumnsToDrop() {
+  #checkForColumnsToDrop(): void {
     for (const column of this.existingColumns.values()) {
       if (column.columnName == "id") {
         continue;
@@ -148,7 +148,7 @@ export class EntryTypeMigrator {
       }
     }
   }
-  #checkForColumnsToCreate() {
+  #checkForColumnsToCreate(): void {
     for (const column of this.targetColumns.values()) {
       if (!this.existingColumns.has(column.columnName)) {
         const foreignKey = this.#getColumnForeignKeyConstraint(
@@ -167,7 +167,7 @@ export class EntryTypeMigrator {
       }
     }
   }
-  async #checkTableInfo() {
+  async #checkTableInfo(): Promise<void> {
     const tableExists = await this.db.tableExists(this.#tableName);
     const newDescription = this.entryType.config.description;
     if (!tableExists) {
@@ -188,7 +188,7 @@ export class EntryTypeMigrator {
     }
   }
 
-  #checkForColumnsToModify() {
+  #checkForColumnsToModify(): void {
     for (const [columnName, newColumn] of this.targetColumns) {
       const existing = this.existingColumns.get(columnName);
       if (existing) {
