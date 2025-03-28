@@ -1,6 +1,6 @@
-import { ORMFieldMap } from "#/field/types.ts";
-import { PgColumnDefinition } from "#db/types.ts";
-import { FieldDefMap, FieldDefType } from "#/field/field-def-types.ts";
+import type { ORMFieldMap } from "#/field/types.ts";
+import type { PgColumnDefinition } from "#db/types.ts";
+import type { FieldDefMap, FieldDefType } from "#/field/field-def-types.ts";
 
 /**
  * A class that represents a field type configuration for InSpatial ORM.

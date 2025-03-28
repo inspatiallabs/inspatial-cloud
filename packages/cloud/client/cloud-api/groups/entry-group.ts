@@ -1,4 +1,4 @@
-import {ListOptions, ServerCall} from "#client/cloud-api/api-client-types.ts";
+import type {ListOptions, ServerCall} from "#client/cloud-api/api-client-types.ts";
 import type {Entry} from "#client/types.ts";
 import type {IDValue} from "#client/types.ts";
 import type {ListResponse} from "#client/types.ts";

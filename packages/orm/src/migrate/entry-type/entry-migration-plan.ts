@@ -1,6 +1,6 @@
-import { ForeignKeyConstraint } from "#db/types.ts";
-import { IDMode } from "#/field/types.ts";
-import { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
+import type { ForeignKeyConstraint } from "#db/types.ts";
+import type { IDMode } from "#/field/types.ts";
+import type { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
 
 export class EntryMigrationPlan {
   entryType: string;

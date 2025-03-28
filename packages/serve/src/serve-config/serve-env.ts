@@ -1,4 +1,4 @@
-import { ConfigDefinition } from "#/types.ts";
+import type { ConfigDefinition } from "#/types.ts";
 
 export const serveEnvConfig: ConfigDefinition = {
   logLevel: {

@@ -1,5 +1,5 @@
-import { EntryActionDefinition } from "#orm/types";
-import { User } from "#extension/auth/entry-types/generated-types/user.ts";
+import type { EntryActionDefinition } from "#orm/types";
+import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 import { generateSalt, hashPassword } from "#extension/auth/security.ts";
 
 export default {

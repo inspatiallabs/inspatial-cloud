@@ -1,4 +1,4 @@
-import { Choice, IDMode, ORMFieldMap } from "#/field/types.ts";
+import type { Choice, IDMode, ORMFieldMap } from "#/field/types.ts";
 
 /**
  * These are the  types for defining fields in an entry.

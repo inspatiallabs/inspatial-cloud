@@ -1,7 +1,7 @@
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { EntryType } from "#/entry/entry-type.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { EntryType } from "#/entry/entry-type.ts";
 import { raiseORMException } from "#/orm-exception.ts";
-import { SettingsType } from "#/settings/settings-type.ts";
+import type { SettingsType } from "#/settings/settings-type.ts";
 
 export function validateEntryType(
   orm: InSpatialORM,

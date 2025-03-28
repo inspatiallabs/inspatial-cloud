@@ -1,4 +1,4 @@
-import { ORMFieldDef } from "#/field/field-def-types.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
 
 export interface BaseTypeInfo {
   name: string;

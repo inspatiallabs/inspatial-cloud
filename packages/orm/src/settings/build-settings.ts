@@ -1,4 +1,4 @@
-import { SettingsType } from "#/settings/settings-type.ts";
+import type { SettingsType } from "#/settings/settings-type.ts";
 import { Settings } from "#/settings/settings.ts";
 
 export function buildSettings(

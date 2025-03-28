@@ -1,7 +1,7 @@
-import { IDMode } from "#/field/types.ts";
+import type { IDMode } from "#/field/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 import { convertString } from "@inspatial/serve/utils";
-import {
+import type {
   EntryActionDefinition,
   EntryHookDefinition,
   EntryTypeConfig,
@@ -9,7 +9,7 @@ import {
 } from "#/entry/types.ts";
 import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 import type { EntryHookName } from "#/types.ts";
-import { ORMFieldDef } from "#/field/field-def-types.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { BaseType } from "#/shared/base-type-class.ts";
 
 export class EntryType<

@@ -1,4 +1,4 @@
-import { DataTypeMap, ServerStatus } from "#db/postgres/pgTypes.ts";
+import type { DataTypeMap, ServerStatus } from "#db/postgres/pgTypes.ts";
 
 export const dataTypeMap: DataTypeMap = {
   16: "bool",

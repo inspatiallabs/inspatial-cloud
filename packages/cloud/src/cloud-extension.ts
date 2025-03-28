@@ -1,9 +1,9 @@
 import type { ServerExtension } from "@inspatial/serve";
 
-import { type CloudActionGroup } from "#/cloud-action.ts";
+import type { CloudActionGroup } from "#/cloud-action.ts";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
-import { type EntryType, SettingsType } from "#orm";
-import { AppEntryHooks, CloudExtensionInfo } from "#/types.ts";
+import type { EntryType, SettingsType } from "#orm";
+import type { AppEntryHooks, CloudExtensionInfo } from "#/types.ts";
 export type PackInstallFunction<R = any> = (
   app: InSpatialCloud,
 ) => R;

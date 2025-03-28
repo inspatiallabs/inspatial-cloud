@@ -1,8 +1,8 @@
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { EntryBase } from "#/entry/entry-base.ts";
-import { IDMode } from "#/field/types.ts";
-import { ORMFieldDef } from "#/field/field-def-types.ts";
-import { BaseTypeConfig, BaseTypeInfo } from "#/shared/shared-types.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { EntryBase } from "#/entry/entry-base.ts";
+import type { IDMode } from "#/field/types.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
+import type { BaseTypeConfig, BaseTypeInfo } from "#/shared/shared-types.ts";
 /* Hooks */
 type EntryHookFunction<
   E extends EntryBase = EntryBase,

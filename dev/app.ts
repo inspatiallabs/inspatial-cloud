@@ -5,7 +5,7 @@ import InSpatialCloud, {
 } from "../packages/cloud/mod.ts";
 import userAgentExtension from "#user-agent";
 import { EntryType } from "#orm";
-import { TablePlan } from "./.inspatial/_generated/entries/table-plan.ts";
+import type { TablePlan } from "./.inspatial/_generated/entries/table-plan.ts";
 // import { EntryType } from "#orm";
 
 const getUserAgentAction = new CloudAction("getUserAgent", {

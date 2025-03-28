@@ -1,5 +1,5 @@
 import { ORMField } from "#/field/orm-field.ts";
-import { PgColumnDefinition } from "#db/types.ts";
+import type { PgColumnDefinition } from "#db/types.ts";
 
 export default new ORMField("IDField", {
   dbColumn: (fieldDef) => {

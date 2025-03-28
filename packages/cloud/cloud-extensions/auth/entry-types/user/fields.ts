@@ -1,4 +1,4 @@
-import { ORMFieldDef } from "../../../../../orm/src/field/field-def-types.ts";
+import type { ORMFieldDef } from "../../../../../orm/src/field/field-def-types.ts";
 
 export default [{
   key: "firstName",

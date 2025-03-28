@@ -1,6 +1,6 @@
 import { ServerExtension } from "@inspatial/serve";
 import { InSpatialDB } from "#db/inspatial-db.ts";
-import { ClientConnectionType } from "#db/types.ts";
+import type { ClientConnectionType } from "#db/types.ts";
 
 export const dbExtension: ServerExtension<"db", InSpatialDB> =
   new ServerExtension("db", {

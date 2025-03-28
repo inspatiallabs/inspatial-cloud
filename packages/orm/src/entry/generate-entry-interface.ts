@@ -1,10 +1,10 @@
-import { EntryType } from "#/entry/entry-type.ts";
+import type { EntryType } from "#/entry/entry-type.ts";
 import { convertString } from "@inspatial/serve/utils";
 
-import { ormLogger } from "#/logger.ts";
+import type { ormLogger } from "#/logger.ts";
 import { raiseORMException } from "#/orm-exception.ts";
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { FieldDefType } from "#/field/field-def-types.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { FieldDefType } from "#/field/field-def-types.ts";
 
 export function generateEntryInterface(
   orm: InSpatialORM,

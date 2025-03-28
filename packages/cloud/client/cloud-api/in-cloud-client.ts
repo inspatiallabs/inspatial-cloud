@@ -3,7 +3,7 @@ import { EntryGroup } from "#client/cloud-api/groups/entry-group.ts";
 import { SettingsGroup } from "#client/cloud-api/groups/settings-group.ts";
 import { AuthGroup } from "#client/cloud-api/groups/auth-group.ts";
 import { ORMGroup } from "#client/cloud-api/groups/orm-group.ts";
-import { ActionsAPIDocs } from "@inspatial/serve/actions-api";
+import type { ActionsAPIDocs } from "@inspatial/serve/actions-api";
 interface NotificationInfo {
   title: string;
   message: string;

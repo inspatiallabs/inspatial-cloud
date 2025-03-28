@@ -21,7 +21,7 @@ import {
 import { AUTH } from "#db/postgres/pgAuth.ts";
 import { ScramClient } from "#db/postgres/scram.ts";
 import { toCamelCase } from "#db/utils.ts";
-import { ormLogger } from "#/logger.ts";
+import type { ormLogger } from "#/logger.ts";
 
 export class PostgresClient {
   private conn!: Deno.Conn;

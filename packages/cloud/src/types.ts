@@ -3,8 +3,8 @@ import type { InRequest, InResponse } from "@inspatial/serve";
 import type { ActionParamProp } from "@inspatial/serve/actions-api";
 import type { CloudAction } from "#/cloud-action.ts";
 import type { CloudExtension } from "../mod.ts";
-import { EntryHookName } from "../../orm/src/types.ts";
-import { Entry, InSpatialORM } from "#orm";
+import type { EntryHookName } from "../../orm/src/types.ts";
+import type { Entry, InSpatialORM } from "#orm";
 
 type AppActionConfig<
   K extends string,

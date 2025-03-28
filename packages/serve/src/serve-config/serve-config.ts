@@ -1,6 +1,6 @@
 import type { InSpatialServer } from "#/inspatial-server.ts";
 import { joinPath } from "#/utils/path-utils.ts";
-import { ConfigDefinition } from "#/types.ts";
+import type { ConfigDefinition } from "#/types.ts";
 import { serveEnvConfig } from "#/serve-config/serve-env.ts";
 
 /**

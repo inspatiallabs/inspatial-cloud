@@ -1,10 +1,10 @@
-import { EntryType } from "#/entry/entry-type.ts";
+import type { EntryType } from "#/entry/entry-type.ts";
 
 import { Entry } from "#/entry/entry.ts";
-import { InSpatialORM } from "#/inspatial-orm.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
 import { raiseORMException } from "#/orm-exception.ts";
-import { EntryActionDefinition } from "#/entry/types.ts";
-import { ORMFieldDef } from "#/field/field-def-types.ts";
+import type { EntryActionDefinition } from "#/entry/types.ts";
+import type { ORMFieldDef } from "#/field/field-def-types.ts";
 
 export function buildEntry(entryType: EntryType) {
   const changeableFields = new Map<string, ORMFieldDef>();

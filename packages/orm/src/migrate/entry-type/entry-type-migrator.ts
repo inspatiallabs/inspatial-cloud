@@ -1,15 +1,15 @@
-import { EntryType } from "#/entry/entry-type.ts";
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { InSpatialDB } from "#db/inspatial-db.ts";
-import {
+import type { EntryType } from "#/entry/entry-type.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { InSpatialDB } from "#db/inspatial-db.ts";
+import type {
   ForeignKeyConstraint,
   PgColumnDefinition,
   PostgresColumn,
   TableConstraint,
 } from "#db/types.ts";
 import { EntryMigrationPlan } from "#/migrate/entry-type/entry-migration-plan.ts";
-import { FieldDefMap } from "#/field/field-def-types.ts";
-import { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
+import type { FieldDefMap } from "#/field/field-def-types.ts";
+import type { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
 import { compareDataTypes, compareNullable } from "#/migrate/migrate-utils.ts";
 
 export class EntryTypeMigrator {

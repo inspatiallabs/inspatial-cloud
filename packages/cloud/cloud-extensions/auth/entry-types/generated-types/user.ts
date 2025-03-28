@@ -1,4 +1,4 @@
-import { EntryBase } from "#orm/types";
+import type { EntryBase } from "#orm/types";
 export interface User extends EntryBase {
   _name: "user";
   /**

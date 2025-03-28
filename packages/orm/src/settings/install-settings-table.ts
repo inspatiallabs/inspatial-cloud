@@ -1,5 +1,5 @@
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { PgColumnDefinition } from "#db/types.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { PgColumnDefinition } from "#db/types.ts";
 
 export async function installSettingsTable(orm: InSpatialORM) {
   const { db } = orm;

@@ -1,7 +1,7 @@
 import { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
-import { EntryMigrationPlan } from "../../../../orm/src/migrate/entry-type/entry-migration-plan.ts";
-import { EntryTypeInfo } from "#orm/types";
-import { SettingsTypeInfo } from "../../../../orm/src/settings/types.ts";
+import type { EntryMigrationPlan } from "../../../../orm/src/migrate/entry-type/entry-migration-plan.ts";
+import type { EntryTypeInfo } from "#orm/types";
+import type { SettingsTypeInfo } from "../../../../orm/src/settings/types.ts";
 
 const migrateAction = new CloudAction("migrate", {
   label: "Migrate Database",

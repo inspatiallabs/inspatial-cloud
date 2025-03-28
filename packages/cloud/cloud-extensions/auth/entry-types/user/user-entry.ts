@@ -1,5 +1,5 @@
 import { EntryType } from "#orm";
-import { User } from "#extension/auth/entry-types/generated-types/user.ts";
+import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 import fields from "#extension/auth/entry-types/user/fields.ts";
 
 const userEntry = new EntryType<User>("user", {

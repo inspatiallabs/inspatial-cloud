@@ -1,4 +1,4 @@
-import { ExceptionHandlerResponse, ServerExtension } from "@inspatial/serve";
+import { type ExceptionHandlerResponse, ServerExtension } from "@inspatial/serve";
 import { PgError } from "../../../orm/db/src/postgres/pgError.ts";
 import { PGErrorCode } from "#db";
 import { ORMException } from "../../../orm/src/orm-exception.ts";

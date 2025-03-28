@@ -1,4 +1,4 @@
-import { ORMFieldDef } from "#orm/types";
+import type { ORMFieldDef } from "#orm/types";
 
 export default [{
   key: "user",

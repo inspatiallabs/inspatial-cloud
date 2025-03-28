@@ -1,4 +1,4 @@
-import { ServerCall } from "#client/cloud-api/api-client-types.ts";
+import type { ServerCall } from "#client/cloud-api/api-client-types.ts";
 
 export class SettingsGroup {
   #call: ServerCall;

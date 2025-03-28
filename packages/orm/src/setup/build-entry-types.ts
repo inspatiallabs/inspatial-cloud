@@ -1,6 +1,6 @@
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { EntryType } from "#/entry/entry-type.ts";
-import { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { EntryType } from "#/entry/entry-type.ts";
+import type { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
 
 export function buildEntryType(
   orm: InSpatialORM,

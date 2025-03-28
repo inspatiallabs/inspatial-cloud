@@ -1,5 +1,5 @@
 import { PostgresClient } from "#db/postgres/pgClient.ts";
-import {
+import type {
   PgClientConfig,
   PgPoolConfig,
   QueryResponse,

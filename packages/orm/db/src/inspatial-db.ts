@@ -16,8 +16,8 @@ import { PostgresClient } from "#db/postgres/pgClient.ts";
 import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
 import { ormLogger } from "#/logger.ts";
 import { convertString } from "@inspatial/serve/utils";
-import { IDMode } from "#/field/types.ts";
-import { IDValue } from "#/entry/types.ts";
+import type { IDMode } from "#/field/types.ts";
+import type { IDValue } from "#/entry/types.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */

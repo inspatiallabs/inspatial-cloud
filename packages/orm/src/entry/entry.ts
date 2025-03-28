@@ -1,22 +1,22 @@
-import { EntryType } from "#/entry/entry-type.ts";
-import { InSpatialORM } from "#/inspatial-orm.ts";
-import { InSpatialDB } from "#db";
+import type { EntryType } from "#/entry/entry-type.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
+import type { InSpatialDB } from "#db";
 
 import type { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
-import { ORMField } from "#/field/orm-field.ts";
+import type { ORMField } from "#/field/orm-field.ts";
 import ulid from "#/utils/ulid.ts";
 import { PgError } from "#db/postgres/pgError.ts";
 import { PGErrorCode } from "#db/postgres/maps/errorMap.ts";
 import { convertString } from "@inspatial/serve/utils";
-import {
+import type {
   EntryActionDefinition,
   EntryHookDefinition,
   IDValue,
 } from "#/entry/types.ts";
-import { EntryHookName } from "../../types.ts";
-import { GenericEntry } from "#/entry/entry-base.ts";
-import { ormLogger } from "#/logger.ts";
+import type { EntryHookName } from "../../types.ts";
+import type { GenericEntry } from "#/entry/entry-base.ts";
+import type { ormLogger } from "#/logger.ts";
 
 export class Entry<
   N extends string = string,

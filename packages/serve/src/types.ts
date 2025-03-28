@@ -1,6 +1,6 @@
 import type { ServerExtension } from "#/extension/server-extension.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
-import { LogType } from "../mod.ts";
+import type { LogType } from "../mod.ts";
 
 /**
  * Configuration for InSpatialServer.

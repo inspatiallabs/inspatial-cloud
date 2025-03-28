@@ -1,5 +1,5 @@
 import type { Entry } from "#/entry/entry.ts";
-import { InSpatialORM } from "#/inspatial-orm.ts";
+import type { InSpatialORM } from "#/inspatial-orm.ts";
 
 export type GlobalHookFunction = (hookParams: {
   entryType: string;
