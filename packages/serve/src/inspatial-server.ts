@@ -1,7 +1,7 @@
 import { InRequest } from "#/in-request.ts";
 import { InResponse } from "#/in-response.ts";
 import type { HandlerResponse, PathHandler } from "#/extension/path-handler.ts";
-import { isServerException } from "#/server-exception.ts";
+import { isServerException, raiseServerException } from "#/server-exception.ts";
 import type { ExtensionMap, ServerExtensionInfo } from "#/extension/types.ts";
 import type { ServerMiddleware } from "#/extension/server-middleware.ts";
 import type { ExceptionHandler, ServeConfig } from "#/types.ts";
@@ -164,7 +164,13 @@ export class InSpatialServer<
    * Gets a custom property from the server instance that was added using `addCustomProperty`.
    * @param key The key of the custom property to get.
    */
-  getCustomProperty<T>(key: string): T | undefined {
+  getCustomProperty<T>(key: string): T {
+    if (!this.#customProperties.has(key)) {
+      raiseServerException(
+        500,
+        `Custom property ${key} not found`,
+      );
+    }
     return this.#customProperties.get(key) as T;
   }
 
@@ -538,7 +544,6 @@ export class InSpatialServer<
     err: unknown,
     inResponse: InResponse,
   ): Promise<Response> {
-    console.log("Handling exception", err);
     inResponse = inResponse || new InResponse();
     inResponse;
     const clientMessages: Array<Record<string, any> | string> = [];

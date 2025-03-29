@@ -1,4 +1,6 @@
-export interface EntryBase {
+import type { Entry } from "#/entry/entry.ts";
+
+export interface EntryBase extends Entry<any> {
   _name: string;
   createdAt: number;
   /**

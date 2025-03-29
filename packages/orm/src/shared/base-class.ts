@@ -52,10 +52,10 @@ export class BaseClass<N extends string = string> {
     this._data = new Map();
   }
 
-  async runAction(
+  async runAction<T = void>(
     actionKey: string,
     data?: Record<string, any>,
-  ): Promise<any> {
+  ): Promise<T> {
     const action = this.#getAndValidateAction(actionKey, data);
 
     data = data || {};

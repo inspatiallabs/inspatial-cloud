@@ -23,36 +23,6 @@ import authCloudExtension from "#extension/auth/mod.ts";
 import cloudLogger from "#/cloud-logger.ts";
 import { ORMException } from "#orm";
 
-class ApiAction {
-  actionName: string;
-  description: string;
-  label?: string;
-  params: Array<any>;
-  handler: (
-    data: any,
-    server: InSpatialServer,
-    inRequest: InRequest,
-    inResponse: InResponse,
-  ) => Promise<any>;
-  constructor(
-    action: CloudAction<any, any, any, any>,
-    app: InSpatialCloud,
-  ) {
-    this.actionName = action.actionName;
-    this.description = action.description;
-    this.label = action.label;
-    this.params = Array.from(action.params.values());
-    this.handler = async (data, server, inRequest, inResponse) => {
-      return await action.run({
-        app: app,
-        params: data,
-        inRequest,
-        inResponse,
-      });
-    };
-  }
-}
-
 export class InSpatialCloud<
   N extends string = string,
   P extends Array<CloudExtension> = [],
@@ -64,6 +34,7 @@ export class InSpatialCloud<
       ServerExtension<"cors", void>,
       ServerExtension<"realtime", RealtimeHandler>,
       ServerExtension<"db", InSpatialDB>,
+      ServerExtension<"orm", InSpatialORM>,
     ];
   }>;
   get api(): ActionsAPI {
@@ -75,7 +46,6 @@ export class InSpatialCloud<
   get db(): InSpatialDB {
     return this.server.getExtension("db") as InSpatialDB;
   }
-
   orm: InSpatialORM;
 
   ready: Promise<boolean>;
@@ -146,7 +116,7 @@ export class InSpatialCloud<
     for (const appExtension of appExtensions) {
       if (this.#appExtensions.has(appExtension.key)) {
         throw new Error(
-          `AppExtention with key ${appExtension.key} already exists`,
+          `AppExtension with key ${appExtension.key} already exists`,
         );
       }
       const { entryTypes, settingsTypes, ormGlobalHooks } = appExtension;
@@ -178,6 +148,11 @@ export class InSpatialCloud<
         entries: appEntries,
         settings: appSettings,
         globalEntryHooks: globalHooks,
+      });
+      this.server.addCustomProperty({
+        key: "orm",
+        value: this.orm,
+        description: "ORM instance",
       });
     } catch (e) {
       this.#handleInitError(e);

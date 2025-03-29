@@ -5,8 +5,9 @@ const getSettingsInfo = new CloudAction("getSettingsInfo", {
   label: "Get Settings Info",
   description: "Get the settings info for a given settings type",
   run({ app, inRequest, params }): SettingsTypeInfo {
+    const user = inRequest.context.get("user");
     const { settingsType } = params;
-    const settingsTypeInfo = app.orm.getSettingsType(settingsType);
+    const settingsTypeInfo = app.orm.getSettingsType(settingsType, user);
     return settingsTypeInfo.info;
   },
   params: [{
@@ -22,8 +23,9 @@ const getSettings = new CloudAction("getSettings", {
   label: "Get Settings",
   description: "Get the settings for a given settings type",
   async run({ app, inRequest, params }): Promise<any> {
+    const user = inRequest.context.get("user");
     const { settingsType, withModifiedTime } = params;
-    const settings = await app.orm.getSettings(settingsType);
+    const settings = await app.orm.getSettings(settingsType, user);
     if (withModifiedTime) {
       return {
         data: settings.data,
@@ -51,8 +53,9 @@ const updateSettings = new CloudAction("updateSettings", {
   label: "Update Settings",
   description: "Update the settings for a given settings type",
   async run({ app, inRequest, params }): Promise<any> {
+    const user = inRequest.context.get("user");
     const { settingsType, data } = params;
-    const settings = await app.orm.updateSettings(settingsType, data);
+    const settings = await app.orm.updateSettings(settingsType, data, user);
     return settings.data;
   },
   params: [{
@@ -74,7 +77,8 @@ const runSettingsAction = new CloudAction("runSettingsAction", {
   label: "Run Settings Action",
   description: "Run a settings action for a given settings type",
   async run({ app, inRequest, params }): Promise<any> {
-    const settings = await app.orm.getSettings(params.settingsType);
+    const user = inRequest.context.get("user");
+    const settings = await app.orm.getSettings(params.settingsType, user);
     return await settings.runAction(params.action, params.data);
   },
   params: [{

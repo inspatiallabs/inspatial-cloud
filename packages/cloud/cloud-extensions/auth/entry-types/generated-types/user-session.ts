@@ -1,8 +1,31 @@
 import type { EntryBase } from "#orm/types";
 export interface UserSession extends EntryBase {
-  _name: "usersession";
+  _name: "userSession";
   /**
-   * **ID** (IDField)
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @description The user associated with this session
+   * @type {string}
+   * @required true
+   */
+  user: string;
+  _userTitle?: string;
+  /**
+   * **Session ID** (DataField)
+   * @description Unique identifier for the session
+   * @type {string}
+   * @required true
+   */
+  sessionId: string;
+  /**
+   * **Session Data** (JSONField)
+   * @description Data associated with the session
+   * @type {Record<string, any>}
+   */
+  sessionData?: Record<string, any>;
+  /**
+   * **User Session** (IDField)
    * @type {string}
    * @required true
    */
@@ -21,9 +44,4 @@ export interface UserSession extends EntryBase {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **User** (ConnectionField)
-   * @type {string}
-   */
-  user?: string;
 }

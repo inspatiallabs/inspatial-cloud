@@ -5,10 +5,25 @@ export interface UserSession extends EntryBase {
    * **User** (ConnectionField)
    *
    * **EntryType** `user`
+   * @description The user associated with this session
    * @type {string}
+   * @required true
    */
-  user?: string;
-  _userTitle: string;
+  user: string;
+  _userTitle?: string;
+  /**
+   * **Session ID** (DataField)
+   * @description Unique identifier for the session
+   * @type {string}
+   * @required true
+   */
+  sessionId: string;
+  /**
+   * **Session Data** (JSONField)
+   * @description Data associated with the session
+   * @type {Record<string, any>}
+   */
+  sessionData?: Record<string, any>;
   /**
    * **User Session** (IDField)
    * @type {string}

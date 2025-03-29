@@ -5,30 +5,27 @@ import type { Choice, IDMode, ORMFieldMap } from "#/field/types.ts";
  */
 
 export type ORMFieldDef =
-  & BaseFieldDef
-  & (
-    | DataFieldDef
-    | TextFieldDef
-    | IntFieldDef
-    | BigIntFieldDef
-    | DecimalFieldDef
-    | DateFieldDef
-    | TimeStampFieldDef
-    | BooleanFieldDef
-    | PasswordFieldDef
-    | ChoicesFieldDef
-    | MultiChoiceFieldDef
-    | EmailFieldDef
-    | ImageFieldDef
-    | JSONFieldDef
-    | PhoneFieldDef
-    | ConnectionFieldDef
-    | RichTextFieldDef
-    | URLFieldDef
-    | ListFieldDef
-    | CurrencyFieldDef
-    | IDFieldDef
-  );
+  | DataFieldDef
+  | TextFieldDef
+  | IntFieldDef
+  | BigIntFieldDef
+  | DecimalFieldDef
+  | DateFieldDef
+  | TimeStampFieldDef
+  | BooleanFieldDef
+  | PasswordFieldDef
+  | ChoicesFieldDef
+  | MultiChoiceFieldDef
+  | EmailFieldDef
+  | ImageFieldDef
+  | JSONFieldDef
+  | PhoneFieldDef
+  | ConnectionFieldDef
+  | RichTextFieldDef
+  | URLFieldDef
+  | ListFieldDef
+  | CurrencyFieldDef
+  | IDFieldDef;
 
 export type FieldDefMap = {
   DataField: DataFieldDef;
@@ -69,7 +66,7 @@ interface FetchOptions {
    */
   fetchField: string;
 }
-interface BaseFieldDef {
+type BaseFieldDef = {
   key: string;
   label: string;
   description?: string;
@@ -82,7 +79,7 @@ interface BaseFieldDef {
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */
   fetchField?: FetchOptions;
-}
+};
 interface IDFieldDef extends BaseFieldDef {
   type: "IDField";
   idMode: IDMode;
@@ -190,9 +187,6 @@ interface ConnectionFieldDef extends BaseFieldDef {
   connectionIdMode?: IDMode;
 }
 
-interface ConnectionField extends ConnectionFieldDef {
-}
-
 interface RichTextFieldDef extends BaseFieldDef {
   type: "RichTextField";
   defaultValue?: ORMFieldMap["RichTextField"];
@@ -218,7 +212,6 @@ export type {
   BigIntFieldDef,
   BooleanFieldDef,
   ChoicesFieldDef,
-  ConnectionField,
   ConnectionFieldDef,
   CurrencyFieldDef,
   DataFieldDef,

@@ -6,6 +6,7 @@ import type {
   EntryHookDefinition,
   EntryTypeConfig,
   EntryTypeInfo,
+  ParamsMap,
 } from "#/entry/types.ts";
 import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 import type { EntryHookName } from "#/types.ts";
@@ -13,8 +14,11 @@ import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { BaseType } from "#/shared/base-type-class.ts";
 
 export class EntryType<
-  E extends GenericEntry = GenericEntry,
+  E extends EntryBase = GenericEntry,
   N extends string = string,
+  A extends Array<EntryActionDefinition<E>> = Array<
+    EntryActionDefinition<E>
+  >,
 > extends BaseType<N> {
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
@@ -40,7 +44,7 @@ export class EntryType<
     idMode?: IDMode;
     defaultListFields?: Array<keyof E>;
     fields: Array<ORMFieldDef>;
-    actions: Array<EntryActionDefinition<E>>;
+    actions: A;
     hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
   }) {
     super(name, config);
@@ -101,7 +105,7 @@ export class EntryType<
   }
 
   #setupActions(
-    actions?: Array<EntryActionDefinition<E>>,
+    actions?: Array<EntryActionDefinition<any>>,
   ): void {
     if (!actions) {
       return;

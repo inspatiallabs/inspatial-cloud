@@ -2,7 +2,7 @@ import type { EntryActionDefinition } from "#orm/types";
 import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 import { generateSalt, hashPassword } from "#extension/auth/security.ts";
 
-export default {
+const setPassword: EntryActionDefinition<User> = {
   key: "setPassword",
   description: "Set the user's password",
   async action({ user, data }): Promise<void> {
@@ -16,9 +16,12 @@ export default {
   params: [
     {
       key: "password",
-      type: "string",
+      type: "PasswordField",
       label: "Password",
+      description: "Password to set",
       required: true,
     },
   ],
-} as EntryActionDefinition<User>;
+};
+
+export default setPassword;

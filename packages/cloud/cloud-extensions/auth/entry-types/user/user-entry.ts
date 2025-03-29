@@ -1,6 +1,10 @@
 import { EntryType } from "#orm";
 import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 import fields from "#extension/auth/entry-types/user/fields.ts";
+import setPassword from "#extension/auth/entry-types/user/actions/setPassword.ts";
+import validatePassword from "#extension/auth/entry-types/user/actions/validatePassword.ts";
+import generateApiToken from "#extension/auth/entry-types/user/actions/generate-api-token.ts";
+import generateResetToken from "#extension/auth/entry-types/user/actions/generate-reset-token.ts";
 
 const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
@@ -10,29 +14,10 @@ const userEntry = new EntryType<User>("user", {
   description: "A user of the system",
   fields: fields,
   actions: [
-    {
-      key: "login",
-      async action({ user, orm, data }) {
-        data.email;
-        data.password;
-        data.number;
-        return {
-          ...data,
-        };
-      },
-
-      params: [{
-        key: "email",
-        type: "string",
-        label: "Password",
-        required: true,
-      }, {
-        key: "password",
-        type: "string",
-        description: "The user's password used for login",
-        required: false,
-      }],
-    },
+    setPassword,
+    validatePassword,
+    generateApiToken,
+    generateResetToken,
   ],
   hooks: {
     beforeUpdate: [{

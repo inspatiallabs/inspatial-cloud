@@ -10,7 +10,6 @@
     "rules": {
       "tags": ["jsr", "recommended"],
       "include": [
-        "explicit-function-return-type",
         "explicit-module-boundary-types",
         "verbatim-module-syntax"
       ],

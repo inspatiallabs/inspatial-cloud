@@ -10,7 +10,8 @@ import { convertString } from "../../../serve/src/utils/mod.ts";
 
 export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",
-  install(_app): void {},
+  install(_app): void {
+  },
   exceptionHandlers: [{
     name: "orm",
     handler(error): ExceptionHandlerResponse | undefined {

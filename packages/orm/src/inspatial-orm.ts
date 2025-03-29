@@ -8,7 +8,7 @@ import { raiseORMException } from "#/orm-exception.ts";
 import { ormLogger } from "#/logger.ts";
 import { buildEntry } from "#/entry/build-entry.ts";
 import type { Entry } from "#/entry/entry.ts";
-import type { DBListOptions, ListOptions } from "#db/types.ts";
+import type { DBFilter, DBListOptions, ListOptions } from "#db/types.ts";
 import type { GlobalEntryHooks } from "#/types.ts";
 
 import { validateEntryType } from "./setup/entry-type/validate-entry-type.ts";
@@ -26,6 +26,7 @@ import type {
   GenericSettings,
   SettingsBase,
 } from "#/settings/settings-base.ts";
+import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -242,12 +243,12 @@ export class InSpatialORM {
   /**
    * Creates a new entry in the database with the provided data.
    */
-  async createEntry<E extends string>(
-    entryType: E,
+  async createEntry<E extends EntryBase = GenericEntry>(
+    entryType: string,
     data: Record<string, any>,
     user?: any,
-  ): Promise<Entry> {
-    const entry = this.#getEntryInstance(entryType);
+  ): Promise<E> {
+    const entry = this.#getEntryInstance(entryType, user) as E;
     entry.create();
     entry.update(data);
     await entry.save();
@@ -257,19 +258,19 @@ export class InSpatialORM {
    * Gets an instance of a new entry with default values set. This is not saved to the database.
    */
   getNewEntry<E extends string>(entryType: E, user?: any): Entry {
-    const entry = this.#getEntryInstance(entryType);
+    const entry = this.#getEntryInstance(entryType, user);
     entry.create();
     return entry;
   }
   /**
    * Gets an entry from the database by its ID.
    */
-  async getEntry<E extends string>(
-    entryType: E,
+  async getEntry<E extends EntryBase = GenericEntry>(
+    entryType: string,
     id: string,
     user?: any,
-  ): Promise<Entry> {
-    const entry = this.#getEntryInstance(entryType);
+  ): Promise<E> {
+    const entry = this.#getEntryInstance(entryType, user) as E;
     await entry.load(id);
     return entry;
   }
@@ -283,7 +284,7 @@ export class InSpatialORM {
     data: Record<string, any>,
     user?: any,
   ): Promise<any> {
-    const entry = await this.getEntry(entryType, id);
+    const entry = await this.getEntry(entryType, id, user);
     entry.update(data);
     await entry.save();
   }
@@ -296,8 +297,27 @@ export class InSpatialORM {
     id: string,
     user?: any,
   ): Promise<any> {
-    const entry = await this.getEntry(entryType, id);
+    const entry = await this.getEntry(entryType, id, user);
     await entry.delete();
+    return entry;
+  }
+
+  async findEntry<E extends EntryBase = GenericEntry>(
+    entryType: string,
+    filter: DBFilter,
+    user?: any,
+  ): Promise<E | null> {
+    const entryTypeObj = this.getEntryType(entryType, user);
+    const tableName = entryTypeObj.config.tableName;
+    const result = await this.db.getRows(tableName, {
+      filter,
+      limit: 1,
+      columns: ["id"],
+    });
+    if (result.rowCount === 0) {
+      return null;
+    }
+    const entry = await this.getEntry<E>(entryType, result.rows[0].id, user);
     return entry;
   }
 
@@ -311,7 +331,7 @@ export class InSpatialORM {
     options?: ListOptions,
     user?: any,
   ): Promise<any> {
-    const entryTypeObj = this.getEntryType(entryType);
+    const entryTypeObj = this.getEntryType(entryType, user);
     const tableName = entryTypeObj.config.tableName;
     let dbOptions: DBListOptions = {
       limit: 100,
@@ -372,7 +392,7 @@ export class InSpatialORM {
     settingsType: S,
     user?: any,
   ): Promise<T> {
-    const settings = this.#getSettingsInstance(settingsType) as T;
+    const settings = this.#getSettingsInstance(settingsType, user) as T;
     await settings.load();
     return settings;
   }
@@ -384,7 +404,7 @@ export class InSpatialORM {
     data: Record<string, any>,
     user?: any,
   ): Promise<T> {
-    const settings = this.#getSettingsInstance(settingsType) as T;
+    const settings = this.#getSettingsInstance(settingsType, user) as T;
     settings.update(data);
     await settings.save();
     return settings;
@@ -398,7 +418,7 @@ export class InSpatialORM {
     field: string,
     user?: any,
   ): Promise<any> {
-    const settings = this.#getSettingsInstance(settingsType);
+    const settings = this.#getSettingsInstance(settingsType, user);
     return await settings.getValue(field);
   }
 

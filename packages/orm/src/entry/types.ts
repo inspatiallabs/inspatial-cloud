@@ -1,6 +1,6 @@
 import type { InSpatialORM } from "#/inspatial-orm.ts";
-import type { EntryBase } from "#/entry/entry-base.ts";
-import type { IDMode } from "#/field/types.ts";
+import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
+import type { IDMode, ORMFieldMap } from "#/field/types.ts";
 import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import type { BaseTypeConfig, BaseTypeInfo } from "#/shared/shared-types.ts";
 /* Hooks */
@@ -26,92 +26,53 @@ export type EntryHookDefinition<
 
 /* Entry Actions */
 export type EntryActionDefinition<
-  E extends EntryBase = EntryBase,
+  E extends EntryBase = GenericEntry,
 > = {
   key: string;
+  label?: string;
   description?: string;
-  action(
-    actionParams:
+  /**
+   * Set to true to hide this action from the api.
+   * This means it can only be called from server side code.
+   */
+  private?: boolean;
+  action: (
+    args:
       & {
         orm: InSpatialORM;
       }
-      & { [K in E["_name"] | "entry"]: E }
+      & {
+        [K in E["_name"] | "entry"]: E;
+      }
       & {
         data: Record<string, any>;
       },
-  ): Promise<any | void> | any | void;
-  params: Array<ActionParamProp>;
-};
-
-/**
- * The type of a parameter for an action.
- */
-export type ParamTypeProp =
-  | "string"
-  | "number"
-  | "boolean"
-  | "object"
-  | "array";
-
-/**
- * A single parameter configuration for an action.
- */
-export type ActionParamProp<S extends PropertyKey = string> = {
-  key: S;
-  /**
-   * Whether the parameter is required.
-   */
-  required?: boolean;
-  /**
-   * The type of the parameter.
-   */
-  type: ParamTypeProp;
-  /**
-   * A label for the parameter.
-   */
-  label?: string;
-  /**
-   * A description of the parameter
-   */
-  description?: string;
-};
-/**
- * A map of parameter types to their JavaScript types.
- */
-export type ParamTypeMap = {
-  string: string;
-  number: number;
-  boolean: boolean;
-  object: Record<string, unknown>;
-  array: any[];
+  ) => Promise<any> | any;
+  params: Array<ORMFieldDef>;
 };
 
 /**
  * A typed map of parameters passed to an action handler.
  */
-export type ParamsMap<T> = T extends Array<ActionParamProp<infer S>> ?
-    & RequiredParams<T>
-    & OptionalParams<T>
-  : never;
+export type ParamsMap<T> = RequiredParams<T> & OptionalParams<T>;
 
 /**
  * A typed map of required parameters passed to an action handler.
  */
 
-export type RequiredParams<T> = T extends Array<ActionParamProp> ? {
-    [K in T[number]["key"]]: T[number]["required"] extends true
-      ? ParamTypeMap[T[number]["type"]]
-      : never;
+type RequiredParams<T> = T extends Array<ORMFieldDef> ? {
+    [K in T[number] as K["required"] extends true ? K["key"] : never]:
+      ORMFieldMap[K["type"]];
   }
   : never;
 
 /**
  * A typed map of optional parameters passed to an action handler.
  */
-
-export type OptionalParams<T> = T extends Record<infer R, ActionParamProp> ? {
-    [K in R]: T[K]["required"] extends false ? ParamTypeMap[T[K]["type"]]
-      : never;
+type OptionalParams<T> = T extends Array<ORMFieldDef> ? {
+    [K in T[number] as K["required"] extends true ? never : K["key"]]?:
+      | ORMFieldMap[K["type"]]
+      | undefined;
   }
   : never;
 
