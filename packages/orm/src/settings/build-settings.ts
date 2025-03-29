@@ -2,6 +2,7 @@ import type { SettingsType } from "#/settings/settings-type.ts";
 import { Settings } from "#/settings/settings.ts";
 import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { makeFields } from "#/build/make-fields.ts";
+import type { SettingsActionDefinition } from "#/settings/types.ts";
 
 export function buildSettings(
   settingsType: SettingsType,
@@ -20,12 +21,13 @@ export function buildSettings(
     override _fields: Map<string, ORMFieldDef> = settingsType.fields;
     override _changeableFields = changeableFields;
     override _fieldIds: Map<string, string> = fieldIds;
+    override _actions: Map<string, SettingsActionDefinition> =
+      settingsType.actions;
     constructor(orm: any) {
       super(orm, settingsType.name);
     }
   };
 
   makeFields("settings", settingsType, settingsClass);
-
   return settingsClass;
 }

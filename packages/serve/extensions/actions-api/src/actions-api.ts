@@ -89,10 +89,6 @@ export class ActionsAPI {
     this.actionGroups = new Map<string, ActionsAPIGroup>();
   }
 
-  #_sanitizeName(name: string) {
-    return name.replace(/[^a-z0-9]/gi, "");
-  }
-
   /**
    * Add a group to the API. The group name must be unique.
    * @param group {ActionsAPIGroup}

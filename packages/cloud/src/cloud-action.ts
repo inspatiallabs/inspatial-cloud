@@ -70,72 +70,132 @@ export class CloudAction<
     );
   }
 
-  validateRequiredParams(params?: Record<string, any>): ParamsMap<P> {
+  #validateParams(
+    params?: Record<string, any>,
+  ): ParamsMap<P> {
     const requiredParams = this.requiredParams;
-    if (!params) {
+    if (requiredParams.length === 0 && !params) {
       this.raiseError(
         `${requiredParams.join(", ")} are required for ${this.actionName}`,
       );
     }
+    if (!params) {
+      return {} as ParamsMap<P>;
+    }
     const missingParams = new Set();
-    const data: Record<string, any> = {};
-    for (const [key, param] of this.params) {
-      if (param.required && !params[key]) {
+    const incomingParams = new Map(Object.entries(params));
+    for (const key of this.requiredParams) {
+      if (!incomingParams.has(key)) {
         missingParams.add(key);
-        continue;
       }
-      if (params[key] === undefined) {
-        continue;
-      }
-      data[key] = params[key];
     }
-    if (missingParams.size) {
-      this.raiseError(
-        `${[...missingParams].join(", ")} are required for ${this.actionName}`,
-      );
-    }
-    return data as ParamsMap<P>;
-  }
 
-  validateDataTypes(
-    params: Record<string, any>,
-  ): ParamsMap<P> {
-    for (const [key, value] of Object.entries(params)) {
+    const errors: string[] = [];
+    for (const key of incomingParams.keys()) {
       const paramConfig = this.params.get(key);
       if (!paramConfig) {
-        this.raiseError(`Invalid param config for ${key}`);
+        this.raiseError(
+          `${key} is not a valid parameter for ${this.actionName}`,
+        );
       }
+
+      let isEmpty = false;
+      let value = incomingParams.get(key);
+      if (value === undefined || value === null) {
+        isEmpty = true;
+      }
+
       switch (paramConfig.type) {
         case "string":
+          if (value === "") {
+            isEmpty = true;
+            break;
+          }
           if (typeof value !== "string") {
-            this.raiseError(`${key} must be a string`);
+            errors.push(`${key} must be a string`);
           }
           break;
         case "number":
+          if (isEmpty) {
+            break;
+          }
           if (typeof value !== "number") {
-            this.raiseError(`${key} must be a number`);
+            value = Number(value);
+          }
+          if (Number.isNaN(value)) {
+            errors.push(`${key} must be a number`);
           }
           break;
         case "boolean":
+          if (isEmpty) {
+            value = false;
+            break;
+          }
           if (typeof value !== "boolean") {
-            this.raiseError(`${key} must be a boolean`);
+            if (value === 0 || value === "0" || value === "false") {
+              value = false;
+              break;
+            }
+            if (value === 1 || value === "1" || value === "true") {
+              value = true;
+              break;
+            }
+            errors.push(`${key} must be a boolean`);
           }
           break;
         case "object":
+          if (isEmpty) {
+            break;
+          }
+          if (typeof value === "string") {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              errors.push(`${key} must be a valid JSON object`);
+            }
+            break;
+          }
           if (typeof value !== "object") {
-            this.raiseError(`${key} must be an object`);
+            errors.push(`${key} must be a JSON object`);
           }
           break;
         case "array":
+          if (isEmpty) {
+            break;
+          }
+          if (typeof value === "string") {
+            try {
+              value = JSON.parse(value);
+            } catch (e) {
+              errors.push(`${key} must be a valid JSON array`);
+            }
+            break;
+          }
           if (!Array.isArray(value)) {
-            this.raiseError(`${key} must be an array`);
+            errors.push(`${key} must be an array`);
           }
           break;
         default:
+          errors.push(`${key} is not a valid parameter type`);
           break;
       }
+      incomingParams.set(key, value);
+      if (isEmpty && paramConfig.required) {
+        missingParams.add(key);
+      }
     }
-    return params as ParamsMap<P>;
+    if (missingParams.size) {
+      this.raiseError(
+        `${[...missingParams].join(", ")} ${
+          missingParams.size === 1 ? "is" : "are"
+        } required for ${this.actionName}`,
+      );
+    }
+    if (errors.length) {
+      this.raiseError(errors.join(", "));
+    }
+
+    return Object.fromEntries(incomingParams) as ParamsMap<P>;
   }
 
   async run(args: {
@@ -144,8 +204,7 @@ export class CloudAction<
     inRequest: InRequest;
     inResponse: InResponse;
   }): Promise<ReturnType<R>> {
-    const data = this.validateRequiredParams(args.params);
-    const validatedData = this.validateDataTypes(data);
+    const validatedData = this.#validateParams(args.params);
     return await this.#_run({
       app: args.app,
       params: validatedData as any,

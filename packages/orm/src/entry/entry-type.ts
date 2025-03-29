@@ -69,14 +69,14 @@ export class EntryType<
       description: "The date and time this entry was last updated",
       required: true,
     });
-    const label: string = config.label || convertString(name, "title", true);
+
     this.config = {
       tableName: this.#generateTableName(),
-      label,
+      label: this.label,
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
-      description: config.description ||
-        `${label} entry type for InSpatial ORM`,
+      description: this.description ||
+        `${this.label} entry type for InSpatial ORM`,
     };
 
     if (config.defaultListFields) {
@@ -96,19 +96,34 @@ export class EntryType<
       this.defaultListFields.add(this.config.titleField);
     }
 
-    for (const actionKey in config.actions) {
-      if (this.actions.has(actionKey)) {
+    this.#setupActions(config.actions);
+    this.#setupHooks(config.hooks);
+  }
+
+  #setupActions(
+    actions?: Array<EntryActionDefinition<E>>,
+  ): void {
+    if (!actions) {
+      return;
+    }
+    for (const action of actions) {
+      if (this.actions.has(action.key)) {
         raiseORMException(
-          `Action with key ${actionKey} already exists in EntryType ${this.name}`,
+          `Action with key ${action.key} already exists in EntryType ${this.name}`,
         );
       }
-      const action = config.actions[actionKey];
-      this.actions.set(actionKey, action);
+      this.actions.set(action.key, action);
     }
-
+  }
+  #setupHooks(
+    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>,
+  ): void {
+    if (!hooks) {
+      return;
+    }
     this.hooks = {
       ...this.hooks,
-      ...config.hooks,
+      ...hooks,
     };
   }
 

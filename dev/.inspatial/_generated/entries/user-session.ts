@@ -2,6 +2,14 @@ import type { EntryBase } from "#orm/types";
 export interface UserSession extends EntryBase {
   _name: "userSession";
   /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string;
+  _userTitle: string;
+  /**
    * **User Session** (IDField)
    * @type {string}
    * @required true
@@ -21,12 +29,4 @@ export interface UserSession extends EntryBase {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **User** (ConnectionField)
-   *
-   * **EntryType** `user`
-   * @type {string}
-   */
-  user?: string;
-  _userTitle: string;
 }

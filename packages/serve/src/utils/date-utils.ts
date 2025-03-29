@@ -146,4 +146,21 @@ export default {
   isYesterday,
   getPrettyDate,
 };
-export { getPrettyDate, isToday, isYesterday, now, nowFormatted, nowTimestamp };
+const dateUtils = {
+  now,
+  nowTimestamp,
+  nowFormatted,
+  isToday,
+  isYesterday,
+  getPrettyDate,
+};
+
+export {
+  dateUtils,
+  getPrettyDate,
+  isToday,
+  isYesterday,
+  now,
+  nowFormatted,
+  nowTimestamp,
+};

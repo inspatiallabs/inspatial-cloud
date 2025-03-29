@@ -3,7 +3,7 @@ import type { LifecycleHandler } from "#/extension/request-lifecycle.ts";
 export const apiSetup: LifecycleHandler = {
   name: "parseApiParams",
   description: "Parse 'group' and 'action' params",
-  handler(inRequest) {
+  handler(inRequest): void {
     const group = inRequest.params.get("group");
     const action = inRequest.params.get("action");
 

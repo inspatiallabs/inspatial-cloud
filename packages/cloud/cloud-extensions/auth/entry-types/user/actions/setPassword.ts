@@ -5,7 +5,7 @@ import { generateSalt, hashPassword } from "#extension/auth/security.ts";
 export default {
   key: "setPassword",
   description: "Set the user's password",
-  async action({ user, data }) {
+  async action({ user, data }): Promise<void> {
     const password = data.password as string;
     const salt = generateSalt();
     const hashed = await hashPassword(password, salt);

@@ -245,6 +245,11 @@ export class MigrationPlanner {
       columnName: "value",
       dataType: "jsonb",
       isNullable: "NO",
+    }, {
+      columnName: "updatedAt",
+      dataType: "timestamp with time zone",
+      isNullable: "NO",
+      columnDefault: "now()",
     }];
 
     const existingColumns = await this.db.getTableColumns("inSettings");

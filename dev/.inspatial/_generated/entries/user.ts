@@ -2,26 +2,6 @@ import type { EntryBase } from "#orm/types";
 export interface User extends EntryBase {
   _name: "user";
   /**
-   * **User** (IDField)
-   * @type {string}
-   * @required true
-   */
-  id: string;
-  /**
-   * **Created At** (TimeStampField)
-   * @description The date and time this entry was created
-   * @type {number}
-   * @required true
-   */
-  createdAt: number;
-  /**
-   * **Updated At** (TimeStampField)
-   * @description The date and time this entry was last updated
-   * @type {number}
-   * @required true
-   */
-  updatedAt: number;
-  /**
    * **First Name** (DataField)
    * @description The user's first name
    * @type {string}
@@ -72,4 +52,24 @@ export interface User extends EntryBase {
    * @type {string}
    */
   apiToken?: string;
+  /**
+   * **User** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
 }

@@ -1,22 +1,13 @@
 import type { EntryType } from "#/entry/entry-type.ts";
 import type { InSpatialORM } from "#/inspatial-orm.ts";
-import type { InSpatialDB } from "#db";
 
-import type { FieldDefMap, ORMFieldDef } from "#/field/field-def-types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
-import type { ORMField } from "#/field/orm-field.ts";
 import ulid from "#/utils/ulid.ts";
 import { PgError } from "#db/postgres/pgError.ts";
 import { PGErrorCode } from "#db/postgres/maps/errorMap.ts";
 import { convertString } from "@inspatial/serve/utils";
-import type {
-  EntryActionDefinition,
-  EntryHookDefinition,
-  IDValue,
-} from "#/entry/types.ts";
+import type { EntryHookDefinition, IDValue } from "#/entry/types.ts";
 import type { EntryHookName } from "../../types.ts";
-import type { GenericEntry } from "#/entry/entry-base.ts";
-import { ormLogger } from "#/logger.ts";
 import { BaseClass } from "#/shared/base-class.ts";
 
 export class Entry<
@@ -30,7 +21,7 @@ export class Entry<
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
   }
-  _actions: Map<string, EntryActionDefinition> = new Map();
+
   _hooks: {
     [key in EntryHookName]?: Array<EntryHookDefinition>;
   } = {
@@ -44,17 +35,14 @@ export class Entry<
     afterDelete: [],
   };
   get _entryType(): EntryType {
-    if (!this._orm.entryTypes.has(this._name)) {
-      raiseORMException(`EntryType ${this._name} does not exist in ORM`);
-    }
-    return this._orm.entryTypes.get(this._name)!;
+    return this._orm.getEntryType(this._name);
   }
   get data(): Record<string, any> {
     return Object.fromEntries(this._data.entries());
   }
 
-  constructor(orm: InSpatialORM, name: N) {
-    super(orm, name);
+  constructor(orm: InSpatialORM, name: N, user?: any) {
+    super(orm, name, "entry", user);
   }
   /**
    * Creates a new instance of this entry type, and sets all the fields to their default values.
@@ -128,6 +116,9 @@ export class Entry<
     await this.#afterUpdate();
   }
 
+  /**
+   * Deletes the entry from the database
+   */
   async delete(): Promise<boolean> {
     await this.#beforeDelete();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
@@ -155,7 +146,8 @@ export class Entry<
       await hook.handler({
         orm: this._orm,
         entry: this as any,
-        [this._entryType.name]: this as any,
+        [this._name]: this as any,
+        [this._type]: this as any,
       });
     }
   }
@@ -230,28 +222,7 @@ export class Entry<
     }
     return id;
   }
-  #getAndValidateAction(
-    actionKey: string,
-    data?: Record<string, any>,
-  ): EntryActionDefinition {
-    const dataMap = new Map(Object.entries(data || {}));
-    const action = this._actions.get(actionKey);
-    if (!action) {
-      raiseORMException(
-        `Action ${actionKey} not found in entry type ${this._entryType.name}`,
-      );
-    }
-    if (action.params) {
-      for (const param of action.params) {
-        if (param.required && !dataMap.has(param.key)) {
-          raiseORMException(
-            `Missing required param ${param.key} for action ${actionKey} in entry type ${this._entryType.name}`,
-          );
-        }
-      }
-    }
-    return action;
-  }
+
   #handlePGError(e: unknown): never {
     if (!(e instanceof PgError)) {
       throw e;
@@ -261,7 +232,7 @@ export class Entry<
       case PGErrorCode.NotNullViolation: {
         const fieldKey = convertString(e.fullMessage.columnName, "camel");
         raiseORMException(
-          `Field ${fieldKey} is required for ${this._entryType.config.label} entry`,
+          `Field ${fieldKey} is required for ${this._entryType.label} entry`,
           "RequiredField",
           400,
         );
@@ -270,7 +241,7 @@ export class Entry<
       case PGErrorCode.UniqueViolation: {
         const fieldKey = convertString(e.fullMessage.columnName, "camel");
         raiseORMException(
-          `Field ${fieldKey} must be unique for ${this._entryType.config.label} entry`,
+          `Field ${fieldKey} must be unique for ${this._entryType.label} entry`,
           "UniqueField",
           400,
         );
@@ -279,22 +250,5 @@ export class Entry<
       default:
         throw e;
     }
-  }
-  /**
-   * Runs an action on the entry that is defined in the entry type `actions` property.
-   */
-  async runAction(
-    actionKey: string,
-    data?: Record<string, any>,
-  ): Promise<any> {
-    const action = this.#getAndValidateAction(actionKey, data);
-
-    data = data || {};
-    return await action.action({
-      orm: this._orm,
-      data,
-      [this._name]: this as any,
-      entry: this as any,
-    });
   }
 }

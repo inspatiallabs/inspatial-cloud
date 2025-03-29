@@ -1,6 +1,6 @@
 import { SettingsType } from "#orm";
-
-const authSettings = new SettingsType("authSettings", {
+import type { AuthSettings } from "../../../../../../dev/.inspatial/_generated/settings/auth-settings.ts";
+const authSettings = new SettingsType<AuthSettings>("authSettings", {
   label: "Auth Settings",
   fields: [{
     key: "enabled",

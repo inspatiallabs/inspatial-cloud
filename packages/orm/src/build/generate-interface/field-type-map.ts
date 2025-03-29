@@ -1,0 +1,25 @@
+import type { FieldDefType } from "#/field/field-def-types.ts";
+
+export const fieldTypeMap: Record<FieldDefType, string> = {
+  URLField: "string",
+  BigIntField: "number",
+  BooleanField: "boolean",
+  ChoicesField: "string",
+  ConnectionField: "string",
+  CurrencyField: "string",
+  DataField: "string",
+  DateField: "string",
+  DecimalField: "number",
+  EmailField: "string",
+  ImageField: "string",
+  IntField: "number",
+  JSONField: "Record<string, any>",
+  ListField: "Array<string>",
+  TimeStampField: "number",
+  TextField: "string",
+  MultiChoiceField: "Array<string>",
+  PasswordField: "string",
+  PhoneField: "string",
+  RichTextField: "string",
+  IDField: "string",
+};

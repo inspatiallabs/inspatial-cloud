@@ -1,8 +1,12 @@
 import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
+import { convertString } from "@inspatial/serve/utils";
 
 export class BaseType<N extends string = string> {
   name: N;
+  label: string;
+
+  description: string;
   /**
    * The fields of the settings type.
    */
@@ -14,10 +18,17 @@ export class BaseType<N extends string = string> {
     config: {
       fields: Array<ORMFieldDef>;
       label?: string;
+      description?: string;
     },
   ) {
     this.name = this.#sanitizeName(name);
-    const label: string = config.label || name;
+
+    let label: string | undefined = config.label;
+    if (!label) {
+      label = convertString(this.name, "title", true);
+    }
+    this.label = label;
+    this.description = config.description || "";
     for (const field of config.fields) {
       if (this.fields.has(field.key)) {
         raiseORMException(

@@ -45,8 +45,11 @@ const settingsTypesInfo = new CloudAction("settingsTypes", {
 const generateInterfaces = new CloudAction("generateInterfaces", {
   description: "Generate Entry Typescript Interfaces",
   label: "Generate Interfaces",
-  run({ app }) {
-    return app.orm.generateInterfaces();
+  async run({ app }): Promise<{
+    generatedEntries: Array<string>;
+    generatedSettings: Array<string>;
+  }> {
+    return await app.orm.generateInterfaces();
   },
   params: [],
 });

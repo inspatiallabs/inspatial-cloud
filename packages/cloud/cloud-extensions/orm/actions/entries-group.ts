@@ -1,4 +1,5 @@
 import { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
+import type { EntryTypeInfo } from "#orm/types";
 
 const getEntryAction = new CloudAction("getEntry", {
   label: "Get Entry",
@@ -185,7 +186,7 @@ const getEntryListAction = new CloudAction("getEntryList", {
 const getEntryTypeInfoAction = new CloudAction("getEntryTypeInfo", {
   label: "Get Entry Type Info",
   description: "Get the Entry Type definition for a given Entry Type",
-  run({ app, inRequest, params }) {
+  run({ app, inRequest, params }): EntryTypeInfo {
     const entryType = app.orm.getEntryType(params.entryType);
     return entryType.info;
   },

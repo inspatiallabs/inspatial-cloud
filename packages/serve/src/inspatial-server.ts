@@ -150,7 +150,7 @@ export class InSpatialServer<
     key: string;
     description: string;
     value: unknown;
-  }) {
+  }): void {
     Object.defineProperty(this, prop.key, {
       get: () => this.#customProperties.get(prop.key),
 
@@ -238,7 +238,7 @@ export class InSpatialServer<
    * If a middleware returns a response, the response will be sent to the client immediately,
    * skipping any further middleware or request handling.
    */
-  #addMiddleware(middleware: ServerMiddleware) {
+  #addMiddleware(middleware: ServerMiddleware): void {
     if (this.#middlewares.has(middleware.name)) {
       throw new Error(
         `Middleware with name ${middleware.name} already exists`,
@@ -247,7 +247,7 @@ export class InSpatialServer<
     this.#middlewares.set(middleware.name, middleware);
   }
 
-  #addExceptionHandler(handler: ExceptionHandler) {
+  #addExceptionHandler(handler: ExceptionHandler): void {
     if (this.#exceptionHandlers.has(handler.name)) {
       throw new Error(
         `Exception handler with name ${handler.name} already exists`,
@@ -260,7 +260,7 @@ export class InSpatialServer<
    * Adds a handler for a path.
    * This is used to define a handler for a specific path.
    */
-  #addPathHandler(handler: PathHandler) {
+  #addPathHandler(handler: PathHandler): void {
     const paths = Array.isArray(handler.path) ? handler.path : [handler.path];
     for (const path of paths) {
       if (this.#pathHandlers.has(path)) {
@@ -287,7 +287,7 @@ export class InSpatialServer<
     extension: string,
     key: string,
     value: unknown,
-  ) {
+  ): void {
     const config = this.#extensionsConfig.get(extension);
     if (!config) {
       throw new Error(`Extension ${extension} not found`);
@@ -349,7 +349,7 @@ export class InSpatialServer<
   }
   #setupExtensionConfig(
     extension: ServerExtension<string, any>,
-  ) {
+  ): void {
     this.#extensionsConfig.set(extension.name, new Map());
     const configDefinition = extension.config;
     if (!configDefinition) {
@@ -538,14 +538,17 @@ export class InSpatialServer<
     err: unknown,
     inResponse: InResponse,
   ): Promise<Response> {
+    console.log("Handling exception", err);
     inResponse = inResponse || new InResponse();
     inResponse;
     const clientMessages: Array<Record<string, any> | string> = [];
+    let handled = false;
     for (const handler of this.#exceptionHandlers.values()) {
       const response = await handler.handler(err);
-      if (!response) {
+      if (!response || Object.keys(response).length === 0) {
         continue;
       }
+      handled = true;
       if (response.clientMessage !== undefined) {
         clientMessages.push(response.clientMessage);
       }
@@ -582,6 +585,43 @@ export class InSpatialServer<
         inResponse.errorStatusText = response.statusText;
       }
     }
+    if (!handled && isServerException(err)) {
+      clientMessages.push(err.message);
+      inResponse.errorStatus = err.status;
+      inResponse.errorStatusText = err.name;
+      let type: "error" | "warn" = "error";
+      if (err.status >= 400 && err.status < 500) {
+        type = "warn";
+      }
+      serveLogger[type](err.message, {
+        subject: err.name,
+        stackTrace: err.stack,
+      });
+
+      handled = true;
+    }
+    if (!handled && err instanceof Error) {
+      serveLogger.error(`${err.message}: ${err.message}`, {
+        subject: "Unknown Error",
+        stackTrace: err.stack,
+      });
+      clientMessages.push("An unknown error occurred");
+      inResponse.errorStatus = 500;
+      inResponse.errorStatusText = "Internal Server Error";
+      handled = true;
+    }
+
+    if (!handled) {
+      serveLogger.error("An unknown error occurred", {
+        subject: "Unknown Error",
+        stackTrace: new Error().stack,
+      });
+      inResponse.errorStatus = 500;
+      inResponse.errorStatusText = "Internal Server Error";
+      clientMessages.push("An unknown error occurred");
+      handled = true;
+    }
+
     if (!inResponse.errorStatus) {
       inResponse.errorStatus = 500;
     }

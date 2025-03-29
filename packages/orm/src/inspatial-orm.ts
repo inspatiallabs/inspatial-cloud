@@ -10,7 +10,7 @@ import { buildEntry } from "#/entry/build-entry.ts";
 import type { Entry } from "#/entry/entry.ts";
 import type { DBListOptions, ListOptions } from "#db/types.ts";
 import type { GlobalEntryHooks } from "#/types.ts";
-import { generateEntryInterface } from "#/entry/generate-entry-interface.ts";
+
 import { validateEntryType } from "./setup/entry-type/validate-entry-type.ts";
 import { buildEntryType } from "./setup/entry-type/build-entry-types.ts";
 import type { Settings } from "#/settings/settings.ts";
@@ -18,6 +18,14 @@ import { buildSettingsType } from "./setup/settings-type/build-settings-types.ts
 import { MigrationPlanner } from "#/migrate/migration-planner.ts";
 import type { MigrationPlan } from "#/migrate/migration-plan.ts";
 import { buildSettings } from "#/settings/build-settings.ts";
+import {
+  generateEntryInterface,
+  generateSettingsInterfaces,
+} from "#/build/generate-interface/generate-interface.ts";
+import type {
+  GenericSettings,
+  SettingsBase,
+} from "#/settings/settings-base.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -40,6 +48,9 @@ export class InSpatialORM {
   #rootPath: string;
   get #entriesPath(): string {
     return `${this.#rootPath}/_generated/entries`;
+  }
+  get #settingsPath(): string {
+    return `${this.#rootPath}/_generated/settings`;
   }
   async _runGlobalHooks(
     hookType: keyof GlobalEntryHooks,
@@ -66,7 +77,10 @@ export class InSpatialORM {
     }
     return fieldTypeDef;
   }
-  getEntryType<T extends EntryType = EntryType>(entryType: string): T {
+  getEntryType<T extends EntryType = EntryType>(
+    entryType: string,
+    user?: any,
+  ): T {
     if (!this.entryTypes.has(entryType)) {
       raiseORMException(
         `EntryType ${entryType} does not exist in ORM`,
@@ -79,6 +93,7 @@ export class InSpatialORM {
 
   getSettingsType<T extends SettingsType = SettingsType>(
     settingsType: string,
+    user?: any,
   ): T {
     if (!this.settingsTypes.has(settingsType)) {
       raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
@@ -203,24 +218,24 @@ export class InSpatialORM {
       buildSettingsType(this, settingsType);
     }
   }
-  #getEntryInstance(entryType: string): Entry {
+  #getEntryInstance(entryType: string, user?: any): Entry {
     const entryClass = this.#entryClasses.get(entryType);
     if (!entryClass) {
       raiseORMException(
         `EntryType ${entryType} is not a valid entry type.`,
       );
     }
-    return new entryClass(this, entryType);
+    return new entryClass(this, entryType, user);
   }
 
-  #getSettingsInstance(settingsType: string): Settings {
+  #getSettingsInstance(settingsType: string, user?: any): Settings {
     const settingsClass = this.#settingsClasses.get(settingsType);
     if (!settingsClass) {
       raiseORMException(
         `SettingsType ${settingsType} is not a valid settings type.`,
       );
     }
-    return new settingsClass(this, settingsType);
+    return new settingsClass(this, settingsType, user);
   }
 
   // Single Entry Operations
@@ -230,6 +245,7 @@ export class InSpatialORM {
   async createEntry<E extends string>(
     entryType: E,
     data: Record<string, any>,
+    user?: any,
   ): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
     entry.create();
@@ -240,7 +256,7 @@ export class InSpatialORM {
   /**
    * Gets an instance of a new entry with default values set. This is not saved to the database.
    */
-  getNewEntry<E extends string>(entryType: E): Entry {
+  getNewEntry<E extends string>(entryType: E, user?: any): Entry {
     const entry = this.#getEntryInstance(entryType);
     entry.create();
     return entry;
@@ -248,7 +264,11 @@ export class InSpatialORM {
   /**
    * Gets an entry from the database by its ID.
    */
-  async getEntry<E extends string>(entryType: E, id: string): Promise<Entry> {
+  async getEntry<E extends string>(
+    entryType: E,
+    id: string,
+    user?: any,
+  ): Promise<Entry> {
     const entry = this.#getEntryInstance(entryType);
     await entry.load(id);
     return entry;
@@ -261,6 +281,7 @@ export class InSpatialORM {
     entryType: E,
     id: any,
     data: Record<string, any>,
+    user?: any,
   ): Promise<any> {
     const entry = await this.getEntry(entryType, id);
     entry.update(data);
@@ -270,7 +291,11 @@ export class InSpatialORM {
   /**
    * Deletes an entry from the database.
    */
-  async deleteEntry<E extends string>(entryType: E, id: string): Promise<any> {
+  async deleteEntry<E extends string>(
+    entryType: E,
+    id: string,
+    user?: any,
+  ): Promise<any> {
     const entry = await this.getEntry(entryType, id);
     await entry.delete();
     return entry;
@@ -284,6 +309,7 @@ export class InSpatialORM {
   async getEntryList<E extends string>(
     entryType: E,
     options?: ListOptions,
+    user?: any,
   ): Promise<any> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
@@ -328,6 +354,7 @@ export class InSpatialORM {
     entryType: E,
     id: string,
     field: string,
+    user?: any,
   ): Promise<any> {
     raiseORMException(
       `getEntryValue is not implemented yet. Use getEntry instead.`,
@@ -341,19 +368,23 @@ export class InSpatialORM {
   /**
    * Gets the settings for a specific settings type.
    */
-  async getSettings<S extends string>(settingsType: S): Promise<any> {
-    const settings = this.#getSettingsInstance(settingsType);
+  async getSettings<S extends string, T extends Settings = Settings>(
+    settingsType: S,
+    user?: any,
+  ): Promise<T> {
+    const settings = this.#getSettingsInstance(settingsType) as T;
     await settings.load();
     return settings;
   }
   /**
    * Updates the settings for a specific settings type.
    */
-  async updateSettings<S extends string>(
+  async updateSettings<S extends string, T extends Settings = Settings>(
     settingsType: S,
     data: Record<string, any>,
-  ): Promise<any> {
-    const settings = this.#getSettingsInstance(settingsType);
+    user?: any,
+  ): Promise<T> {
+    const settings = this.#getSettingsInstance(settingsType) as T;
     settings.update(data);
     await settings.save();
     return settings;
@@ -365,6 +396,7 @@ export class InSpatialORM {
   async getSettingsValue<S extends string>(
     settingsType: S,
     field: string,
+    user?: any,
   ): Promise<any> {
     const settings = this.#getSettingsInstance(settingsType);
     return await settings.getValue(field);
@@ -405,14 +437,22 @@ export class InSpatialORM {
    * Generates TypeScript interfaces for all EntryTypes in the ORM.
    * The generated interfaces will be saved in the `.inspatial/_generated/entries` directory in the root path of the application.
    */
-  generateInterfaces(): { generatedEntries: string[] } {
+  async generateInterfaces(): Promise<
+    { generatedEntries: string[]; generatedSettings: string[] }
+  > {
     const generatedEntries: string[] = [];
+    const generatedSettings: string[] = [];
     for (const entryType of this.entryTypes.values()) {
-      generateEntryInterface(this, entryType, this.#entriesPath);
+      await generateEntryInterface(this, entryType, this.#entriesPath);
       generatedEntries.push(entryType.name);
+    }
+    for (const settingsType of this.settingsTypes.values()) {
+      await generateSettingsInterfaces(this, settingsType, this.#settingsPath);
+      generatedSettings.push(settingsType.name);
     }
     return {
       generatedEntries,
+      generatedSettings,
     };
   }
 }

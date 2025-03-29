@@ -7,13 +7,15 @@ export type GlobalHookFunction = (hookParams: {
   orm: InSpatialORM;
 }) => Promise<void> | void;
 
-export type EntryHookName =
+export type HookName =
   | "beforeValidate"
   | "validate"
+  | "beforeUpdate"
+  | "afterUpdate";
+export type EntryHookName =
+  | HookName
   | "beforeCreate"
   | "afterCreate"
-  | "beforeUpdate"
-  | "afterUpdate"
   | "beforeDelete"
   | "afterDelete";
 export type GlobalEntryHooks = Record<

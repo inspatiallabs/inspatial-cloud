@@ -14,6 +14,7 @@ export class CloudExtension<
   AG extends Array<CloudActionGroup> = Array<CloudActionGroup>,
   N extends string = string,
   E extends Array<EntryType<any>> = Array<EntryType<any>>,
+  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
 > {
   key: string;
   title: string;
@@ -34,7 +35,7 @@ export class CloudExtension<
     version: string;
     serverExtensions?: S;
     entryTypes?: E;
-    settingsTypes?: SettingsType[];
+    settingsTypes?: ST;
     ormGlobalHooks?: Partial<AppEntryHooks>;
     actionGroups?: AG;
     install: PackInstallFunction;

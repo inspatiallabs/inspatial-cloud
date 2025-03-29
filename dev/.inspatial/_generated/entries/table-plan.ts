@@ -2,6 +2,19 @@ import type { EntryBase } from "#orm/types";
 export interface TablePlan extends EntryBase {
   _name: "tablePlan";
   /**
+   * **Table Name** (DataField)
+   * @description The name of the table
+   * @type {string}
+   * @required true
+   */
+  tableName: string;
+  /**
+   * **Capacity** (IntField)
+   * @type {number}
+   * @required true
+   */
+  capacity: number;
+  /**
    * **Table Plan** (IDField)
    * @type {string}
    * @required true
@@ -21,17 +34,4 @@ export interface TablePlan extends EntryBase {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Table Name** (DataField)
-   * @description The name of the table
-   * @type {string}
-   * @required true
-   */
-  tableName: string;
-  /**
-   * **Capacity** (IntField)
-   * @type {number}
-   * @required true
-   */
-  capacity: number;
 }

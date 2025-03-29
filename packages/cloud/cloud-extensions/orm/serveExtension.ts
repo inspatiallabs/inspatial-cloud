@@ -1,4 +1,8 @@
-import { type ExceptionHandlerResponse, ServerExtension } from "@inspatial/serve";
+import {
+  type ExceptionHandlerResponse,
+  ServerException,
+  ServerExtension,
+} from "@inspatial/serve";
 import { PgError } from "../../../orm/db/src/postgres/pgError.ts";
 import { PGErrorCode } from "#db";
 import { ORMException } from "../../../orm/src/orm-exception.ts";
@@ -6,10 +10,10 @@ import { convertString } from "../../../serve/src/utils/mod.ts";
 
 export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",
-  install(_app) {},
+  install(_app): void {},
   exceptionHandlers: [{
     name: "orm",
-    handler(error) {
+    handler(error): ExceptionHandlerResponse | undefined {
       if (error instanceof PgError) {
         const response: ExceptionHandlerResponse = {
           serverMessage: {
@@ -47,6 +51,29 @@ export const ormServeExtension = new ServerExtension("orm", {
           statusText: error.subject || "Internal Server Error",
         };
       }
+
+      // if (error instanceof Error) {
+      //   return {
+      //     serverMessage: {
+      //       content: error.message,
+      //       subject: "InSpatial ORM - Unknown Error",
+      //       type: "error",
+      //     },
+      //     clientMessage: "An unknown error occurred",
+      //     status: 500,
+      //     statusText: "Internal Server Error",
+      //   };
+      // }
+      // return {
+      //   serverMessage: {
+      //     content: "An unknown error occurred",
+      //     subject: "InSpatial ORM - Unknown Error",
+      //     type: "error",
+      //   },
+      //   clientMessage: "An unknown error occurred",
+      //   status: 500,
+      //   statusText: "Internal Server Error",
+      // };
     },
   }],
 });
