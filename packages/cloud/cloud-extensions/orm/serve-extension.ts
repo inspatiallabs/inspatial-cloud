@@ -1,12 +1,10 @@
 import {
   type ExceptionHandlerResponse,
-  ServerException,
   ServerExtension,
 } from "@inspatial/serve";
-import { PgError } from "../../../orm/db/src/postgres/pgError.ts";
-import { PGErrorCode } from "#db";
-import { ORMException } from "../../../orm/src/orm-exception.ts";
-import { convertString } from "../../../serve/src/utils/mod.ts";
+import { PgError, PGErrorCode } from "#db";
+import { ORMException } from "#orm";
+import { convertString } from "@inspatial/serve/utils";
 
 export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",

@@ -4,10 +4,10 @@ import type { CloudActionGroup } from "#/cloud-action.ts";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { EntryType, SettingsType } from "#orm";
 import type { AppEntryHooks, CloudExtensionInfo } from "#/types.ts";
-export type PackInstallFunction<R = any> = (
+export type CloudInstallFunction<R = any> = (
   app: InSpatialCloud,
 ) => R;
-export type PackBootFunction = (app: InSpatialCloud) => void;
+export type CloudBootFunction = (app: InSpatialCloud) => Promise<void> | void;
 
 export class CloudExtension<
   S extends Array<ServerExtension> = Array<ServerExtension>,
@@ -25,8 +25,8 @@ export class CloudExtension<
   settingsTypes: SettingsType[];
   ormGlobalHooks: AppEntryHooks;
   actionGroups: AG;
-  install: PackInstallFunction;
-  boot: PackBootFunction;
+  install: CloudInstallFunction;
+  boot: CloudBootFunction;
 
   constructor(config: {
     key: string;
@@ -38,8 +38,8 @@ export class CloudExtension<
     settingsTypes?: ST;
     ormGlobalHooks?: Partial<AppEntryHooks>;
     actionGroups?: AG;
-    install: PackInstallFunction;
-    boot?: PackBootFunction;
+    install: CloudInstallFunction;
+    boot?: CloudBootFunction;
   }) {
     this.key = config.key;
     this.title = config.title;

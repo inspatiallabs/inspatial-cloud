@@ -1,23 +1,25 @@
-import type { BootAction } from "#/types.ts";
-import { easyLog } from "#/log/logging.ts";
+import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import cloudLogger from "#/cloud-logger.ts";
 
-export const checkForNoUsers: BootAction = {
-  actionName: "checkForUser",
-  description: "Add an admin user if no users exist",
-  async action(app) {
-    try {
-      const userCount = await app.orm.count("user");
-      if (userCount === 0) {
-        const user = await app.orm.createEntry("user", {
-          firstName: "Admin",
-          lastName: "User",
-          email: "admin@user.email",
-          systemAdmin: true,
-        });
-        await user.runAction("setPassword", { password: "password" });
-      }
-    } catch (_e) {
-      easyLog.warning("Failed to create admin user");
-    }
-  },
-};
+async function checkForUser(app: InSpatialCloud) {
+  const { orm } = app;
+  const userCount = await orm.count("user");
+  if (userCount === 0) {
+    prompt("No users found. Please create an admin user.");
+    const firstName = prompt("First Name:");
+    const lastName = prompt("Last Name:");
+    const email = prompt("Email:");
+    const password = prompt("Password:");
+    const user = await orm.createEntry("user", {
+      firstName,
+      lastName,
+      email,
+      systemAdmin: true,
+    });
+    await user.runAction("setPassword", { password });
+    cloudLogger.info("Admin user created successfully.");
+    prompt("Press any key to continue...");
+  }
+}
+
+export default checkForUser;

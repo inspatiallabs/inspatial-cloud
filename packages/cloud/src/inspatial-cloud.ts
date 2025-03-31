@@ -249,6 +249,9 @@ export class InSpatialCloud<
     await this.server.generateConfigFile();
   }
   private async boot(): Promise<void> {
+    for (const appExtension of this.#appExtensions.values()) {
+      await appExtension.boot(this);
+    }
     // await this.orm.init();
   }
 

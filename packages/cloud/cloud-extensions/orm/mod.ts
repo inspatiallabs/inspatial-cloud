@@ -1,7 +1,7 @@
 import { CloudExtension } from "#/cloud-extension.ts";
 import ormGroup from "#extension/orm/actions/orm-group.ts";
 import entriesGroup from "#extension/orm/actions/entries-group.ts";
-import { ormServeExtension } from "#extension/orm/serveExtension.ts";
+import { ormServeExtension } from "./serve-extension.ts";
 import type { AppHookFunction } from "#/types.ts";
 import settingsGroup from "#extension/orm/actions/settings-group.ts";
 const afterUpdateHook: AppHookFunction = (

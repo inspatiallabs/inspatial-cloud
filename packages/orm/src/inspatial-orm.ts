@@ -365,6 +365,23 @@ export class InSpatialORM {
     return result;
   }
 
+  async count(
+    entryType: string,
+    filter?: DBFilter,
+    groupBy?: Array<string>,
+    user?: any,
+  ): Promise<number> {
+    ormLogger.warn(
+      "count is not fully implemented. Check source",
+    );
+    const entryTypeObj = this.getEntryType(entryType, user);
+    const tableName = entryTypeObj.config.tableName;
+    const result = await this.db.count(tableName, {
+      filter,
+      groupBy,
+    });
+    return result;
+  }
   // Special Operations
 
   /**

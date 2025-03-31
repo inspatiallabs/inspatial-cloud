@@ -3,7 +3,7 @@ import { raiseServerException } from "@inspatial/serve";
 import { createUserSession } from "#extension/auth/session/create-session.ts";
 import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 
-const loginAction = new CloudAction("login", {
+const login = new CloudAction("login", {
   label: "Login",
   description: "Login to the system",
   async run({ app, inRequest, inResponse, params }) {
@@ -38,4 +38,4 @@ const loginAction = new CloudAction("login", {
   }],
 });
 
-export default loginAction;
+export default login;

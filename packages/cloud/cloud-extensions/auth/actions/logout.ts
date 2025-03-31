@@ -1,6 +1,6 @@
 import { CloudAction } from "#/cloud-action.ts";
 
-const logoutAction = new CloudAction("logout", {
+const logout = new CloudAction("logout", {
   label: "Logout",
   description: "Logout user",
   async run({ app, inRequest, inResponse }) {
@@ -21,4 +21,4 @@ const logoutAction = new CloudAction("logout", {
   params: [],
 });
 
-export default logoutAction;
+export default logout;
