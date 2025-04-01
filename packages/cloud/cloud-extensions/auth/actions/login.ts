@@ -1,11 +1,13 @@
 import { CloudAction } from "#/cloud-action.ts";
 import { raiseServerException } from "@inspatial/serve";
-import { createUserSession } from "#extension/auth/session/create-session.ts";
+
 import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
+import type { AuthHandler } from "#extension/auth/auth-handler.ts";
 
 const login = new CloudAction("login", {
   label: "Login",
   description: "Login to the system",
+  authRequired: false,
   async run({ app, inRequest, inResponse, params }) {
     const { email, password } = params;
     const { orm } = app;
@@ -21,7 +23,8 @@ const login = new CloudAction("login", {
     if (!isValid) {
       raiseServerException(401, "unauthorized");
     }
-    return await createUserSession(app, user, inRequest, inResponse);
+    const authHandler = app.server.getCustomProperty<AuthHandler>("auth");
+    return await authHandler.createUserSession(user, inRequest, inResponse);
   },
   params: [{
     key: "email",

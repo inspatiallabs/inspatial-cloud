@@ -12,6 +12,7 @@ const logout = new CloudAction("logout", {
       if (userSession) {
         await userSession.delete();
       }
+      app.inCache.deleteValue("userSession", sessionId);
     }
     inRequest.context.update("user", null);
     inRequest.context.update("userSession", null);

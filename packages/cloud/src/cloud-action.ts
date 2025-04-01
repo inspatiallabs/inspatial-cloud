@@ -59,11 +59,12 @@ export class CloudAction<
     this.actionName = actionName;
     this.label = config.label || this.label;
     this.description = config.description || this.description;
-    this.authRequired = config.authRequired || this.authRequired;
-    this.includeInAPI = config.hideFromApi
-      ? !config.hideFromApi
-      : this.includeInAPI;
-
+    if (config.authRequired === false) {
+      this.authRequired = false;
+    }
+    if (config.hideFromApi === true) {
+      this.includeInAPI = false;
+    }
     this.params = new Map(config.params.map((p) => [p.key, p]));
     this.requiredParams = config.params.filter((param) => param.required).map(
       (p) => p.key,

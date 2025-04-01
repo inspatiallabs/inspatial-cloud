@@ -8,7 +8,9 @@
     "./extensions": "./cloud-extensions/mod.ts"
   },
   "publish": {
-    "exclude": [".github"]
+    "exclude": [
+      ".github"
+    ]
   },
   "imports": {
     "#/": "./src/",

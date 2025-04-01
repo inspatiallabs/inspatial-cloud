@@ -22,6 +22,7 @@ import ormCloudExtension from "#extension/orm/mod.ts";
 import authCloudExtension from "#extension/auth/mod.ts";
 import cloudLogger from "#/cloud-logger.ts";
 import { ORMException } from "#orm";
+import { InCache } from "#/cache/in-cache.ts";
 
 export class InSpatialCloud<
   N extends string = string,
@@ -47,10 +48,11 @@ export class InSpatialCloud<
     return this.server.getExtension("db") as InSpatialDB;
   }
   orm: InSpatialORM;
+  inCache: InCache;
 
   ready: Promise<boolean>;
 
-  #ActionGroups: Map<string, CloudActionGroup> = new Map();
+  actionGroups: Map<string, CloudActionGroup> = new Map();
 
   #appExtensions: Map<string, CloudExtension> = new Map();
 
@@ -74,6 +76,7 @@ export class InSpatialCloud<
     };
   }) {
     this.appName = appName;
+    this.inCache = new InCache();
 
     const extensions: Array<ServerExtension> = [
       actionsAPI,
@@ -94,7 +97,7 @@ export class InSpatialCloud<
       beforeDelete: [],
       afterDelete: [],
     };
-    this.#ActionGroups = new Map();
+    this.actionGroups = new Map();
     this.#appExtensions = new Map();
 
     const builtInExtensions = {
@@ -154,6 +157,11 @@ export class InSpatialCloud<
         value: this.orm,
         description: "ORM instance",
       });
+      this.server.addCustomProperty({
+        key: "inCache",
+        value: this.inCache,
+        description: "inCache instance",
+      });
     } catch (e) {
       this.#handleInitError(e);
     }
@@ -177,15 +185,18 @@ export class InSpatialCloud<
     const { actionGroups } = appExtension;
 
     for (const actionGroup of actionGroups) {
-      if (this.#ActionGroups.has(actionGroup.groupName)) {
+      if (this.actionGroups.has(actionGroup.groupName)) {
         throw new Error(
           `Action group with name ${actionGroup.groupName} already exists`,
         );
       }
-      this.#ActionGroups.set(actionGroup.groupName, actionGroup);
+      this.actionGroups.set(actionGroup.groupName, actionGroup);
       const actions = new Map<string, ActionsAPIAction>();
 
       for (const action of actionGroup.actions) {
+        if (action.includeInAPI === false) {
+          continue;
+        }
         const actionObject: ActionsAPIAction = {
           actionName: action.actionName,
           description: action.description,
@@ -225,7 +236,7 @@ export class InSpatialCloud<
   ): Promise<ReturnActionMap<P>[AG][AN]> {
     const gn = groupName as string;
     const an = actionName as string;
-    const group = this.#ActionGroups.get(gn);
+    const group = this.actionGroups.get(gn);
     if (!group) {
       throw new Error(`Action group ${gn} not found`);
     }

@@ -19,7 +19,7 @@ export function print(
   content: string,
   colorOrOptions?: BasicFgColor | StyleOptions,
   options?: StyleOptions,
-) {
+): void {
   let output = content;
 
   if (colorOrOptions && typeof colorOrOptions === "object") {
@@ -37,40 +37,40 @@ export function print(
   Deno.stdout.write(encoder.encode(output));
 }
 
-export function println(content: string, color?: BasicFgColor) {
+export function println(content: string, color?: BasicFgColor): void {
   console.log(ColorMe.fromOptions(content, { color: color || "white" }));
   // print(`${content}\n`, color);
 }
 
-export function printLines(count: number) {
+export function printLines(count: number): void {
   for (let i = 0; i < count; i++) {
     println("");
   }
 }
 
-export function goToTop() {
+export function goToTop(): void {
   print("\x1b[H");
 }
-export function goTo(row: number, column: number) {
+export function goTo(row: number, column: number): void {
   print(`\x1b[${row};${column}H`);
 }
 
-export function goToColumn(column: number) {
+export function goToColumn(column: number): void {
   print(`\x1b[${column}G`);
 }
 
-export function clearScreen() {
+export function clearScreen(): void {
   print("\x1b[2J");
 }
 
-export function clearCurrentLine() {
+export function clearCurrentLine(): void {
   print("\x1b[2K");
 }
 export function clearLine(line: number, options?: {
   start: number;
   end: number;
   bgColor?: BasicBgColor;
-}) {
+}): void {
   goTo(line, options?.start || 0);
   if (options?.end) {
     print(" ".repeat(options.end - options.start), {
@@ -81,20 +81,20 @@ export function clearLine(line: number, options?: {
   clearCurrentLine();
 }
 
-export function hideCursor() {
+export function hideCursor(): void {
   console.log("\x1B[?25l");
 }
 
-export function showCursor() {
+export function showCursor(): void {
   console.log("\x1B[?25h");
 }
-export function clearLines(start: number, end: number) {
+export function clearLines(start: number, end: number): void {
   for (let i = start; i <= end; i++) {
     clearLine(i);
   }
 }
 
-export function clear() {
+export function clear(): void {
   goToTop();
   clearScreen();
 }
