@@ -702,9 +702,10 @@ export class InSpatialDB {
    */
   async makeColumnUnique(tableName: string, columnName: string): Promise<void> {
     tableName = this.#toSnake(tableName);
-    columnName = this.#formatColumnName(columnName);
+    columnName = this.#toSnake(columnName);
+    const formattedColumn = this.#formatColumnName(columnName);
     const query =
-      `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${columnName})`;
+      `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${formattedColumn})`;
     await this.query(query);
   }
   /**
@@ -715,7 +716,7 @@ export class InSpatialDB {
     columnName: string,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
-    columnName = this.#formatColumnName(columnName);
+    columnName = this.#toSnake(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
     await this.query(query);
@@ -850,7 +851,12 @@ export class InSpatialDB {
     const result = await this.query<
       TableConstraint
     >(query);
-    return result.rows;
+    return result.rows.map((row) => {
+      return {
+        ...row,
+        columnName: this.#snakeToCamel(row.columnName),
+      };
+    });
   }
   #makeOrFilter(
     filters: DBFilter,
@@ -1010,7 +1016,7 @@ export class InSpatialDB {
    * Convert a camelCase string to snake_case
    */
   #toSnake(value: string): string {
-    return camelToSnakeCase(value);
+    return convertString(value, "snake", true);
   }
   /**
    * Convert a snake_case string to camelCase

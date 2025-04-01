@@ -14,7 +14,7 @@ export class ColorMe {
   };
   private _contentArray: string[] = [];
   private currentContentIndex = -1;
-  constructor(options?: {
+  private constructor(options?: {
     mode: "chain" | "standard";
     colorMode: "rgb" | "256" | "basic";
   }) {
@@ -45,6 +45,7 @@ export class ColorMe {
       colorMode: colorMode || "basic",
     });
   }
+
   content(content: string): ColorMe {
     if (this.currentContentIndex >= 0) {
       this._contentArray[this.currentContentIndex] = this.format();
