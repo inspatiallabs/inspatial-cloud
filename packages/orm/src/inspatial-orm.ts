@@ -257,8 +257,11 @@ export class InSpatialORM {
   /**
    * Gets an instance of a new entry with default values set. This is not saved to the database.
    */
-  getNewEntry<E extends string>(entryType: E, user?: any): Entry {
-    const entry = this.#getEntryInstance(entryType, user);
+  getNewEntry<E extends EntryBase = GenericEntry>(
+    entryType: string,
+    user?: any,
+  ): E {
+    const entry = this.#getEntryInstance(entryType, user) as E;
     entry.create();
     return entry;
   }

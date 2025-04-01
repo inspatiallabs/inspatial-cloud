@@ -22,7 +22,6 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
     }
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
-      console.log("No easyConfig.json found");
       return undefined;
     }
     throw e;
@@ -32,7 +31,9 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
 /**
  * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
  */
-export async function generateServeConfigFile(server: InSpatialServer) {
+export async function generateServeConfigFile(
+  server: InSpatialServer,
+): Promise<void> {
   const filePath = joinPath(Deno.cwd(), "serve-config_generated.json");
   const masterConfig = new Map<string, any>();
   const mapConfig = (configDef: ConfigDefinition) => {
@@ -68,4 +69,9 @@ export async function generateServeConfigFile(server: InSpatialServer) {
   const config = Object.fromEntries(masterConfig);
   const file = JSON.stringify(config, null, 2);
   await Deno.writeTextFile(filePath, file);
+}
+
+async function generateConfigSchema(
+  server: InSpatialServer,
+): Promise<void> {
 }

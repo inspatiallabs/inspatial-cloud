@@ -11,6 +11,7 @@ import { EntryMigrationPlan } from "#/migrate/entry-type/entry-migration-plan.ts
 import type { FieldDefMap } from "#/field/field-def-types.ts";
 import type { ColumnCreatePlan, ColumnMigrationPlan } from "#/migrate/types.ts";
 import { compareDataTypes, compareNullable } from "#/migrate/migrate-utils.ts";
+import { convertString } from "../../../../serve/src/utils/mod.ts";
 
 export class EntryTypeMigrator {
   entryType: EntryType;

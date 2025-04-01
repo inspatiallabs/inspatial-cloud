@@ -4,6 +4,10 @@ import { ColorMe } from "@inspatial/serve/utils";
 
 async function checkForUser(app: InSpatialCloud) {
   const { orm } = app;
+  const hasUserTable = await orm.db.tableExists("entry_user");
+  if (!hasUserTable) {
+    await orm.migrate();
+  }
   const userCount = await orm.count("user");
   const subject = "System Admin User";
   if (userCount === 0) {
@@ -13,12 +17,16 @@ async function checkForUser(app: InSpatialCloud) {
     );
 
     const { firstName, lastName, email, password } = promptForUser();
-    const user = await orm.createEntry("user", {
+
+    const user = orm.getNewEntry("user");
+    user.update({
       firstName,
       lastName,
       email,
-      systemAdmin: true,
     });
+
+    user.systemAdmin = true;
+    await user.save();
     await user.runAction("setPassword", { password });
     cloudLogger.info("Admin user created successfully.");
     prompt("Press any key to continue...");
