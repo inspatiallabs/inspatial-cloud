@@ -3,7 +3,6 @@ import type { BaseTypeConfig, BaseTypeInfo } from "#/shared/shared-types.ts";
 import type { ORMFieldType } from "#/field/types.ts";
 import type { SettingsBase } from "#/settings/settings-base.ts";
 import type { InSpatialORM } from "#/inspatial-orm.ts";
-import type { ActionParamProp } from "#/entry/types.ts";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -53,5 +52,5 @@ export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
         data: Record<string, any>;
       },
   ): Promise<any | void> | any | void;
-  params: Array<ActionParamProp>;
+  params: Array<ORMFieldDef>;
 };

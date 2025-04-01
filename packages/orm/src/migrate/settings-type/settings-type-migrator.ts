@@ -3,7 +3,7 @@ import { SettingsMigrationPlan } from "#/migrate/settings-type/settings-migratio
 import type { InSpatialORM } from "#/inspatial-orm.ts";
 import type { InSpatialDB } from "#db";
 import type { SettingsRow } from "#/settings/types.ts";
-import type { ORMFieldType } from "#/field/types.ts";
+import { dateUtils } from "@inspatial/serve/utils";
 
 export class SettingsTypeMigrator {
   orm: InSpatialORM;
@@ -12,8 +12,8 @@ export class SettingsTypeMigrator {
   settingsType: SettingsType;
   migrationPlan: SettingsMigrationPlan;
 
-  existingFields: Map<string, SettingsRow>;
-  targetFields: Map<string, SettingsRow>;
+  existingFields: Map<string, Omit<SettingsRow, "updatedAt">>;
+  targetFields: Map<string, Omit<SettingsRow, "updatedAt">>;
 
   log: (message: string) => void;
   constructor(
@@ -43,7 +43,7 @@ export class SettingsTypeMigrator {
     return this.migrationPlan;
   }
 
-  async migrate() {}
+  async migrate(): Promise<void> {}
 
   async #loadExistingFields(): Promise<void> {
     const hasTable = await this.db.tableExists("inSettings");

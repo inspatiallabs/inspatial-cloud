@@ -16,4 +16,18 @@ export const serveEnvConfig: ConfigDefinition = {
     type: "boolean",
     env: "LOG_TRACE",
   },
+  hostName: {
+    description: "The hostname for the server",
+    required: false,
+    default: "0.0.0.0",
+    type: "string",
+    env: "SERVE_HOSTNAME",
+  },
+  port: {
+    description: "The port for the server",
+    required: false,
+    default: 8000,
+    type: "number",
+    env: "SERVE_PORT",
+  },
 };

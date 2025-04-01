@@ -5,9 +5,9 @@ export class SettingsMigrationPlan {
   settingsType: string;
 
   fields: {
-    create: Array<SettingsRow>;
-    drop: Array<SettingsRow>;
-    modify: Array<SettingsRow>;
+    create: Array<Omit<SettingsRow, "updatedAt">>;
+    drop: Array<Omit<SettingsRow, "updatedAt">>;
+    modify: Array<Omit<SettingsRow, "updatedAt">>;
   };
 
   constructor(settingsType: string) {

@@ -9,15 +9,24 @@ export const authMiddleware: ServerMiddleware = {
       return;
     }
     const sessionId = inRequest.context.get("userSession");
+
     const authHandler = server.getCustomProperty<AuthHandler>("auth");
 
-    const sessionData = await authHandler.loadUserSession(sessionId);
+    let sessionData = await authHandler.loadUserSession(sessionId);
+    if (!sessionData) {
+      const authToken = inRequest.context.get("authToken");
+      sessionData = await authHandler.loadSessionFromToken(authToken);
+    }
     if (sessionData) {
       inRequest.context.update("user", sessionData);
       return;
     }
 
     let isAllowed = false;
+    isAllowed = server.getExtensionConfigValue("auth", "allowAll");
+    if (isAllowed) {
+      return;
+    }
     const path = inRequest.path;
     isAllowed = authHandler.isPathAllowed(path);
 

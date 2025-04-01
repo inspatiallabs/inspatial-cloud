@@ -4,7 +4,11 @@ import ColorMe, {
 } from "#/utils/color-me.ts";
 
 export function getConsoleWidth(): number {
-  return Deno.consoleSize().columns;
+  try {
+    return Deno.consoleSize().columns;
+  } catch (_e) {
+    return 80;
+  }
 }
 export function getCharCount(content: string): number {
   const bytes = new TextEncoder().encode(content);

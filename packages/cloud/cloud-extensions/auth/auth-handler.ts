@@ -60,6 +60,34 @@ export class AuthHandler {
     }
     return false;
   }
+
+  async loadSessionFromToken(
+    authToken: string | null | undefined,
+  ): Promise<SessionData | null> {
+    if (!authToken) {
+      return null;
+    }
+    let sessionData: SessionData = this.#app.inCache.getValue(
+      "authToken",
+      authToken,
+    );
+    if (!sessionData) {
+      const user = await this.#app.orm.findEntry<User>("user", {
+        apiToken: authToken,
+      });
+      if (user) {
+        sessionData = {
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          systemAdmin: user.systemAdmin ?? false,
+          userId: user.id as string,
+        };
+        this.#app.inCache.setValue("authToken", authToken, sessionData);
+      }
+    }
+    return sessionData || null;
+  }
   async loadUserSession(
     sessionId: string | null | undefined,
   ): Promise<SessionData | null> {
