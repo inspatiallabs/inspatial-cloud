@@ -1,0 +1,15 @@
+import type { ORMFieldDef } from "#orm/types";
+
+export const googleFields: Array<ORMFieldDef> = [{
+  key: "googleClientId",
+  type: "TextField",
+  label: "Google Client ID",
+  description: "The client ID for Google authentication.",
+  defaultValue: "",
+}, {
+  key: "googleClientSecret",
+  type: "PasswordField",
+  label: "Google Client Secret",
+  description: "The client secret for Google authentication.",
+  defaultValue: "",
+}];
