@@ -2,26 +2,6 @@ import type { EntryBase } from "#orm/types";
 export interface User extends EntryBase {
   _name: "user";
   /**
-   * **User** (IDField)
-   * @type {string}
-   * @required true
-   */
-  id: string;
-  /**
-   * **Created At** (TimeStampField)
-   * @description The date and time this entry was created
-   * @type {number}
-   * @required true
-   */
-  createdAt: number;
-  /**
-   * **Updated At** (TimeStampField)
-   * @description The date and time this entry was last updated
-   * @type {number}
-   * @required true
-   */
-  updatedAt: number;
-  /**
    * **First Name** (DataField)
    * @description The user's first name
    * @type {string}
@@ -72,4 +52,59 @@ export interface User extends EntryBase {
    * @type {string}
    */
   apiToken?: string;
+  /**
+   * **Access Token** (PasswordField)
+   * @description The access token used to authenticate the user with Google.
+   * @type {string}
+   */
+  googleAccessToken?: string;
+  /**
+   * **Refresh Token** (PasswordField)
+   * @description The refresh token used to refresh the access token.
+   * @type {string}
+   */
+  googleRefreshToken?: string;
+  /**
+   * **Google Credential** (JSONField)
+   * @description The credential used to authenticate the user with Google.
+   * @type {Record<string, any>}
+   */
+  googleCredential?: Record<string, any>;
+  /**
+   * **Google ID** (TextField)
+   * @description The user's Google ID.
+   * @type {string}
+   */
+  googleId?: string;
+  /**
+   * **Google Picture** (URLField)
+   * @description The user's Google profile picture.
+   * @type {string}
+   */
+  googlePicture?: string;
+  /**
+   * **Google Auth Status** (ChoicesField)
+   * @type {'authenticated' | 'notAuthenticated'}
+   */
+  googleAuthStatus?: "authenticated" | "notAuthenticated";
+  /**
+   * **User** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
 }

@@ -408,8 +408,8 @@ export class InSpatialORM {
   /**
    * Gets the settings for a specific settings type.
    */
-  async getSettings<S extends string, T extends Settings = Settings>(
-    settingsType: S,
+  async getSettings<T extends SettingsBase = GenericSettings>(
+    settingsType: string,
     user?: any,
   ): Promise<T> {
     const settings = this.#getSettingsInstance(settingsType, user) as T;
@@ -419,8 +419,10 @@ export class InSpatialORM {
   /**
    * Updates the settings for a specific settings type.
    */
-  async updateSettings<S extends string, T extends Settings = Settings>(
-    settingsType: S,
+  async updateSettings<
+    T extends SettingsBase = GenericSettings,
+  >(
+    settingsType: string,
     data: Record<string, any>,
     user?: any,
   ): Promise<T> {

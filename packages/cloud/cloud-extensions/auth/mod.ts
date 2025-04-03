@@ -19,6 +19,7 @@ const authCloudExtension: CloudExtension = new CloudExtension({
       value: handler,
     });
     handler.allowPath("/api");
+    handler.allowAction("api", "ping");
     for (const group of app.actionGroups.values()) {
       for (const action of group.actions.values()) {
         if (action.includeInAPI && !action.authRequired) {

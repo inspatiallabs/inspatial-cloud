@@ -131,6 +131,7 @@ export class AuthHandler {
     // app.cacheSet("userSession", session.id, session.sessionData as any);
     inResponse.setCookie("userSession", session.sessionId);
     inRequest.context.update("user", sessionData);
+    inRequest.context.update("userSession", session.sessionId);
     this.#app.inCache.setValue(
       "userSession",
       session.sessionId,

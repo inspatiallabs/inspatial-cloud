@@ -213,7 +213,13 @@ export class InResponse {
    * @returns {Response} The response object
    */
   redirect(url: string): Response {
-    return Response.redirect(url, 302);
+    this.#setResponseCookie();
+    this.#headers.set("Location", url);
+    return new Response(null, {
+      headers: this.#headers,
+      status: 302,
+      statusText: "Redirect",
+    });
   }
 
   /**

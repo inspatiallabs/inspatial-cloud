@@ -1,7 +1,6 @@
-export interface SettingsBase {
-  _name: string;
+import type { Settings } from "#/settings/settings.ts";
 
-  save(): Promise<void>;
+export interface SettingsBase extends Settings<any> {
 }
 
 export interface GenericSettings extends SettingsBase {

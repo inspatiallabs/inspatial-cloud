@@ -1,10 +1,11 @@
 import { EntryType } from "#orm";
 import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
-import fields from "#extension/auth/entry-types/user/fields.ts";
 import setPassword from "#extension/auth/entry-types/user/actions/setPassword.ts";
 import validatePassword from "#extension/auth/entry-types/user/actions/validatePassword.ts";
 import generateApiToken from "#extension/auth/entry-types/user/actions/generate-api-token.ts";
 import generateResetToken from "#extension/auth/entry-types/user/actions/generate-reset-token.ts";
+import fields from "#extension/auth/entry-types/user/fields/fields.ts";
+import googleFields from "#extension/auth/entry-types/user/fields/google-fields.ts";
 
 const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
@@ -12,7 +13,10 @@ const userEntry = new EntryType<User>("user", {
   label: "User",
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
-  fields: fields,
+  fields: [
+    ...fields,
+    ...googleFields,
+  ],
   actions: [
     setPassword,
     validatePassword,

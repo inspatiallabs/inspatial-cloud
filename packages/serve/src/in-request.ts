@@ -22,6 +22,24 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
   host: string = "";
 
   /**
+   * The full host of the request URL.
+   * This is the domain part of the URL with the port and protocol.
+   *
+   * @example
+   * for `https://example.com:8080/api/v1/users?group=users`, the host is `https://example.com:8080`
+   */
+  fullHost: string = "";
+
+  /**
+   * The protocol of the request URL.
+   * This is the protocol part of the URL, usually `http:` or `https:`.
+   *
+   * @example
+   * for `https://example.com:8080/api/v1/users?group=users`, the protocol is `https:`
+   */
+  protocol: string = "";
+
+  /**
    * The headers received in the request.
    */
   readonly headers: Headers;
@@ -182,6 +200,8 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
     this.port = parseInt(url.port);
     this.host = url.hostname;
     this.params = url.searchParams;
+    this.protocol = url.protocol;
+    this.fullHost = `${url.protocol}//${url.host}`;
   }
 
   /**

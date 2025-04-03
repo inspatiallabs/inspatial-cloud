@@ -112,6 +112,9 @@ export class CloudAction<
             isEmpty = true;
             break;
           }
+          if (isEmpty) {
+            break;
+          }
           if (typeof value !== "string") {
             errors.push(`${key} must be a string`);
           }

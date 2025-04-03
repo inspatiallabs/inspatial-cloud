@@ -704,6 +704,9 @@ export class InSpatialServer<
         if (response instanceof InResponse) {
           return response.respond();
         }
+        if (response instanceof Response) {
+          return response;
+        }
         if (response) {
           inResponse.setContent(response);
         }
