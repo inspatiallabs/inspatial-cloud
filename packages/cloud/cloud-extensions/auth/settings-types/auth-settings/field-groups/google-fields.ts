@@ -12,4 +12,11 @@ export const googleFields: Array<ORMFieldDef> = [{
   label: "Google Client Secret",
   description: "The client secret for Google authentication.",
   defaultValue: "",
+}, {
+  key: "hostname",
+  type: "URLField",
+  label: "Hostname",
+  description:
+    "The hostname for the server used to construct the redirect URL.",
+  defaultValue: "https://localhost:8000",
 }];

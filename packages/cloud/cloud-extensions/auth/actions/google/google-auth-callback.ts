@@ -28,8 +28,9 @@ const googleAuthCallback = new CloudAction("googleAuthCallback", {
         "Google auth: Client ID or Client Secret not set in settings",
       );
     }
-    const redirectUri =
-      `${inRequest.fullHost}/api?group=auth&action=googleAuthCallback`;
+    const redirectUri = `${
+      authSettings.hostname || inRequest.fullHost
+    }/api?group=auth&action=googleAuthCallback`;
     const parsedState = JSON.parse(state);
     const { redirectTo, csrfToken, type } = parsedState;
     const googleAuth = new GoogleOAuth({
@@ -118,9 +119,6 @@ async function handleGoogleLogin(args: {
     inResponse,
   } = args;
   const authHandler = app.server.getCustomProperty<AuthHandler>("auth");
-  console.log({
-    idToken,
-  });
   if (!email || !emailVerified) {
     raiseServerException(401, "Google auth: Email not verified");
   }
@@ -147,6 +145,7 @@ async function handleGoogleLogin(args: {
     raiseServerException(401, "Google auth: Session not found");
   }
   const redirectUrl = new URL(redirectTo);
+  redirectUrl.searchParams.set("sessionId", sessionId);
   // redirectUrl.searchParams.set("sessionId", sessionId);
   return inResponse.redirect(redirectUrl.toString());
 }

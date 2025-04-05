@@ -51,6 +51,7 @@ export type ConfigEnv<
   description: string;
   required?: boolean;
   default?: ConfigEnvTypeMap[T];
+  enum?: ConfigEnvTypeMap[T][];
   type: T;
 };
 

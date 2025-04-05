@@ -6,6 +6,7 @@ export const serveEnvConfig: ConfigDefinition = {
     required: false,
     default: "info",
     type: "string",
+    enum: ["debug", "info", "warn", "error"],
     env: "LOG_LEVEL",
   },
   logTrace: {

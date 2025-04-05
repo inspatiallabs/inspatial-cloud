@@ -20,5 +20,10 @@ export interface AuthSettings extends SettingsBase {
    */
   googleClientSecret?: string;
 
-  
+  /**
+   * **Hostname** (URLField)
+   * @description The hostname for the server used to construct the redirect URL.
+   * @type {string}
+   */
+  hostname?: string;
 }

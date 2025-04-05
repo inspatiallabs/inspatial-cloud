@@ -7,6 +7,7 @@ import type { ServerMiddleware } from "#/extension/server-middleware.ts";
 import type { ExceptionHandler, ServeConfig } from "#/types.ts";
 import type { ConfigDefinition } from "#/types.ts";
 import {
+  generateConfigSchema,
   generateServeConfigFile,
   loadServeConfigFile,
 } from "#/serve-config/serve-config.ts";
@@ -351,8 +352,10 @@ export class InSpatialServer<
    * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
    */
   async generateConfigFile(): Promise<void> {
+    await generateConfigSchema(this);
     await generateServeConfigFile(this);
   }
+
   #setupExtensionConfig(
     extension: ServerExtension<string, any>,
   ): void {

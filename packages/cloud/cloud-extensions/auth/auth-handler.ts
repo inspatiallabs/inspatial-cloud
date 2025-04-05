@@ -113,7 +113,11 @@ export class AuthHandler {
     user: User,
     inRequest: InRequest,
     inResponse: InResponse,
-  ): Promise<SessionData> {
+  ): Promise<
+    SessionData & {
+      sessionId: string;
+    }
+  > {
     const sessionData: SessionData = {
       userId: user.id,
       email: user.email,
@@ -137,6 +141,9 @@ export class AuthHandler {
       session.sessionId,
       session.sessionData,
     );
-    return sessionData;
+    return {
+      ...sessionData,
+      sessionId: session.sessionId,
+    };
   }
 }

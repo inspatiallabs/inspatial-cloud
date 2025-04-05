@@ -23,8 +23,10 @@ const signInWithGoogle = new CloudAction("signInWithGoogle", {
         "Google auth: Client ID not set in settings",
       );
     }
-    const redirectUri =
-      `${inRequest.fullHost}/api?group=auth&action=googleAuthCallback`;
+
+    const redirectUri = `${
+      authSettings.hostname || inRequest.fullHost
+    }/api?group=auth&action=googleAuthCallback`;
 
     const url = new URL(
       "https://accounts.google.com/o/oauth2/v2/auth",

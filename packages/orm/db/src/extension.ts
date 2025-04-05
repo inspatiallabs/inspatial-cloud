@@ -9,6 +9,7 @@ export const dbExtension: ServerExtension<"db", InSpatialDB> =
       dbConnectionType: {
         description: "Type of the database connection ('tcp' or 'socket')",
         type: "string",
+        enum: ["tcp", "socket"],
         default: "tcp",
       },
       dbSocketPath: {
