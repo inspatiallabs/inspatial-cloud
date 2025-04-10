@@ -1,4 +1,4 @@
-import type { ORMFieldDef } from "../../../../../../orm/src/field/field-def-types.ts";
+import type { ORMFieldDef } from "#orm/types";
 
 export default [{
   key: "firstName",
@@ -23,7 +23,7 @@ export default [{
   key: "fullName",
   type: "DataField",
   label: "Full Name",
-  description: "The user's password used for login",
+  description: "The user's full name (automatically generated)",
   readOnly: true,
 }, {
   key: "password",

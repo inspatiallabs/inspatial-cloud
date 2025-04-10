@@ -4,7 +4,7 @@ export default new ORMField("DecimalField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "numeric",
     };
   },
   dbLoad(value, fieldDef) {

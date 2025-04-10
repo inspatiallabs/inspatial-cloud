@@ -42,7 +42,6 @@ export class GoogleOAuth {
       );
     }
     const data = await result.json();
-    console.log(data);
     const dataMap = new Map<string, any>();
     const expectedKeys = ["accessToken", "expiresIn", "tokenType"];
     const optionalKeys = ["refresh_token", "scope", "id_token"];
@@ -114,6 +113,35 @@ export class GoogleOAuth {
     const data = await result.json();
     return data as GoogleAccessTokenResponse;
   }
+  async getUserInfo(
+    accessToken: string,
+  ): Promise<GoogleUserInfo | void> {
+    const url = new URL(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+    );
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${accessToken}`);
+    const result = await fetch(url.toString(), {
+      method: "GET",
+      headers,
+    });
+    if (!result.ok) {
+      cloudLogger.error(
+        `Failed to get user info: ${result.status} ${result.statusText}`,
+      );
+      raiseServerException(
+        400,
+        "Google auth: Failed to get user info",
+      );
+    }
+    const data = await result.json();
+    const dataMap = new Map<string, any>();
+    Object.entries(data).forEach(([key, value]) => {
+      dataMap.set(convertString(key, "camel"), value);
+    });
+
+    return Object.fromEntries(dataMap) as GoogleUserInfo;
+  }
 }
 
 export interface GoogleAccessTokenResponse {
@@ -141,4 +169,14 @@ export interface GoogleIdToken {
   familyName: string;
   iat: number;
   exp: number;
+}
+
+export interface GoogleUserInfo {
+  familyName: string;
+  name: string;
+  picture: string;
+  email: string;
+  givenName: string;
+  id: string;
+  emailVerified: boolean;
 }

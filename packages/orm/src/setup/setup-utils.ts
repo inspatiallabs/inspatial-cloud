@@ -25,6 +25,9 @@ export function buildConnectionFields(
 
     entryOrSettingsType.connectionTitleFields.set(field.key, titleField);
   }
+  for (const titleField of entryOrSettingsType.connectionTitleFields.values()) {
+    entryOrSettingsType.fields.set(titleField.key, titleField);
+  }
 }
 
 export function validateConnectionFields(
@@ -69,7 +72,7 @@ function buildConnectionTitleField(
 
   const titleField = {
     ...entryTitleField,
-    key: `_${field.key}Title`,
+    key: `${field.key}#`,
     readOnly: true,
     label: `${field.label} Title`,
     fetchField: {

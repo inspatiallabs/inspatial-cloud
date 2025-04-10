@@ -80,12 +80,12 @@ export class PostgresClient {
     }
     return message;
   }
-  private async readResponseHeader() {
+  private async readResponseHeader(): Promise<void> {
     const buffer = new Uint8Array(5);
     await this.conn.read(buffer);
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     if (this.connected) {
       return;
     }
@@ -231,10 +231,10 @@ export class PostgresClient {
     this.#resolveReady();
   }
 
-  resetReady() {
+  resetReady(): void {
     this.#resolveReady();
   }
-  async terminate() {
+  async terminate(): Promise<void> {
     this.writer.reset();
     this.writer.setMessageType("X");
 
@@ -247,7 +247,7 @@ export class PostgresClient {
       message: "Unknown message type",
     });
   }
-  async reset() {
+  async reset(): Promise<void> {
     this.writer.reset();
     await this.reader.clearBuffer();
     this.conn.readable.cancel();
@@ -262,7 +262,7 @@ export class PostgresClient {
     await this.connect();
   }
 
-  private readError() {
+  private readError(): Record<string, any> {
     const errorFields: Record<string, any> = {};
     let offset = 0;
     while (this.reader.offset < this.reader.messageLength) {
@@ -283,7 +283,7 @@ export class PostgresClient {
     ];
     return errorFields;
   }
-  private readNotice() {
+  private readNotice(): Record<string, any> {
     const errorFields: Record<string, any> = {};
     let offset = 0;
     while (this.reader.offset < this.reader.messageLength) {

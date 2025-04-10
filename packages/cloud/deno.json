@@ -4,13 +4,12 @@
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
+    "./types": "./src/types.ts",
     "./client": "./client/mod.ts",
     "./extensions": "./cloud-extensions/mod.ts"
   },
   "publish": {
-    "exclude": [
-      ".github"
-    ]
+    "exclude": [".github"]
   },
   "imports": {
     "#/": "./src/",

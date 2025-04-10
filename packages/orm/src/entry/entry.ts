@@ -84,6 +84,7 @@ export class Entry<
   }
 
   async save(): Promise<void> {
+    await this.#refreshFetchedFields();
     this["updatedAt" as keyof this] = Date.now() as any;
     switch (this.#isNew) {
       case true:
@@ -137,6 +138,22 @@ export class Entry<
         continue;
       }
       this[key as keyof this] = value;
+    }
+  }
+
+  async #refreshFetchedFields(): Promise<void> {
+    for (const field of this._fields.values()) {
+      if (field.fetchField) {
+        const def = this._getFieldDef<"ConnectionField">(
+          field.fetchField.connectionField,
+        );
+        const value = await this._db.getValue(
+          `entry_${def.entryType}`,
+          this._data.get(def.key),
+          field.fetchField.fetchField,
+        );
+        (this as any)[field.key] = value;
+      }
     }
   }
   /* Lifecycle Hooks */

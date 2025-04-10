@@ -338,8 +338,10 @@ export class InSpatialORM {
     const tableName = entryTypeObj.config.tableName;
     let dbOptions: DBListOptions = {
       limit: 100,
-      columns: Array.from(entryTypeObj.defaultListFields),
+      columns: [],
     };
+    const dbColumns = new Set(entryTypeObj.defaultListFields);
+    const titleColumns = new Set();
     if (options?.columns && Array.isArray(options.columns)) {
       const columns: string[] = [];
       options.columns.forEach((column) => {
@@ -354,12 +356,27 @@ export class InSpatialORM {
             `Field with key ${column} is hidden in EntryType ${entryType}`,
           );
         }
+
         columns.push(column);
       });
       if (columns.length > 0) {
-        dbOptions.columns = columns;
+        dbColumns.clear();
+        for (const column of columns) {
+          dbColumns.add(column);
+        }
       }
     }
+    for (const item of dbColumns) {
+      const titleField = entryTypeObj.connectionTitleFields.get(item);
+      if (titleField) {
+        titleColumns.add(titleField.key);
+      }
+    }
+    dbOptions.columns = [
+      ...Array.from(dbColumns) as string[],
+      ...Array.from(titleColumns) as string[],
+    ];
+
     if (options) {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options };

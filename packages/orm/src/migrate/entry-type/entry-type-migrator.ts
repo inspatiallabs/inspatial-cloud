@@ -124,6 +124,13 @@ export class EntryTypeMigrator {
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);
       if (field.type === "ConnectionField") {
+        const titleField = this.entryType.connectionTitleFields.get(field.key);
+
+        if (titleField) {
+          const ormTitleField = this.orm._getFieldType(titleField.type);
+          const dbTitleColumn = ormTitleField.generateDbColumn(titleField);
+          this.targetColumns.set(titleField.key, dbTitleColumn);
+        }
         const connectionEntry = this.orm.getEntryType(field.entryType);
         this.targetConstraints.foreignKey.set(field.key, {
           columnName: field.key,

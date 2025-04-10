@@ -4,7 +4,7 @@ export default new ORMField("ListField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "jsonb",
     };
   },
   dbLoad(value, fieldDef) {

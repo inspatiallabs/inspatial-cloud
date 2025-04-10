@@ -107,7 +107,12 @@ export class AuthHandler {
         this.#app.inCache.setValue("userSession", sessionId, sessionData);
       }
     }
-    return sessionData || null;
+    return sessionData
+      ? {
+        ...sessionData,
+        sessionId,
+      }
+      : null;
   }
   async createUserSession(
     user: User,
@@ -134,12 +139,18 @@ export class AuthHandler {
     );
     // app.cacheSet("userSession", session.id, session.sessionData as any);
     inResponse.setCookie("userSession", session.sessionId);
-    inRequest.context.update("user", sessionData);
+    inRequest.context.update("user", {
+      ...sessionData,
+      sessionId: session.sessionId,
+    });
     inRequest.context.update("userSession", session.sessionId);
     this.#app.inCache.setValue(
       "userSession",
       session.sessionId,
-      session.sessionData,
+      {
+        ...sessionData,
+        sessionId: session.sessionId,
+      },
     );
     return {
       ...sessionData,

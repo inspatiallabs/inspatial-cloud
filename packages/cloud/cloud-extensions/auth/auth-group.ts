@@ -7,6 +7,7 @@ import setNewPassword from "#extension/auth/actions/set-new-password.ts";
 import registerUser from "#extension/auth/actions/register-user.ts";
 import signInWithGoogle from "#extension/auth/actions/google/login-google.ts";
 import googleAuthCallback from "#extension/auth/actions/google/google-auth-callback.ts";
+import googleTokenLogin from "#extension/auth/actions/google/google-token-login.ts";
 
 const authGroup = new CloudActionGroup("auth", {
   description: "Authentication actions",
@@ -20,6 +21,7 @@ const authGroup = new CloudActionGroup("auth", {
     registerUser,
     signInWithGoogle,
     googleAuthCallback,
+    googleTokenLogin,
   ],
 });
 

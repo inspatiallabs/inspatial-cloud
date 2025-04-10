@@ -1,5 +1,6 @@
 import type { ServerMiddleware } from "@inspatial/serve";
 import type { AuthHandler } from "#extension/auth/auth-handler.ts";
+import cloudLogger from "#/cloud-logger.ts";
 
 export const authMiddleware: ServerMiddleware = {
   name: "auth",
@@ -9,7 +10,6 @@ export const authMiddleware: ServerMiddleware = {
       return;
     }
     const sessionId = inRequest.context.get("userSession");
-
     const authHandler = server.getCustomProperty<AuthHandler>("auth");
 
     let sessionData = await authHandler.loadUserSession(sessionId);

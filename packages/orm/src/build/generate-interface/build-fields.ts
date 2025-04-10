@@ -16,32 +16,32 @@ export function buildFields(
         return `'${choice.key as string}'`;
       }).join(" | ") || "string";
     }
-    const titleField = [];
-    if (field.type === "ConnectionField") {
-      const connection = orm.getEntryType(field.entryType);
-      let valueType = "string";
-      switch (connection.config.idMode) {
-        case "auto":
-          valueType = "number";
-          break;
-        case "ulid":
-        case "uuid":
-          valueType = "string";
-          break;
-      }
-      fieldType = valueType;
+    // const titleField = [];
+    // if (field.type === "ConnectionField") {
+    //   const connection = orm.getEntryType(field.entryType);
+    //   let valueType = "string";
+    //   switch (connection.config.idMode) {
+    //     case "auto":
+    //       valueType = "number";
+    //       break;
+    //     case "ulid":
+    //     case "uuid":
+    //       valueType = "string";
+    //       break;
+    //   }
+    //   fieldType = valueType;
 
-      if (connection.config.titleField) {
-        const titleFieldDef = connection.fields.get(
-          connection.config.titleField,
-        )!;
-        titleField.push(
-          `_${field.key}Title${required ? "?" : ""}: ${
-            fieldTypeMap[titleFieldDef.type]
-          } `,
-        );
-      }
-    }
+    //   if (connection.config.titleField) {
+    //     const titleFieldDef = connection.fields.get(
+    //       connection.config.titleField,
+    //     )!;
+    //     titleField.push(
+    //       `_${field.key}Title${required ? "?" : ""}: ${
+    //         fieldTypeMap[titleFieldDef.type]
+    //       } `,
+    //     );
+    //   }
+    // }
     if (!fieldType) {
       raiseORMException(
         `Field type ${field.type} does not exist`,
@@ -66,12 +66,16 @@ export function buildFields(
       doc.push(` * @required ${required}`);
     }
     doc.push(` */`);
+    let key = field.key;
+    if (field.key.endsWith("#")) {
+      key = `"${field.key}"`;
+    }
     const row = [
-      `${field.key}${required ? "" : "?"}: ${fieldType};`,
+      `${key}${required ? "" : "?"}: ${fieldType};`,
     ];
 
     fields.push([...doc, ...row].join("\n"));
-    fields.push(...titleField);
+    // fields.push(...titleField);
   });
   return fields;
 }

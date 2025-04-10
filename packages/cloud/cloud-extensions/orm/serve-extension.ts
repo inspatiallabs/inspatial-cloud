@@ -17,7 +17,7 @@ export const ormServeExtension = new ServerExtension("orm", {
         const response: ExceptionHandlerResponse = {
           serverMessage: {
             content:
-              `${error.name}(${error.code}): ${error.message}\n\tQuery: ${error.query}`,
+              `${error.name}(${error.code}): ${error.message}\n\tQuery: ${error.query} \n\tDetail: ${error.detail}`,
             subject: "InSpatial ORM - Postgres Error",
             type: error.severity === "ERROR" ? "error" : "warning",
           },
@@ -35,6 +35,12 @@ export const ormServeExtension = new ServerExtension("orm", {
             } field does not exist in the database. You may need to run a migration`;
             response.status = 400;
             response.statusText = "Bad Request";
+            break;
+          case PGErrorCode.ForeignKeyViolation:
+            response.clientMessage = error.detail;
+            response.status = 400;
+            response.statusText = "Cannot Delete";
+            break;
         }
         return response;
       }

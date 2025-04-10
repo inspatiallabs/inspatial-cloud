@@ -4,7 +4,7 @@ export default new ORMField("BigIntField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "bigint",
     };
   },
   dbLoad(value, fieldDef) {

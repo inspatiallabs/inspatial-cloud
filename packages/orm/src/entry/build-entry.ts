@@ -19,6 +19,8 @@ export function buildEntry(entryType: EntryType): typeof Entry {
   const entryClass = class extends Entry<any> {
     override _fields: Map<string, ORMFieldDef> = entryType.fields;
     override _changeableFields = changeableFields;
+    override _titleFields: Map<string, ORMFieldDef> =
+      entryType.connectionTitleFields;
     override _actions: Map<string, EntryActionDefinition> = entryType.actions;
 
     constructor(orm: InSpatialORM) {

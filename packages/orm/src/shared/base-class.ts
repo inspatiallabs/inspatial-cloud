@@ -14,6 +14,7 @@ export class BaseClass<N extends string = string> {
   _data: Map<string, any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
   _fields: Map<string, ORMFieldDef> = new Map();
+  _titleFields: Map<string, ORMFieldDef> = new Map();
   _changeableFields: Map<string, ORMFieldDef> = new Map();
 
   readonly _user?: Record<string, any>;

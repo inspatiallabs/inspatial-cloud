@@ -4,7 +4,9 @@ export default new ORMField("CurrencyField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,
-      dataType: "text",
+      dataType: "numeric",
+      numericPrecision: 2,
+      numericScale: 2,
     };
   },
   dbLoad(value, fieldDef) {

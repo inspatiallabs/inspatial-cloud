@@ -13,12 +13,10 @@ import type {
 } from "#db/types.ts";
 import { PostgresClient } from "#db/postgres/pgClient.ts";
 
-import { camelToSnakeCase, toCamelCase } from "#db/utils.ts";
 import { ormLogger } from "#/logger.ts";
 import { convertString } from "@inspatial/serve/utils";
 import type { IDMode } from "#/field/types.ts";
 import type { IDValue } from "#/entry/types.ts";
-import { PgError } from "#db/postgres/pgError.ts";
 import { raiseORMException } from "#/orm-exception.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -431,7 +429,9 @@ export class InSpatialDB {
 
     if (options.limit) {
       const countResult = await this.query<{ count: number }>(countQuery);
-      totalCount = countResult.rows[0].count;
+      if (countResult.rowCount > 0) {
+        totalCount = countResult.rows[0].count;
+      }
     }
 
     return {
@@ -1005,10 +1005,14 @@ export class InSpatialDB {
    */
   #formatColumnName(column: string): string {
     column = this.#toSnake(column);
-    const reservedWords = ["order", "user"];
+    const reservedWords = ["order", "user", "group"];
     if (reservedWords.includes(column)) {
       return `"${column}"`;
     }
+    if (column.endsWith("#")) {
+      return `"${column}"`;
+    }
+
     return column;
   }
 
@@ -1022,7 +1026,7 @@ export class InSpatialDB {
    * Convert a snake_case string to camelCase
    */
   #snakeToCamel(value: string): string {
-    return toCamelCase(value);
+    return convertString(value, "camel");
   }
   /**
    * Format a value for use in a query

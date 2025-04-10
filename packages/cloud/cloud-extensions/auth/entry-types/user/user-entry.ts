@@ -33,6 +33,15 @@ const userEntry = new EntryType<User>("user", {
         user.fullName = `${user.firstName} ${user.lastName}`;
       },
     }],
+    beforeDelete: [{
+      name: "deleteUserSessions",
+      description: "Delete all user sessions",
+      async handler({ orm, user }) {
+        await orm.db.deleteRows("entryUserSession", {
+          user: user.id,
+        });
+      },
+    }],
   },
 });
 
