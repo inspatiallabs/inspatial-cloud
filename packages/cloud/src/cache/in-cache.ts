@@ -1,5 +1,3 @@
-import cloudLogger from "#/cloud-logger.ts";
-
 interface CacheMessageBase {
   type: "setValue" | "deleteValue" | "clearNamespace" | "clearAll";
 }
@@ -46,7 +44,7 @@ export class InCache {
     return cache.get(key);
   }
 
-  setValue(namespace: string, key: string, value: any): void {
+  setValue(namespace: string, key: string, value: unknown): void {
     this.#setValue(namespace, key, value);
     this.#broadcast({
       type: "setValue",

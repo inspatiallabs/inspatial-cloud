@@ -16,7 +16,6 @@ const googleTokenLogin = new CloudAction("googleTokenLogin", {
       clientSecret: authSettings.googleClientSecret,
     });
     const userInfo = await googleAuth.getUserInfo(accessToken);
-    cloudLogger.info(userInfo);
     if (!userInfo) {
       raiseServerException(
         403,
@@ -51,7 +50,6 @@ const googleTokenLogin = new CloudAction("googleTokenLogin", {
       inRequest,
       inResponse,
     );
-    cloudLogger.info({ sessionData });
     return sessionData;
   },
   params: [{

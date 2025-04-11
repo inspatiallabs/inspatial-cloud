@@ -31,7 +31,7 @@ export class ServeFileLogger {
     this.validateLogPath();
   }
 
-  private validateLogPath() {
+  private validateLogPath(): void {
     Deno.mkdirSync(this.logPath, { recursive: true });
   }
 
@@ -39,7 +39,7 @@ export class ServeFileLogger {
     content: string;
     type: LogType;
     subject: string;
-  }) {
+  }): void {
     const { content, type, subject } = options;
     const time = new Date().toISOString();
     const logPath = `${this.logPath}/${type}.log`;
@@ -49,14 +49,14 @@ export class ServeFileLogger {
     Deno.writeTextFileSync(logPath, logEntry + "\n", { append: true });
   }
 
-  private sanitize(str: string) {
+  private sanitize(str: string): string {
     return str.replace(/[^a-zA-Z0-9\s]/g, "");
   }
   log(options: {
     content: any | any[];
     type: LogType;
     subject: string;
-  }) {
+  }): void {
     if (typeof options.content !== "string") {
       options.content = String(options.content);
     }
@@ -150,7 +150,7 @@ export class ServeLogger {
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
-  ) {
+  ): void {
     if (this.#logLevel && this.#logLevel !== "debug") {
       return;
     }
@@ -180,7 +180,7 @@ export class ServeLogger {
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
-  ) {
+  ): void {
     if (
       this.#logLevel &&
       (this.#logLevel !== "info" && this.#logLevel !== "debug")
@@ -213,7 +213,7 @@ export class ServeLogger {
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
-  ) {
+  ): void {
     this.#log("warning", content, subjectOrOptions, options);
   }
 
@@ -240,7 +240,7 @@ export class ServeLogger {
     content: any | any[],
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
-  ) {
+  ): void {
     this.#log("error", content, subjectOrOptions, options);
   }
 
@@ -321,6 +321,7 @@ export class ServeLogger {
       titleRow,
     ];
     lines.push(" ");
+
     if (type == "error" || this.#logTrace) {
       lines.push(frame);
       lines.push(" ");
@@ -356,6 +357,7 @@ export class ServeLogger {
 }
 
 export const serveLogger = new ServeLogger({
+  name: "InSpatial Serve",
   consoleDefaultStyle: "full",
   traceOffset: 1,
 });

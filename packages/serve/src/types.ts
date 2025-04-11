@@ -29,6 +29,10 @@ export interface ServeConfig<
   port?: number;
 
   /**
+   * The mode to run the server in.
+   */
+  mode?: "development" | "production";
+  /**
    * The server extensions to install.
    */
   extensions: EL extends Array<ServerExtension<infer N, infer R>>

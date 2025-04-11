@@ -1,6 +1,5 @@
 import type { ServerMiddleware } from "@inspatial/serve";
 import type { AuthHandler } from "#extension/auth/auth-handler.ts";
-import cloudLogger from "#/cloud-logger.ts";
 
 export const authMiddleware: ServerMiddleware = {
   name: "auth",

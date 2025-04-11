@@ -10,6 +10,22 @@ export const ormServeExtension = new ServerExtension("orm", {
   description: "ORM Extension",
   install(_app): void {
   },
+  config: {
+    autoTypes: {
+      description:
+        "Automatically generate the ORM interfaces and types when the server starts and `SERVE_MODE` is set to `development`",
+      required: false,
+      type: "boolean",
+      default: true,
+    },
+    autoMigrate: {
+      description:
+        "Automatically run the migrations when the server starts and `SERVE_MODE` is set to `development`",
+      required: false,
+      type: "boolean",
+      default: true,
+    },
+  },
   exceptionHandlers: [{
     name: "orm",
     handler(error): ExceptionHandlerResponse | undefined {

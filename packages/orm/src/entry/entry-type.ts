@@ -46,6 +46,7 @@ export class EntryType<
     fields: Array<ORMFieldDef>;
     actions: A;
     hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
+    roles?: Array<unknown>;
   }) {
     super(name, config);
     this.fields.set("id", {

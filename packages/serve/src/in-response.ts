@@ -1,6 +1,46 @@
 import type { HandlerResponse } from "#/extension/path-handler.ts";
 import { serveLogger } from "#/logger/serve-logger.ts";
+interface CookieOptions {
+  maxAge?: number;
+  path?: string;
+  domain?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: "Strict" | "Lax" | "None";
+}
+class Cookie {
+  key: string;
+  value: string;
+  options: CookieOptions;
+  constructor(key: string, value: string | number, options?: CookieOptions) {
+    this.key = key;
+    this.value = String(value);
+    this.options = options || {};
+  }
 
+  toString(): string {
+    let cookieString = `${this.key}=${this.value}`;
+    if (this.options.maxAge) {
+      cookieString += `; Max-Age=${this.options.maxAge}`;
+    }
+    if (this.options.path) {
+      cookieString += `; Path=${this.options.path}`;
+    }
+    if (this.options.domain) {
+      cookieString += `; Domain=${this.options.domain}`;
+    }
+    if (this.options.secure) {
+      cookieString += "; Secure";
+    }
+    if (this.options.httpOnly) {
+      cookieString += "; HttpOnly";
+    }
+    if (this.options.sameSite) {
+      cookieString += `; SameSite=${this.options.sameSite}`;
+    }
+    return cookieString;
+  }
+}
 /**
  * A class which simplifies creating responses to client requests.
  */
@@ -12,7 +52,7 @@ export class InResponse {
   /**
    * A map of cookies to set in the response.
    */
-  #cookies: Map<string, string> = new Map();
+  #cookies: Map<string, Cookie | null> = new Map();
 
   /**
    * The headers for the response.
@@ -27,6 +67,12 @@ export class InResponse {
    * The error status text for the response.
    */
   #errorStatusText?: string;
+
+  cookieDefaults: CookieOptions = {
+    sameSite: "None",
+    secure: true,
+    httpOnly: true,
+  };
 
   /**
    * Sets the error status code for the response.
@@ -78,7 +124,7 @@ export class InResponse {
    * Sets the `Access-Control-Allow-Origin` header to the provided origin.
    * @param origin - The origin to allow
    */
-  setAllowOrigin(origin: string) {
+  setAllowOrigin(origin: string): void {
     this.#headers.set("Access-Control-Allow-Origin", origin);
   }
   /**
@@ -86,16 +132,30 @@ export class InResponse {
    * @param key - The key of the cookie to set
    * @param value - The value of the cookie to set
    */
-  setCookie(key: string, value: string) {
-    this.#cookies.set(key, value);
+  setCookie(key: string, value: string, options?: CookieOptions): void {
+    this.#cookies.set(
+      key,
+      new Cookie(key, value, {
+        ...this.cookieDefaults,
+        ...options,
+      }),
+    );
   }
   /**
    * Sets multiple cookies from the provided object.
    * @param cookies - A record of key-value pairs to set as cookies
    */
-  setCookies(cookies: Record<string, string>) {
+  setCookies(
+    cookies: Record<string, { value: string; options?: CookieOptions }>,
+  ): void {
     for (const [key, value] of Object.entries(cookies)) {
-      this.#cookies.set(key, value);
+      this.#cookies.set(
+        key,
+        new Cookie(key, value.value, {
+          ...this.cookieDefaults,
+          ...value.options,
+        }),
+      );
     }
   }
 
@@ -103,8 +163,8 @@ export class InResponse {
    * Clears the cookie with the provided key.
    * @param key - The key of the cookie to clear
    */
-  clearCookie(key: string) {
-    this.#cookies.set(key, "");
+  clearCookie(key: string): void {
+    this.#cookies.set(key, null);
   }
 
   /**
@@ -163,14 +223,22 @@ export class InResponse {
    */
   #setResponseCookie(): void {
     const cookieStrings = [];
-    for (const [key, value] of this.#cookies) {
-      let cookie = `${key}=${value}`;
-      if (value === "") {
-        cookie += "; Max-Age=0";
-      }
-      cookieStrings.push(cookie);
+    if (this.#cookies.size === 0) {
+      return;
     }
-    this.#headers.set("Set-Cookie", cookieStrings.join("; "));
+    for (const [key, value] of this.#cookies) {
+      if (value === null) {
+        const cookie = new Cookie(key, "", {
+          maxAge: 0,
+        });
+        cookieStrings.push(cookie.toString());
+        continue;
+      }
+      cookieStrings.push(value.toString());
+    }
+    const fullCookie = cookieStrings.join("; ");
+    serveLogger.debug(fullCookie);
+    this.#headers.set("Set-Cookie", fullCookie);
   }
 
   /**
@@ -179,7 +247,7 @@ export class InResponse {
    * @param {number} statusCode - The status code to set for the response
    * @param {string} statusText - The status text to set for the response
    */
-  setErrorStatus(statusCode: number, statusText?: string) {
+  setErrorStatus(statusCode: number, statusText?: string): void {
     this.#errorStatus = statusCode;
     this.#errorStatusText = statusText;
   }
@@ -242,10 +310,10 @@ export class InResponse {
   }
 }
 
-export function assertResponse(response: any): response is Response {
+export function assertResponse(response: unknown): response is Response {
   return response instanceof Response;
 }
 
-export function assertInResponse(response: any): response is InResponse {
+export function assertInResponse(response: unknown): response is InResponse {
   return response instanceof InResponse;
 }

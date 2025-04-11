@@ -12,7 +12,7 @@ import corsExtension from "@inspatial/serve/cors";
 import realtimeExtension, {
   type RealtimeHandler,
 } from "@inspatial/serve/realtime";
-import type { CloudAction, CloudActionGroup } from "#/cloud-action.ts";
+import type { CloudActionGroup } from "#/cloud-action.ts";
 import { InRequest } from "@inspatial/serve";
 import type { AppEntryHooks, ReturnActionMap, RunActionMap } from "#/types.ts";
 

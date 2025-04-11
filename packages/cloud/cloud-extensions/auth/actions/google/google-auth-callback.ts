@@ -4,7 +4,7 @@ import {
   type GoogleIdToken,
   GoogleOAuth,
 } from "#extension/auth/providers/google/accessToken.ts";
-import { AuthSettings } from "#extension/auth/generated-interfaces/settings/auth-settings.ts";
+import type { AuthSettings } from "#extension/auth/generated-interfaces/settings/auth-settings.ts";
 import {
   type InRequest,
   type InResponse,
@@ -12,7 +12,7 @@ import {
 } from "@inspatial/serve";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { AuthHandler } from "#extension/auth/auth-handler.ts";
-import { User } from "#extension/auth/entry-types/generated-types/user.ts";
+import type { User } from "#extension/auth/entry-types/generated-types/user.ts";
 
 const googleAuthCallback = new CloudAction("googleAuthCallback", {
   authRequired: false,
@@ -145,7 +145,6 @@ async function handleGoogleLogin(args: {
     raiseServerException(401, "Google auth: Session not found");
   }
   const redirectUrl = new URL(redirectTo);
-  redirectUrl.searchParams.set("sessionId", sessionId);
   // redirectUrl.searchParams.set("sessionId", sessionId);
   return inResponse.redirect(redirectUrl.toString());
 }

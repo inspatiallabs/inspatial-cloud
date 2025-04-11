@@ -3,12 +3,7 @@ import cloudLogger from "#/cloud-logger.ts";
 import { ColorMe } from "@inspatial/serve/utils";
 
 async function checkForUser(app: InSpatialCloud) {
-  // return;
   const { orm } = app;
-  const hasUserTable = await orm.db.tableExists("entry_user");
-  if (!hasUserTable) {
-    await orm.migrate();
-  }
   const userCount = await orm.count("user");
   const subject = "System Admin User";
   if (userCount === 0) {

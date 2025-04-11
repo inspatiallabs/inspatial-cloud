@@ -2,9 +2,10 @@ import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { InRequest, InResponse } from "@inspatial/serve";
 import type { ActionParamProp } from "@inspatial/serve/actions-api";
 import type { CloudAction } from "#/cloud-action.ts";
-import type { CloudExtension } from "../mod.ts";
-import type { EntryHookName } from "../../orm/src/types.ts";
+
 import type { Entry, InSpatialORM } from "#orm";
+import type { CloudExtension } from "#/cloud-extension.ts";
+import type { EntryHookName } from "#orm/types";
 
 type AppActionConfig<
   K extends string,

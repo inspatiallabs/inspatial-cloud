@@ -132,10 +132,13 @@ export class InSpatialServer<
   #config: ServeConfig = {
     hostname: undefined,
     port: undefined,
+    mode: "production",
     extensions: [],
   };
   #installedExtensions: Set<any> = new Set();
-
+  get mode(): "development" | "production" {
+    return this.#config.mode || "production";
+  }
   /**
    * The installed extensions that have been added to the server.
    */
@@ -231,6 +234,27 @@ export class InSpatialServer<
     }
     if (Deno.env.has("SERVE_HOSTNAME")) {
       this.#config.hostname = Deno.env.get("SERVE_HOSTNAME");
+      const mode = Deno.env.get("SERVE_MODE");
+      switch (mode) {
+        case "development":
+        case "production":
+          this.#config.mode = mode;
+          break;
+      }
+    }
+
+    if (this.mode === "development") {
+      const autoConfig = Deno.env.get("SERVE_AUTO_CONFIG");
+      switch (autoConfig) {
+        case "true":
+        case "1":
+        case "yes":
+          serveLogger.info(
+            "Auto generating serve config schema file",
+          );
+          this.generateConfigFile();
+          break;
+      }
     }
     this.fetch.bind(this);
   }

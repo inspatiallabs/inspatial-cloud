@@ -1,6 +1,15 @@
 import type { ConfigDefinition } from "#/types.ts";
 
 export const serveEnvConfig: ConfigDefinition = {
+  mode: {
+    description:
+      "Specify if the server is running in development or production mode",
+    required: false,
+    type: "string",
+    default: "production",
+    enum: ["development", "production"],
+    env: "SERVE_MODE",
+  },
   logLevel: {
     description: "The log level for the server",
     required: false,
@@ -30,5 +39,13 @@ export const serveEnvConfig: ConfigDefinition = {
     default: 8000,
     type: "number",
     env: "SERVE_PORT",
+  },
+  autoConfig: {
+    description:
+      "Whether to automatically generate the serve config schema when the server starts in development mode",
+    required: false,
+    default: true,
+    type: "boolean",
+    env: "SERVE_AUTO_CONFIG",
   },
 };

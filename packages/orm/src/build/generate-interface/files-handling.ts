@@ -1,6 +1,8 @@
 export async function formatInterfaceFile(filePath: string): Promise<boolean> {
   const process = new Deno.Command(Deno.execPath(), {
     args: ["fmt", filePath],
+    stdout: "piped",
+    stderr: "piped",
   }).spawn();
   const status = await process.status;
   return status.success;
