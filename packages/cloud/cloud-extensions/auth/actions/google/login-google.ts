@@ -6,7 +6,7 @@ import { generateId } from "@inspatial/serve/utils";
 const signInWithGoogle = new CloudAction("signInWithGoogle", {
   authRequired: false,
   description: "Redirect to Google OAuth2 login page",
-  async run({ app, inRequest, inResponse, params }) {
+  async run({ app, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,

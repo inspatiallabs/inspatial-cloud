@@ -86,6 +86,7 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   tableName: string;
   titleField?: string;
   idMode: IDMode;
+  searchFields?: Array<any>;
 }
 
 export type IDValue = string | number;

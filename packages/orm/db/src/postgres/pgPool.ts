@@ -70,7 +70,7 @@ export class PostgresPool {
     }
   }
 
-  async initialized() {
+  async initialized(): Promise<void> {
     if (this.lazy) {
       return;
     }
@@ -78,7 +78,7 @@ export class PostgresPool {
       await client.connect();
     }
   }
-  private async getClient() {
+  private async getClient(): Promise<PostgresPoolClient> {
     let client: PostgresPoolClient | undefined;
     const start = Date.now();
     while (!client) {
@@ -98,10 +98,10 @@ export class PostgresPool {
     return client;
   }
 
-  private returnClient(client: PostgresPoolClient) {
+  private returnClient(client: PostgresPoolClient): void {
     client.locked = false;
   }
-  private replaceClient(client: PostgresPoolClient) {
+  private replaceClient(client: PostgresPoolClient): void {
     client.client = new PostgresClient(this.clientConfig);
   }
   async query<T extends Record<string, any>>(

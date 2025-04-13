@@ -145,7 +145,6 @@ export class InSpatialCloud<
       this.server = new InSpatialServer({
         extensions,
       });
-
       this.orm = new InSpatialORM({
         db: this.db,
         entries: appEntries,
@@ -260,6 +259,7 @@ export class InSpatialCloud<
     await this.server.generateConfigFile();
   }
   private async boot(): Promise<void> {
+    await this.db.init();
     for (const appExtension of this.#appExtensions.values()) {
       await appExtension.boot(this);
     }

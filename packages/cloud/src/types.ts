@@ -68,3 +68,5 @@ export interface CloudExtensionInfo {
   description: string;
   version: string;
 }
+
+export * from "#extension/auth/types.ts";

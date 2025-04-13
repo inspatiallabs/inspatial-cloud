@@ -9,7 +9,6 @@ const googleTokenLogin = new CloudAction("googleTokenLogin", {
   authRequired: false,
   async run({ app, inRequest, inResponse, params }) {
     const { accessToken } = params;
-    cloudLogger.info({ accessToken });
     const authSettings = await app.orm.getSettings("authSettings");
     const googleAuth = new GoogleOAuth({
       clientId: authSettings.googleClientId,

@@ -21,7 +21,6 @@ import {
 import { AUTH } from "#db/postgres/pgAuth.ts";
 import { ScramClient } from "#db/postgres/scram.ts";
 import { toCamelCase } from "#db/utils.ts";
-import type { ormLogger } from "#/logger.ts";
 
 export class PostgresClient {
   private conn!: Deno.Conn;
@@ -38,18 +37,11 @@ export class PostgresClient {
   serverStatus: ServerStatus;
   private status: "connected" | "notConnected" = "notConnected";
 
-  ready: Promise<void>;
-
-  #resolveReady: () => void = () => {};
-
   get connected(): boolean {
     return this.status === "connected";
   }
 
   constructor(options: PgClientConfig) {
-    this.ready = new Promise((resolve) => {
-      this.#resolveReady = resolve;
-    });
     if (!options.options) {
       options.options = {};
     }
@@ -227,13 +219,8 @@ export class PostgresClient {
         }
       }
     }
-
-    this.#resolveReady();
   }
 
-  resetReady(): void {
-    this.#resolveReady();
-  }
   async terminate(): Promise<void> {
     this.writer.reset();
     this.writer.setMessageType("X");
@@ -254,10 +241,6 @@ export class PostgresClient {
     this.conn.writable.close();
 
     this.status = "notConnected";
-
-    this.ready = new Promise((resolve) => {
-      this.#resolveReady = resolve;
-    });
 
     await this.connect();
   }
@@ -332,6 +315,7 @@ export class PostgresClient {
 
     return columns;
   }
+
   async query<T extends Record<string, any>>(
     query: string,
   ): Promise<QueryResponse<T>> {

@@ -53,8 +53,11 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
   }
 
   generateDbColumn(fieldDef: FieldDefMap[T]): PgColumnDefinition {
-    const dbColumn = this.#dbColumn(fieldDef);
-    dbColumn.isNullable = fieldDef.required ? "NO" : "YES";
+    const dbColumn: PgColumnDefinition = {
+      isNullable: fieldDef.required ? "NO" : "YES",
+      columnDefault: fieldDef.defaultValue,
+      ...this.#dbColumn(fieldDef),
+    };
     if (fieldDef.unique) {
       dbColumn.unique = true;
     }

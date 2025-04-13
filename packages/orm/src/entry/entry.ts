@@ -178,6 +178,14 @@ export class Entry<
     await this._orm._runGlobalHooks("validate", this);
   }
   async #beforeCreate(): Promise<void> {
+    for (const field of this._fields.values()) {
+      if (field.readOnly && field.required) {
+        const value = this._data.get(field.key);
+        if (value === undefined || value === null) {
+          this[field.key as keyof this] = field.defaultValue;
+        }
+      }
+    }
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this.#runHooks("beforeCreate");
@@ -188,6 +196,14 @@ export class Entry<
     await this._orm._runGlobalHooks("afterCreate", this);
   }
   async #beforeUpdate(): Promise<void> {
+    for (const field of this._fields.values()) {
+      if (field.readOnly && field.required) {
+        const value = this._data.get(field.key);
+        if (value === undefined || value === null) {
+          this[field.key as keyof this] = field.defaultValue;
+        }
+      }
+    }
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this._orm._runGlobalHooks("beforeUpdate", this);

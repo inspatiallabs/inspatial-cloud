@@ -8,7 +8,6 @@ import type { SettingsType } from "#/settings/settings-type.ts";
 import type { PgColumnDefinition } from "#db/types.ts";
 import type { SettingsRow } from "#/settings/types.ts";
 import { MigrationPlan } from "#/migrate/migration-plan.ts";
-import { convertString } from "../../../serve/src/utils/mod.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator>;
@@ -191,6 +190,7 @@ export class MigrationPlanner {
           tableName,
           column.columnName,
           nullable.to === "YES",
+          nullable.defaultValue,
         );
       }
       if (dataType) {

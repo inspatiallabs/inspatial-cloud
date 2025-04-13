@@ -48,29 +48,57 @@ export const dbExtension: ServerExtension<"db", InSpatialDB> =
         default: "public",
         required: false,
       },
+      dbAppName: {
+        type: "string",
+        description: "Application name for the database connection",
+        default: "InSpatial",
+      },
+      dbClientMode: {
+        type: "string",
+        enum: ["pool", "single"],
+        description: "Client mode for the database connection",
+        default: "pool",
+      },
+      dbPoolSize: {
+        type: "number",
+        description: "The number of clients in the pool",
+        default: 1,
+      },
+      dbMaxPoolSize: {
+        type: "number",
+        description: "The maximum number of clients in the pool",
+        default: 10,
+      },
+      dbIdleTimeout: {
+        type: "number",
+        description: "The idle timeout for the pool",
+        default: 5000,
+      },
     },
 
     install(_server, config) {
       let connectionConfig: ClientConnectionType;
+      const baseConnectionConfig = {
+        user: config.dbUser,
+        database: config.dbName,
+        schema: config.dbSchema,
+      };
+
       switch (config.dbConnectionType) {
         case "tcp":
           connectionConfig = {
+            ...baseConnectionConfig,
             connectionType: "tcp",
-            database: config.dbName,
             host: config.dbHost,
             port: config.dbPort,
-            user: config.dbUser,
             password: config.dbPassword,
-            schema: config.dbSchema,
           };
           break;
         case "socket":
           connectionConfig = {
+            ...baseConnectionConfig,
             connectionType: "socket",
-            database: config.dbName,
             socketPath: config.dbSocketPath,
-            user: config.dbUser,
-            schema: config.dbSchema,
             password: config.dbPassword,
           };
           break;
@@ -81,6 +109,15 @@ export const dbExtension: ServerExtension<"db", InSpatialDB> =
       }
       const db = new InSpatialDB({
         connection: connectionConfig,
+        appName: config.dbAppName,
+        clientMode: config.dbClientMode as "single" | "pool" | undefined,
+        idleTimeout: config.dbIdleTimeout,
+        poolOptions: {
+          size: config.dbPoolSize,
+          maxSize: config.dbMaxPoolSize,
+          idleTimeout: config.dbIdleTimeout,
+          lazy: true,
+        },
       });
 
       return db;

@@ -13,6 +13,8 @@ const userEntry = new EntryType<User>("user", {
   label: "User",
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
+  searchFields: ["email"],
+
   fields: [
     ...fields,
     ...googleFields,

@@ -47,6 +47,7 @@ export function compareNullable(
 ): {
   from: PgColumnDefinition["isNullable"];
   to: PgColumnDefinition["isNullable"];
+  defaultValue?: PgColumnDefinition["columnDefault"];
 } | undefined {
   if (existing.isNullable === newColumn.isNullable) {
     return;
@@ -55,5 +56,6 @@ export function compareNullable(
   return {
     from: existing.isNullable,
     to: newColumn.isNullable,
+    defaultValue: newColumn.columnDefault,
   };
 }

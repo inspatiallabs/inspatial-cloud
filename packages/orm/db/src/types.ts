@@ -1,3 +1,5 @@
+import type { PgPoolConfig } from "#db/postgres/pgTypes.ts";
+
 interface DBConnectionConfig {
   user: string;
   database: string;
@@ -23,6 +25,10 @@ export type ClientConnectionType =
 
 export interface DBConfig {
   connection: ClientConnectionType;
+  appName?: string;
+  idleTimeout?: number;
+  clientMode?: "pool" | "single";
+  poolOptions?: PgPoolConfig["pool"];
 }
 
 export type PgDataType =

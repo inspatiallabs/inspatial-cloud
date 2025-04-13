@@ -9,6 +9,7 @@ export const authMiddleware: ServerMiddleware = {
       return;
     }
     const sessionId = inRequest.context.get("userSession");
+
     const authHandler = server.getCustomProperty<AuthHandler>("auth");
 
     let sessionData = await authHandler.loadUserSession(sessionId);

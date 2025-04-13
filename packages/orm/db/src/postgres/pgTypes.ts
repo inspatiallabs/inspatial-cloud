@@ -1,6 +1,6 @@
 import type { ClientConnectionType } from "#db/types.ts";
 
-interface ConnectionOptions {
+export interface ConnectionOptions {
   // deno-lint-ignore camelcase
   application_name?: string;
   // deno-lint-ignore camelcase

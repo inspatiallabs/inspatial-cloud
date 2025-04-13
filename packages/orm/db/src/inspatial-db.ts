@@ -11,13 +11,14 @@ import type {
   TableConstraint,
   ValueType,
 } from "#db/types.ts";
-import { PostgresClient } from "#db/postgres/pgClient.ts";
 
 import { ormLogger } from "#/logger.ts";
 import { convertString } from "@inspatial/serve/utils";
 import type { IDMode } from "#/field/types.ts";
 import type { IDValue } from "#/entry/types.ts";
 import { raiseORMException } from "#/orm-exception.ts";
+import { PostgresPool } from "#db/postgres/pgPool.ts";
+import type { PgClientConfig } from "#db/postgres/pgTypes.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -37,13 +38,57 @@ export class InSpatialDB {
   /**
    * The Postgres client used to interact with the database
    */
-  #client?: PostgresClient;
+  #pool: PostgresPool;
 
   /**
    * The version of the database
    */
   #version: string | undefined;
 
+  /**
+   * InSpatialDB is an interface for interacting with a Postgres database
+   */
+  constructor(config: DBConfig) {
+    this.config = config;
+    this.dbName = config.connection.database;
+    this.schema = config.connection.schema || "public";
+    const poolOptions = {
+      size: 1,
+      maxSize: 1,
+      idleTimeout: config.idleTimeout || 5000,
+      lazy: true,
+    };
+    const clientConfig: PgClientConfig = {
+      ...config.connection,
+      options: {
+        application_name: config.appName || "InSpatial",
+      },
+    };
+
+    switch (config.clientMode) {
+      case "pool":
+        this.#pool = new PostgresPool({
+          clientConfig: clientConfig,
+          pool: {
+            ...poolOptions,
+            maxSize: 10,
+            ...config.poolOptions,
+          },
+        });
+        break;
+      case "single":
+      default:
+        this.#pool = new PostgresPool({
+          clientConfig: clientConfig,
+          pool: poolOptions,
+        });
+        break;
+    }
+  }
+
+  async init(): Promise<void> {
+    await this.#pool.initialized();
+  }
   /**
    * Get the version number of the postgres database
    */
@@ -58,48 +103,6 @@ export class InSpatialDB {
   }
 
   /**
-   * Get a PostgresClient instance for interacting with the database
-   */
-  get client(): PostgresClient {
-    if (!this.#client) {
-      this.#client = new PostgresClient(this.config.connection);
-    }
-
-    return this.#client;
-  }
-
-  /**
-   * Send a query to the database
-   */
-  async #query<T extends Record<string, any>>(
-    query: string,
-  ) {
-    const client = this.client;
-    if (!client.connected) {
-      try {
-        await client.connect();
-      } catch (e) {
-        ormLogger.warn(`Error connecting to database: ${e}`);
-        throw e;
-      }
-    }
-    await client.ready;
-    const result = await client.query<T>(query).catch((e) => {
-      client.resetReady();
-      throw e;
-    });
-    return result;
-  }
-  /**
-   * InSpatialDB is an interface for interacting with a Postgres database
-   */
-  constructor(config: DBConfig) {
-    this.config = config;
-    this.dbName = config.connection.database;
-    this.schema = config.connection.schema || "public";
-  }
-
-  /**
    * Send a query to the database and return the result.
    * The result is formatted to use camelCase for column names
    * @param query The query to send to the database
@@ -108,7 +111,7 @@ export class InSpatialDB {
     query: string,
   ): Promise<QueryResultFormatted<T>> {
     ormLogger.debug(`Query: ${query}`);
-    const result = await this.#query<T>(query);
+    const result = await this.#pool.query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
     return {
       rowCount: result.rowCount,
@@ -732,13 +735,25 @@ export class InSpatialDB {
     tableName: string,
     columnName: string,
     allowNull: boolean,
+    defaultIfNull?: unknown,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
     columnName = this.#formatColumnName(columnName);
-    const query =
+    let query = "";
+    if (defaultIfNull !== undefined && !allowNull) {
+      query +=
+        `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} SET DEFAULT ${
+          this.#formatValue(defaultIfNull)
+        };`;
+      query += `UPDATE ${this.schema}.${tableName} SET ${columnName} = ${
+        this.#formatValue(defaultIfNull)
+      } WHERE ${columnName} IS NULL;`;
+    }
+    query +=
       `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} ${
         allowNull ? "DROP NOT NULL" : "SET NOT NULL"
-      }`;
+      };`;
+
     await this.query(query);
   }
 

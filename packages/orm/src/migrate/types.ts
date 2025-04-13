@@ -15,6 +15,7 @@ export interface ColumnMigrationPlan {
   nullable?: {
     from: PgColumnDefinition["isNullable"];
     to: PgColumnDefinition["isNullable"];
+    defaultValue?: PgColumnDefinition["columnDefault"];
   };
   unique?: {
     from: boolean;

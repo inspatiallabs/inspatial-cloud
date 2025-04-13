@@ -12,6 +12,9 @@ import type { EntryBase, GenericEntry } from "#/entry/entry-base.ts";
 import type { EntryHookName } from "#/types.ts";
 import type { ORMFieldDef } from "#/field/field-def-types.ts";
 import { BaseType } from "#/shared/base-type-class.ts";
+type ExtractFieldKeys<T> = keyof {
+  [K in keyof T as K extends keyof EntryBase ? never : K]: K;
+};
 
 export class EntryType<
   E extends EntryBase = GenericEntry,
@@ -19,6 +22,7 @@ export class EntryType<
   A extends Array<EntryActionDefinition<E>> = Array<
     EntryActionDefinition<E>
   >,
+  FK extends PropertyKey = ExtractFieldKeys<E>,
 > extends BaseType<N> {
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
@@ -39,12 +43,13 @@ export class EntryType<
     /**
      * The field to use as the display value instead of the ID.
      */
-    titleField?: keyof E;
+    titleField?: FK;
     label?: string;
     idMode?: IDMode;
-    defaultListFields?: Array<keyof E>;
+    defaultListFields?: Array<FK>;
+    searchFields?: Array<FK>;
     fields: Array<ORMFieldDef>;
-    actions: A;
+    actions?: A;
     hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
     roles?: Array<unknown>;
   }) {
@@ -74,12 +79,17 @@ export class EntryType<
       description: "The date and time this entry was last updated",
       required: true,
     });
-
+    const searchFields = new Set<PropertyKey>(config.searchFields);
+    searchFields.add("id");
+    if (config.titleField) {
+      searchFields.add(config.titleField);
+    }
     this.config = {
       tableName: this.#generateTableName(),
       label: this.label,
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
+      searchFields: Array.from(searchFields),
       description: this.description ||
         `${this.label} entry type for InSpatial ORM`,
     };
