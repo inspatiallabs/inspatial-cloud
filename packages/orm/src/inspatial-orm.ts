@@ -45,7 +45,12 @@ export class InSpatialORM {
     beforeDelete: [],
     afterDelete: [],
   };
-
+  /**
+   * The root path of the generated files for the ORM.
+   */
+  get generatedRoot(): string {
+    return `${this.#rootPath}/_generated`;
+  }
   #rootPath: string;
   get #entriesPath(): string {
     return `${this.#rootPath}/_generated/entries`;

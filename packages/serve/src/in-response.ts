@@ -1,5 +1,6 @@
 import type { HandlerResponse } from "#/extension/path-handler.ts";
 import { serveLogger } from "#/logger/serve-logger.ts";
+import { inferMimeType } from "#static/mimeTypes.ts";
 interface CookieOptions {
   maxAge?: number;
   path?: string;
@@ -195,7 +196,9 @@ export class InResponse {
    * Sets the appropriate `Content-Type` header based on the `type` provided.
    * @param {"json" | "html" | "text" | "xml" | "file"} type - The content type to set for the response
    */
-  setContentType(type: "json" | "html" | "text" | "xml" | "file"): void {
+  setContentType(
+    type: "json" | "html" | "text" | "xml" | "file" | "jpg" | "png",
+  ): void {
     switch (type) {
       case "json":
         this.#headers.set("Content-Type", "application/json");
@@ -215,6 +218,28 @@ export class InResponse {
       default:
         this.#headers.set("Content-Type", "text/plain");
     }
+  }
+
+  setFile(options: {
+    content: string | Uint8Array;
+    fileName: string;
+  }): void {
+    this.#headers.set(
+      "Content-Disposition",
+      `attachment; filename="${options.fileName}"`,
+    );
+    const mimType = inferMimeType(options.fileName);
+    if (mimType) {
+      this.#headers.set("Content-Type", mimType);
+      this.#content = options.content;
+      return;
+    }
+    this.#headers.set("Content-Type", "application/octet-stream");
+    if (options.content instanceof Uint8Array) {
+      this.#content = options.content;
+      return;
+    }
+    this.#content = new TextEncoder().encode(options.content);
   }
 
   /**

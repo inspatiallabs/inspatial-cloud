@@ -15,6 +15,7 @@ export interface MimeTypesMap {
   woff: "font/woff";
   ttf: "font/ttf";
   otf: "font/otf";
+  dart: "application/dart";
 }
 
 export type MimeTypes = keyof MimeTypesMap;
@@ -58,6 +59,8 @@ export function inferMimeType(path: string): MimeValue | undefined {
       return "font/ttf";
     case "otf":
       return "font/otf";
+    case "dart":
+      return "application/dart";
 
     default:
       if (ext) {
