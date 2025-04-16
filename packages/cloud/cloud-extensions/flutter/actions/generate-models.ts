@@ -115,13 +115,17 @@ function generateJsonConverting(entryType: EntryType) {
         break;
       case "TimeStampField":
         fromJson.push(
-          `    ${field.key}: DateTime.fromMillisecondsSinceEpoch(json['${field.key}'] as int),`,
+          `    ${field.key}: DateTime.fromMillisecondsSinceEpoch(json['${field.key}'] as int${
+            field.required ? "" : "?"
+          }),`,
         );
         break;
       default: {
         const fieldType = flutterTypeMap[field.type];
         fromJson.push(
-          `    ${field.key}: json['${field.key}'] as ${fieldType},`,
+          `    ${field.key}: json['${field.key}'] as ${fieldType}${
+            field.required ? "" : "?"
+          },`,
         );
       }
     }

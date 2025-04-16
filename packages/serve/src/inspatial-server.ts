@@ -195,6 +195,26 @@ export class InSpatialServer<
       this.#config = config;
     }
     loadServeConfigFile();
+    const mode = Deno.env.get("SERVE_MODE");
+    switch (mode) {
+      case "development":
+      case "production":
+        this.#config.mode = mode;
+        break;
+    }
+    if (this.mode === "development") {
+      const autoConfig = Deno.env.get("SERVE_AUTO_CONFIG");
+      switch (autoConfig) {
+        case "true":
+        case "1":
+        case "yes":
+          serveLogger.info(
+            "Auto generating serve config schema file",
+          );
+          this.generateConfigFile();
+          break;
+      }
+    }
     this.#requestLifecycle = {
       setup: [],
       cleanup: [],
@@ -234,28 +254,8 @@ export class InSpatialServer<
     }
     if (Deno.env.has("SERVE_HOSTNAME")) {
       this.#config.hostname = Deno.env.get("SERVE_HOSTNAME");
-      const mode = Deno.env.get("SERVE_MODE");
-      switch (mode) {
-        case "development":
-        case "production":
-          this.#config.mode = mode;
-          break;
-      }
     }
 
-    if (this.mode === "development") {
-      const autoConfig = Deno.env.get("SERVE_AUTO_CONFIG");
-      switch (autoConfig) {
-        case "true":
-        case "1":
-        case "yes":
-          serveLogger.info(
-            "Auto generating serve config schema file",
-          );
-          this.generateConfigFile();
-          break;
-      }
-    }
     this.fetch.bind(this);
   }
 
