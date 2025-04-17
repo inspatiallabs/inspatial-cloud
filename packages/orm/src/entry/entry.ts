@@ -56,10 +56,9 @@ export class Entry<
       ) {
         continue;
       }
-      this._data.set(
-        field.key,
-        field.defaultValue === undefined ? null : field.defaultValue,
-      );
+      this[field.key as keyof this] = field.defaultValue === undefined
+        ? null
+        : field.defaultValue;
     }
     this._data.set("id", "_new_");
   }
