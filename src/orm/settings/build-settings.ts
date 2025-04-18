@@ -1,0 +1,33 @@
+import type { SettingsType } from "#/orm/settings/settings-type.ts";
+import { Settings } from "#/orm/settings/settings.ts";
+import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import { makeFields } from "#/orm/build/make-fields.ts";
+import type { SettingsActionDefinition } from "#/orm/settings/types.ts";
+
+export function buildSettings(
+  settingsType: SettingsType,
+): typeof Settings {
+  const changeableFields = new Map<string, ORMFieldDef>();
+  const fieldIds = new Map<string, string>();
+  for (const field of settingsType.fields.values()) {
+    fieldIds.set(field.key, `${settingsType.name}:${field.key}`);
+    if (
+      !field.readOnly && !field.hidden
+    ) {
+      changeableFields.set(field.key, field);
+    }
+  }
+  const settingsClass = class extends Settings<any> {
+    override _fields: Map<string, ORMFieldDef> = settingsType.fields;
+    override _changeableFields = changeableFields;
+    override _fieldIds: Map<string, string> = fieldIds;
+    override _actions: Map<string, SettingsActionDefinition> =
+      settingsType.actions;
+    constructor(orm: any) {
+      super(orm, settingsType.name);
+    }
+  };
+
+  makeFields("settings", settingsType, settingsClass);
+  return settingsClass;
+}

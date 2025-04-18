@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "ALLOWED_ORIGINS": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "*"
+          ],
+          "description": "Allowed CORS Origins"
+        }
+      },
+      "required": [],
+      "description": "Base Extension"
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "ALLOW_ALL": {
+          "type": "boolean",
+          "description": "Allow all users to access the app"
+        }
+      },
+      "required": [],
+      "description": "Auth extension"
+    },
+    "orm": {
+      "type": "object",
+      "properties": {
+        "AUTO_TYPES": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically generate the ORM interfaces and types when the server starts and `SERVE_MODE` is set to `development`"
+        },
+        "AUTO_MIGRATE": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run the migrations when the server starts and `SERVE_MODE` is set to `development`"
+        },
+        "DB_CONNECTION_TYPE": {
+          "type": "string",
+          "default": "tcp",
+          "description": "Type of the database connection ('tcp' or 'socket')",
+          "enum": [
+            "tcp",
+            "socket"
+          ]
+        },
+        "DB_SOCKET_PATH": {
+          "type": "string",
+          "default": "/var/run/postgresql/.s.PGSQL.5432",
+          "description": "Path to the database socket"
+        },
+        "DB_NAME": {
+          "type": "string",
+          "default": "postgres",
+          "description": "Name of the database"
+        },
+        "DB_HOST": {
+          "type": "string",
+          "default": "localhost",
+          "description": "Host of the database"
+        },
+        "DB_PORT": {
+          "type": "integer",
+          "default": 5432,
+          "description": "Port of the database"
+        },
+        "DB_USER": {
+          "type": "string",
+          "default": "postgres",
+          "description": "User of the database"
+        },
+        "DB_PASSWORD": {
+          "type": "string",
+          "default": "postgres",
+          "description": "Password of the database"
+        },
+        "DB_SCHEMA": {
+          "type": "string",
+          "default": "public",
+          "description": "Schema of the database"
+        },
+        "DB_APP_NAME": {
+          "type": "string",
+          "default": "InSpatial",
+          "description": "Application name for the database connection"
+        },
+        "DB_CLIENT_MODE": {
+          "type": "string",
+          "default": "pool",
+          "description": "Client mode for the database connection",
+          "enum": [
+            "pool",
+            "single"
+          ]
+        },
+        "DB_POOL_SIZE": {
+          "type": "integer",
+          "default": 1,
+          "description": "The number of clients in the pool"
+        },
+        "DB_MAX_POOL_SIZE": {
+          "type": "integer",
+          "default": 10,
+          "description": "The maximum number of clients in the pool"
+        },
+        "DB_IDLE_TIMEOUT": {
+          "type": "integer",
+          "default": 5000,
+          "description": "The idle timeout for the pool"
+        }
+      },
+      "required": [],
+      "description": "ORM Extension"
+    },
+    "serve": {
+      "type": "object",
+      "properties": {
+        "SERVE_MODE": {
+          "type": "string",
+          "default": "production",
+          "description": "Specify if the server is running in development or production mode",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "LOG_LEVEL": {
+          "type": "string",
+          "default": "info",
+          "description": "The log level for the server",
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ]
+        },
+        "LOG_TRACE": {
+          "type": "boolean",
+          "description": "Whether to include the file and line number in the log output for info, warning and debug logs"
+        },
+        "SERVE_HOSTNAME": {
+          "type": "string",
+          "default": "0.0.0.0",
+          "description": "The hostname for the server"
+        },
+        "SERVE_PORT": {
+          "type": "integer",
+          "default": 8000,
+          "description": "The port for the server"
+        },
+        "SERVE_AUTO_CONFIG": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to automatically generate the serve config schema when the server starts in development mode"
+        }
+      },
+      "required": [],
+      "description": "InSpatial server configuration"
+    }
+  },
+  "required": []
+}
