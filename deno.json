@@ -1,22 +1,4 @@
 {
-  "name": "@inspatial/cloud",
-  "version": "0.1.0",
-  "license": "Apache-2.0",
-  "exports": {
-    ".": "./mod.ts",
-    "./extensions": "./extensions/mod.ts"
-  },
-  "unstable": ["broadcast-channel"],
-  "imports": {
-    "#/": "./src/",
-    "#extensions/": "./extensions/",
-    "#types/": "./src/types/"
-  },
-  "lint": {
-    "rules": {
-      "tags": ["jsr", "recommended"],
-      "include": ["explicit-module-boundary-types", "verbatim-module-syntax"],
-      "exclude": ["no-explicit-any"]
-    }
-  }
+  "workspace": ["cloud", "dev"],
+  "unstable": ["broadcast-channel"]
 }

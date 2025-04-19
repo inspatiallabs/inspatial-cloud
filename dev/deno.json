@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@inspatial/cloud": "../cloud/mod.ts"
+  },
+  "tasks": {
+    "dev": "deno run -A --watch main.ts"
+  }
+}

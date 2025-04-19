@@ -1,18 +1,16 @@
 {
   "$schema": ".inspatial/serve-config-schema.json",
-  "serve": {
-    "SERVE_MODE": "production",
+  "auth": {
+    "ALLOW_ALL": false
+  },
+  "cloud": {
+    "ALLOWED_ORIGINS": ["*"],
+    "SERVE_MODE": "development",
     "LOG_LEVEL": "info",
     "LOG_TRACE": false,
     "SERVE_HOSTNAME": "0.0.0.0",
     "SERVE_PORT": 8000,
     "SERVE_AUTO_CONFIG": true
-  },
-  "base": {
-    "ALLOWED_ORIGINS": ["*"]
-  },
-  "auth": {
-    "ALLOW_ALL": false
   },
   "orm": {
     "AUTO_TYPES": true,

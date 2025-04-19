@@ -2,9 +2,48 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "base": {
+    "cloud": {
       "type": "object",
       "properties": {
+        "SERVE_MODE": {
+          "type": "string",
+          "default": "production",
+          "description": "Specify if the server is running in development or production mode",
+          "enum": [
+            "development",
+            "production"
+          ]
+        },
+        "LOG_LEVEL": {
+          "type": "string",
+          "default": "info",
+          "description": "The log level for the server",
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ]
+        },
+        "LOG_TRACE": {
+          "type": "boolean",
+          "description": "Whether to include the file and line number in the log output for info, warning and debug logs"
+        },
+        "SERVE_HOSTNAME": {
+          "type": "string",
+          "default": "0.0.0.0",
+          "description": "The hostname for the server"
+        },
+        "SERVE_PORT": {
+          "type": "integer",
+          "default": 8000,
+          "description": "The port for the server"
+        },
+        "SERVE_AUTO_CONFIG": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to automatically generate the serve config schema when the server starts in development mode"
+        },
         "ALLOWED_ORIGINS": {
           "type": "array",
           "items": {
@@ -17,7 +56,7 @@
         }
       },
       "required": [],
-      "description": "Base Extension"
+      "description": "InSpatial Cloud Base Extension"
     },
     "auth": {
       "type": "object",
@@ -119,52 +158,6 @@
       },
       "required": [],
       "description": "ORM Extension"
-    },
-    "serve": {
-      "type": "object",
-      "properties": {
-        "SERVE_MODE": {
-          "type": "string",
-          "default": "production",
-          "description": "Specify if the server is running in development or production mode",
-          "enum": [
-            "development",
-            "production"
-          ]
-        },
-        "LOG_LEVEL": {
-          "type": "string",
-          "default": "info",
-          "description": "The log level for the server",
-          "enum": [
-            "debug",
-            "info",
-            "warn",
-            "error"
-          ]
-        },
-        "LOG_TRACE": {
-          "type": "boolean",
-          "description": "Whether to include the file and line number in the log output for info, warning and debug logs"
-        },
-        "SERVE_HOSTNAME": {
-          "type": "string",
-          "default": "0.0.0.0",
-          "description": "The hostname for the server"
-        },
-        "SERVE_PORT": {
-          "type": "integer",
-          "default": 8000,
-          "description": "The port for the server"
-        },
-        "SERVE_AUTO_CONFIG": {
-          "type": "boolean",
-          "default": true,
-          "description": "Whether to automatically generate the serve config schema when the server starts in development mode"
-        }
-      },
-      "required": [],
-      "description": "InSpatial server configuration"
     }
   },
   "required": []
