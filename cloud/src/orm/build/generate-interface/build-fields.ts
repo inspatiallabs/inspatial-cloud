@@ -4,7 +4,7 @@ import { fieldTypeMap } from "#/orm/build/generate-interface/field-type-map.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 
 export function buildFields(
-  orm: InSpatialORM,
+  _orm: InSpatialORM,
   fieldDefs: Map<string, ORMFieldDef>,
 ): Array<string> {
   const fields: string[] = [];

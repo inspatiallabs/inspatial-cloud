@@ -12,22 +12,26 @@ import { buildSettings } from "#/orm/settings/build-settings.ts";
 import { buildEntryType } from "#/orm/setup/entry-type/build-entry-types.ts";
 import { validateEntryType } from "#/orm/setup/entry-type/validate-entry-type.ts";
 import { buildSettingsType } from "#/orm/setup/settings-type/build-settings-types.ts";
-import { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
-import {
+import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
+import type {
   DBConfig,
   DBFilter,
   DBListOptions,
   ListOptions,
 } from "#/orm/db/db-types.ts";
-import { GenericSettings, SettingsBase } from "#/orm/settings/settings-base.ts";
+import type {
+  GenericSettings,
+  SettingsBase,
+} from "#/orm/settings/settings-base.ts";
 import { MigrationPlanner } from "#/orm/migrate/migration-planner.ts";
 import { ormLogger } from "#/orm/logger.ts";
-import { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
+import type { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
 import {
   generateEntryInterface,
   generateSettingsInterfaces,
 } from "#/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "#/orm/field/fields.ts";
+import type { SessionData } from "#extensions/auth/types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -86,7 +90,7 @@ export class InSpatialORM {
   }
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
-    user?: any,
+    _user?: SessionData,
   ): T {
     if (!this.entryTypes.has(entryType)) {
       raiseORMException(
@@ -100,7 +104,7 @@ export class InSpatialORM {
 
   getSettingsType<T extends SettingsType = SettingsType>(
     settingsType: string,
-    user?: any,
+    _user?: SessionData,
   ): T {
     if (!this.settingsTypes.has(settingsType)) {
       raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
@@ -253,7 +257,7 @@ export class InSpatialORM {
   async createEntry<E extends EntryBase = GenericEntry>(
     entryType: string,
     data: Record<string, any>,
-    user?: any,
+    user?: SessionData,
   ): Promise<E> {
     const entry = this.#getEntryInstance(entryType, user) as E;
     entry.create();
@@ -266,7 +270,7 @@ export class InSpatialORM {
    */
   getNewEntry<E extends EntryBase = GenericEntry>(
     entryType: string,
-    user?: any,
+    user?: SessionData,
   ): E {
     const entry = this.#getEntryInstance(entryType, user) as E;
     entry.create();
@@ -278,7 +282,7 @@ export class InSpatialORM {
   async getEntry<E extends EntryBase = GenericEntry>(
     entryType: string,
     id: string,
-    user?: any,
+    user?: SessionData,
   ): Promise<E> {
     const entry = this.#getEntryInstance(entryType, user) as E;
     await entry.load(id);
@@ -290,9 +294,9 @@ export class InSpatialORM {
    */
   async updateEntry<E extends string>(
     entryType: E,
-    id: any,
+    id: string,
     data: Record<string, any>,
-    user?: any,
+    user?: SessionData,
   ): Promise<any> {
     const entry = await this.getEntry(entryType, id, user);
     entry.update(data);
@@ -305,7 +309,7 @@ export class InSpatialORM {
   async deleteEntry<E extends string>(
     entryType: E,
     id: string,
-    user?: any,
+    user?: SessionData,
   ): Promise<any> {
     const entry = await this.getEntry(entryType, id, user);
     await entry.delete();
@@ -315,7 +319,7 @@ export class InSpatialORM {
   async findEntry<E extends EntryBase = GenericEntry>(
     entryType: string,
     filter: DBFilter,
-    user?: any,
+    user?: SessionData,
   ): Promise<E | null> {
     const entryTypeObj = this.getEntryType(entryType, user);
     const tableName = entryTypeObj.config.tableName;
@@ -339,7 +343,7 @@ export class InSpatialORM {
   async getEntryList<E extends string>(
     entryType: E,
     options?: ListOptions,
-    user?: any,
+    user?: SessionData,
   ): Promise<GetListResponse<E>> {
     const entryTypeObj = this.getEntryType(entryType, user);
     const tableName = entryTypeObj.config.tableName;
@@ -396,7 +400,7 @@ export class InSpatialORM {
     entryType: string,
     filter?: DBFilter,
     groupBy?: Array<string>,
-    user?: any,
+    user?: SessionData,
   ): Promise<number> {
     ormLogger.warn(
       "count is not fully implemented. Check source",
@@ -414,11 +418,11 @@ export class InSpatialORM {
   /**
    * Gets the value of a specific field in an entry.
    */
-  async getEntryValue<E extends string>(
-    entryType: E,
-    id: string,
-    field: string,
-    user?: any,
+  getEntryValue<E extends string>(
+    _entryType: E,
+    _id: string,
+    _field: string,
+    _user?: SessionData,
   ): Promise<any> {
     raiseORMException(
       `getEntryValue is not implemented yet. Use getEntry instead.`,
@@ -434,7 +438,7 @@ export class InSpatialORM {
    */
   async getSettings<T extends SettingsBase = GenericSettings>(
     settingsType: string,
-    user?: any,
+    user?: SessionData,
   ): Promise<T> {
     const settings = this.#getSettingsInstance(settingsType, user) as T;
     await settings.load();
@@ -448,7 +452,7 @@ export class InSpatialORM {
   >(
     settingsType: string,
     data: Record<string, any>,
-    user?: any,
+    user?: SessionData,
   ): Promise<T> {
     const settings = this.#getSettingsInstance(settingsType, user) as T;
     settings.update(data);
@@ -462,7 +466,7 @@ export class InSpatialORM {
   async getSettingsValue<S extends string>(
     settingsType: S,
     field: string,
-    user?: any,
+    user?: SessionData,
   ): Promise<any> {
     const settings = this.#getSettingsInstance(settingsType, user);
     return await settings.getValue(field);

@@ -205,7 +205,7 @@ export class ScramClient {
   /**
    * Processes server-first-message
    */
-  async receiveChallenge(challenge: string) {
+  async receiveChallenge(challenge: string): Promise<void> {
     assert(this.#state === AuthenticationState.ClientChallenge);
 
     try {
@@ -284,7 +284,7 @@ export class ScramClient {
   /**
    * Processes server-final-message
    */
-  async receiveResponse(response: string) {
+  async receiveResponse(response: string): Promise<void> {
     assert(this.#state === AuthenticationState.ClientResponse);
     assert(this.#keySignatures);
 

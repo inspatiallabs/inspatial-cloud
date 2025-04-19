@@ -7,13 +7,13 @@ export default new ORMField("ImageField", {
       dataType: "text",
     };
   },
-  dbLoad(value, fieldDef) {
+  dbLoad(value, _fieldDef) {
     return value;
   },
-  validate(value, fieldDef) {
+  validate(_value, _fieldDef) {
     return true;
   },
-  dbSave(value, fieldDef) {
+  dbSave(value, _fieldDef) {
     return value;
   },
 });

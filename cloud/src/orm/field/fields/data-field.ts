@@ -11,7 +11,7 @@ export const dataField = new ORMField("DataField", {
   dbLoad(value) {
     return value;
   },
-  validate(value) {
+  validate(_value) {
     return true;
   },
   dbSave(value) {

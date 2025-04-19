@@ -38,7 +38,7 @@ export class MessageReader {
         false,
       );
   }
-  async nextMessage() {
+  async nextMessage(): Promise<void> {
     await this.#readHeader();
     // read from the connection until we have the full message length
     this.currentMessage = new Uint8Array(this.messageLength);
@@ -64,18 +64,19 @@ export class MessageReader {
     this.offset = 0;
   }
 
-  decode(data: Uint8Array) {
+  decode(data: Uint8Array): string {
     return this.decoder.decode(data);
   }
 
-  getType() {
+  getType(): ServerMessageType {
+    return this.messageType;
   }
 
-  readByte() {
+  readByte(): number {
     return this.currentMessage[this.offset++];
   }
 
-  readInt32() {
+  readInt32(): number {
     const num = this.dataView.getInt32(
       this.offset,
       false,
@@ -84,7 +85,7 @@ export class MessageReader {
     return num;
   }
 
-  readInt16() {
+  readInt16(): number {
     const num = this.dataView.getInt16(
       this.offset,
       false,
@@ -93,7 +94,7 @@ export class MessageReader {
     return num;
   }
 
-  readCString() {
+  readCString(): string | null {
     const start = this.offset;
     const end = this.currentMessage.indexOf(0, start);
     const slice = this.currentMessage.slice(start, end);
@@ -101,7 +102,7 @@ export class MessageReader {
     return this.decode(slice);
   }
 
-  readBytes(length: number) {
+  readBytes(length: number): Uint8Array {
     const slice = this.currentMessage.slice(
       this.offset,
       this.offset + length,
@@ -110,7 +111,7 @@ export class MessageReader {
     return slice;
   }
 
-  readChar() {
+  readChar(): string | null {
     const char = this.currentMessage[this.offset++];
     if (char === 0) {
       return null;
@@ -118,7 +119,7 @@ export class MessageReader {
     return String.fromCharCode(char);
   }
 
-  readString(length: number) {
+  readString(length: number): string {
     const bytes = this.currentMessage.slice(
       this.offset,
       this.offset + length,
@@ -127,12 +128,12 @@ export class MessageReader {
     return this.decode(bytes);
   }
 
-  readAllBytes() {
+  readAllBytes(): Uint8Array {
     const slice = this.currentMessage.slice(this.offset);
     this.offset = this.currentMessage.length;
     return slice;
   }
-  async clearBuffer() {
+  async clearBuffer(): Promise<void> {
     this.currentMessage = new Uint8Array(this.size);
     this.offset = 0;
     const size = 1024;

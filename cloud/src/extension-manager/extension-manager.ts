@@ -7,7 +7,7 @@ import type { InRequest } from "#/app/in-request.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { AppEntryHooks } from "#/app/types.ts";
-import { Middleware } from "#/app/middleware.ts";
+import type { Middleware } from "#/app/middleware.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();

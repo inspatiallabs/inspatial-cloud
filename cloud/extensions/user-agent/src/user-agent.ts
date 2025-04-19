@@ -380,6 +380,7 @@ export class UserAgent {
   [Symbol.for("nodejs.util.inspect.custom")](
     depth: number,
     // deno-lint-ignore no-explicit-any
+    // deno-lint-ignore explicit-module-boundary-types
     options: any,
     inspect: (value: unknown, options?: unknown) => string,
   ): string {

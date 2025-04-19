@@ -32,7 +32,9 @@ export const statusMap: Record<any, ServerStatus> = {
   "E": "error",
   "K": "keyData",
 };
-export function getDataType(dataTypeID: number) {
+export function getDataType(
+  dataTypeID: number,
+): DataTypeMap[keyof DataTypeMap] | "unknown" {
   const id = dataTypeID as keyof DataTypeMap;
 
   if (dataTypeMap[id]) {
@@ -41,7 +43,7 @@ export function getDataType(dataTypeID: number) {
   return "unknown";
 }
 
-function stripNulls(data: Uint8Array) {
+function _stripNulls(data: Uint8Array) {
   let i = data.length - 1;
   while (data[i] === 0) {
     i--;
@@ -53,9 +55,9 @@ function decodeText(data: Uint8Array) {
 }
 export function convertToDataType(
   data: Uint8Array,
-  type: number,
+  _type: number,
   dataType: DataTypeMap[keyof DataTypeMap] | "unknown",
-) {
+): any {
   // data = stripNulls(data);
   const text = decodeText(data);
 

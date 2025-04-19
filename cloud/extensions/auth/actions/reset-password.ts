@@ -4,7 +4,7 @@ import { raiseServerException } from "#/app/server-exception.ts";
 const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
-  async run({ app, inRequest, inResponse, params }) {
+  async run({ app, inRequest, params }) {
     const { email } = params;
     const user = await app.orm.findEntry("user", {
       email,
@@ -19,7 +19,7 @@ const resetPassword = new CloudAPIAction("resetPassword", {
     const token = user.resetPasswordToken as string;
     const resetLink = `${inRequest.origin}/reset-password?token=${token}`;
 
-    const emailContent = `
+    const _emailContent = `
       <p>Hi ${user.firstName},</p>
       <p>We received a request to reset your password.</p>
       <p><b>Click the link below to reset your password:<b></p>

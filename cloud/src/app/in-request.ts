@@ -1,5 +1,5 @@
 import { InContext } from "#/app/in-context.ts";
-import { RequestMethod } from "#types/serve-types.ts";
+import type { RequestMethod } from "#types/serve-types.ts";
 
 /**
  * InRequest is a class that wraps the incoming request object and parses it,

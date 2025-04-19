@@ -1,3 +1,4 @@
+// deno-lint-ignore-file
 import { EMPTY } from "#user-agent/matchers.ts";
 import type { MatchingTupleProp } from "#user-agent/types.ts";
 

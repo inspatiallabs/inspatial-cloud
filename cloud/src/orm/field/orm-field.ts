@@ -46,7 +46,7 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
     this.#validate = config.validate;
     this.#dbSave = config.dbSave;
     this.#dbColumn = config.dbColumn;
-    this.#normalize = (value: any, fieldDef: FieldDefMap[T]) => value;
+    this.#normalize = (value: any, _fieldDef: FieldDefMap[T]) => value;
     if (config.normalize) {
       this.#normalize = config.normalize;
     }
@@ -64,15 +64,15 @@ export class ORMField<T extends FieldDefType = FieldDefType> {
 
     return dbColumn;
   }
-  parseDbValue(value: any, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
+  parseDbValue(value: unknown, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
     return this.#dbLoad(value, fieldDef);
   }
 
-  validate(value: any, fieldDef: FieldDefMap[T]): boolean {
+  validate(value: unknown, fieldDef: FieldDefMap[T]): boolean {
     return this.#validate(value, fieldDef);
   }
 
-  normalize(value: any, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
+  normalize(value: unknown, fieldDef: FieldDefMap[T]): ORMFieldMap[T] {
     return this.#normalize(value, fieldDef);
   }
 

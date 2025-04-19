@@ -2,8 +2,6 @@ import type { ActionParamProp } from "#/api/api-types.ts";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
-import type { CloudExtension } from "#/app/cloud-extension.ts";
-import type { CloudAPIAction } from "#/app/cloud-action.ts";
 import type { EntryHookName } from "#/orm/orm-types.ts";
 import type { Entry } from "#/orm/entry/entry.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";

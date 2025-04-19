@@ -1,8 +1,3 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
-import type { InRequest } from "#/app/in-request.ts";
-import type { InResponse } from "#/app/in-response.ts";
-import type { HandlerResponse } from "#/app/path-handler.ts";
-
 /**
  * The full documentation for an ActionsAPI instance in JSON format.
  */

@@ -213,6 +213,11 @@ export class MigrationPlanner {
             `Added foreign key constraint ${create.constraintName} to column ${create.columnName}`,
           );
         }
+        if (drop) {
+          this.#logResult(
+            "Drop foreign key constraint not implemented yet",
+          );
+        }
       }
     }
   }

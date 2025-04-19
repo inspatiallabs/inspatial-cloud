@@ -8,13 +8,13 @@ export default new ORMField("BooleanField", {
       columnDefault: false,
     };
   },
-  dbLoad(value, fieldDef) {
+  dbLoad(value, _fieldDef) {
     return value;
   },
-  validate(value, fieldDef) {
+  validate(_value, _fieldDef) {
     return true;
   },
-  normalize(value, fieldDef) {
+  normalize(value, _fieldDef) {
     switch (value) {
       case true:
       case "true":
@@ -30,7 +30,7 @@ export default new ORMField("BooleanField", {
     }
     return value;
   },
-  dbSave(value, fieldDef) {
+  dbSave(value, _fieldDef) {
     return value;
   },
 });

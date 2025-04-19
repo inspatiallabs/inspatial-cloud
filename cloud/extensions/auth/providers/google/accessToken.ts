@@ -44,7 +44,7 @@ export class GoogleOAuth {
     const data = await result.json();
     const dataMap = new Map<string, any>();
     const expectedKeys = ["accessToken", "expiresIn", "tokenType"];
-    const optionalKeys = ["refresh_token", "scope", "id_token"];
+    const _optionalKeys = ["refresh_token", "scope", "id_token"];
 
     Object.entries(data).forEach(([key, value]) => {
       dataMap.set(convertString(key, "camel"), value);

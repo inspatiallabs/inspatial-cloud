@@ -57,7 +57,7 @@ export class SettingsTypeMigrator {
     });
     this.existingFields = new Map();
     for (const row of result.rows) {
-      const { field, value } = row;
+      const { field } = row;
       this.existingFields.set(field, row);
     }
   }

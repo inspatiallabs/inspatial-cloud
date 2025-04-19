@@ -56,7 +56,7 @@ export function validateConnectionFields(
 }
 
 function buildConnectionTitleField(
-  orm: InSpatialORM,
+  _orm: InSpatialORM,
   field: FieldDefMap["ConnectionField"],
   connectionEntryType: EntryType,
 ): ORMFieldDef | undefined {

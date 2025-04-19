@@ -1,5 +1,5 @@
 import { serveLogger } from "#/logger/serve-logger.ts";
-import { HandlerResponse } from "#/app/path-handler.ts";
+import type { HandlerResponse } from "#/app/path-handler.ts";
 import { inferMimeType } from "#/static/src/mimeTypes.ts";
 
 interface CookieOptions {

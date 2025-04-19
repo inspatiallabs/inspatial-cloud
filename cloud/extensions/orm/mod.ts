@@ -4,15 +4,14 @@ import ormGroup from "#extensions/orm/actions/orm-group.ts";
 import entriesGroup from "#extensions/orm/actions/entries-group.ts";
 import settingsGroup from "#extensions/orm/actions/settings-group.ts";
 import cloudLogger from "#/app/cloud-logger.ts";
-import { ClientConnectionType } from "#/orm/db/db-types.ts";
-import { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
 import { ORMException } from "#/orm/orm-exception.ts";
+import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 const afterUpdateHook: AppHookFunction = (
   app,
-  { entry, entryType, orm },
+  { entry, entryType },
 ) => {
   app.inLive.notify({
     roomName: `${entryType}:${entry.id}`,
@@ -23,7 +22,7 @@ const afterUpdateHook: AppHookFunction = (
 
 const afterCreateHook: AppHookFunction = (
   app,
-  { entry, entryType, orm },
+  { entry, entryType },
 ) => {
   app.inLive.notify({
     roomName: entryType,
@@ -34,7 +33,7 @@ const afterCreateHook: AppHookFunction = (
 
 const afterDeleteHook: AppHookFunction = (
   app,
-  { entry, entryType, orm },
+  { entry, entryType },
 ) => {
   app.inLive.notify({
     roomName: entryType,

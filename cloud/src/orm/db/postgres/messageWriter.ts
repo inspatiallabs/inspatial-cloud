@@ -1,4 +1,4 @@
-import { ClientMessageType } from "#/orm/db/postgres/pgTypes.ts";
+import type { ClientMessageType } from "#/orm/db/postgres/pgTypes.ts";
 
 export class MessageWriter {
   buffer: Uint8Array;

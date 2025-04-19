@@ -1,5 +1,5 @@
 import { InResponse } from "#/app/in-response.ts";
-import { ExceptionHandler } from "#types/serve-types.ts";
+import type { ExceptionHandler } from "#types/serve-types.ts";
 import { serveLogger } from "#/logger/serve-logger.ts";
 import { isServerException } from "#/app/server-exception.ts";
 

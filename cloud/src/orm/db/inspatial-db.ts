@@ -295,7 +295,7 @@ export class InSpatialDB {
    */
   async getRow<T extends Record<string, any> = Record<string, any>>(
     tableName: string,
-    value: any,
+    value: unknown,
   ): Promise<T | undefined> {
     tableName = this.#toSnake(tableName);
     value = this.#formatValue(value);
@@ -451,7 +451,7 @@ export class InSpatialDB {
   async batchUpdateColumn(
     tableName: string,
     column: string,
-    value: any,
+    value: unknown,
     filters: DBFilter,
   ): Promise<void> {
     tableName = this.#toSnake(tableName);
@@ -1101,7 +1101,7 @@ export class InSpatialDB {
           return `'${JSON.stringify(value) as ValueType<Join>}'` as ValueType<
             Join
           >;
-        } catch (e) {
+        } catch (_e) {
           ormLogger.error(`Error formatting value: ${value}`);
           raiseORMException(
             `Error formatting value for database: ${value.toString()}`,

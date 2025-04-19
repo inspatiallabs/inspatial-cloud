@@ -16,7 +16,7 @@ const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,
   description: "Google OAuth2 callback",
   async run({ app, inRequest, inResponse, params }) {
-    const { code, state, scope, authuser, hd, prompt } = params;
+    const { code, state } = params;
     const authSettings = await app.orm.getSettings<AuthSettings>(
       "authSettings",
     );
@@ -110,7 +110,6 @@ async function handleGoogleLogin(args: {
   const {
     accessToken,
     idToken,
-    csrfToken,
     redirectTo,
     app,
     inRequest,
