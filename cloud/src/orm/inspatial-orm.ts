@@ -24,7 +24,6 @@ import type {
   SettingsBase,
 } from "#/orm/settings/settings-base.ts";
 import { MigrationPlanner } from "#/orm/migrate/migration-planner.ts";
-import { ormLogger } from "#/orm/logger.ts";
 import type { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
 import {
   generateEntryInterface,
@@ -32,6 +31,7 @@ import {
 } from "#/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "#/orm/field/fields.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -402,9 +402,6 @@ export class InSpatialORM {
     groupBy?: Array<string>,
     user?: SessionData,
   ): Promise<number> {
-    ormLogger.warn(
-      "count is not fully implemented. Check source",
-    );
     const entryTypeObj = this.getEntryType(entryType, user);
     const tableName = entryTypeObj.config.tableName;
     const result = await this.db.count(tableName, {
@@ -481,7 +478,7 @@ export class InSpatialORM {
       settingsTypes: Array.from(this.settingsTypes.values()),
       orm: this,
       onOutput: (message) => {
-        ormLogger.info(message);
+        inLog.info(message);
       },
     });
     return await migrationPlanner.migrate();
@@ -492,13 +489,13 @@ export class InSpatialORM {
    * This method does not make any changes to the database.
    */
   async planMigration(): Promise<MigrationPlan> {
-    ormLogger.info("Planning migration...");
+    inLog.info("Planning migration...");
     const migrationPlanner = new MigrationPlanner({
       entryTypes: Array.from(this.entryTypes.values()),
       settingsTypes: Array.from(this.settingsTypes.values()),
       orm: this,
       onOutput: (message) => {
-        ormLogger.info(message);
+        inLog.info(message);
       },
     });
     return await migrationPlanner.createMigrationPlan();

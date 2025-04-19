@@ -16,10 +16,10 @@ export interface BaseTypeConfig {
   extension?: {
     extensionType: {
       key: string;
-      title: string;
+      label: string;
     };
     key: string;
-    title: string;
+    label: string;
     description: string;
     version: string;
   };

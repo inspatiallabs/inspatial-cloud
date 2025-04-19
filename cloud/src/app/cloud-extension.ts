@@ -20,13 +20,12 @@ export type CloudBootFunction = (app: InSpatialCloud) => Promise<void> | void;
 export class CloudExtension<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
   N extends string = string,
-  R = any,
   E extends Array<EntryType<any>> = Array<EntryType<any>>,
   ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
   C extends ConfigDefinition = ConfigDefinition,
 > {
   key: string;
-  title: string;
+  label: string;
   description: string;
   version: string;
   /**
@@ -54,12 +53,14 @@ export class CloudExtension<
   settingsTypes: SettingsType[];
   ormGlobalHooks: AppEntryHooks;
   actionGroups: AG;
-  install: (app: InSpatialCloud, config: ExtensionConfig<C>) => R;
+  install: (
+    app: InSpatialCloud,
+    config: ExtensionConfig<C>,
+  ) => Promise<object | void> | object | void;
   boot: CloudBootFunction;
 
-  constructor(options: {
-    key: string;
-    title: string;
+  constructor(extensionName: N, options: {
+    label: string;
     description: string;
     version: string;
     config?: C;
@@ -67,7 +68,10 @@ export class CloudExtension<
     settingsTypes?: ST;
     ormGlobalHooks?: Partial<AppEntryHooks>;
     actionGroups?: AG;
-    install: (app: InSpatialCloud, config: ExtensionConfig<C>) => R;
+    install?(
+      app: InSpatialCloud,
+      config: ExtensionConfig<C>,
+    ): Promise<object | void> | object | void;
     boot?: CloudBootFunction;
     /** The lifecycle handlers for the incoming requests. */
     requestLifecycle?: Partial<RequestLifecycle<C>>;
@@ -79,8 +83,8 @@ export class CloudExtension<
     /** Exception handlers */
     exceptionHandlers?: ExceptionHandler[];
   }) {
-    this.key = options.key;
-    this.title = options.title;
+    this.key = extensionName;
+    this.label = options.label;
     this.description = options.description;
     this.version = options.version;
 
@@ -112,7 +116,7 @@ export class CloudExtension<
     for (const actionGroup of options.actionGroups || []) {
       this.actionGroups.push(actionGroup);
     }
-    this.install = options.install;
+    this.install = options.install || (() => {});
     this.boot = options.boot || (() => {});
     this.#setup();
     Object.freeze(this);
@@ -124,7 +128,7 @@ export class CloudExtension<
         ...this.info,
         extensionType: {
           key: "cloud",
-          title: "Cloud Extension",
+          label: "Cloud Extension",
         },
       };
     }
@@ -134,7 +138,7 @@ export class CloudExtension<
         ...this.info,
         extensionType: {
           key: "cloud",
-          title: "Cloud Extension",
+          label: "Cloud Extension",
         },
       };
     }
@@ -179,7 +183,7 @@ export class CloudExtension<
     }) || [];
     return {
       key: this.key,
-      title: this.title,
+      label: this.label,
       description: this.description,
       version: this.version,
       config: this.config || {},

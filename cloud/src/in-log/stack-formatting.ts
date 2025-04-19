@@ -1,4 +1,4 @@
-import type { StackFrame } from "#/logger/types.ts";
+import type { StackFrame } from "#/in-log/types.ts";
 import ColorMe from "#/utils/color-me.ts";
 
 /**

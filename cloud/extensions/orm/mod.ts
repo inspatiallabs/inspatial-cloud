@@ -3,7 +3,6 @@ import { CloudExtension } from "#/app/cloud-extension.ts";
 import ormGroup from "#extensions/orm/actions/orm-group.ts";
 import entriesGroup from "#extensions/orm/actions/entries-group.ts";
 import settingsGroup from "#extensions/orm/actions/settings-group.ts";
-import cloudLogger from "#/app/cloud-logger.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
@@ -42,18 +41,15 @@ const afterDeleteHook: AppHookFunction = (
   });
 };
 
-const ormCloudExtension: CloudExtension = new CloudExtension({
-  key: "orm",
+const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
   description: "ORM Extension",
-  install() {
-  },
-  title: "ORM Extension",
+  label: "ORM Extension",
   version: "0.0.1",
   actionGroups: [ormGroup, entriesGroup, settingsGroup],
   async boot(app) {
     if (app.mode === "development") {
       if (app.getExtensionConfigValue("orm", "autoTypes")) {
-        cloudLogger.info(
+        app.inLog.info(
           "Generating ORM types...",
           "ORM",
         );
@@ -62,7 +58,7 @@ const ormCloudExtension: CloudExtension = new CloudExtension({
       if (
         app.getExtensionConfigValue("orm", "autoMigrate")
       ) {
-        cloudLogger.info(
+        app.inLog.info(
           "Running ORM migrations...",
           "ORM",
         );
@@ -89,6 +85,13 @@ const ormCloudExtension: CloudExtension = new CloudExtension({
       required: false,
       type: "boolean",
       default: true,
+    },
+    ormDebugMode: {
+      description:
+        "Enable debug mode for the ORM. This will log all database queries to the console.",
+      type: "boolean",
+      default: false,
+      required: false,
     },
     dbConnectionType: {
       description: "Type of the database connection ('tcp' or 'socket')",

@@ -12,13 +12,11 @@ import {
   generateServeConfigFile,
   loadServeConfigFile,
 } from "#/cloud-config/serve-config.ts";
-import { serveLogger } from "#/logger/serve-logger.ts";
 import {
   isServerException,
   raiseServerException,
 } from "#/app/server-exception.ts";
 import { InResponse } from "#/app/in-response.ts";
-import cloudLogger from "#/app/cloud-logger.ts";
 import { ORMException } from "#/orm/orm-exception.ts";
 import { ExtensionManager } from "#/extension-manager/extension-manager.ts";
 import type { AppMode, CloudConfig } from "#types/mod.ts";
@@ -27,6 +25,11 @@ import { baseExtension } from "#/base-extension/base-extension.ts";
 import { InLiveHandler } from "#/in-live/in-live-handler.ts";
 import { requestHandler } from "#/app/request-handler.ts";
 import { setupOrm } from "#/orm/setup-orm.ts";
+import { type InLog, inLog } from "#/in-log/in-log.ts";
+import { makeLogo } from "#/in-log/logo.ts";
+import { center } from "#/utils/mod.ts";
+import ColorMe from "#/utils/color-me.ts";
+import convertString from "#/utils/convert-string.ts";
 
 export class InSpatialCloud<
   N extends string = any,
@@ -34,7 +37,7 @@ export class InSpatialCloud<
 > {
   readonly appName: N;
   #extensionManager: ExtensionManager;
-  #extensionObjects: Map<string, CloudExtension> = new Map();
+  #extensionObjects: Map<string, object> = new Map();
   #customProperties: Map<string, unknown> = new Map();
   #mode: AppMode = "production";
   #config: CloudConfig;
@@ -42,6 +45,7 @@ export class InSpatialCloud<
   api: CloudAPI;
 
   inLive: InLiveHandler;
+  inLog: InLog;
 
   inCache: InCache;
 
@@ -69,7 +73,7 @@ export class InSpatialCloud<
   /* End serve stuff */
 
   constructor(appName: N, options?: {
-    appExtensions?: P;
+    extensions?: P;
     /**
      * Built-in extensions configuration.
      * These extensions are enabled by default, and can be disabled by setting the value to `false`.
@@ -86,6 +90,8 @@ export class InSpatialCloud<
     };
     config?: CloudConfig;
   }) {
+    this.inLog = inLog;
+
     loadServeConfigFile();
     const mode = Deno.env.get("SERVE_MODE");
     switch (mode) {
@@ -128,8 +134,8 @@ export class InSpatialCloud<
       appExtensions.push(ormCloudExtension);
     }
 
-    if (options?.appExtensions) {
-      appExtensions.push(...options.appExtensions);
+    if (options?.extensions) {
+      appExtensions.push(...options.extensions);
     }
 
     for (const appExtension of appExtensions) {
@@ -143,7 +149,7 @@ export class InSpatialCloud<
         case "true":
         case "1":
         case "yes":
-          serveLogger.info(
+          this.inLog.info(
             "Auto generating serve config schema file",
           );
           this.generateConfigFile();
@@ -289,7 +295,9 @@ export class InSpatialCloud<
       this.api.addGroup(actionGroup);
     }
     const extensionObject = appExtension.install(this, config);
-    this.#extensionObjects.set(appExtension.key, extensionObject);
+    if (extensionObject) {
+      this.#extensionObjects.set(appExtension.key, extensionObject);
+    }
   }
 
   async #boot(): Promise<void> {
@@ -304,6 +312,41 @@ export class InSpatialCloud<
       {
         hostname: this.#config.hostname,
         port: this.#config.port,
+        onListen: (localAddr) => {
+          const logo = makeLogo("upArrow", "brightMagenta");
+
+          const url = `http://${localAddr.hostname}:${localAddr.port}`;
+
+          const output = [
+            logo,
+            center(
+              ColorMe.chain("basic").content(
+                "InSpatial Cloud",
+              ).color("brightMagenta")
+                .content(" running at ")
+                .color("brightWhite")
+                .content(url)
+                .color("brightCyan")
+                .end(),
+            ),
+            center(
+              "You can ping the server:",
+            ),
+            ColorMe.fromOptions(
+              center(
+                `http://${localAddr.hostname}:${localAddr.port}/api?group=api&action=ping`,
+              ),
+              {
+                color: "brightYellow",
+              },
+            ),
+          ];
+
+          inLog.info(
+            output.join("\n\n"),
+            convertString(this.appName, "title", true),
+          );
+        },
       },
       this.#requestHandler.bind(this),
     );
@@ -318,17 +361,17 @@ export class InSpatialCloud<
 
   #handleInitError(e: unknown): never {
     if (e instanceof ORMException) {
-      cloudLogger.warn(e.message, e.subject || "ORM Error");
-      cloudLogger.warn(
+      this.inLog.warn(e.message, e.subject || "ORM Error");
+      this.inLog.warn(
         "Exiting due to ORM initialization error",
         "Cloud Init",
       );
       Deno.exit(1);
     }
     if (e instanceof Error) {
-      cloudLogger.error(e.message, e.stack || "No stack trace available");
+      this.inLog.error(e.message, e.stack || "No stack trace available");
     }
-    cloudLogger.error(
+    this.inLog.error(
       "Exiting due to errors in cloud initialization",
       "Cloud Init",
     );

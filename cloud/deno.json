@@ -11,7 +11,8 @@
     "#/": "./src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",
-    "#client/": "./client/"
+    "#client/": "./client/",
+    "@inspatial/cloud": "./mod.ts"
   },
   "tasks": {
     "check": "deno publish --dry-run"

@@ -5,10 +5,10 @@ import type {
   InLiveMessage,
   InLiveRoomDef,
 } from "#/in-live/types.ts";
-import { serveLogger } from "#/logger/serve-logger.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import { InLiveRoom } from "#/in-live/in-live-room.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 /**
  * Handles realtime websocket connections
@@ -20,7 +20,7 @@ export class InLiveHandler {
   #rooms: Map<string, InLiveRoom> = new Map();
 
   #handleError(...args: any) {
-    serveLogger.error(args, "InLiveHandler");
+    inLog.error(args, "InLiveHandler");
   }
   #roomHandlers: Map<
     string,

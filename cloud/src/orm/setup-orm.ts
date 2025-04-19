@@ -70,6 +70,7 @@ export function setupOrm(args: {
       };
   }
   const dbConfig: DBConfig = {
+    debug: config.ormDebugMode,
     connection: connectionConfig,
     appName: config.dbAppName,
     clientMode: config.dbClientMode,

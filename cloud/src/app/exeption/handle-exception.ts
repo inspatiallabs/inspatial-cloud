@@ -1,7 +1,7 @@
 import { InResponse } from "#/app/in-response.ts";
 import type { ExceptionHandler } from "#types/serve-types.ts";
-import { serveLogger } from "#/logger/serve-logger.ts";
 import { isServerException } from "#/app/server-exception.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export async function handleException(
   err: unknown,
@@ -26,23 +26,23 @@ export async function handleException(
       const { content, subject, type } = serverMessage;
       switch (type) {
         case "error":
-          serveLogger.error(content, {
+          inLog.error(content, {
             subject,
             stackTrace: (err as Error).stack,
           });
           break;
         case "warning":
-          serveLogger.warn(content, {
+          inLog.warn(content, {
             subject,
           });
           break;
         case "info":
-          serveLogger.info(content, {
+          inLog.info(content, {
             subject,
           });
           break;
         default:
-          serveLogger.error(content, {
+          inLog.error(content, {
             subject,
           });
       }
@@ -62,7 +62,7 @@ export async function handleException(
     if (err.status >= 400 && err.status < 500) {
       type = "warn";
     }
-    serveLogger[type](err.message, {
+    inLog[type](err.message, {
       subject: err.name,
       stackTrace: err.stack,
     });
@@ -70,7 +70,7 @@ export async function handleException(
     handled = true;
   }
   if (!handled && err instanceof Error) {
-    serveLogger.error(`${err.message}: ${err.message}`, {
+    inLog.error(`${err.message}: ${err.message}`, {
       subject: "Unknown Error",
       stackTrace: err.stack,
     });
@@ -81,7 +81,7 @@ export async function handleException(
   }
 
   if (!handled) {
-    serveLogger.error("An unknown error occurred", {
+    inLog.error("An unknown error occurred", {
       subject: "Unknown Error",
       stackTrace: new Error().stack,
     });

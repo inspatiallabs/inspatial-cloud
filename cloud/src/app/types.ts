@@ -46,7 +46,7 @@ export type AppHookFunction = (app: InSpatialCloud, hookParams: {
 
 export interface CloudExtensionInfo {
   key: string;
-  title: string;
+  label: string;
   description: string;
   version: string;
   /**

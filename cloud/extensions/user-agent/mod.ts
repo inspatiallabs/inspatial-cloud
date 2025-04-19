@@ -14,12 +14,12 @@
  * ```
  */
 
-export * from "#user-agent/user-agent.ts";
-export * from "#user-agent/types.ts";
-export * from "#user-agent/matchers.ts";
-export * from "#user-agent/helpers.ts";
-export * from "#user-agent/parse.ts";
-export * from "#user-agent/runtime.ts";
-import { userAgentExtension } from "#user-agent/extension.ts";
+export * from "#extensions/user-agent/src/user-agent.ts";
+export * from "#extensions/user-agent/src/types.ts";
+export * from "#extensions/user-agent/src/matchers.ts";
+export * from "#extensions/user-agent/src/helpers.ts";
+export * from "#extensions/user-agent/src//parse.ts";
+export * from "#extensions/user-agent/src/runtime.ts";
+import { userAgentExtension } from "#extensions/user-agent/src/extension.ts";
 
 export default userAgentExtension;

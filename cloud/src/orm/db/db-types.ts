@@ -24,6 +24,7 @@ export type ClientConnectionType =
   | DBConnectionConfigSocket;
 
 export interface DBConfig {
+  debug?: boolean;
   connection: ClientConnectionType;
   appName?: string;
   idleTimeout?: number;

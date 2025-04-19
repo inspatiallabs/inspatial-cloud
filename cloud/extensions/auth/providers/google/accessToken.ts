@@ -1,6 +1,6 @@
 import { raiseServerException } from "#/app/server-exception.ts";
-import cloudLogger from "#/app/cloud-logger.ts";
 import convertString from "#/utils/convert-string.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class GoogleOAuth {
   #baseUrl: string = "https://oauth2.googleapis.com";
@@ -33,7 +33,7 @@ export class GoogleOAuth {
       body: body.toString(),
     });
     if (!result.ok) {
-      cloudLogger.error(
+      inLog.error(
         `Failed to get access token: ${result.status} ${result.statusText}`,
       );
       raiseServerException(
@@ -51,7 +51,7 @@ export class GoogleOAuth {
     });
     for (const key of expectedKeys) {
       if (!dataMap.has(key)) {
-        cloudLogger.error(
+        inLog.error(
           `Failed to get access token: ${key} not found in response`,
         );
         raiseServerException(
@@ -102,7 +102,7 @@ export class GoogleOAuth {
       body: body.toString(),
     });
     if (!result.ok) {
-      cloudLogger.error(
+      inLog.error(
         `Failed to refresh access token: ${result.status} ${result.statusText}`,
       );
       raiseServerException(
@@ -126,7 +126,7 @@ export class GoogleOAuth {
       headers,
     });
     if (!result.ok) {
-      cloudLogger.error(
+      inLog.error(
         `Failed to get user info: ${result.status} ${result.statusText}`,
       );
       raiseServerException(

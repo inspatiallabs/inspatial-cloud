@@ -8,9 +8,8 @@ import { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import { authLifecycle } from "#extensions/auth/auth-lifecycle.ts";
 import { authMiddleware } from "#extensions/auth/auth-middleware.ts";
 
-const authCloudExtension: CloudExtension = new CloudExtension({
-  key: "auth",
-  title: "Auth",
+const authCloudExtension: CloudExtension = new CloudExtension("auth", {
+  label: "Auth",
   description: "Auth extension",
   install(app, config) {
     const handler = new AuthHandler(app);

@@ -17,8 +17,8 @@ import type { IDValue } from "#/orm/entry/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import { PostgresPool } from "#/orm/db/postgres/pgPool.ts";
 import type { PgClientConfig } from "#/orm/db/postgres/pgTypes.ts";
-import { ormLogger } from "#/orm/logger.ts";
 import convertString from "#/utils/convert-string.ts";
+import { inLog } from "#/in-log/in-log.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -45,6 +45,7 @@ export class InSpatialDB {
    */
   #version: string | undefined;
 
+  #debugMode: boolean = false;
   /**
    * InSpatialDB is an interface for interacting with a Postgres database
    */
@@ -110,7 +111,7 @@ export class InSpatialDB {
   async query<T extends Record<string, any> = Record<string, any>>(
     query: string,
   ): Promise<QueryResultFormatted<T>> {
-    ormLogger.debug(`Query: ${query}`);
+    this.#debugMode && inLog.debug(`Query: ${query}`);
     const result = await this.#pool.query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
     return {
@@ -1102,7 +1103,7 @@ export class InSpatialDB {
             Join
           >;
         } catch (_e) {
-          ormLogger.error(`Error formatting value: ${value}`);
+          inLog.error(`Error formatting value: ${value}`);
           raiseORMException(
             `Error formatting value for database: ${value.toString()}`,
             "InSpatialDB",

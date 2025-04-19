@@ -1,13 +1,13 @@
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
-import cloudLogger from "#/app/cloud-logger.ts";
 import ColorMe from "#/utils/color-me.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 async function checkForUser(app: InSpatialCloud) {
   const { orm } = app;
   const userCount = await orm.count("user");
   const subject = "System Admin User";
   if (userCount === 0) {
-    cloudLogger.warn(
+    app.inLog.warn(
       "No users found in the database. Creating an admin user...",
       subject,
     );
@@ -24,7 +24,7 @@ async function checkForUser(app: InSpatialCloud) {
     user.systemAdmin = true;
     await user.save();
     await user.runAction("setPassword", { password });
-    cloudLogger.info("Admin user created successfully.");
+    app.inLog.info("Admin user created successfully.");
     prompt("Press any key to continue...");
   }
 }
@@ -40,7 +40,7 @@ function promptForUser() {
       color: "brightCyan",
     }));
     if (!firstName) {
-      cloudLogger.warn("First name cannot be empty", subject);
+      inLog.warn("First name cannot be empty", subject);
     }
   }
   while (!lastName) {
@@ -48,19 +48,19 @@ function promptForUser() {
       color: "brightCyan",
     }));
     if (!lastName) {
-      cloudLogger.warn("Last name cannot be empty", subject);
+      inLog.warn("Last name cannot be empty", subject);
     }
   }
   while (!email) {
     email = prompt(ColorMe.fromOptions("Email:", { color: "brightCyan" }));
     if (!email) {
-      cloudLogger.warn("Email cannot be empty", subject);
+      inLog.warn("Email cannot be empty", subject);
     }
   }
   while (!password) {
     password = prompt("Password:");
     if (!password) {
-      cloudLogger.warn("Password cannot be empty", subject);
+      inLog.warn("Password cannot be empty", subject);
     }
   }
   const user = {
@@ -70,7 +70,7 @@ function promptForUser() {
     password,
   };
 
-  cloudLogger.info(
+  inLog.info(
     `User: ${ColorMe.fromOptions(user.firstName, { color: "green" })} ${
       ColorMe.fromOptions(
         user.lastName,

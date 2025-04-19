@@ -6,7 +6,7 @@ export const cloudConfig: ConfigDefinition = {
       "Specify if the server is running in development or production mode",
     required: false,
     type: "string",
-    default: "production",
+    default: "development",
     enum: ["development", "production"],
     env: "SERVE_MODE",
   },

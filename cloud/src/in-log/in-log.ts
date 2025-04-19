@@ -5,11 +5,11 @@ import type {
   LogOptions,
   LogType,
   StackFrame,
-} from "#/logger/types.ts";
+} from "#/in-log/types.ts";
 import {
   formatStackFrame,
   parseStackFrame,
-} from "#/logger/stack-formatting.ts";
+} from "#/in-log/stack-formatting.ts";
 import type { BasicFgColor } from "#/utils/color-me.ts";
 import printUtils from "#/utils/print-utils.ts";
 import formatUtils from "#/utils/format-utils.ts";
@@ -65,9 +65,9 @@ export class ServeFileLogger {
 }
 
 /**
- * A logger for the InSpatialServer
+ * A logger for InSpatial Cloud
  */
-export class ServeLogger {
+export class InLog {
   /**
    * The name of the logger
    */
@@ -81,8 +81,8 @@ export class ServeLogger {
     return this.#logLevel !== undefined;
   }
 
-  #logLevel?: LogLevel;
-  #logTrace: boolean = true;
+  #logLevel: LogLevel = "info";
+  #logTrace: boolean = false;
   #lineChar: string;
   /**
    * Create a new ServeLogger
@@ -151,7 +151,7 @@ export class ServeLogger {
     subjectOrOptions?: string | LogOptions,
     options?: LogOptions,
   ): void {
-    if (this.#logLevel && this.#logLevel !== "debug") {
+    if (this.#logLevel !== "debug") {
       return;
     }
     this.#log("debug", content, subjectOrOptions, options);
@@ -356,8 +356,8 @@ export class ServeLogger {
   }
 }
 
-export const serveLogger = new ServeLogger({
-  name: "InSpatial Serve",
+export const inLog = new InLog({
   consoleDefaultStyle: "full",
+  name: "InSpatial Cloud",
   traceOffset: 1,
 });

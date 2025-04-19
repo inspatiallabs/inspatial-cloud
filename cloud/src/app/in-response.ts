@@ -1,6 +1,6 @@
-import { serveLogger } from "#/logger/serve-logger.ts";
 import type { HandlerResponse } from "#/app/path-handler.ts";
 import { inferMimeType } from "#/static/src/mimeTypes.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 interface CookieOptions {
   maxAge?: number;
@@ -83,7 +83,7 @@ export class InResponse {
    */
   set errorStatus(status: number) {
     if (this.#errorStatus) {
-      serveLogger.warn(`Error status already set to ${this.#errorStatus}`);
+      inLog.warn(`Error status already set to ${this.#errorStatus}`);
       return;
     }
     this.#errorStatus = status;
@@ -101,7 +101,7 @@ export class InResponse {
    */
   set errorStatusText(statusText: string) {
     if (this.#errorStatusText) {
-      serveLogger.warn(
+      inLog.warn(
         `Error status text already set to ${this.#errorStatusText}`,
       );
       return;
@@ -263,7 +263,7 @@ export class InResponse {
       cookieStrings.push(value.toString());
     }
     const fullCookie = cookieStrings.join("; ");
-    serveLogger.debug(fullCookie);
+    inLog.debug(fullCookie);
     this.#headers.set("Set-Cookie", fullCookie);
   }
 
