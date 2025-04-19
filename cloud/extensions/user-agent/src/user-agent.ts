@@ -1,12 +1,12 @@
-import { majorize, mapper } from "#user-agent/helpers.ts";
-import { matchers } from "#user-agent/matchers.ts";
 import type {
   BrowserProp,
   CPUProp,
   DeviceProp,
   EngineProp,
   PlatformOSProp,
-} from "#user-agent/types.ts";
+} from "#extensions/user-agent/src/types.ts";
+import { majorize, mapper } from "#extensions/user-agent/src/helpers.ts";
+import { matchers } from "#extensions/user-agent/src/matchers.ts";
 
 /**
  * # UserAgent
@@ -379,7 +379,6 @@ export class UserAgent {
    */
   [Symbol.for("nodejs.util.inspect.custom")](
     depth: number,
-    // deno-lint-ignore no-explicit-any
     // deno-lint-ignore explicit-module-boundary-types
     options: any,
     inspect: (value: unknown, options?: unknown) => string,
