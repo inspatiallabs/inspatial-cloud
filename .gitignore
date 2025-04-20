@@ -3,3 +3,5 @@
 .zed
 docs
 deno.lock
+.inspatial/
+serve-config.json

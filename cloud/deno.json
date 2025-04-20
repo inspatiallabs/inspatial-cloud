@@ -4,7 +4,8 @@
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
-    "./extensions": "./extensions/mod.ts"
+    "./extensions": "./extensions/mod.ts",
+    "./types": "./types.ts"
   },
 
   "imports": {

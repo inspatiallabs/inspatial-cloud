@@ -19,7 +19,7 @@ export async function generateEntryInterface(
   const filePath = `${entriesPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { EntryBase } from "@inspatial/orm/types";',
+    'import type { EntryBase } from "@inspatial/cloud/types";',
     `export interface ${
       convertString(entryType.name, "pascal", true)
     } extends EntryBase {`,
