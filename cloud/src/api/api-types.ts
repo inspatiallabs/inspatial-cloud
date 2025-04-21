@@ -1,3 +1,7 @@
+import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InRequest } from "#/app/in-request.ts";
+import type { InResponse } from "#/app/in-response.ts";
+
 /**
  * The full documentation for an ActionsAPI instance in JSON format.
  */
@@ -150,3 +154,30 @@ export type OptionalParams<T> = T extends Array<ActionParamProp<infer K>> ? {
       | undefined;
   }
   : never;
+
+export type CloudAPIActionConfig<
+  K extends string,
+  P extends Array<ActionParamProp<K>>,
+  D extends {
+    [K in P[number] as K["key"]]: K["type"];
+  },
+> = {
+  description?: string;
+  /**
+   * Whether the user must be authenticated to run this action
+   * @default true
+   */
+  authRequired?: boolean;
+  /**
+   * Whether this action should be hidden from the API
+   * @default false
+   */
+  hideFromApi?: boolean;
+  run: (args: {
+    app: InSpatialCloud;
+    params: D;
+    inRequest: InRequest;
+    inResponse: InResponse;
+  }) => Promise<any> | any;
+  params: P;
+};

@@ -51,6 +51,10 @@ export class InSpatialDB {
    */
   constructor(config: DBConfig) {
     this.config = config;
+    if (config.debug) {
+      this.#debugMode = true;
+      inLog.debug("InSpatialDB debug mode enabled");
+    }
     this.dbName = config.connection.database;
     this.schema = config.connection.schema || "public";
     const poolOptions = {
@@ -375,8 +379,10 @@ export class InSpatialDB {
   async getRows<T extends Record<string, any> = Record<string, any>>(
     tableName: string,
     options?: DBListOptions,
+    schema?: string,
   ): Promise<QueryResultFormatted<T> & { totalCount: number }> {
     tableName = this.#toSnake(tableName);
+    schema = schema || this.schema;
     if (!options) {
       options = {} as DBListOptions;
     }
@@ -385,7 +391,7 @@ export class InSpatialDB {
       columns = options.columns.map((column) => {
         if (typeof column === "object") {
           return this.#makeMultiChoiceFieldQuery(
-            this.schema,
+            schema,
             tableName,
             column.entryType,
             column.key,
@@ -394,8 +400,8 @@ export class InSpatialDB {
         return this.#formatColumnName(column);
       }).join(", ");
     }
-    let query = `SELECT ${columns} FROM ${this.schema}.${tableName}`;
-    let countQuery = `SELECT COUNT(*) FROM ${this.schema}.${tableName}`;
+    let query = `SELECT ${columns} FROM ${schema}.${tableName}`;
+    let countQuery = `SELECT COUNT(*) FROM ${schema}.${tableName}`;
     let andFilter = "";
     let orFilter = "";
     if (options.filter) {

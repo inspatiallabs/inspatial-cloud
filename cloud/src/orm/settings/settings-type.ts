@@ -9,6 +9,7 @@ import type {
 import type { HookName } from "#/orm/orm-types.ts";
 import type { GenericSettings } from "#/orm/settings/settings-base.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
+import { BaseConfig } from "#/orm/shared/shared-types.ts";
 
 /**
  * Defines a settings type for the ORM.
@@ -33,10 +34,7 @@ export class SettingsType<
   };
   constructor(
     name: N,
-    config: {
-      fields: Array<ORMFieldDef>;
-      label?: string;
-      description?: string;
+    config: BaseConfig & {
       actions?: Array<SettingsActionDefinition<S>>;
       hooks?: Partial<Record<HookName, Array<SettingsHookDefinition<S>>>>;
     },
@@ -49,6 +47,9 @@ export class SettingsType<
     };
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
+    this.info = {
+      config: this.config,
+    };
   }
 
   #setupActions(actions?: Array<SettingsActionDefinition<S>>): void {
@@ -75,16 +76,6 @@ export class SettingsType<
     this.hooks = {
       ...this.hooks,
       ...hooks,
-    };
-  }
-  get info(): SettingsTypeInfo {
-    return {
-      name: this.name,
-      label: this.config.label,
-      config: this.config,
-      fields: Array.from(this.fields.values()),
-      titleFields: Array.from(this.connectionTitleFields.values()),
-      displayFields: Array.from(this.displayFields.values()),
     };
   }
 }

@@ -9,7 +9,7 @@ import type { PgColumnDefinition } from "#/orm/db/db-types.ts";
 import { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
 
 export class MigrationPlanner {
-  entryTypes: Map<string, EntryTypeMigrator>;
+  entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
   settingsTypes: Map<string, SettingsTypeMigrator>;
   orm: InSpatialORM;
   db: InSpatialDB;
@@ -60,6 +60,12 @@ export class MigrationPlanner {
       this.migrationPlan.summary.dropColumns += plan.columns.drop.length;
       this.migrationPlan.summary.modifyColumns += plan.columns.modify.length;
       this.migrationPlan.summary.createTables += plan.table.create ? 1 : 0;
+      plan.children.forEach((child) => {
+        this.migrationPlan.summary.createTables += child.table.create ? 1 : 0;
+        this.migrationPlan.summary.addColumns += child.columns.create.length;
+        this.migrationPlan.summary.dropColumns += child.columns.drop.length;
+        this.migrationPlan.summary.modifyColumns += child.columns.modify.length;
+      });
       this.migrationPlan.entries.push(plan);
     }
     const hasSettingsTable = await this.db.tableExists(
@@ -121,13 +127,19 @@ export class MigrationPlanner {
     for (const plan of this.migrationPlan.entries) {
       if (plan.table.create) {
         await this.db.createTable(plan.table.tableName, plan.table.idMode);
-        this.onOutput(`Created table ${plan.table.tableName}`);
+        this.#logResult(`Created table ${plan.table.tableName}`);
+      }
+      for (const child of plan.children) {
+        if (child.table.create) {
+          await this.db.createTable(child.table.tableName, child.table.idMode);
+          this.#logResult(`Created child table ${child.table.tableName}`);
+        }
       }
     }
   }
 
   async #updateTablesDescriptions(): Promise<void> {
-    for (const plan of this.migrationPlan.entries) {
+    const updateDescription = async (plan: EntryMigrationPlan) => {
       if (plan.table.updateDescription) {
         await this.db.addTableComment(
           plan.table.tableName,
@@ -137,14 +149,26 @@ export class MigrationPlanner {
           `Updated table description for ${plan.table.tableName} from ${plan.table.updateDescription.from} to ${plan.table.updateDescription.to}`,
         );
       }
+    };
+    for (const plan of this.migrationPlan.entries) {
+      await updateDescription(plan);
+      for (const child of plan.children) {
+        await updateDescription(child);
+      }
     }
   }
 
   async #syncColumns(): Promise<void> {
-    for (const plan of this.migrationPlan.entries) {
+    const syncColumns = async (plan: EntryMigrationPlan) => {
       await this.#createMissingColumns(plan);
       await this.#modifyColumns(plan);
       await this.#dropColumns(plan);
+    };
+    for (const plan of this.migrationPlan.entries) {
+      await syncColumns(plan);
+      for (const child of plan.children) {
+        await syncColumns(child);
+      }
     }
   }
   async #createMissingColumns(plan: EntryMigrationPlan): Promise<void> {

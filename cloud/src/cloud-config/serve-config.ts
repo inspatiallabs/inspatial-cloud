@@ -18,7 +18,6 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
       const extensionConfig = config[key];
       for (const subKey in extensionConfig) {
         const value = extensionConfig[subKey];
-        // console.log(`Setting ${subKey} to ${value}`);
         Deno.env.set(subKey, value);
       }
     }

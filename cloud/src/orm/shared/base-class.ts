@@ -5,6 +5,8 @@ import type { ORMField } from "#/orm/field/orm-field.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import type { SettingsActionDefinition } from "#/orm/settings/types.ts";
 import type { EntryActionDefinition } from "#/orm/entry/types.ts";
+import { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -16,7 +18,8 @@ export class BaseClass<N extends string = string> {
   _fields: Map<string, ORMFieldDef> = new Map();
   _titleFields: Map<string, ORMFieldDef> = new Map();
   _changeableFields: Map<string, ORMFieldDef> = new Map();
-
+  _childrenClasses: Map<string, typeof ChildEntryList> = new Map();
+  _childrenData: Map<string, ChildEntryList> = new Map();
   readonly _user?: Record<string, any>;
   _actions: Map<string, EntryActionDefinition | SettingsActionDefinition> =
     new Map();
@@ -51,6 +54,7 @@ export class BaseClass<N extends string = string> {
     this._orm = orm;
     this._db = orm.db;
     this._data = new Map();
+    this._childrenData = new Map();
   }
 
   async runAction<T = void>(
@@ -67,7 +71,31 @@ export class BaseClass<N extends string = string> {
       [this._type]: this as any,
     });
   }
-
+  _setupChildren(): void {
+    this._childrenData.clear();
+    for (const child of this._childrenClasses.values()) {
+      const childList = new child(this._orm);
+      this._childrenData.set(childList._name, childList);
+    }
+  }
+  getChild(childName: string): ChildEntryList {
+    if (!this._childrenData.has(childName)) {
+      raiseORMException(
+        `Child ${childName} not found in entry type ${this._name}`,
+      );
+    }
+    return this._childrenData.get(childName)!;
+  }
+  async saveChildren(): Promise<void> {
+    for (const child of this._childrenData.values()) {
+      await child.save();
+    }
+  }
+  async loadChildren(parentId: string): Promise<void> {
+    for (const child of this._childrenData.values()) {
+      await child.load(parentId);
+    }
+  }
   #getAndValidateAction(
     actionKey: string,
     data?: Record<string, any>,

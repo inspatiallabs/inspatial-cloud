@@ -1,6 +1,5 @@
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
-import type { ActionParamProp } from "#/app/types.ts";
-import type { ParamsMap } from "#/api/api-types.ts";
+import type { ActionParamProp, ParamsMap } from "#/api/api-types.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 import { raiseServerException } from "#/app/server-exception.ts";

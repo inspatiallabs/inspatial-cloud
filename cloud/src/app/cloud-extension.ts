@@ -10,8 +10,9 @@ import { convertString } from "#/utils/mod.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { CloudAPIGroup } from "#/app/cloud-action.ts";
-import type { AppEntryHooks, CloudExtensionInfo } from "#/app/types.ts";
+import type { CloudExtensionInfo } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
+import type { EntryHooks } from "#/orm/orm-types.ts";
 export type CloudInstallFunction<R = any> = (
   app: InSpatialCloud,
 ) => R;
@@ -51,7 +52,7 @@ export class CloudExtension<
 
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
-  ormGlobalHooks: AppEntryHooks;
+  ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
     app: InSpatialCloud,
@@ -66,7 +67,7 @@ export class CloudExtension<
     config?: C;
     entryTypes?: E;
     settingsTypes?: ST;
-    ormGlobalHooks?: Partial<AppEntryHooks>;
+    ormGlobalHooks?: Partial<EntryHooks>;
     actionGroups?: AG;
     install?(
       app: InSpatialCloud,

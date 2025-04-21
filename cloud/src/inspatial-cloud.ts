@@ -30,6 +30,7 @@ import { makeLogo } from "#/in-log/logo.ts";
 import { center } from "#/utils/mod.ts";
 import ColorMe from "#/utils/color-me.ts";
 import convertString from "#/utils/convert-string.ts";
+import { LogLevel } from "#/in-log/types.ts";
 
 export class InSpatialCloud<
   N extends string = any,
@@ -93,6 +94,16 @@ export class InSpatialCloud<
     this.inLog = inLog;
 
     loadServeConfigFile();
+    this.#extensionManager = new ExtensionManager();
+    this.#extensionManager.registerExtension(baseExtension);
+    const config = this.getExtensionConfig<{
+      logLevel?: LogLevel;
+      logTrace?: boolean;
+    }>("cloud");
+    this.inLog.setConfig({
+      logLevel: config.logLevel,
+      logTrace: config.logTrace,
+    });
     const mode = Deno.env.get("SERVE_MODE");
     switch (mode) {
       case "development":
@@ -100,7 +111,6 @@ export class InSpatialCloud<
         this.#mode = mode;
         break;
     }
-    this.#extensionManager = new ExtensionManager();
     this.appName = appName;
     this.inCache = new InCache();
     this.api = new CloudAPI();
@@ -124,9 +134,7 @@ export class InSpatialCloud<
       auth: options?.builtInExtensions?.auth === false ? false : true,
     };
 
-    const appExtensions: Array<CloudExtension> = [
-      baseExtension,
-    ];
+    const appExtensions: Array<CloudExtension> = [];
     if (builtInExtensions.auth) {
       appExtensions.push(authCloudExtension);
     }

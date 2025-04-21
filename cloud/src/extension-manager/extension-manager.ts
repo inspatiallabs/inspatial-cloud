@@ -6,7 +6,7 @@ import { raiseServerException } from "#/app/server-exception.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { AppEntryHooks } from "#/app/types.ts";
+import type { EntryHooks } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 
 export class ExtensionManager {
@@ -17,7 +17,7 @@ export class ExtensionManager {
   extensionsConfig: Map<string, Map<string, any>> = new Map();
   entryTypes: Array<EntryType> = [];
   settingsTypes: Array<SettingsType> = [];
-  ormGlobalHooks: AppEntryHooks = {
+  ormGlobalHooks: EntryHooks = {
     afterCreate: [],
     beforeUpdate: [],
     beforeDelete: [],
@@ -116,8 +116,8 @@ export class ExtensionManager {
     }
     if (ormGlobalHooks) {
       for (const hookName of Object.keys(ormGlobalHooks)) {
-        this.ormGlobalHooks[hookName as keyof AppEntryHooks].push(
-          ...(ormGlobalHooks[hookName as keyof AppEntryHooks] || []),
+        this.ormGlobalHooks[hookName as keyof EntryHooks].push(
+          ...(ormGlobalHooks[hookName as keyof EntryHooks] || []),
         );
       }
     }

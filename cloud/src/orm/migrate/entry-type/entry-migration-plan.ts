@@ -27,6 +27,7 @@ export class EntryMigrationPlan {
       drop: Array<ForeignKeyConstraint>;
     };
   };
+  children: Array<EntryMigrationPlan>;
   constructor(entryType: string) {
     this.entryType = entryType;
     this.table = {
@@ -46,5 +47,6 @@ export class EntryMigrationPlan {
         drop: [],
       },
     };
+    this.children = [];
   }
 }

@@ -14,7 +14,7 @@ const authCloudExtension: CloudExtension = new CloudExtension("auth", {
   install(app, config) {
     const handler = new AuthHandler(app);
     handler.allowPath("/api");
-    handler.allowAction("api", "ping");
+
     for (const group of app.actionGroups.values()) {
       for (const action of group.actions.values()) {
         if (config.allowAll === true) {

@@ -3,11 +3,15 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { Entry } from "#/orm/entry/entry.ts";
 import type { Settings } from "#/orm/settings/settings.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
+import type {
+  ChildEntry,
+  ChildEntryType,
+} from "#/orm/child-entry/child-entry.ts";
 
 export function makeFields(
-  forType: "entry" | "settings",
-  typeClass: EntryType | SettingsType,
-  dataClass: typeof Entry | typeof Settings,
+  forType: "entry" | "settings" | "child",
+  typeClass: EntryType | SettingsType | ChildEntryType,
+  dataClass: typeof Entry | typeof Settings | typeof ChildEntry,
 ): void {
   const fields = typeClass.fields;
   for (const field of fields.values()) {
@@ -20,7 +24,7 @@ export function makeFields(
         return (this as Entry)._data.get(field.key);
       },
       set(value): void {
-        const instance = this as Entry | Settings;
+        const instance = this as Entry | Settings | ChildEntry;
         const fieldType = instance._getFieldType(field.type);
         const fieldDef = instance._getFieldDef(field.key);
         value = fieldType.normalize(value, fieldDef);
@@ -38,6 +42,7 @@ export function makeFields(
             `${value} is not a valid value for field ${field.key} in ${forType} ${instance._name}`,
           );
         }
+
         instance._data.set(field.key, value);
       },
     });

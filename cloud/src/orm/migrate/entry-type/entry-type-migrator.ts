@@ -17,14 +17,20 @@ import {
   compareDataTypes,
   compareNullable,
 } from "#/orm/migrate/migrate-utils.ts";
+import convertString from "#/utils/convert-string.ts";
 
-export class EntryTypeMigrator {
-  entryType: EntryType;
+import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import { raiseORMException } from "#/orm/orm-exception.ts";
+
+export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
+  entryType: T;
   orm: InSpatialORM;
   log: (message: string) => void;
   db: InSpatialDB;
   existingColumns: Map<string, PostgresColumn>;
   targetColumns: Map<string, PgColumnDefinition>;
+  isChild: boolean = false;
+  existingChildren: Map<string, any>;
   existingConstraints: {
     unique: Map<string, TableConstraint>;
     primaryKey: Map<string, TableConstraint>;
@@ -35,24 +41,34 @@ export class EntryTypeMigrator {
     primaryKey: Map<string, TableConstraint>;
     foreignKey: Map<string, ForeignKeyConstraint>;
   };
+
   migrationPlan: EntryMigrationPlan;
   get #tableName(): string {
+    if (!this.entryType.config.tableName) {
+      raiseORMException(
+        `EntryType ${this.entryType.name} does not have a tableName defined`,
+      );
+    }
     return this.entryType.config.tableName;
   }
   constructor(
     config: {
-      entryType: EntryType;
+      entryType: T;
       orm: InSpatialORM;
       onOutput: (message: string) => void;
+      isChild?: boolean;
     },
   ) {
     const { entryType, orm, onOutput } = config;
+    this.isChild = config.isChild || false;
     this.log = onOutput;
     this.entryType = entryType;
     this.orm = orm;
     this.db = orm.db;
     this.existingColumns = new Map();
     this.targetColumns = new Map();
+    this.existingChildren = new Map();
+
     this.existingConstraints = {
       unique: new Map(),
       primaryKey: new Map(),
@@ -84,9 +100,51 @@ export class EntryTypeMigrator {
     this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
     this.#checkForColumnsToModify();
+    if (!this.isChild) {
+      await this.#loadExistingChildren();
+      await this.#makeChildrenMigrationPlan();
+    }
     return this.migrationPlan;
   }
+  async #loadExistingChildren(): Promise<void> {
+    const result = await this.db.getRows<{ tableName: string }>("tables", {
+      columns: ["tableName"],
+      filter: {
+        tableSchema: this.db.schema,
+        tableName: {
+          op: "startsWith",
+          value: convertString(`child_${this.entryType.name}`, "snake", true),
+        },
+      },
+    }, "information_schema");
+    for (const row of result.rows) {
+      const columns = await this.db.getTableColumns(row.tableName);
+      const tableName = convertString(row.tableName, "camel");
+      this.existingChildren.set(tableName, {
+        tableName,
+        columns: columns,
+      });
+    }
+  }
+  async #makeChildrenMigrationPlan() {
+    if (!this.entryType.children) {
+      return;
+    }
+    for (const child of this.entryType.children.values()) {
+      const migrationPlan = await this.#generateChildMigrationPlan(child);
+      this.migrationPlan.children.push(migrationPlan);
+    }
+  }
+  async #generateChildMigrationPlan(child: ChildEntryType<any>) {
+    const migrationPlan = new EntryTypeMigrator({
+      entryType: child,
+      orm: this.orm,
+      onOutput: this.log,
+      isChild: true,
+    });
 
+    return await migrationPlan.planMigration();
+  }
   async #loadExistingColumns(): Promise<void> {
     const columns = await this.db.getTableColumns(this.#tableName);
     for (const column of columns) {
@@ -119,6 +177,7 @@ export class EntryTypeMigrator {
       }
     }
   }
+
   #loadTargetColumns(): void {
     for (const field of this.entryType.fields.values()) {
       if (field.key == "id") {
@@ -145,6 +204,7 @@ export class EntryTypeMigrator {
           tableName: this.#tableName,
         });
       }
+
       this.targetColumns.set(field.key, dbColumn);
     }
   }
@@ -211,20 +271,23 @@ export class EntryTypeMigrator {
         const columnPlan: ColumnMigrationPlan = {
           columnName: columnName,
         };
+
         const existingUnique = this.existingConstraints.unique.get(columnName);
-        if (existingUnique && !newColumn.unique) {
-          hasChanges = true;
-          columnPlan.unique = {
-            from: true,
-            to: false,
-          };
-        }
-        if (!existingUnique && newColumn.unique) {
-          hasChanges = true;
-          columnPlan.unique = {
-            from: false,
-            to: true,
-          };
+        if (!this.isChild) {
+          if (existingUnique && !newColumn.unique) {
+            hasChanges = true;
+            columnPlan.unique = {
+              from: true,
+              to: false,
+            };
+          }
+          if (!existingUnique && newColumn.unique) {
+            hasChanges = true;
+            columnPlan.unique = {
+              from: false,
+              to: true,
+            };
+          }
         }
         const foreignKey = this.#getColumnForeignKeyConstraint(columnName);
         if (foreignKey) {

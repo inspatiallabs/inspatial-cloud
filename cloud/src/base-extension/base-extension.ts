@@ -2,7 +2,7 @@ import { CloudExtension } from "#/app/cloud-extension.ts";
 import { corsMiddleware } from "#/base-extension/middleware/cors.ts";
 import { cloudConfig } from "#/base-extension/config.ts";
 import { inLiveMiddleware } from "#/base-extension/middleware/inLive.ts";
-import { apiPathHandeler } from "#/base-extension/path-handlers/cloud-api.ts";
+import { apiPathHandeler } from "#/api/api-handler.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
   description: "InSpatial Cloud Base Extension",

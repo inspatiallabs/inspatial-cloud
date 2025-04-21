@@ -1,6 +1,7 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import { buildConnectionFields } from "#/orm/setup/setup-utils.ts";
+import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 
 export function buildEntryType(
   orm: InSpatialORM,
@@ -10,7 +11,7 @@ export function buildEntryType(
   //   entryType.statusField = entryType.config.statusField;
   // }
   buildConnectionFields(orm, entryType);
-  // buildChildren(orm, entryType);
+  buildChildren(orm, entryType);
   // // const groups: FieldGroup[] = buildFieldGroups(entryType);
   // const listFields = buildListFields(entryType);
   // const displayFieldGroups = getFilteredDisplayFieldGroups(entryType, groups);
@@ -29,7 +30,21 @@ export function buildEntryType(
   //   connections: [],
   // };
 }
+function buildChildren(orm: InSpatialORM, entryType: EntryType) {
+  if (!entryType.children) {
+    return;
+  }
+  for (const child of entryType.children.values()) {
+    buildChild(orm, child);
+  }
+}
 
+function buildChild(
+  orm: InSpatialORM,
+  child: ChildEntryType,
+) {
+  buildConnectionFields(orm, child);
+}
 // function getFilteredDisplayFieldGroups(
 //   entryType: EntryType,
 //   groups: FieldGroup[],
@@ -51,30 +66,6 @@ export function buildEntryType(
 //       }),
 //     };
 //   }).filter((group) => group.fields.length > 0);
-// }
-// function buildChildren(orm: EasyOrm, entryType: EntryType) {
-//   for (const child of entryType.children) {
-//     buildChild(orm, child);
-//   }
-// }
-
-// function buildChild(orm: EasyOrm, child: ChildListDefinition) {
-//   const connectionFields = child.fields.filter((field) =>
-//     field.fieldType === "ConnectionField"
-//   );
-//   for (const field of connectionFields) {
-//     const titleField = buildConnectionTitleField(orm, field);
-//     if (!titleField) {
-//       continue;
-//     }
-
-//     field.connectionTitleField = titleField.key as string;
-//     field.connectionIdType = getConnectionIdType(
-//       orm,
-//       field.connectionEntryType!,
-//     );
-//     child.fields.push(titleField);
-//   }
 // }
 
 // function buildListFields(entryType: EntryType) {

@@ -1,9 +1,12 @@
 import { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { ClientConnectionType, DBConfig } from "#/orm/db/db-types.ts";
-import type { GlobalEntryHooks, GlobalHookFunction } from "#/orm/orm-types.ts";
+import type {
+  EntryHooks,
+  GlobalEntryHooks,
+  GlobalHookFunction,
+} from "#/orm/orm-types.ts";
 import type { InSpatialCloud } from "#/inspatial-cloud.ts";
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
-import type { AppEntryHooks } from "#/app/types.ts";
 
 export function setupOrm(args: {
   app: InSpatialCloud;
@@ -22,8 +25,7 @@ export function setupOrm(args: {
     validate: [],
   };
   for (const hookName of Object.keys(extensionManager.ormGlobalHooks)) {
-    const hooks =
-      extensionManager.ormGlobalHooks[hookName as keyof AppEntryHooks];
+    const hooks = extensionManager.ormGlobalHooks[hookName as keyof EntryHooks];
     for (const hook of hooks) {
       const newHook: GlobalHookFunction = async (
         { entry, entryType, orm },

@@ -1,4 +1,4 @@
-import type { AppHookFunction } from "#/app/types.ts";
+import type { EntryHookFunction } from "#/app/types.ts";
 import { CloudExtension } from "#/app/cloud-extension.ts";
 import ormGroup from "#extensions/orm/actions/orm-group.ts";
 import entriesGroup from "#extensions/orm/actions/entries-group.ts";
@@ -8,7 +8,7 @@ import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
 import { ORMException } from "#/orm/orm-exception.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
-const afterUpdateHook: AppHookFunction = (
+const afterUpdateHook: EntryHookFunction = (
   app,
   { entry, entryType },
 ) => {
@@ -19,7 +19,7 @@ const afterUpdateHook: AppHookFunction = (
   });
 };
 
-const afterCreateHook: AppHookFunction = (
+const afterCreateHook: EntryHookFunction = (
   app,
   { entry, entryType },
 ) => {
@@ -30,7 +30,7 @@ const afterCreateHook: AppHookFunction = (
   });
 };
 
-const afterDeleteHook: AppHookFunction = (
+const afterDeleteHook: EntryHookFunction = (
   app,
   { entry, entryType },
 ) => {

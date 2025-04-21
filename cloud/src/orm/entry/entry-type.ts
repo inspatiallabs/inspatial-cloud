@@ -12,6 +12,8 @@ import { BaseType } from "#/orm/shared/base-type-class.ts";
 import type { IDMode } from "#/orm/field/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
+import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import type { BaseConfig } from "#/orm/shared/shared-types.ts";
 
 export class EntryType<
   E extends EntryBase = GenericEntry,
@@ -35,21 +37,21 @@ export class EntryType<
     beforeValidate: [],
     validate: [],
   };
-  constructor(name: N, config: {
-    description?: string;
-    /**
-     * The field to use as the display value instead of the ID.
-     */
-    titleField?: FK;
-    label?: string;
-    idMode?: IDMode;
-    defaultListFields?: Array<FK>;
-    searchFields?: Array<FK>;
-    fields: Array<ORMFieldDef>;
-    actions?: A;
-    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-    roles?: Array<unknown>;
-  }) {
+  constructor(
+    name: N,
+    config: BaseConfig & {
+      /**
+       * The field to use as the display value instead of the ID.
+       */
+      titleField?: FK;
+      idMode?: IDMode;
+      defaultListFields?: Array<FK>;
+      searchFields?: Array<FK>;
+      actions?: A;
+      hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
+      roles?: Array<unknown>;
+    },
+  ) {
     super(name, config);
     this.fields.set("id", {
       key: "id",
@@ -110,6 +112,14 @@ export class EntryType<
 
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
+    this.info = {
+      config: this.config,
+      actions: Array.from(this.actions.values()),
+      displayFields: Array.from(this.displayFields.values()),
+      defaultListFields: Array.from(this.defaultListFields).map((f) =>
+        this.fields.get(f)!
+      ),
+    };
   }
 
   #setupActions(
@@ -139,20 +149,6 @@ export class EntryType<
     };
   }
 
-  get info(): EntryTypeInfo {
-    return {
-      name: this.name,
-      label: this.config.label,
-      config: this.config,
-      fields: Array.from(this.fields.values()),
-      titleFields: Array.from(this.connectionTitleFields.values()),
-      actions: Array.from(this.actions.values()),
-      displayFields: Array.from(this.displayFields.values()),
-      defaultListFields: Array.from(this.defaultListFields).map((f) =>
-        this.fields.get(f)!
-      ),
-    };
-  }
   #generateTableName(): string {
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;

@@ -116,6 +116,7 @@ export class CloudAPI {
     const pingAction = new CloudAPIAction("ping", {
       label: "Ping",
       description: "Ping the server",
+      authRequired: false,
       params: [],
       run({ app }) {
         return {

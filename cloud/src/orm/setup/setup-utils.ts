@@ -3,12 +3,13 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { FieldDefMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
+import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 
 export function buildConnectionFields(
   orm: InSpatialORM,
-  entryOrSettingsType: EntryType | SettingsType,
+  entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
 ): void {
-  for (const field of entryOrSettingsType.fields.values()) {
+  for (const field of entryOrSettingsOrChildType.fields.values()) {
     if (field.type !== "ConnectionField") {
       continue;
     }
@@ -23,10 +24,13 @@ export function buildConnectionFields(
     }
     field.connectionIdMode = connectionEntryType.config.idMode;
 
-    entryOrSettingsType.connectionTitleFields.set(field.key, titleField);
+    entryOrSettingsOrChildType.connectionTitleFields.set(field.key, titleField);
   }
-  for (const titleField of entryOrSettingsType.connectionTitleFields.values()) {
-    entryOrSettingsType.fields.set(titleField.key, titleField);
+  for (
+    const titleField of entryOrSettingsOrChildType.connectionTitleFields
+      .values()
+  ) {
+    entryOrSettingsOrChildType.fields.set(titleField.key, titleField);
   }
 }
 

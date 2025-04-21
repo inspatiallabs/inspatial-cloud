@@ -101,7 +101,18 @@ export class InLog {
     this.#lineChar = printUtils.symbol.box.horizontal;
     this.#loadEnv();
   }
-
+  setConfig(config: {
+    logLevel?: LogLevel;
+    logTrace?: boolean;
+  }): void {
+    this.#logLevel = config.logLevel || this.#logLevel;
+    switch (config.logTrace) {
+      case true:
+      case false:
+        this.#logTrace = config.logTrace;
+        break;
+    }
+  }
   #loadEnv() {
     if (this.#envLoaded) {
       return;
@@ -111,7 +122,6 @@ export class InLog {
     if (logTrace) {
       this.#logTrace = logTrace === "true";
     }
-    // console.log(`log level: ${env}`);
     if (!env) {
       return;
     }
@@ -121,8 +131,6 @@ export class InLog {
         return;
       }
       this.#logLevel = logLevel;
-
-      // console.log(`log level: ${logLevel}`);
     }
   }
 
@@ -261,7 +269,6 @@ export class InLog {
     }
 
     const frame = this.#getCallFrame(options?.stackTrace);
-    // console.log(formatStackFrame(frame, false));
     const logMessage: LogMessage = {
       type,
       subject: options?.subject || type.toUpperCase(),

@@ -8,6 +8,7 @@ import { PgError } from "#/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
 import ulid from "#/orm/utils/ulid.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class Entry<
   N extends string = string,
@@ -37,7 +38,16 @@ export class Entry<
     return this._orm.getEntryType(this._name);
   }
   get data(): Record<string, any> {
-    return Object.fromEntries(this._data.entries());
+    inLog.info("getting data");
+    const data = Object.fromEntries(this._data.entries());
+    const childData: Record<string, any> = {};
+    for (const [key, value] of this._childrenData.entries()) {
+      childData[key] = value.data;
+    }
+    return {
+      ...data,
+      ...childData,
+    };
   }
 
   constructor(orm: InSpatialORM, name: N, user?: any) {
@@ -79,6 +89,8 @@ export class Entry<
       const fieldType = this._getFieldType(fieldDef.type);
       this._data.set(key, fieldType.parseDbValue(value, fieldDef));
     }
+
+    await this.loadChildren(this.id as string);
   }
 
   async save(): Promise<void> {
@@ -110,6 +122,8 @@ export class Entry<
       this.id,
       data,
     ).catch((e) => this.#handlePGError(e));
+
+    await this.saveChildren();
     // Reload the entry to get the updated values
     await this.load(this.id);
     await this.#afterUpdate();
@@ -132,6 +146,14 @@ export class Entry<
    */
   update(data: Record<string, any>): void {
     for (const [key, value] of Object.entries(data)) {
+      if (this._childrenData.has(key)) {
+        const childList = this._childrenData.get(key);
+        if (childList) {
+          childList._parentId = this.id as string;
+          childList.update(value);
+        }
+        continue;
+      }
       if (!this._changeableFields.has(key)) {
         continue;
       }
