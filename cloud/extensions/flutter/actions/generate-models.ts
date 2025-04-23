@@ -2,6 +2,7 @@ import { CloudAPIAction, type CloudAPIActionType } from "#/app/cloud-action.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { ORMFieldType } from "#/orm/field/types.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
+import { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",
@@ -52,14 +53,26 @@ function getHelperClasses() {
     ``,
     `  ConnectionEntry(this.value, this.label);`,
     `}`,
+    "abstract base class Entry {",
+    "  final String id;",
+    "  final DateTime createdAt;",
+    "  final DateTime updatedAt;",
+    "  ",
+    "  Entry({",
+    "  required this.id,",
+    "  required this.createdAt,",
+    "  required this.updatedAt,",
+    "  });",
+    "  }",
   ];
   return connectionEntryClass;
 }
 function generateFlutterModel(entryType: EntryType) {
   const className = convertString(entryType.name, "pascal", true);
   const lines: string[] = [
+    "import './helpers.dart';",
     "",
-    `class ${className} {`,
+    `final class ${className} extends Entry {`,
   ];
   const fields = generateFieldDefs(entryType);
   lines.push(...fields.flatMap((field) => field));
@@ -68,20 +81,17 @@ function generateFlutterModel(entryType: EntryType) {
   const constructorClass = generateConstructor(entryType);
   lines.push(...constructorClass);
   lines.push("}");
-  if (
-    entryType.fields.values().find((f) =>
-      f.type === "ConnectionField" && !f.hidden
-    )
-  ) {
-    lines.unshift(`import './helpers.dart';`, "");
-  }
+
   return lines;
 }
-
+function shouldIgnoreField(field: ORMFieldDef) {
+  return field.key.endsWith("#") || field.hidden ||
+    ["id", "createdAt", "updatedAt"].includes(field.key);
+}
 function generateFieldDefs(entryType: EntryType) {
   const fields: string[] = [];
   entryType.fields.values().forEach((field) => {
-    if (field.key.endsWith("#") || field.hidden) {
+    if (shouldIgnoreField(field)) {
       return;
     }
     const fieldType = flutterTypeMap[field.type];
@@ -101,12 +111,15 @@ function generateJsonConverting(entryType: EntryType) {
   const fromJson: string[] = [
     ` factory ${className}.fromJson(Map<String, dynamic> json) {`,
     `    return ${className}(`,
+    `      id: json['id'] as String,`,
+    `      createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),`,
+    `      updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int),`,
   ];
   // const toJson: string[] = [
   //   `  Map<String, dynamic> toJson() {`,
   // ];
   for (const field of entryType.fields.values()) {
-    if (field.key.endsWith("#") || field.hidden) {
+    if (shouldIgnoreField(field)) {
       continue;
     }
     switch (field.type) {
@@ -145,9 +158,12 @@ function generateConstructor(entryType: EntryType) {
   const className = convertString(entryType.name, "pascal", true);
   const constructor: string[] = [
     ` ${className}({`,
+    `    required super.id,`,
+    `    required super.createdAt,`,
+    `    required super.updatedAt,`,
   ];
   for (const field of entryType.fields.values()) {
-    if (field.key.endsWith("#") || field.hidden) {
+    if (shouldIgnoreField(field)) {
       continue;
     }
     constructor.push(

@@ -25,7 +25,8 @@ export class EntryType<
 > extends BaseType<N> {
   config: EntryTypeConfig;
   defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
-
+  defaultSortField?: FK;
+  defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
   hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
     beforeUpdate: [],
@@ -46,6 +47,8 @@ export class EntryType<
       titleField?: FK;
       idMode?: IDMode;
       defaultListFields?: Array<FK>;
+      defaultSortField?: FK;
+      defaultSortDirection?: "asc" | "desc";
       searchFields?: Array<FK>;
       actions?: A;
       hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
@@ -53,6 +56,8 @@ export class EntryType<
     },
   ) {
     super(name, config);
+    this.defaultSortField = config.defaultSortField;
+    this.defaultSortDirection = config.defaultSortDirection;
     this.fields.set("id", {
       key: "id",
       type: "IDField",

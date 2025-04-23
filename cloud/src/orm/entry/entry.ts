@@ -38,7 +38,6 @@ export class Entry<
     return this._orm.getEntryType(this._name);
   }
   get data(): Record<string, any> {
-    inLog.info("getting data");
     const data = Object.fromEntries(this._data.entries());
     const childData: Record<string, any> = {};
     for (const [key, value] of this._childrenData.entries()) {

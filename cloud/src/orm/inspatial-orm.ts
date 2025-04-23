@@ -351,6 +351,13 @@ export class InSpatialORM {
       limit: 100,
       columns: [],
     };
+    const { defaultSortField, defaultSortDirection } = entryTypeObj;
+    if (defaultSortField) {
+      dbOptions.orderBy = defaultSortField as string;
+    }
+    if (defaultSortDirection) {
+      dbOptions.order = defaultSortDirection;
+    }
     const dbColumns = new Set(entryTypeObj.defaultListFields);
     const titleColumns = new Set();
     if (options?.columns && Array.isArray(options.columns)) {

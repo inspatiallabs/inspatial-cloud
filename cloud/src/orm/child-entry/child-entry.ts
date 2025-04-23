@@ -1,11 +1,14 @@
 import { BaseType } from "#/orm/shared/base-type-class.ts";
 import type { FieldDefMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { inLog } from "#/in-log/in-log.ts";
-import { BaseTypeConfig, BaseTypeInfo } from "#/orm/shared/shared-types.ts";
+import type {
+  BaseTypeConfig,
+  BaseTypeInfo,
+} from "#/orm/shared/shared-types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
-import { convertString, generateId } from "#/utils/mod.ts";
-import { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import { ORMField } from "#/orm/field/orm-field.ts";
+import { convertString } from "#/utils/mod.ts";
+import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
+import type { ORMField } from "#/orm/field/orm-field.ts";
 import ulid from "#/orm/utils/ulid.ts";
 import { dateUtils } from "#/utils/date-utils.ts";
 export interface ChildEntry {
@@ -32,7 +35,8 @@ export class ChildEntryList<T = Record<string, unknown>> {
   _fields: Map<string, ORMFieldDef> = new Map();
   _orm!: InSpatialORM;
   _tableName: string = "";
-  _data: Array<ChildEntry> = [];
+  _data: Map<string, ChildEntry> = new Map();
+  _newData: Map<string, ChildEntry> = new Map();
   _parentId: string = "";
   _getFieldType<T extends keyof FieldDefMap>(fieldType: T): ORMField<T> {
     const fieldTypeDef = this._orm.fieldTypes.get(fieldType);
@@ -57,13 +61,15 @@ export class ChildEntryList<T = Record<string, unknown>> {
   }
 
   get data(): Array<any> {
-    return this._data.map((child) => {
-      const childData = Object.fromEntries(child._data.entries());
-      return childData;
-    });
+    return Array.from(
+      this._data.values().map((child) => {
+        const childData = Object.fromEntries(child._data.entries());
+        return childData;
+      }),
+    );
   }
   async load(parentId: string): Promise<void> {
-    this._data = [];
+    this._data = new Map();
     this._parentId = parentId;
     const children = await this._orm.db.getRows(
       this._tableName,
@@ -75,13 +81,16 @@ export class ChildEntryList<T = Record<string, unknown>> {
       },
     );
     for (const childRow of children.rows) {
-      const child = new this._childClass(this._getFieldDef, this._getFieldType);
+      const child = new this._childClass(
+        this._getFieldDef.bind(this),
+        this._getFieldType.bind(this),
+      );
       for (const [key, value] of Object.entries(childRow)) {
         const fieldDef = this._getFieldDef(key);
         const fieldType = this._getFieldType(fieldDef.type);
         child._data.set(key, fieldType.parseDbValue(value, fieldDef));
       }
-      this._data.push(child);
+      this._data.set(childRow.id, child);
     }
   }
   async clear(): Promise<void> {
@@ -92,65 +101,107 @@ export class ChildEntryList<T = Record<string, unknown>> {
     await this.load(this._parentId);
   }
   async deleteStaleRecords(): Promise<void> {
-    const dbRecords = await this._orm.db.getRows(this._tableName, {
-      filter: {
-        parent: this._parentId,
+    const dbRecords = await this._orm.db.getRows<{ id: string }>(
+      this._tableName,
+      {
+        filter: {
+          parent: this._parentId,
+        },
+        columns: ["id"],
       },
-      columns: ["id"],
-    });
-
-    const dbIds = dbRecords.rows.map((row) => row.id as string);
-    const staleIds = dbIds.filter((id) =>
-      !this._data.some((r) => r._data.get("id") === id)
     );
-    for (const id of staleIds) {
-      await this._orm.db.deleteRow(this._tableName, id);
+
+    for (const row of dbRecords.rows) {
+      if (!this._data.has(row.id)) {
+        await this._orm.db.deleteRow(this._tableName, row.id);
+      }
     }
   }
   update(data: Array<Record<string, unknown>>): void {
-    this._data = [];
-
+    const rowsToRemove = new Set(this._data.keys());
     for (const row of data) {
-      const child = new this._childClass(
-        this._getFieldDef.bind(this),
-        this._getFieldType.bind(this),
-      );
-      for (const [key, value] of Object.entries(row)) {
-        if (this._fields.has(key)) {
-          child[key as keyof typeof child] = value;
-        }
+      switch (typeof row.id) {
+        case "string":
+          rowsToRemove.delete(row.id);
+          this.updateChild(row.id, row);
+          break;
+        default:
+          this.addChild(row);
       }
-      this._data.push(child);
+    }
+    for (const rowId of rowsToRemove) {
+      this._data.delete(rowId);
     }
   }
+  getChild(id: string): ChildEntry {
+    const child = this._data.get(id);
+    if (!child) {
+      raiseORMException(
+        `Child with id ${id} not found in entry type ${this._name}`,
+      );
+    }
+    return child;
+  }
+  updateChild(id: string, data: Record<string, unknown>): void {
+    const child = this.getChild(id);
+    for (const [key, value] of Object.entries(data)) {
+      if (this._fields.has(key)) {
+        child[key as keyof typeof child] = value;
+      }
+    }
+  }
+  addChild(data: Record<string, unknown>): void {
+    const child = new this._childClass(
+      this._getFieldDef.bind(this),
+      this._getFieldType.bind(this),
+    );
+
+    for (const [key, value] of Object.entries(data)) {
+      if (this._fields.has(key)) {
+        child[key as keyof typeof child] = value;
+      }
+    }
+    child.parent = this._parentId;
+    this._newData.set(this._newData.size.toString(), child);
+  }
   async save(): Promise<void> {
-    for (const childEntry of this._data) {
-      childEntry.parent = this._parentId;
+    for (const childEntry of this._data.values()) {
+      if (childEntry._modifiedValues.size === 0) {
+        continue;
+      }
       await this.#refreshFetchedFields(childEntry);
 
       childEntry.updatedAt = dateUtils.nowTimestamp();
-      if (!childEntry.id) {
-        childEntry.createdAt = dateUtils.nowTimestamp();
-      }
 
+      const data: Record<string, any> = {};
+      for (const [key, value] of childEntry._modifiedValues.entries()) {
+        const fieldDef = this._getFieldDef(key);
+        const fieldType = this._getFieldType(fieldDef.type);
+        data[key] = fieldType.prepareForDB(value.to, fieldDef);
+      }
+      await this._orm.db.updateRow(
+        this._tableName,
+        childEntry.id,
+        data,
+      );
+    }
+    for (const childEntry of this._newData.values()) {
+      await this.#refreshFetchedFields(childEntry);
+
+      childEntry.createdAt = dateUtils.nowTimestamp();
+      childEntry.updatedAt = dateUtils.nowTimestamp();
+      childEntry.id = ulid();
       const data: Record<string, any> = {};
       for (const [key, value] of childEntry._data.entries()) {
         const fieldDef = this._getFieldDef(key);
         const fieldType = this._getFieldType(fieldDef.type);
         data[key] = fieldType.prepareForDB(value, fieldDef);
       }
-      if (childEntry.id) {
-        await this._orm.db.updateRow(
-          this._tableName,
-          childEntry.id,
-          data,
-        );
-        return;
-      }
-      data.id = ulid();
-      childEntry.id = data.id;
-
-      await this._orm.db.insertRow(this._tableName, data);
+      await this._orm.db.insertRow(
+        this._tableName,
+        data,
+      );
+      this._data.set(childEntry.id, childEntry);
     }
 
     await this.deleteStaleRecords();

@@ -90,6 +90,7 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   titleField?: string;
   idMode: IDMode;
   searchFields?: Array<any>;
+  defaultListFields?: Array<string>;
 }
 
 export type IDValue = string | number;
