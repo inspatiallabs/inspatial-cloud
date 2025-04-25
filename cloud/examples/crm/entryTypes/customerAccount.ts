@@ -15,6 +15,8 @@ export const customerAccount = new EntryType("customerAccount", {
   ],
   children: [
     new ChildEntryType("users", {
+      description: "Users associated with this account",
+      label: "Users",
       fields: [{
         key: "user",
         label: "User",
