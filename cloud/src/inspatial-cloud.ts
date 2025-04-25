@@ -27,12 +27,15 @@ import { requestHandler } from "#/app/request-handler.ts";
 import { setupOrm } from "#/orm/setup-orm.ts";
 import { type InLog, inLog } from "#/in-log/in-log.ts";
 import { makeLogo } from "#/in-log/logo.ts";
-import { center } from "#/utils/mod.ts";
+import { center, joinPath } from "#/utils/mod.ts";
 import ColorMe from "#/utils/color-me.ts";
 import convertString from "#/utils/convert-string.ts";
-import { LogLevel } from "#/in-log/types.ts";
+import type { LogLevel } from "#/in-log/types.ts";
+import { hasDirectory } from "#/utils/file-handling.ts";
+import { initCloud } from "#/init.ts";
+import { ExceptionHandlerResponse } from "#types/serve-types.ts";
 
-export class InSpatialCloud<
+export class InCloud<
   N extends string = any,
   P extends Array<CloudExtension> = any,
 > {
@@ -41,6 +44,19 @@ export class InSpatialCloud<
   #extensionObjects: Map<string, object> = new Map();
   #customProperties: Map<string, unknown> = new Map();
   #mode: AppMode = "production";
+  #appRoot: string;
+  /**
+   * The absolute path to the app root directory.
+   */
+  get appRoot(): string {
+    return this.#appRoot;
+  }
+  /**
+   * The absolute path to the `.inspatial` directory in the app root.
+   */
+  get inRoot(): string {
+    return joinPath(this.#appRoot, ".inspatial");
+  }
   #config: CloudConfig;
   orm!: InSpatialORM;
   api: CloudAPI;
@@ -91,11 +107,16 @@ export class InSpatialCloud<
     };
     config?: CloudConfig;
   }) {
+    this.#appRoot = Deno.mainModule.replace("file://", "").split("/").slice(
+      0,
+      -1,
+    ).join("/");
     this.inLog = inLog;
 
     loadServeConfigFile();
     this.#extensionManager = new ExtensionManager();
     this.#extensionManager.registerExtension(baseExtension);
+
     const config = this.getExtensionConfig<{
       logLevel?: LogLevel;
       logTrace?: boolean;
@@ -135,11 +156,11 @@ export class InSpatialCloud<
     };
 
     const appExtensions: Array<CloudExtension> = [];
-    if (builtInExtensions.auth) {
-      appExtensions.push(authCloudExtension);
-    }
     if (builtInExtensions.orm) {
       appExtensions.push(ormCloudExtension);
+    }
+    if (builtInExtensions.auth) {
+      appExtensions.push(authCloudExtension);
     }
 
     if (options?.extensions) {
@@ -149,7 +170,7 @@ export class InSpatialCloud<
     for (const appExtension of appExtensions) {
       this.#extensionManager.registerExtension(appExtension);
     }
-
+    initCloud(this);
     this.#setup();
     if (this.mode === "development") {
       const autoConfig = Deno.env.get("SERVE_AUTO_CONFIG");
@@ -286,7 +307,11 @@ export class InSpatialCloud<
 
   #setup(): void {
     for (const extension of this.#extensionManager.extensions.values()) {
-      this.#installExtension(extension);
+      try {
+        this.#installExtension(extension);
+      } catch (e) {
+        this.#handleInitError(e);
+      }
     }
     this.orm = setupOrm({
       app: this,
@@ -368,6 +393,23 @@ export class InSpatialCloud<
   }
 
   #handleInitError(e: unknown): never {
+    for (const handler of this.#extensionManager.exceptionHandlers.values()) {
+      const response = handler.handler(e) as ExceptionHandlerResponse;
+      if (response) {
+        this.inLog.warn(
+          response.serverMessage?.content,
+          {
+            stackTrace: e instanceof Error ? e.stack : undefined,
+            subject: response.serverMessage?.subject,
+          },
+        );
+        this.inLog.warn(
+          "Exiting due to errors in cloud initialization",
+          "Cloud Init",
+        );
+        Deno.exit(1);
+      }
+    }
     if (e instanceof ORMException) {
       this.inLog.warn(e.message, e.subject || "ORM Error");
       this.inLog.warn(
@@ -378,6 +420,7 @@ export class InSpatialCloud<
     }
     if (e instanceof Error) {
       this.inLog.error(e.message, e.stack || "No stack trace available");
+      throw e;
     }
     this.inLog.error(
       "Exiting due to errors in cloud initialization",

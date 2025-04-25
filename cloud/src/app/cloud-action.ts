@@ -1,4 +1,4 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ActionParamProp, ParamsMap } from "#/api/api-types.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
@@ -10,12 +10,12 @@ export class CloudAPIAction<
   P extends Array<ActionParamProp<K>>,
   D extends ParamsMap<P>,
   R extends (args: {
-    app: InSpatialCloud;
+    app: InCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;
   }) => Promise<any> | any = (args: {
-    app: InSpatialCloud;
+    app: InCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -31,7 +31,7 @@ export class CloudAPIAction<
   requiredParams: string[] = [];
 
   #_run: (args: {
-    app: InSpatialCloud;
+    app: InCloud;
     params: any;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -200,7 +200,7 @@ export class CloudAPIAction<
   }
 
   async run(args: {
-    app: InSpatialCloud;
+    app: InCloud;
     params?: Record<string, any>;
     inRequest: InRequest;
     inResponse: InResponse;

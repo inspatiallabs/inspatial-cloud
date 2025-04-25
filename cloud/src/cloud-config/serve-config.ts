@@ -1,5 +1,5 @@
 import { joinPath } from "#/utils/path-utils.ts";
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigDefinition } from "#types/serve-types.ts";
 function getPath() {
   const realPath = Deno.mainModule.replace("file://", "");
@@ -33,7 +33,7 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
  * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
  */
 export function generateServeConfigFile(
-  app: InSpatialCloud,
+  app: InCloud,
 ): void {
   const filePath = joinPath(getPath(), "serve-config.json");
   try {
@@ -85,7 +85,7 @@ export function generateServeConfigFile(
 }
 
 export function generateConfigSchema(
-  app: InSpatialCloud,
+  app: InCloud,
 ): void {
   const filePath = joinPath(
     getPath(),

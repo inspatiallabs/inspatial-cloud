@@ -5,11 +5,11 @@ import type {
   GlobalEntryHooks,
   GlobalHookFunction,
 } from "#/orm/orm-types.ts";
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
 
 export function setupOrm(args: {
-  app: InSpatialCloud;
+  app: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
   const { app, extensionManager } = args;

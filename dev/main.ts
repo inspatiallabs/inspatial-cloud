@@ -1,9 +1,6 @@
-import { InSpatialCloud } from "@inspatial/cloud";
+import { InCloud } from "@inspatial/cloud";
 
-const app = new InSpatialCloud("myApp", {
-  builtInExtensions: {
-    auth: true,
-    orm: true,
-  },
+const app = new InCloud("myApp", {
+  extensions: [],
 });
 app.run();

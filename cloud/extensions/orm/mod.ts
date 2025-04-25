@@ -1,4 +1,3 @@
-import type { EntryHookFunction } from "#/app/types.ts";
 import { CloudExtension } from "#/app/cloud-extension.ts";
 import ormGroup from "#extensions/orm/actions/orm-group.ts";
 import entriesGroup from "#extensions/orm/actions/entries-group.ts";
@@ -6,8 +5,9 @@ import settingsGroup from "#extensions/orm/actions/settings-group.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
-import { ORMException } from "#/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "#/orm/orm-exception.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
+import type { EntryHookFunction } from "#/orm/orm-types.ts";
 const afterUpdateHook: EntryHookFunction = (
   app,
   { entry, entryType },
@@ -41,11 +41,16 @@ const afterDeleteHook: EntryHookFunction = (
   });
 };
 
-const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
+const ormCloudExtension = new CloudExtension("orm", {
   description: "ORM Extension",
   label: "ORM Extension",
   version: "0.0.1",
   actionGroups: [ormGroup, entriesGroup, settingsGroup],
+  install(_app, { dbName }) {
+    if (!dbName) {
+      raiseORMException("Database name is not set in config!", "ORM");
+    }
+  },
   async boot(app) {
     if (app.mode === "development") {
       if (app.getExtensionConfigValue("orm", "autoTypes")) {
@@ -62,7 +67,7 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
           "Running ORM migrations...",
           "ORM",
         );
-        app.orm.migrate();
+        await app.orm.migrate();
       }
     }
   },
@@ -101,23 +106,35 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
     },
     dbSocketPath: {
       type: "string",
+      dependsOn: {
+        key: "dbConnectionType",
+        value: "socket",
+      },
       description: "Path to the database socket",
       default: "/var/run/postgresql/.s.PGSQL.5432",
     },
     dbName: {
       type: "string",
       description: "Name of the database",
-      default: "postgres",
+      default: undefined,
     },
     dbHost: {
       type: "string",
       description: "Host of the database",
       default: "localhost",
+      dependsOn: {
+        key: "dbConnectionType",
+        value: "tcp",
+      },
     },
     dbPort: {
       type: "number",
       description: "Port of the database",
       default: 5432,
+      dependsOn: {
+        key: "dbConnectionType",
+        value: "tcp",
+      },
     },
     dbUser: {
       type: "string",
@@ -128,6 +145,10 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
       type: "string",
       description: "Password of the database",
       default: "postgres",
+      dependsOn: {
+        key: "dbConnectionType",
+        value: "tcp",
+      },
     },
     dbSchema: {
       type: "string",
@@ -192,6 +213,17 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
             response.clientMessage = error.detail;
             response.status = 400;
             response.statusText = "Cannot Delete";
+            break;
+          case PGErrorCode.InvalidCatalogName:
+            response.serverMessage = {
+              content: error.message,
+              subject: "InSpatial ORM - Postgres Error",
+              type: "warning",
+            };
+            response.clientMessage =
+              `Database ${error.message} does not exist. Please check your database configuration`;
+            response.status = 400;
+            response.statusText = "Bad Request";
             break;
         }
         return response;

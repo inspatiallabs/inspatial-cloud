@@ -1,5 +1,5 @@
 import { InRequest } from "#/app/in-request.ts";
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { PathHandler } from "#/app/path-handler.ts";
 import { InResponse } from "#/app/in-response.ts";
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
@@ -7,7 +7,7 @@ import { handleException } from "#/app/exeption/handle-exception.ts";
 
 export async function requestHandler(
   request: Request,
-  app: InSpatialCloud,
+  app: InCloud,
   extensionManager: ExtensionManager,
 ): Promise<Response> {
   const inRequest = new InRequest(

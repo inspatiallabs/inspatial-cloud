@@ -1,4 +1,4 @@
-import type { LogType } from "#/logger/types.ts";
+import type { LogType } from "#/in-log/types.ts";
 
 /**
  * The configuration for an environment variable.
@@ -9,6 +9,10 @@ export type ConfigEnv<
   env?: string;
   description: string;
   required?: boolean;
+  dependsOn?: {
+    key: string;
+    value: ConfigEnvTypeMap[T];
+  };
   default?: ConfigEnvTypeMap[T];
   enum?: ConfigEnvTypeMap[T][];
   type: T;

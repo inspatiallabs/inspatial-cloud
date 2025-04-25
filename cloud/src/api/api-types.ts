@@ -1,4 +1,4 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 
@@ -174,7 +174,7 @@ export type CloudAPIActionConfig<
    */
   hideFromApi?: boolean;
   run: (args: {
-    app: InSpatialCloud;
+    app: InCloud;
     params: D;
     inRequest: InRequest;
     inResponse: InResponse;

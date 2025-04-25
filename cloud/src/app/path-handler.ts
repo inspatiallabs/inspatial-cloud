@@ -1,4 +1,4 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 
@@ -7,7 +7,7 @@ export class RequestPathHandler {
   description: string;
   path: string | Array<string>;
   handler: (
-    app: InSpatialCloud,
+    app: InCloud,
     inRequest: InRequest,
     inResponse: InResponse,
   ) =>
@@ -19,7 +19,7 @@ export class RequestPathHandler {
     description: string,
     path: string | Array<string>,
     handler: (
-      app: InSpatialCloud,
+      app: InCloud,
       inRequest: InRequest,
       inResponse: InResponse,
     ) =>
@@ -72,7 +72,7 @@ export type PathHandler = {
    * If the handler returns a response, the response will be sent to the client as-is.
    */
   handler: (
-    app: InSpatialCloud<any, any>,
+    app: InCloud<any, any>,
     inRequest: InRequest,
     inResponse: InResponse,
   ) =>

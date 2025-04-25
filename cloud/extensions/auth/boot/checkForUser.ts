@@ -1,8 +1,8 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import ColorMe from "#/utils/color-me.ts";
 import { inLog } from "#/in-log/in-log.ts";
 
-async function checkForUser(app: InSpatialCloud) {
+async function checkForUser(app: InCloud) {
   const { orm } = app;
   const userCount = await orm.count("user");
   const subject = "System Admin User";

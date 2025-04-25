@@ -1,7 +1,7 @@
 import type { Entry } from "#/orm/entry/entry.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { QueryResultFormatted } from "#/orm/db/db-types.ts";
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 
 export type GlobalHookFunction = (hookParams: {
   entryType: string;
@@ -29,7 +29,7 @@ export type GetListResponse<T> = QueryResultFormatted<T>;
 
 export type EntryHooks = Record<EntryHookName, Array<EntryHookFunction>>;
 
-export type EntryHookFunction = (app: InSpatialCloud, hookParams: {
+export type EntryHookFunction = (app: InCloud, hookParams: {
   entryType: string;
   entry: Entry;
   orm: InSpatialORM;

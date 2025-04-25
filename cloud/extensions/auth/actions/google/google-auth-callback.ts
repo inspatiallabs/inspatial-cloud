@@ -4,7 +4,7 @@ import {
   GoogleOAuth,
 } from "#extensions/auth/providers/google/accessToken.ts";
 import type { AuthSettings } from "#extensions/auth/generated-interfaces/settings/auth-settings.ts";
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import { CloudAPIAction } from "#/app/cloud-action.ts";
@@ -104,7 +104,7 @@ async function handleGoogleLogin(args: {
   redirectTo: string;
   inRequest: InRequest;
   inResponse: InResponse;
-  app: InSpatialCloud;
+  app: InCloud;
 }) {
   const { email, emailVerified } = args.idToken;
   const {

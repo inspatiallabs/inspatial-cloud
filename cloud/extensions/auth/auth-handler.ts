@@ -1,4 +1,4 @@
-import type { InSpatialCloud } from "#/inspatial-cloud.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { UserSession } from "#extensions/auth/entry-types/generated-types/user-session.ts";
@@ -6,9 +6,9 @@ import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 
 export class AuthHandler {
-  #app: InSpatialCloud;
+  #app: InCloud;
 
-  constructor(app: InSpatialCloud) {
+  constructor(app: InCloud) {
     this.#app = app;
   }
 
