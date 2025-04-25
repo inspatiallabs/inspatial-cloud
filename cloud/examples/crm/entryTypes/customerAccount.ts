@@ -1,0 +1,32 @@
+import { EntryType } from "@inspatial/cloud";
+import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+
+export const customerAccount = new EntryType("customerAccount", {
+  label: "Customer Account",
+  idMode: "ulid",
+  // titleField: "customerName",
+  fields: [
+    {
+      key: "customerName",
+      type: "DataField",
+      label: "Customer Name",
+      required: true,
+    },
+  ],
+  children: [
+    new ChildEntryType("users", {
+      fields: [{
+        key: "user",
+        label: "User",
+        type: "ConnectionField",
+        entryType: "user",
+      }, {
+        key: "isOwner",
+        label: "Is Owner",
+        type: "BooleanField",
+      }],
+    }),
+  ],
+});
+
+export default customerAccount;

@@ -162,6 +162,9 @@ export class ChildEntryList<T = Record<string, unknown>> {
       }
     }
     child.parent = this._parentId;
+    if (typeof child.order != "number") {
+      child.order = this._newData.size + 1;
+    }
     this._newData.set(this._newData.size.toString(), child);
   }
   async save(): Promise<void> {
@@ -253,7 +256,12 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       readOnly: true,
       required: true,
     });
-
+    this.fields.set("order", {
+      key: "order",
+      label: "Order",
+      type: "IntField",
+      description: "The order of this child in the list",
+    });
     this.fields.set("createdAt", {
       key: "createdAt",
       label: "Created At",
