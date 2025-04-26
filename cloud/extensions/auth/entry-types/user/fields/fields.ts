@@ -26,6 +26,11 @@ export default [{
   description: "The user's full name (automatically generated)",
   readOnly: true,
 }, {
+  key: "profilePicture",
+  type: "ImageField",
+  label: "Profile Picture",
+  description: "The user's profile picture",
+}, {
   key: "password",
   type: "PasswordField",
   label: "Password",

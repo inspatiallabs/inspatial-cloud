@@ -57,6 +57,10 @@ export class InCloud<
   get inRoot(): string {
     return joinPath(this.#appRoot, ".inspatial");
   }
+
+  get filesPath(): string {
+    return joinPath(this.#appRoot, ".inspatial", "files");
+  }
   #config: CloudConfig;
   orm!: InSpatialORM;
   api: CloudAPI;

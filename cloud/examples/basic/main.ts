@@ -4,4 +4,6 @@ const app = new InCloud("myApp", {
   extensions: [],
 });
 
-app.run();
+if (import.meta.main) {
+  app.run();
+}
