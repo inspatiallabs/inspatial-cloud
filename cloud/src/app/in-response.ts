@@ -50,7 +50,7 @@ export class InResponse {
   /**
    * The content of the response.
    */
-  #content?: string | Uint8Array;
+  #content?: string | Uint8Array | ArrayBuffer | ReadableStream;
   /**
    * A map of cookies to set in the response.
    */
@@ -222,13 +222,16 @@ export class InResponse {
   }
 
   setFile(options: {
-    content: string | Uint8Array;
+    content: string | Uint8Array | ArrayBuffer | ReadableStream;
     fileName: string;
+    download?: boolean;
   }): void {
-    this.#headers.set(
-      "Content-Disposition",
-      `attachment; filename="${options.fileName}"`,
-    );
+    if (options.download) {
+      this.#headers.set(
+        "Content-Disposition",
+        `attachment; filename="${options.fileName}"`,
+      );
+    }
     const mimType = inferMimeType(options.fileName);
     if (mimType) {
       this.#headers.set("Content-Type", mimType);
@@ -236,7 +239,11 @@ export class InResponse {
       return;
     }
     this.#headers.set("Content-Type", "application/octet-stream");
-    if (options.content instanceof Uint8Array) {
+    if (
+      options.content instanceof Uint8Array ||
+      options.content instanceof ArrayBuffer ||
+      options.content instanceof ReadableStream
+    ) {
       this.#content = options.content;
       return;
     }

@@ -101,6 +101,7 @@ interface TextFieldDef extends BaseFieldDef {
   defaultValue?: ORMFieldMap["TextField"];
 }
 
+type IntFormat = "number" | "fileSize";
 interface IntFieldDef extends BaseFieldDef {
   /**
    * `IntField` is a whole number.
@@ -108,6 +109,7 @@ interface IntFieldDef extends BaseFieldDef {
   type: "IntField";
   min?: number;
   max?: number;
+  format?: IntFormat;
   defaultValue?: ORMFieldMap["IntField"];
 }
 

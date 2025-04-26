@@ -23,6 +23,7 @@ export class CloudAPIAction<
 > {
   description: string = "This is an easy action";
   label?: string;
+  raw: boolean = false;
   actionName: N;
   authRequired: boolean = true;
 
@@ -45,6 +46,11 @@ export class CloudAPIAction<
     actionName: N,
     config: {
       run: R;
+      /**
+       * Whether to skip reading the request body. Should be set to true if the action
+       * will be reading the request body itself, such as when uploading files.
+       */
+      raw?: boolean;
       description?: string;
       label?: string;
       authRequired?: boolean;
@@ -54,6 +60,7 @@ export class CloudAPIAction<
   ) {
     this.#_run = config.run;
     this.actionName = actionName;
+    this.raw = config.raw || false;
     this.label = config.label || this.label;
     this.description = config.description || this.description;
     if (config.authRequired === false) {

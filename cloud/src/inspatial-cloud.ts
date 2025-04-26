@@ -31,9 +31,9 @@ import { center, joinPath } from "#/utils/mod.ts";
 import ColorMe from "#/utils/color-me.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { LogLevel } from "#/in-log/types.ts";
-import { hasDirectory } from "#/utils/file-handling.ts";
 import { initCloud } from "#/init.ts";
-import { ExceptionHandlerResponse } from "#types/serve-types.ts";
+import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
+import { filesExtension } from "#extensions/files/src/files-extension.ts";
 
 export class InCloud<
   N extends string = any,
@@ -166,6 +166,8 @@ export class InCloud<
     if (builtInExtensions.auth) {
       appExtensions.push(authCloudExtension);
     }
+
+    appExtensions.push(filesExtension);
 
     if (options?.extensions) {
       appExtensions.push(...options.extensions);

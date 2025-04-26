@@ -6,7 +6,6 @@ export const apiPathHandeler: PathHandler = {
   description: "api",
   path: "/api",
   handler: async (app, inRequest, inResponse) => {
-    const data = await inRequest.body;
     const { api } = app;
     const groupParam = inRequest.group;
     const actionParam = inRequest.action;
@@ -21,7 +20,14 @@ export const apiPathHandeler: PathHandler = {
         `Action not found for Group: '${groupParam}', Action: '${actionParam}'`,
       );
     }
-
+    let data: any = {};
+    switch (action.raw) {
+      case true:
+        data = Object.fromEntries(inRequest.params);
+        break;
+      default:
+        data = await inRequest.body;
+    }
     return await action.run({
       app,
       inRequest,

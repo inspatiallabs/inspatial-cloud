@@ -204,6 +204,16 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
           tableName: this.#tableName,
         });
       }
+      if (field.type === "ImageField") {
+        const fileEntryType = this.orm.getEntryType("cloudFile");
+        this.targetConstraints.foreignKey.set(field.key, {
+          columnName: field.key,
+          constraintName: `${this.#tableName}_${field.key}_fk`,
+          foreignColumnName: "id",
+          foreignTableName: fileEntryType.config.tableName,
+          tableName: this.#tableName,
+        });
+      }
 
       this.targetColumns.set(field.key, dbColumn);
     }
