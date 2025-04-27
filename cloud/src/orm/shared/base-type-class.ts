@@ -41,6 +41,13 @@ export class BaseType<N extends string = string> {
           `Field with key ${field.key} already exists in EntryType ${this.name}`,
         );
       }
+      switch (field.type) {
+        case "ImageField":
+        case "FileField":
+          field.connectionIdMode = "ulid";
+          field.entryType = "cloudFile";
+          break;
+      }
       this.fields.set(field.key, field);
     }
 

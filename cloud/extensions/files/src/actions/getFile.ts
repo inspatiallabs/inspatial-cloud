@@ -7,6 +7,9 @@ const getFileAction = new CloudAPIAction("getFile", {
     key: "fileId",
     type: "string",
     required: true,
+  }, {
+    key: "download",
+    type: "boolean",
   }],
   async run({ app, params, inResponse }) {
     const { fileId } = params;
@@ -18,6 +21,7 @@ const getFileAction = new CloudAPIAction("getFile", {
       inResponse.setFile({
         content: fileHandle.readable,
         fileName: file.fileName,
+        download: params.download,
       });
       return inResponse.respond();
     } catch (e) {

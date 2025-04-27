@@ -7,7 +7,6 @@ import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { makeFields } from "#/orm/build/make-fields.ts";
 import { ChildEntry } from "#/orm/child-entry/child-entry.ts";
 import { ChildEntryList } from "@inspatial/cloud";
-import { inLog } from "#/in-log/in-log.ts";
 
 export function buildEntry(entryType: EntryType): typeof Entry {
   const changeableFields = new Map<string, ORMFieldDef>();

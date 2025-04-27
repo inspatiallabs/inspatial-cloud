@@ -1,6 +1,7 @@
 import type { HandlerResponse } from "#/app/path-handler.ts";
-import { inferMimeType } from "#/static/src/mimeTypes.ts";
 import { inLog } from "#/in-log/in-log.ts";
+import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
+import type { FileType } from "#extensions/files/src/mime-types/file-types.ts";
 
 interface CookieOptions {
   maxAge?: number;
@@ -181,15 +182,15 @@ export class InResponse {
         this.setContentType("json");
         break;
       case "string":
-        this.setContentType("text");
+        this.setContentType("txt");
         this.#content = content;
         break;
       case "number":
-        this.setContentType("text");
+        this.setContentType("txt");
         this.#content = content.toString();
         break;
       default:
-        this.setContentType("text");
+        this.setContentType("txt");
     }
   }
 
@@ -198,26 +199,11 @@ export class InResponse {
    * @param {"json" | "html" | "text" | "xml" | "file"} type - The content type to set for the response
    */
   setContentType(
-    type: "json" | "html" | "text" | "xml" | "file" | "jpg" | "png",
+    type: FileType,
   ): void {
-    switch (type) {
-      case "json":
-        this.#headers.set("Content-Type", "application/json");
-        break;
-      case "html":
-        this.#headers.set("Content-Type", "text/html");
-        break;
-      case "text":
-        this.#headers.set("Content-Type", "text/plain");
-        break;
-      case "xml":
-        this.#headers.set("Content-Type", "application/xml");
-        break;
-      case "file":
-        this.#headers.set("Content-Type", "application/octet-stream");
-        break;
-      default:
-        this.#headers.set("Content-Type", "text/plain");
+    const mimeType = MimeTypes.getMimeTypeByExtension(type);
+    if (mimeType) {
+      this.#headers.set("Content-Type", mimeType);
     }
   }
 
@@ -232,7 +218,8 @@ export class InResponse {
         `attachment; filename="${options.fileName}"`,
       );
     }
-    const mimType = inferMimeType(options.fileName);
+
+    const mimType = MimeTypes.getMimeTypeByFileName(options.fileName);
     if (mimType) {
       this.#headers.set("Content-Type", mimType);
       this.#content = options.content;
@@ -270,7 +257,6 @@ export class InResponse {
       cookieStrings.push(value.toString());
     }
     const fullCookie = cookieStrings.join("; ");
-    inLog.debug(fullCookie);
     this.#headers.set("Set-Cookie", fullCookie);
   }
 

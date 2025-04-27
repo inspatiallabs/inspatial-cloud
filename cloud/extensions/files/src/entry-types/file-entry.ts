@@ -1,8 +1,9 @@
 import { EntryType } from "@inspatial/cloud";
-import { CloudFile } from "#extensions/files/src/types/cloud-file.ts";
+import type { CloudFile } from "#extensions/files/src/types/cloud-file.ts";
 
 const fileEntry = new EntryType<CloudFile>("cloudFile", {
   label: "File",
+  titleField: "fileName",
   defaultListFields: ["fileName", "fileType", "fileSize"],
   fields: [{
     key: "fileName",

@@ -1,4 +1,8 @@
 import type { Choice, IDMode, ORMFieldMap } from "#/orm/field/types.ts";
+import type {
+  FileTypes,
+  ImageFileType,
+} from "#extensions/files/src/mime-types/file-types.ts";
 
 /**
  * These are the  types for defining fields in an entry.
@@ -25,7 +29,8 @@ export type ORMFieldDef =
   | URLFieldDef
   | ListFieldDef
   | CurrencyFieldDef
-  | IDFieldDef;
+  | IDFieldDef
+  | FileFieldDef;
 
 export type FieldDefMap = {
   DataField: DataFieldDef;
@@ -49,6 +54,7 @@ export type FieldDefMap = {
   ListField: ListFieldDef;
   CurrencyField: CurrencyFieldDef;
   IDField: IDFieldDef;
+  FileField: FileFieldDef;
 };
 
 export type FieldDefType = keyof FieldDefMap;
@@ -167,6 +173,17 @@ interface EmailFieldDef extends BaseFieldDef {
 interface ImageFieldDef extends BaseFieldDef {
   type: "ImageField";
   defaultValue?: ORMFieldMap["ImageField"];
+  allowedImageTypes: Array<ImageFileType> | "all";
+  entryType?: "cloudFile";
+  connectionIdMode?: "ulid";
+}
+
+interface FileFieldDef extends BaseFieldDef {
+  type: "FileField";
+  defaultValue?: ORMFieldMap["FileField"];
+  allowedFileTypes: Partial<FileTypes> | Array<keyof FileTypes> | "all";
+  entryType?: "cloudFile";
+  connectionIdMode?: "ulid";
 }
 
 interface JSONFieldDef extends BaseFieldDef {
@@ -221,6 +238,7 @@ export type {
   DecimalFieldDef,
   EmailFieldDef,
   FetchOptions,
+  FileFieldDef,
   IDFieldDef,
   ImageFieldDef,
   IntFieldDef,

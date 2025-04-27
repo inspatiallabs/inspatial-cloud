@@ -1,0 +1,4 @@
+Name,Template,Reference
+ivs,haptics/ivs,[RFC9695]
+hjif,haptics/hjif,[RFC9695]
+hmpg,haptics/hmpg,[RFC9695]

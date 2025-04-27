@@ -22,4 +22,5 @@ export const fieldTypeMap: Record<FieldDefType, string> = {
   PhoneField: "string",
   RichTextField: "string",
   IDField: "string",
+  FileField: "string",
 };

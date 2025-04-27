@@ -34,3 +34,6 @@ export type EntryHookFunction = (app: InCloud, hookParams: {
   entry: Entry;
   orm: InSpatialORM;
 }) => Promise<void> | void;
+export type UniqueArray<T> = T extends ReadonlyArray<infer U>
+  ? U[] & { __unique: never }
+  : never;

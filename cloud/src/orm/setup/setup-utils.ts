@@ -10,8 +10,15 @@ export function buildConnectionFields(
   entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
 ): void {
   for (const field of entryOrSettingsOrChildType.fields.values()) {
-    if (field.type !== "ConnectionField") {
-      continue;
+    switch (field.type) {
+      case "ImageField":
+      case "FileField":
+        setFileConnection(orm, field, entryOrSettingsOrChildType);
+        continue;
+      case "ConnectionField":
+        break;
+      default:
+        continue;
     }
     const connectionEntryType = orm.getEntryType(field.entryType);
     const titleField = buildConnectionTitleField(
@@ -32,6 +39,29 @@ export function buildConnectionFields(
   ) {
     entryOrSettingsOrChildType.fields.set(titleField.key, titleField);
   }
+}
+
+function setFileConnection(
+  orm: InSpatialORM,
+  field: FieldDefMap["ImageField"] | FieldDefMap["FileField"],
+  entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
+) {
+  const fileEntryType = orm.getEntryType("cloudFile");
+  if (!fileEntryType) {
+    raiseORMException(
+      `File entry type 'cloudFile' does not exist`,
+      "Invalid File Entry Type",
+    );
+  }
+  const titleField = buildConnectionTitleField(
+    orm,
+    field,
+    fileEntryType,
+  );
+  if (!titleField) {
+    return;
+  }
+  entryOrSettingsOrChildType.connectionTitleFields.set(field.key, titleField);
 }
 
 export function validateConnectionFields(
@@ -61,7 +91,10 @@ export function validateConnectionFields(
 
 function buildConnectionTitleField(
   _orm: InSpatialORM,
-  field: FieldDefMap["ConnectionField"],
+  field:
+    | FieldDefMap["ConnectionField"]
+    | FieldDefMap["FileField"]
+    | FieldDefMap["ImageField"],
   connectionEntryType: EntryType,
 ): ORMFieldDef | undefined {
   const titleFieldKey = connectionEntryType.config.titleField;
@@ -78,6 +111,8 @@ function buildConnectionTitleField(
     ...entryTitleField,
     key: `${field.key}#`,
     readOnly: true,
+    required: false,
+    unique: false,
     label: `${field.label} Title`,
     fetchField: {
       connectionField: field.key,

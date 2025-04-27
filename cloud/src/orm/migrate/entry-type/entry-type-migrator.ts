@@ -187,35 +187,33 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
       }
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);
-      if (field.type === "ConnectionField") {
-        const titleField = this.entryType.connectionTitleFields.get(field.key);
-
-        if (titleField) {
-          const ormTitleField = this.orm._getFieldType(titleField.type);
-          const dbTitleColumn = ormTitleField.generateDbColumn(titleField);
-          this.targetColumns.set(titleField.key, dbTitleColumn);
-        }
-        const connectionEntry = this.orm.getEntryType(field.entryType);
-        this.targetConstraints.foreignKey.set(field.key, {
-          columnName: field.key,
-          constraintName: `${this.#tableName}_${field.key}_fk`,
-          foreignColumnName: "id",
-          foreignTableName: connectionEntry.config.tableName,
-          tableName: this.#tableName,
-        });
-      }
-      if (field.type === "ImageField") {
-        const fileEntryType = this.orm.getEntryType("cloudFile");
-        this.targetConstraints.foreignKey.set(field.key, {
-          columnName: field.key,
-          constraintName: `${this.#tableName}_${field.key}_fk`,
-          foreignColumnName: "id",
-          foreignTableName: fileEntryType.config.tableName,
-          tableName: this.#tableName,
-        });
-      }
-
       this.targetColumns.set(field.key, dbColumn);
+      let connectionEntryType: EntryType | undefined;
+      switch (field.type) {
+        case "ConnectionField":
+          connectionEntryType = this.orm.getEntryType(field.entryType);
+          break;
+        case "ImageField":
+        case "FileField":
+          connectionEntryType = this.orm.getEntryType("cloudFile");
+          break;
+        default:
+          continue;
+      }
+      const titleField = this.entryType.connectionTitleFields.get(field.key);
+
+      if (titleField) {
+        const ormTitleField = this.orm._getFieldType(titleField.type);
+        const dbTitleColumn = ormTitleField.generateDbColumn(titleField);
+        this.targetColumns.set(titleField.key, dbTitleColumn);
+      }
+      this.targetConstraints.foreignKey.set(field.key, {
+        columnName: field.key,
+        constraintName: `${this.#tableName}_${field.key}_fk`,
+        foreignColumnName: "id",
+        foreignTableName: connectionEntryType.config.tableName,
+        tableName: this.#tableName,
+      });
     }
   }
 

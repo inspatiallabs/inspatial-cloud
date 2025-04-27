@@ -29,6 +29,7 @@ export default [{
   key: "profilePicture",
   type: "ImageField",
   label: "Profile Picture",
+  allowedImageTypes: ["png", "jpeg", "svg+xml", "png"],
   description: "The user's profile picture",
 }, {
   key: "password",

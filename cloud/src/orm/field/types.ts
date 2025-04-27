@@ -83,9 +83,14 @@ export type ORMFieldMap = {
   EmailField: string;
 
   /**
-   * This is not implemented yet!
+   * The image field type. This is a field that stores a reference id to a file entry
    */
   ImageField: string;
+
+  /**
+   * The file field type. This is a field that stores a reference id to a file entry
+   */
+  FileField: string;
 
   /**
    * The JSON field type. This is a field that stores a JSON object.
