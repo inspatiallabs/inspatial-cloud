@@ -1,13 +1,17 @@
 // This file is auto-generated. Do not edit.
-// Generated on 2025-04-27T14:55:46.921Z
+// Generated on 2025-04-27T16:05:14.575Z
 
+export type MimeTypeCategory = keyof FileTypes;
 export type FileTypes = {
   audio: Array<AudioFileType>;
-  application: Array<ApplicationFileType>;
   image: Array<ImageFileType>;
   video: Array<VideoFileType>;
+  document: Array<DocumentFileType>;
+  application: Array<ApplicationFileType>;
+  code: Array<CodeFileType>;
   text: Array<TextFileType>;
   font: Array<FontFileType>;
+  archive: Array<ArchiveFileType>;
 };
 
 export type AudioFileType = 
@@ -19,44 +23,6 @@ export type AudioFileType =
   |  "opus"
   |  "wav"
   |  "weba"
-export type ApplicationFileType = 
-  |  "abw"
-  |  "arc"
-  |  "azw"
-  |  "bin"
-  |  "bz"
-  |  "bz2"
-  |  "cda"
-  |  "csh"
-  |  "doc"
-  |  "docx"
-  |  "eot"
-  |  "epub"
-  |  "gz"
-  |  "jar"
-  |  "json"
-  |  "jsonld"
-  |  "mpkg"
-  |  "odp"
-  |  "ods"
-  |  "odt"
-  |  "ogx"
-  |  "pdf"
-  |  "php"
-  |  "ppt"
-  |  "pptx"
-  |  "rar"
-  |  "rtf"
-  |  "sh"
-  |  "tar"
-  |  "vsd"
-  |  "xhtml"
-  |  "xls"
-  |  "xlsx"
-  |  "xml"
-  |  "xul"
-  |  "zip"
-  |  "7z"
 export type ImageFileType = 
   |  "apng"
   |  "avif"
@@ -79,26 +45,64 @@ export type VideoFileType =
   |  "webm"
   |  "3gp"
   |  "3g2"
+export type DocumentFileType = 
+  |  "azw"
+  |  "csv"
+  |  "doc"
+  |  "docx"
+  |  "epub"
+  |  "odp"
+  |  "ods"
+  |  "odt"
+  |  "pdf"
+  |  "ppt"
+  |  "pptx"
+  |  "rtf"
+  |  "xls"
+  |  "xlsx"
+export type ApplicationFileType = 
+  |  "bin"
+  |  "jsonld"
+  |  "mpkg"
+  |  "ogx"
+  |  "xhtml"
+export type CodeFileType = 
+  |  "csh"
+  |  "js"
+  |  "json"
+  |  "mjs"
+  |  "php"
+  |  "sh"
+  |  "xml"
 export type TextFileType = 
   |  "css"
-  |  "csv"
   |  "htm"
   |  "html"
   |  "ics"
-  |  "js"
-  |  "mjs"
   |  "txt"
 export type FontFileType = 
+  |  "eot"
   |  "otf"
   |  "ttf"
   |  "woff"
   |  "woff2"
+export type ArchiveFileType = 
+  |  "gz"
+  |  "jar"
+  |  "rar"
+  |  "tar"
+  |  "zip"
+  |  "7z"
+  |  "arc"
 
 
 export type FileType = 
   | AudioFileType
-  | ApplicationFileType
   | ImageFileType
   | VideoFileType
+  | DocumentFileType
+  | ApplicationFileType
+  | CodeFileType
   | TextFileType
   | FontFileType
+  | ArchiveFileType

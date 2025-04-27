@@ -10,6 +10,7 @@ async function generateTypes() {
   fileTypes += `// This file is auto-generated. Do not edit.\n`;
   fileTypes += `// Generated on ${new Date().toISOString()}\n\n`;
 
+  fileTypes += "export type MimeTypeCategory = keyof FileTypes;\n";
   fileTypes += "export type FileTypes = {\n";
   let allTypes = "export type FileType = \n";
   for (const [key, value] of Object.entries(allData)) {

@@ -14,29 +14,105 @@ export interface CloudFile extends EntryBase {
    */
   fileSize: number;
   /**
-   * **File URL** (TextField)
+   * **File Type** (ChoicesField)
+   * @type {'audio' | 'image' | 'video' | 'document' | 'application' | 'code' | 'text' | 'font' | 'archive'}
+   */
+  fileType?:
+    | "audio"
+    | "image"
+    | "video"
+    | "document"
+    | "application"
+    | "code"
+    | "text"
+    | "font"
+    | "archive";
+  /**
+   * **File Extension** (ChoicesField)
+   * @type {'aac' | 'apng' | 'avif' | 'avi' | 'azw' | 'bin' | 'bmp' | 'csh' | 'css' | 'csv' | 'doc' | 'docx' | 'eot' | 'epub' | 'gz' | 'gif' | 'htm' | 'html' | 'ico' | 'ics' | 'jar' | 'jpeg' | 'jpg' | 'js' | 'json' | 'jsonld' | 'mid' | 'midi' | 'mjs' | 'mp3' | 'mp4' | 'mpeg' | 'mpkg' | 'odp' | 'ods' | 'odt' | 'oga' | 'ogv' | 'ogx' | 'opus' | 'otf' | 'png' | 'pdf' | 'php' | 'ppt' | 'pptx' | 'rar' | 'rtf' | 'sh' | 'svg' | 'tar' | 'tif' | 'tiff' | 'ts' | 'ttf' | 'txt' | 'wav' | 'weba' | 'webm' | 'webp' | 'woff' | 'woff2' | 'xhtml' | 'xls' | 'xlsx' | 'xml' | 'zip' | '3gp' | '3g2' | '7z' | 'arc'}
+   */
+  fileExtension?:
+    | "aac"
+    | "apng"
+    | "avif"
+    | "avi"
+    | "azw"
+    | "bin"
+    | "bmp"
+    | "csh"
+    | "css"
+    | "csv"
+    | "doc"
+    | "docx"
+    | "eot"
+    | "epub"
+    | "gz"
+    | "gif"
+    | "htm"
+    | "html"
+    | "ico"
+    | "ics"
+    | "jar"
+    | "jpeg"
+    | "jpg"
+    | "js"
+    | "json"
+    | "jsonld"
+    | "mid"
+    | "midi"
+    | "mjs"
+    | "mp3"
+    | "mp4"
+    | "mpeg"
+    | "mpkg"
+    | "odp"
+    | "ods"
+    | "odt"
+    | "oga"
+    | "ogv"
+    | "ogx"
+    | "opus"
+    | "otf"
+    | "png"
+    | "pdf"
+    | "php"
+    | "ppt"
+    | "pptx"
+    | "rar"
+    | "rtf"
+    | "sh"
+    | "svg"
+    | "tar"
+    | "tif"
+    | "tiff"
+    | "ts"
+    | "ttf"
+    | "txt"
+    | "wav"
+    | "weba"
+    | "webm"
+    | "webp"
+    | "woff"
+    | "woff2"
+    | "xhtml"
+    | "xls"
+    | "xlsx"
+    | "xml"
+    | "zip"
+    | "3gp"
+    | "3g2"
+    | "7z"
+    | "arc";
+  /**
+   * **Mime Type** (DataField)
    * @type {string}
    */
-  url?: string;
+  mimeType?: string;
   /**
-   * **File Type** (ChoicesField)
-   * @type {'image' | 'video' | 'audio' | 'document' | 'other'}
+   * **File Type Description** (DataField)
+   * @type {string}
    */
-  fileType?: "image" | "video" | "audio" | "document" | "other";
-  /**
-   * **Mime Type** (ChoicesField)
-   * @type {'application/pdf' | 'image/jpeg' | 'image/png' | 'video/mp4' | 'audio/mpeg' | 'audio/wav' | 'application/zip' | 'text/plain' | 'application/octet-stream'}
-   */
-  mimeType?:
-    | "application/pdf"
-    | "image/jpeg"
-    | "image/png"
-    | "video/mp4"
-    | "audio/mpeg"
-    | "audio/wav"
-    | "application/zip"
-    | "text/plain"
-    | "application/octet-stream";
+  fileTypeDescription?: string;
   /**
    * **File Path** (TextField)
    * @type {string}

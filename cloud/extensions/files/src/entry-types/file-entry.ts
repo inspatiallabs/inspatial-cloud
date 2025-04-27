@@ -1,5 +1,7 @@
 import { EntryType } from "@inspatial/cloud";
 import type { CloudFile } from "#extensions/files/src/types/cloud-file.ts";
+import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
+import { convertString } from "#/utils/mod.ts";
 
 const fileEntry = new EntryType<CloudFile>("cloudFile", {
   label: "File",
@@ -15,87 +17,45 @@ const fileEntry = new EntryType<CloudFile>("cloudFile", {
     label: "File Size",
     format: "fileSize",
     type: "IntField",
-    required: true,
-  }, {
-    key: "url",
-    label: "File URL",
-    type: "TextField",
     readOnly: true,
+    required: true,
   }, {
     key: "fileType",
     label: "File Type",
+    readOnly: true,
     type: "ChoicesField",
-    choices: [
-      { label: "Image", key: "image" },
-      { label: "Video", key: "video" },
-      { label: "Audio", key: "audio" },
-      { label: "Document", key: "document" },
-      { label: "Other", key: "other" },
-    ],
+    choices: MimeTypes.categoryNames.map((category) => ({
+      key: category,
+      label: convertString(category, "title"),
+    })),
+  }, {
+    key: "fileExtension",
+    label: "File Extension",
+    readOnly: true,
+    type: "ChoicesField",
+    choices: MimeTypes.mimetypes.map((mimeType) => ({
+      key: mimeType.extension,
+      label: mimeType.extension.toUpperCase(),
+    })),
   }, {
     key: "mimeType",
     label: "Mime Type",
-    type: "ChoicesField",
-    choices: [{
-      key: "application/pdf",
-      label: "PDF",
-    }, {
-      key: "image/jpeg",
-      label: "JPEG",
-    }, {
-      key: "image/png",
-      label: "PNG",
-    }, {
-      key: "video/mp4",
-      label: "MP4",
-    }, {
-      key: "audio/mpeg",
-      label: "MP3",
-    }, {
-      key: "audio/wav",
-      label: "WAV",
-    }, {
-      key: "application/zip",
-      label: "ZIP",
-    }, {
-      key: "text/plain",
-      label: "TXT",
-    }, {
-      key: "application/octet-stream",
-      label: "Binary",
-    }],
+    readOnly: true,
+    type: "DataField",
+  }, {
+    key: "fileTypeDescription",
+    label: "File Type Description",
+    readOnly: true,
+    type: "DataField",
   }, {
     key: "filePath",
     label: "File Path",
     type: "TextField",
+    hidden: true,
+    readOnly: true,
     required: true,
   }],
-  actions: [],
   hooks: {
-    beforeUpdate: [{
-      name: "setFileUrl",
-      handler({
-        cloudFile,
-      }) {
-        const name = cloudFile.id;
-        cloudFile.url = `/api?group=files&action=getFile&fileId=${name}`;
-      },
-    }],
-    afterCreate: [{
-      name: "setFileUrl",
-      async handler({
-        cloudFile,
-        orm,
-      }) {
-        await orm.db.updateRow(
-          cloudFile._entryType.config.tableName,
-          cloudFile.id,
-          {
-            url: `/api?group=files&action=getFile&fileId=${name}`,
-          },
-        );
-      },
-    }],
     afterDelete: [{
       name: "deleteFile",
       async handler({

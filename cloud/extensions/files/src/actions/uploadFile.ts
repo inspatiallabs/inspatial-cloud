@@ -1,5 +1,6 @@
 import { CloudAPIAction } from "#/app/cloud-action.ts";
 import type { CloudFile } from "#extensions/files/src/types/cloud-file.ts";
+import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
 
 const uploadFileAction = new CloudAPIAction("upload", {
   label: "Upload File",
@@ -14,6 +15,12 @@ const uploadFileAction = new CloudAPIAction("upload", {
     cloudFile.fileName = fileName;
     cloudFile.fileSize = file.size;
     cloudFile.mimeType = file.type as any;
+    const extensionInfo = MimeTypes.getExtensionsByMimeType(file.type);
+    if (extensionInfo) {
+      cloudFile.fileType = extensionInfo.category;
+      cloudFile.fileExtension = extensionInfo.extension as any;
+      cloudFile.fileTypeDescription = extensionInfo.description;
+    }
     cloudFile.filePath = "";
     await cloudFile.save();
     const id = cloudFile.id;

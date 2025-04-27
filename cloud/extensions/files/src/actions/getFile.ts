@@ -14,7 +14,6 @@ const getFileAction = new CloudAPIAction("getFile", {
   async run({ app, params, inResponse }) {
     const { fileId } = params;
     const file = await app.orm.getEntry<CloudFile>("cloudFile", fileId);
-    file.filePath;
     try {
       const fileHandle = await Deno.open(file.filePath, { read: true });
 

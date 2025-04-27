@@ -49,230 +49,6 @@
       "category": "audio"
     }
   ],
-  "application": [
-    {
-      "extension": "abw",
-      "description": "AbiWord document",
-      "mimeType": "application/x-abiword",
-      "category": "application"
-    },
-    {
-      "extension": "arc",
-      "description": "Archive document (multiple files embedded)",
-      "mimeType": "application/x-freearc",
-      "category": "application"
-    },
-    {
-      "extension": "azw",
-      "description": "Amazon Kindle eBook format",
-      "mimeType": "application/vnd.amazon.ebook",
-      "category": "application"
-    },
-    {
-      "extension": "bin",
-      "description": "Any kind of binary data",
-      "mimeType": "application/octet-stream",
-      "category": "application"
-    },
-    {
-      "extension": "bz",
-      "description": "BZip archive",
-      "mimeType": "application/x-bzip",
-      "category": "application"
-    },
-    {
-      "extension": "bz2",
-      "description": "BZip2 archive",
-      "mimeType": "application/x-bzip2",
-      "category": "application"
-    },
-    {
-      "extension": "cda",
-      "description": "CD audio",
-      "mimeType": "application/x-cdf",
-      "category": "application"
-    },
-    {
-      "extension": "csh",
-      "description": "C-Shell script",
-      "mimeType": "application/x-csh",
-      "category": "application"
-    },
-    {
-      "extension": "doc",
-      "description": "Microsoft Word",
-      "mimeType": "application/msword",
-      "category": "application"
-    },
-    {
-      "extension": "docx",
-      "description": "Microsoft Word (OpenXML)",
-      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "category": "application"
-    },
-    {
-      "extension": "eot",
-      "description": "MS Embedded OpenType fonts",
-      "mimeType": "application/vnd.ms-fontobject",
-      "category": "application"
-    },
-    {
-      "extension": "epub",
-      "description": "Electronic publication (EPUB)",
-      "mimeType": "application/epub+zip",
-      "category": "application"
-    },
-    {
-      "extension": "gz",
-      "description": "GZip Compressed Archive",
-      "mimeType": "application/gzip",
-      "category": "application"
-    },
-    {
-      "extension": "jar",
-      "description": "Java Archive (JAR)",
-      "mimeType": "application/java-archive",
-      "category": "application"
-    },
-    {
-      "extension": "json",
-      "description": "JSON format",
-      "mimeType": "application/json",
-      "category": "application"
-    },
-    {
-      "extension": "jsonld",
-      "description": "JSON-LD format",
-      "mimeType": "application/ld+json",
-      "category": "application"
-    },
-    {
-      "extension": "mpkg",
-      "description": "Apple Installer Package",
-      "mimeType": "application/vnd.apple.installer+xml",
-      "category": "application"
-    },
-    {
-      "extension": "odp",
-      "description": "OpenDocument presentation document",
-      "mimeType": "application/vnd.oasis.opendocument.presentation",
-      "category": "application"
-    },
-    {
-      "extension": "ods",
-      "description": "OpenDocument spreadsheet document",
-      "mimeType": "application/vnd.oasis.opendocument.spreadsheet",
-      "category": "application"
-    },
-    {
-      "extension": "odt",
-      "description": "OpenDocument text document",
-      "mimeType": "application/vnd.oasis.opendocument.text",
-      "category": "application"
-    },
-    {
-      "extension": "ogx",
-      "description": "Ogg",
-      "mimeType": "application/ogg",
-      "category": "application"
-    },
-    {
-      "extension": "pdf",
-      "description": "PDF",
-      "mimeType": "application/pdf",
-      "category": "application"
-    },
-    {
-      "extension": "php",
-      "description": "Hypertext Preprocessor (<strong>Personal Home Page</strong>)",
-      "mimeType": "application/x-httpd-php",
-      "category": "application"
-    },
-    {
-      "extension": "ppt",
-      "description": "Microsoft PowerPoint",
-      "mimeType": "application/vnd.ms-powerpoint",
-      "category": "application"
-    },
-    {
-      "extension": "pptx",
-      "description": "Microsoft PowerPoint (OpenXML)",
-      "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "category": "application"
-    },
-    {
-      "extension": "rar",
-      "description": "RAR archive",
-      "mimeType": "application/vnd.rar",
-      "category": "application"
-    },
-    {
-      "extension": "rtf",
-      "description": "Rich Text Format (RTF)",
-      "mimeType": "application/rtf",
-      "category": "application"
-    },
-    {
-      "extension": "sh",
-      "description": "Bourne shell script",
-      "mimeType": "application/x-sh",
-      "category": "application"
-    },
-    {
-      "extension": "tar",
-      "description": "Tape Archive (TAR)",
-      "mimeType": "application/x-tar",
-      "category": "application"
-    },
-    {
-      "extension": "vsd",
-      "description": "Microsoft Visio",
-      "mimeType": "application/vnd.visio",
-      "category": "application"
-    },
-    {
-      "extension": "xhtml",
-      "description": "XHTML",
-      "mimeType": "application/xhtml+xml",
-      "category": "application"
-    },
-    {
-      "extension": "xls",
-      "description": "Microsoft Excel",
-      "mimeType": "application/vnd.ms-excel",
-      "category": "application"
-    },
-    {
-      "extension": "xlsx",
-      "description": "Microsoft Excel (OpenXML)",
-      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "category": "application"
-    },
-    {
-      "extension": "xml",
-      "description": "XML",
-      "mimeType": "application/xml",
-      "category": "application"
-    },
-    {
-      "extension": "xul",
-      "description": "XUL",
-      "mimeType": "application/vnd.mozilla.xul+xml",
-      "category": "application"
-    },
-    {
-      "extension": "zip",
-      "description": "ZIP archive",
-      "mimeType": "application/zip",
-      "category": "application"
-    },
-    {
-      "extension": "7z",
-      "description": "7-zip archive",
-      "mimeType": "application/x-7z-compressed",
-      "category": "application"
-    }
-  ],
   "image": [
     {
       "extension": "apng",
@@ -397,17 +173,173 @@
       "category": "video"
     }
   ],
-  "text": [
+  "document": [
     {
-      "extension": "css",
-      "description": "Cascading Style Sheets (CSS)",
-      "mimeType": "text/css",
-      "category": "text"
+      "extension": "azw",
+      "description": "Amazon Kindle eBook format",
+      "mimeType": "application/vnd.amazon.ebook",
+      "category": "document"
     },
     {
       "extension": "csv",
       "description": "Comma-separated values (CSV)",
       "mimeType": "text/csv",
+      "category": "document"
+    },
+    {
+      "extension": "doc",
+      "description": "Microsoft Word",
+      "mimeType": "application/msword",
+      "category": "document"
+    },
+    {
+      "extension": "docx",
+      "description": "Microsoft Word (OpenXML)",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "category": "document"
+    },
+    {
+      "extension": "epub",
+      "description": "Electronic publication (EPUB)",
+      "mimeType": "application/epub+zip",
+      "category": "document"
+    },
+    {
+      "extension": "odp",
+      "description": "OpenDocument presentation document",
+      "mimeType": "application/vnd.oasis.opendocument.presentation",
+      "category": "document"
+    },
+    {
+      "extension": "ods",
+      "description": "OpenDocument spreadsheet document",
+      "mimeType": "application/vnd.oasis.opendocument.spreadsheet",
+      "category": "document"
+    },
+    {
+      "extension": "odt",
+      "description": "OpenDocument text document",
+      "mimeType": "application/vnd.oasis.opendocument.text",
+      "category": "document"
+    },
+    {
+      "extension": "pdf",
+      "description": "PDF",
+      "mimeType": "application/pdf",
+      "category": "document"
+    },
+    {
+      "extension": "ppt",
+      "description": "Microsoft PowerPoint",
+      "mimeType": "application/vnd.ms-powerpoint",
+      "category": "document"
+    },
+    {
+      "extension": "pptx",
+      "description": "Microsoft PowerPoint (OpenXML)",
+      "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "category": "document"
+    },
+    {
+      "extension": "rtf",
+      "description": "Rich Text Format (RTF)",
+      "mimeType": "application/rtf",
+      "category": "document"
+    },
+    {
+      "extension": "xls",
+      "description": "Microsoft Excel",
+      "mimeType": "application/vnd.ms-excel",
+      "category": "document"
+    },
+    {
+      "extension": "xlsx",
+      "description": "Microsoft Excel (OpenXML)",
+      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "category": "document"
+    }
+  ],
+  "application": [
+    {
+      "extension": "bin",
+      "description": "Any kind of binary data",
+      "mimeType": "application/octet-stream",
+      "category": "application"
+    },
+    {
+      "extension": "jsonld",
+      "description": "JSON-LD format",
+      "mimeType": "application/ld+json",
+      "category": "application"
+    },
+    {
+      "extension": "mpkg",
+      "description": "Apple Installer Package",
+      "mimeType": "application/vnd.apple.installer+xml",
+      "category": "application"
+    },
+    {
+      "extension": "ogx",
+      "description": "Ogg",
+      "mimeType": "application/ogg",
+      "category": "application"
+    },
+    {
+      "extension": "xhtml",
+      "description": "XHTML",
+      "mimeType": "application/xhtml+xml",
+      "category": "application"
+    }
+  ],
+  "code": [
+    {
+      "extension": "csh",
+      "description": "C-Shell script",
+      "mimeType": "application/x-csh",
+      "category": "code"
+    },
+    {
+      "extension": "js",
+      "description": "JavaScript",
+      "mimeType": "text/javascript",
+      "category": "code"
+    },
+    {
+      "extension": "json",
+      "description": "JSON format",
+      "mimeType": "application/json",
+      "category": "code"
+    },
+    {
+      "extension": "mjs",
+      "description": "JavaScript module",
+      "mimeType": "text/javascript",
+      "category": "code"
+    },
+    {
+      "extension": "php",
+      "description": "Hypertext Preprocessor (<strong>Personal Home Page</strong>)",
+      "mimeType": "application/x-httpd-php",
+      "category": "code"
+    },
+    {
+      "extension": "sh",
+      "description": "Bourne shell script",
+      "mimeType": "application/x-sh",
+      "category": "code"
+    },
+    {
+      "extension": "xml",
+      "description": "XML",
+      "mimeType": "application/xml",
+      "category": "code"
+    }
+  ],
+  "text": [
+    {
+      "extension": "css",
+      "description": "Cascading Style Sheets (CSS)",
+      "mimeType": "text/css",
       "category": "text"
     },
     {
@@ -429,18 +361,6 @@
       "category": "text"
     },
     {
-      "extension": "js",
-      "description": "JavaScript",
-      "mimeType": "text/javascript",
-      "category": "text"
-    },
-    {
-      "extension": "mjs",
-      "description": "JavaScript module",
-      "mimeType": "text/javascript",
-      "category": "text"
-    },
-    {
       "extension": "txt",
       "description": "Plain text",
       "mimeType": "text/plain",
@@ -448,6 +368,12 @@
     }
   ],
   "font": [
+    {
+      "extension": "eot",
+      "description": "MS Embedded OpenType fonts",
+      "mimeType": "application/vnd.ms-fontobject",
+      "category": "font"
+    },
     {
       "extension": "otf",
       "description": "OpenType font",
@@ -471,6 +397,50 @@
       "description": "Web Open Font Format (WOFF)",
       "mimeType": "font/woff2",
       "category": "font"
+    }
+  ],
+  "archive": [
+    {
+      "extension": "gz",
+      "description": "GZip Compressed Archive",
+      "mimeType": "application/gzip",
+      "category": "archive"
+    },
+    {
+      "extension": "jar",
+      "description": "Java Archive (JAR)",
+      "mimeType": "application/java-archive",
+      "category": "archive"
+    },
+    {
+      "extension": "rar",
+      "description": "RAR archive",
+      "mimeType": "application/vnd.rar",
+      "category": "archive"
+    },
+    {
+      "extension": "tar",
+      "description": "Tape Archive (TAR)",
+      "mimeType": "application/x-tar",
+      "category": "archive"
+    },
+    {
+      "extension": "zip",
+      "description": "ZIP archive",
+      "mimeType": "application/zip",
+      "category": "archive"
+    },
+    {
+      "extension": "7z",
+      "description": "7-zip archive",
+      "mimeType": "application/x-7z-compressed",
+      "category": "archive"
+    },
+    {
+      "extension": "arc",
+      "description": "Archive document (multiple files embedded)",
+      "mimeType": "application/x-freearc",
+      "category": "archive"
     }
   ]
 }
