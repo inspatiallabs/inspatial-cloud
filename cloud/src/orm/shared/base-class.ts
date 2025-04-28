@@ -5,8 +5,10 @@ import type { ORMField } from "#/orm/field/orm-field.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import type { SettingsActionDefinition } from "#/orm/settings/types.ts";
 import type { EntryActionDefinition } from "#/orm/entry/types.ts";
-import { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
-import { inLog } from "#/in-log/in-log.ts";
+import type { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
+import { PgError } from "#/orm/db/postgres/pgError.ts";
+import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
+import convertString from "#/utils/convert-string.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -81,7 +83,7 @@ export class BaseClass<N extends string = string> {
   getChild(childName: string): ChildEntryList {
     if (!this._childrenData.has(childName)) {
       raiseORMException(
-        `Child ${childName} not found in entry type ${this._name}`,
+        `Child ${childName} not found in ${this._type} type ${this._name}`,
       );
     }
     return this._childrenData.get(childName)!;
@@ -104,18 +106,61 @@ export class BaseClass<N extends string = string> {
     const action = this._actions.get(actionKey);
     if (!action) {
       raiseORMException(
-        `Action ${actionKey} not found in entry type ${this._name}`,
+        `Action ${actionKey} not found in ${this._type} type ${this._name}`,
       );
     }
     if (action.params) {
       for (const param of action.params) {
         if (param.required && !dataMap.has(param.key)) {
           raiseORMException(
-            `Missing required param ${param.key} for action ${actionKey} in entry type ${this._name}`,
+            `Missing required param ${param.key} for action ${actionKey} in ${this._type} type ${this._name}`,
           );
         }
       }
     }
     return action;
+  }
+  async refreshFetchedFields(): Promise<void> {
+    for (const field of this._fields.values()) {
+      if (field.fetchField) {
+        const def = this._getFieldDef<"ConnectionField">(
+          field.fetchField.connectionField,
+        );
+        const value = await this._db.getValue(
+          `entry_${def.entryType}`,
+          this._data.get(def.key),
+          field.fetchField.fetchField,
+        );
+        (this as any)[field.key] = value;
+      }
+    }
+  }
+  handlePGError(e: unknown): never {
+    if (!(e instanceof PgError)) {
+      throw e;
+    }
+
+    switch (e.code) {
+      case PGErrorCode.NotNullViolation: {
+        const fieldKey = convertString(e.fullMessage.columnName, "camel");
+        raiseORMException(
+          `Field ${fieldKey} is required for ${this._name}`,
+          "RequiredField",
+          400,
+        );
+        break;
+      }
+      case PGErrorCode.UniqueViolation: {
+        const fieldKey = convertString(e.fullMessage.columnName, "camel");
+        raiseORMException(
+          `Field ${fieldKey} must be unique for ${this._name}`,
+          "UniqueField",
+          400,
+        );
+        break;
+      }
+      default:
+        throw e;
+    }
   }
 }

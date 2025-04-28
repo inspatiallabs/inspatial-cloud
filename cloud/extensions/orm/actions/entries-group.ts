@@ -196,7 +196,7 @@ const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
   run({ app, inRequest, params }): EntryTypeInfo {
     const user = inRequest.context.get("user");
     const entryType = app.orm.getEntryType(params.entryType, user);
-    return entryType.info;
+    return entryType.info as EntryTypeInfo;
   },
   params: [{
     key: "entryType",

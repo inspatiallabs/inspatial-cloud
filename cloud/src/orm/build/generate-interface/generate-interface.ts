@@ -45,7 +45,7 @@ export async function generateSettingsInterfaces(
   const filePath = `${settingsPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { SettingsBase }from "@inspatial/orm/types";',
+    'import type { SettingsBase }from "@inspatial/cloud/types";',
     `export interface ${
       convertString(settingsType.name, "pascal", true)
     } extends SettingsBase {`,

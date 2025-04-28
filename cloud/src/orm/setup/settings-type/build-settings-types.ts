@@ -7,4 +7,10 @@ export function buildSettingsType(
   settingsType: SettingsType,
 ): void {
   buildConnectionFields(orm, settingsType);
+  if (!settingsType.children) {
+    return;
+  }
+  for (const child of settingsType.children.values()) {
+    buildConnectionFields(orm, child);
+  }
 }

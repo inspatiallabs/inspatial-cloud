@@ -1,15 +1,13 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { BaseType } from "#/orm/shared/base-type-class.ts";
 import type {
   SettingsActionDefinition,
   SettingsHookDefinition,
   SettingsTypeConfig,
-  SettingsTypeInfo,
 } from "#/orm/settings/types.ts";
 import type { HookName } from "#/orm/orm-types.ts";
 import type { GenericSettings } from "#/orm/settings/settings-base.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
-import { BaseConfig } from "#/orm/shared/shared-types.ts";
+import type { BaseConfig } from "#/orm/shared/shared-types.ts";
 
 /**
  * Defines a settings type for the ORM.
@@ -45,13 +43,21 @@ export class SettingsType<
       description: this.description,
       label: this.label,
     };
+    this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
     this.info = {
       config: this.config,
     };
   }
-
+  #setChildrenParent() {
+    if (!this.children) {
+      return;
+    }
+    for (const child of this.children.values()) {
+      child.setParentEntryType(this.name, true);
+    }
+  }
   #setupActions(actions?: Array<SettingsActionDefinition<S>>): void {
     if (!actions) {
       return;

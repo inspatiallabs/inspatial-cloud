@@ -1,20 +1,18 @@
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import { SettingsMigrationPlan } from "#/orm/migrate/settings-type/settings-migration-plan.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { InSpatialDB } from "#/orm/db/inspatial-db.ts";
 import type { SettingsRow } from "#/orm/settings/types.ts";
+import { BaseMigrator } from "#/orm/migrate/shared/base-migrator.ts";
 
-export class SettingsTypeMigrator {
-  orm: InSpatialORM;
-
-  db: InSpatialDB;
-  settingsType: SettingsType;
+export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
+  get settingsType(): SettingsType {
+    return this.typeDef as SettingsType;
+  }
   migrationPlan: SettingsMigrationPlan;
 
   existingFields: Map<string, Omit<SettingsRow, "updatedAt">>;
   targetFields: Map<string, Omit<SettingsRow, "updatedAt">>;
 
-  log: (message: string) => void;
   constructor(
     config: {
       settingsType: SettingsType;
@@ -22,12 +20,13 @@ export class SettingsTypeMigrator {
       onOutput: (message: string) => void;
     },
   ) {
-    const { settingsType, orm, onOutput } = config;
-    this.settingsType = settingsType;
-    this.migrationPlan = new SettingsMigrationPlan(settingsType.name);
-    this.log = onOutput;
-    this.orm = orm;
-    this.db = orm.db;
+    super({
+      orm: config.orm,
+      onOutput: config.onOutput,
+      typeDef: config.settingsType,
+    });
+
+    this.migrationPlan = new SettingsMigrationPlan(this.settingsType.name);
     this.existingFields = new Map();
     this.targetFields = new Map();
   }
@@ -39,6 +38,8 @@ export class SettingsTypeMigrator {
     this.#checkForFieldsToCreate();
     this.#checkForFieldsToDrop();
     this.#checkForFieldsToModify();
+    await this.loadExistingChildren();
+    await this.makeChildrenMigrationPlan();
     return this.migrationPlan;
   }
 

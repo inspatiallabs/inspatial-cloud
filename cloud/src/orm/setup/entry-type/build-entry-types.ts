@@ -1,7 +1,6 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import { buildConnectionFields } from "#/orm/setup/setup-utils.ts";
-import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 
 export function buildEntryType(
   orm: InSpatialORM,
@@ -11,7 +10,12 @@ export function buildEntryType(
   //   entryType.statusField = entryType.config.statusField;
   // }
   buildConnectionFields(orm, entryType);
-  buildChildren(orm, entryType);
+  if (!entryType.children) {
+    return;
+  }
+  for (const child of entryType.children.values()) {
+    buildConnectionFields(orm, child);
+  }
   // // const groups: FieldGroup[] = buildFieldGroups(entryType);
   // const listFields = buildListFields(entryType);
   // const displayFieldGroups = getFilteredDisplayFieldGroups(entryType, groups);
@@ -30,21 +34,7 @@ export function buildEntryType(
   //   connections: [],
   // };
 }
-function buildChildren(orm: InSpatialORM, entryType: EntryType) {
-  if (!entryType.children) {
-    return;
-  }
-  for (const child of entryType.children.values()) {
-    buildChild(orm, child);
-  }
-}
 
-function buildChild(
-  orm: InSpatialORM,
-  child: ChildEntryType,
-) {
-  buildConnectionFields(orm, child);
-}
 // function getFilteredDisplayFieldGroups(
 //   entryType: EntryType,
 //   groups: FieldGroup[],

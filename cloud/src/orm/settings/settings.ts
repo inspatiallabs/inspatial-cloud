@@ -27,7 +27,15 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     super(orm, name, "settings", user);
   }
   get data(): Record<string, any> {
-    return Object.fromEntries(this._data.entries());
+    const data = Object.fromEntries(this._data.entries());
+    const childData: Record<string, any> = {};
+    for (const [key, value] of this._childrenData.entries()) {
+      childData[key] = value.data;
+    }
+    return {
+      ...data,
+      ...childData,
+    };
   }
 
   get updatedAt(): Record<string, ORMFieldMap["TimeStampField"]> {
@@ -58,6 +66,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       );
       this.#updatedAt.set(row.field, updatedAt);
     }
+    await this.loadChildren(this._name as string);
   }
 
   async getValue(
@@ -75,6 +84,14 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   }
   update(data: Record<string, any>): void {
     for (const [key, value] of Object.entries(data)) {
+      if (this._childrenData.has(key)) {
+        const childList = this._childrenData.get(key);
+        if (childList) {
+          childList._parentId = this._name as string;
+          childList.update(value);
+        }
+        continue;
+      }
       if (!this._changeableFields.has(key)) {
         continue;
       }
@@ -82,6 +99,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     }
   }
   async save(): Promise<void> {
+    await this.refreshFetchedFields();
     await this.#beforeValidate();
     await this.#validate();
     await this.#beforeUpdate();
@@ -100,8 +118,12 @@ export class Settings<N extends string = string> extends BaseClass<N> {
           type: fieldDef.type,
         },
         updatedAt,
+      }).catch((e) => {
+        this.handlePGError(e);
       });
     }
+
+    await this.saveChildren();
     await this.load();
     await this.#afterUpdate();
   }

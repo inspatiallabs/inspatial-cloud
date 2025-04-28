@@ -88,7 +88,7 @@ export class BaseType<N extends string = string> {
           `Child with name ${child.name} already exists in EntryType ${this.name}`,
         );
       }
-      child.setParentEntryType(this.name);
+      child.config.parentEntryType = this.name;
       child.generateTableName();
       this.children.set(child.name, child);
     }

@@ -1,6 +1,5 @@
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { InSpatialDB } from "#/orm/db/inspatial-db.ts";
 import type {
   ForeignKeyConstraint,
   PgColumnDefinition,
@@ -17,20 +16,20 @@ import {
   compareDataTypes,
   compareNullable,
 } from "#/orm/migrate/migrate-utils.ts";
-import convertString from "#/utils/convert-string.ts";
 
 import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
+import { BaseMigrator } from "#/orm/migrate/shared/base-migrator.ts";
 
-export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
-  entryType: T;
-  orm: InSpatialORM;
-  log: (message: string) => void;
-  db: InSpatialDB;
+export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
+  extends BaseMigrator<EntryType> {
+  get entryType(): T {
+    return this.typeDef as T;
+  }
   existingColumns: Map<string, PostgresColumn>;
   targetColumns: Map<string, PgColumnDefinition>;
   isChild: boolean = false;
-  existingChildren: Map<string, any>;
+
   existingConstraints: {
     unique: Map<string, TableConstraint>;
     primaryKey: Map<string, TableConstraint>;
@@ -42,7 +41,6 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
     foreignKey: Map<string, ForeignKeyConstraint>;
   };
 
-  migrationPlan: EntryMigrationPlan;
   get #tableName(): string {
     if (!this.entryType.config.tableName) {
       raiseORMException(
@@ -59,15 +57,14 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
       isChild?: boolean;
     },
   ) {
-    const { entryType, orm, onOutput } = config;
+    super({
+      orm: config.orm,
+      onOutput: config.onOutput,
+      typeDef: config.entryType as EntryType,
+    });
     this.isChild = config.isChild || false;
-    this.log = onOutput;
-    this.entryType = entryType;
-    this.orm = orm;
-    this.db = orm.db;
     this.existingColumns = new Map();
     this.targetColumns = new Map();
-    this.existingChildren = new Map();
 
     this.existingConstraints = {
       unique: new Map(),
@@ -79,11 +76,11 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
       primaryKey: new Map(),
       foreignKey: new Map(),
     };
-    this.migrationPlan = new EntryMigrationPlan(entryType.name);
+    this.migrationPlan = new EntryMigrationPlan(this.entryType.name);
   }
   async migrate(): Promise<EntryMigrationPlan> {
     await this.planMigration();
-    return this.migrationPlan;
+    return this.migrationPlan as EntryMigrationPlan;
   }
 
   async planMigration(): Promise<EntryMigrationPlan> {
@@ -101,50 +98,12 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType> {
     this.#checkForColumnsToCreate();
     this.#checkForColumnsToModify();
     if (!this.isChild) {
-      await this.#loadExistingChildren();
-      await this.#makeChildrenMigrationPlan();
+      await this.loadExistingChildren();
+      await this.makeChildrenMigrationPlan();
     }
     return this.migrationPlan;
   }
-  async #loadExistingChildren(): Promise<void> {
-    const result = await this.db.getRows<{ tableName: string }>("tables", {
-      columns: ["tableName"],
-      filter: {
-        tableSchema: this.db.schema,
-        tableName: {
-          op: "startsWith",
-          value: convertString(`child_${this.entryType.name}`, "snake", true),
-        },
-      },
-    }, "information_schema");
-    for (const row of result.rows) {
-      const columns = await this.db.getTableColumns(row.tableName);
-      const tableName = convertString(row.tableName, "camel");
-      this.existingChildren.set(tableName, {
-        tableName,
-        columns: columns,
-      });
-    }
-  }
-  async #makeChildrenMigrationPlan() {
-    if (!this.entryType.children) {
-      return;
-    }
-    for (const child of this.entryType.children.values()) {
-      const migrationPlan = await this.#generateChildMigrationPlan(child);
-      this.migrationPlan.children.push(migrationPlan);
-    }
-  }
-  async #generateChildMigrationPlan(child: ChildEntryType<any>) {
-    const migrationPlan = new EntryTypeMigrator({
-      entryType: child,
-      orm: this.orm,
-      onOutput: this.log,
-      isChild: true,
-    });
 
-    return await migrationPlan.planMigration();
-  }
   async #loadExistingColumns(): Promise<void> {
     const columns = await this.db.getTableColumns(this.#tableName);
     for (const column of columns) {

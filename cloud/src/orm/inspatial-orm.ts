@@ -458,7 +458,7 @@ export class InSpatialORM {
     data: Record<string, any>,
     user?: SessionData,
   ): Promise<T> {
-    const settings = this.#getSettingsInstance(settingsType, user) as T;
+    const settings = await this.getSettings<T>(settingsType, user);
     settings.update(data);
     await settings.save();
     return settings;

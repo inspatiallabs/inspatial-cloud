@@ -2,17 +2,14 @@ import type {
   EntryActionDefinition,
   EntryHookDefinition,
   EntryTypeConfig,
-  EntryTypeInfo,
   ExtractFieldKeys,
 } from "#/orm/entry/types.ts";
 import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
 import type { EntryHookName } from "#/orm/orm-types.ts";
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { BaseType } from "#/orm/shared/base-type-class.ts";
 import type { IDMode } from "#/orm/field/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
-import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 import type { BaseConfig } from "#/orm/shared/shared-types.ts";
 
 export class EntryType<
@@ -114,7 +111,7 @@ export class EntryType<
     if (this.config.titleField) {
       this.defaultListFields.add(this.config.titleField);
     }
-
+    this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
     this.info = {
@@ -126,7 +123,14 @@ export class EntryType<
       ),
     };
   }
-
+  #setChildrenParent() {
+    if (!this.children) {
+      return;
+    }
+    for (const child of this.children.values()) {
+      child.setParentEntryType(this.name);
+    }
+  }
   #setupActions(
     actions?: Array<EntryActionDefinition<any>>,
   ): void {

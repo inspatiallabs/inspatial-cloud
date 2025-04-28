@@ -33,6 +33,8 @@ export class ChildEntryList<T = Record<string, unknown>> {
   _name: string = "";
   _childClass: typeof ChildEntry = ChildEntry;
   _fields: Map<string, ORMFieldDef> = new Map();
+  _titleFields: Map<string, ORMFieldDef> = new Map();
+  _changeableFields: Map<string, ORMFieldDef> = new Map();
   _orm!: InSpatialORM;
   _tableName: string = "";
   _data: Map<string, ChildEntry> = new Map();
@@ -169,10 +171,10 @@ export class ChildEntryList<T = Record<string, unknown>> {
   }
   async save(): Promise<void> {
     for (const childEntry of this._data.values()) {
+      await this.#refreshFetchedFields(childEntry);
       if (childEntry._modifiedValues.size === 0) {
         continue;
       }
-      await this.#refreshFetchedFields(childEntry);
 
       childEntry.updatedAt = dateUtils.nowTimestamp();
 
@@ -279,7 +281,17 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       required: true,
     });
   }
-  setParentEntryType(parentEntryType: string): void {
+  setParentEntryType(parentEntryType: string, isSettings?: boolean): void {
+    this.config.parentEntryType = parentEntryType;
+    if (isSettings) {
+      this.fields.set("parent", {
+        key: "parent",
+        label: "Parent",
+        type: "DataField",
+        required: true,
+      });
+      return;
+    }
     this.fields.set("parent", {
       key: "parent",
       label: "Parent",
@@ -287,7 +299,6 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       entryType: parentEntryType,
       required: true,
     });
-    this.config.parentEntryType = parentEntryType;
   }
   generateTableName(): void {
     if (!this.config.parentEntryType) {

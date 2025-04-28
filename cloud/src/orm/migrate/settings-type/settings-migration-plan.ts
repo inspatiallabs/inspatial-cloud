@@ -1,4 +1,5 @@
 import type { SettingsRow } from "#/orm/settings/types.ts";
+import type { EntryMigrationPlan } from "#/orm/migrate/entry-type/entry-migration-plan.ts";
 
 export class SettingsMigrationPlan {
   settingsType: string;
@@ -8,6 +9,7 @@ export class SettingsMigrationPlan {
     drop: Array<Omit<SettingsRow, "updatedAt">>;
     modify: Array<Omit<SettingsRow, "updatedAt">>;
   };
+  children: Array<EntryMigrationPlan>;
 
   constructor(settingsType: string) {
     this.settingsType = settingsType;
@@ -16,5 +18,6 @@ export class SettingsMigrationPlan {
       drop: [],
       modify: [],
     };
+    this.children = [];
   }
 }

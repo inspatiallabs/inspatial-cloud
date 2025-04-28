@@ -124,7 +124,11 @@ export class MigrationPlanner {
   }
 
   async #createMissingTables(): Promise<void> {
-    for (const plan of this.migrationPlan.entries) {
+    const plans = [
+      ...this.migrationPlan.entries,
+      ...this.migrationPlan.settings.flatMap((plan) => plan.children),
+    ];
+    for (const plan of plans) {
       if (plan.table.create) {
         await this.db.createTable(plan.table.tableName, plan.table.idMode);
         this.#logResult(`Created table ${plan.table.tableName}`);
@@ -150,7 +154,11 @@ export class MigrationPlanner {
         );
       }
     };
-    for (const plan of this.migrationPlan.entries) {
+    const plans = [
+      ...this.migrationPlan.entries,
+      ...this.migrationPlan.settings.flatMap((plan) => plan.children),
+    ];
+    for (const plan of plans) {
       await updateDescription(plan);
       for (const child of plan.children) {
         await updateDescription(child);
@@ -164,7 +172,11 @@ export class MigrationPlanner {
       await this.#modifyColumns(plan);
       await this.#dropColumns(plan);
     };
-    for (const plan of this.migrationPlan.entries) {
+    const plans = [
+      ...this.migrationPlan.entries,
+      ...this.migrationPlan.settings.flatMap((plan) => plan.children),
+    ];
+    for (const plan of plans) {
       await syncColumns(plan);
       for (const child of plan.children) {
         await syncColumns(child);

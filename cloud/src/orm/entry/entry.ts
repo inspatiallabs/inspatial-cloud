@@ -4,11 +4,7 @@ import type { EntryHookName } from "#/orm/orm-types.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
-import { PgError } from "#/orm/db/postgres/pgError.ts";
-import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
-import convertString from "#/utils/convert-string.ts";
 import ulid from "#/orm/utils/ulid.ts";
-import { inLog } from "#/in-log/in-log.ts";
 
 export class Entry<
   N extends string = string,
@@ -93,7 +89,7 @@ export class Entry<
   }
 
   async save(): Promise<void> {
-    await this.#refreshFetchedFields();
+    await this.refreshFetchedFields();
     this["updatedAt" as keyof this] = Date.now() as any;
     switch (this.#isNew) {
       case true:
@@ -120,7 +116,7 @@ export class Entry<
       this._entryType.config.tableName,
       this.id,
       data,
-    ).catch((e) => this.#handlePGError(e));
+    ).catch((e) => this.handlePGError(e));
 
     await this.saveChildren();
     // Reload the entry to get the updated values
@@ -160,21 +156,6 @@ export class Entry<
     }
   }
 
-  async #refreshFetchedFields(): Promise<void> {
-    for (const field of this._fields.values()) {
-      if (field.fetchField) {
-        const def = this._getFieldDef<"ConnectionField">(
-          field.fetchField.connectionField,
-        );
-        const value = await this._db.getValue(
-          `entry_${def.entryType}`,
-          this._data.get(def.key),
-          field.fetchField.fetchField,
-        );
-        (this as any)[field.key] = value;
-      }
-    }
-  }
   /* Lifecycle Hooks */
 
   async #runHooks(hookName: EntryHookName): Promise<void> {
@@ -249,7 +230,7 @@ export class Entry<
     const result = await this._db.insertRow(
       this._entryType.config.tableName,
       data,
-    ).catch((e) => this.#handlePGError(e));
+    ).catch((e) => this.handlePGError(e));
     if (!result?.id) {
       return;
     }
@@ -273,34 +254,5 @@ export class Entry<
         raiseORMException(`Invalid idMode ${idMode}`);
     }
     return id;
-  }
-
-  #handlePGError(e: unknown): never {
-    if (!(e instanceof PgError)) {
-      throw e;
-    }
-
-    switch (e.code) {
-      case PGErrorCode.NotNullViolation: {
-        const fieldKey = convertString(e.fullMessage.columnName, "camel");
-        raiseORMException(
-          `Field ${fieldKey} is required for ${this._entryType.label} entry`,
-          "RequiredField",
-          400,
-        );
-        break;
-      }
-      case PGErrorCode.UniqueViolation: {
-        const fieldKey = convertString(e.fullMessage.columnName, "camel");
-        raiseORMException(
-          `Field ${fieldKey} must be unique for ${this._entryType.label} entry`,
-          "UniqueField",
-          400,
-        );
-        break;
-      }
-      default:
-        throw e;
-    }
   }
 }
