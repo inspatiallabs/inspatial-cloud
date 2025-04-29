@@ -3,7 +3,7 @@ import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import { ChildEntry, ChildEntryList } from "#/orm/child-entry/child-entry.ts";
 import { makeFields } from "#/orm/build/make-fields.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 
 export function buildChildren(
   entryOrSettingsType: EntryType | SettingsType,
@@ -20,8 +20,9 @@ export function buildChildren(
           changeableFields.set(field.key, field);
         }
       }
-      const childClass = class extends ChildEntry {};
+      const childClass = class extends ChildEntry<any> {};
       makeFields("child", child, childClass);
+
       const childListClass = class extends ChildEntryList {
         override _name = child.name;
         override _childClass = childClass;

@@ -159,18 +159,6 @@
       "description": "WEBM video",
       "mimeType": "video/webm",
       "category": "video"
-    },
-    {
-      "extension": "3gp",
-      "description": "3GPP audio/video container",
-      "mimeType": "video/3gpp",
-      "category": "video"
-    },
-    {
-      "extension": "3g2",
-      "description": "3GPP2 audio/video container",
-      "mimeType": "video/3gpp2",
-      "category": "video"
     }
   ],
   "document": [
@@ -428,12 +416,6 @@
       "extension": "zip",
       "description": "ZIP archive",
       "mimeType": "application/zip",
-      "category": "archive"
-    },
-    {
-      "extension": "7z",
-      "description": "7-zip archive",
-      "mimeType": "application/x-7z-compressed",
       "category": "archive"
     },
     {

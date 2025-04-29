@@ -404,24 +404,6 @@
     "category": "archive"
   },
   {
-    "extension": "3gp",
-    "description": "3GPP audio/video container",
-    "mimeType": "video/3gpp",
-    "category": "video"
-  },
-  {
-    "extension": "3g2",
-    "description": "3GPP2 audio/video container",
-    "mimeType": "video/3gpp2",
-    "category": "video"
-  },
-  {
-    "extension": "7z",
-    "description": "7-zip archive",
-    "mimeType": "application/x-7z-compressed",
-    "category": "archive"
-  },
-  {
     "extension": "arc",
     "description": "Archive document (multiple files embedded)",
     "mimeType": "application/x-freearc",

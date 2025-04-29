@@ -1,4 +1,6 @@
 import type { PgPoolConfig } from "#/orm/db/postgres/pgTypes.ts";
+import type { EntryBase } from "#/orm/entry/entry-base.ts";
+import type { ExtractFieldKeys } from "#/orm/entry/types.ts";
 
 interface DBConnectionConfig {
   user: string;
@@ -138,20 +140,22 @@ export interface AdvancedFilter {
     | "!=";
   value: any;
 }
-
-export interface ListOptions {
-  columns?: string[];
-  filter?: DBFilter;
-  orFilter?: DBFilter;
+type BaseKeys = "id" | "createdAt" | "updatedAt";
+export interface ListOptions<T extends EntryBase = EntryBase> {
+  columns?: (ExtractFieldKeys<T> | BaseKeys)[];
+  filter?: DBFilter<T>;
+  orFilter?: DBFilter<T>;
   limit?: number;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
 }
 
-export type DBFilter = Record<
-  string,
-  string | number | boolean | null | AdvancedFilter
+export type DBFilter<T = Record<string, unknown>> = Partial<
+  Record<
+    (ExtractFieldKeys<T> | BaseKeys),
+    string | number | boolean | null | AdvancedFilter
+  >
 >;
 
 export interface DBListOptions {

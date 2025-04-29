@@ -1,9 +1,13 @@
 import { CloudAPIAction, type CloudAPIActionType } from "#/app/cloud-action.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { ORMFieldType } from "#/orm/field/types.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import { EntryType } from "#/orm/entry/entry-type.ts";
+import type {
+  ChoicesFieldDef,
+  ORMFieldDef,
+} from "#/orm/field/field-def-types.ts";
 import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import { SettingsType } from "#/orm/settings/settings-type.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",
@@ -19,23 +23,18 @@ const generateModels = new CloudAPIAction(
     async run({ app, params }) {
       const modelsPath = params.path ||
         `${app.orm.generatedRoot}/flutter/models`;
-      await Deno.mkdir(modelsPath, { recursive: true });
+      await Deno.mkdir(`${modelsPath}/settings`, { recursive: true });
+      await Deno.mkdir(`${modelsPath}/entries`, { recursive: true });
       const models: string[] = [];
       const helpers = getHelperClasses();
       await writeModelFile(`${modelsPath}/helpers.dart`, helpers.join("\n"));
-
-      for (const entryType of app.orm.entryTypes.values()) {
-        const fileName = `${convertString(entryType.name, "snake", true)}.dart`;
-        const filePath = `${modelsPath}/${fileName}`;
-        const model = generateFlutterModel(entryType);
-        model.unshift(`import './helpers.dart';`);
-        const childrenModels = Array.from(
-          entryType.children?.values().map((child) => {
-            return generateFlutterModel(child);
-          }) ?? [],
-        );
-        model.push(...childrenModels.flatMap((child) => child));
-        await writeModelFile(filePath, model.join("\n"));
+      const { entryTypes, settingsTypes } = app.orm;
+      const defs = [
+        ...Array.from(entryTypes.values()),
+        ...Array.from(settingsTypes.values()),
+      ];
+      for (const entryType of defs) {
+        const fileName = await buildModel(entryType, modelsPath);
 
         models.push(fileName);
       }
@@ -51,11 +50,34 @@ const generateModels = new CloudAPIAction(
     },
   },
 );
-
+async function buildModel(
+  typeDef: EntryType | SettingsType,
+  modelsPath: string,
+) {
+  const isEntry = typeDef instanceof EntryType;
+  const subDir = isEntry ? "entries" : "settings";
+  const fileName = `${convertString(typeDef.name, "snake", true)}.dart`;
+  const filePath = `${modelsPath}/${subDir}/${fileName}`;
+  const enums = [];
+  enums.push(...generateModelEnums(typeDef));
+  const model = generateFlutterModel(typeDef);
+  model.unshift(`import '../helpers.dart';`);
+  const childrenModels = [];
+  for (const child of typeDef.children?.values() ?? []) {
+    const childModel = generateFlutterModel(child);
+    enums.push(...generateModelEnums(child));
+    childrenModels.push(childModel);
+  }
+  model.push(...childrenModels.flatMap((child) => child));
+  model.push(...enums);
+  await writeModelFile(filePath, model.join("\n"));
+  return `${subDir}/${fileName}`;
+}
 export default generateModels as CloudAPIActionType;
 function getHelperClasses() {
   return [
     entry,
+    settings,
     childEntry,
     childList,
     connectionField,
@@ -64,11 +86,19 @@ function getHelperClasses() {
     valueIfNotNull,
   ];
 }
-function generateFlutterModel(entryOrChildType: EntryType | ChildEntryType) {
+function generateFlutterModel(
+  entryOrChildType: EntryType | ChildEntryType | SettingsType,
+) {
   const className = convertString(entryOrChildType.name, "pascal", true);
+  let type: "Entry" | "Settings" | "Child" = "Entry";
   let extendsClass = "Entry";
   if (entryOrChildType instanceof ChildEntryType) {
     extendsClass = "ChildEntry";
+    type = "Child";
+  }
+  if (entryOrChildType instanceof SettingsType) {
+    extendsClass = "Settings";
+    type = "Settings";
   }
   const lines: string[] = [
     `final class ${className} extends ${extendsClass} {`,
@@ -80,9 +110,9 @@ function generateFlutterModel(entryOrChildType: EntryType | ChildEntryType) {
     const childrenFields = generateChildrenFields(entryOrChildType.children);
     lines.push(childrenFields);
   }
-  const converting = generateJsonConverting(entryOrChildType);
+  const converting = generateJsonConverting(entryOrChildType, type);
   lines.push(...converting);
-  const constructorClass = generateConstructor(entryOrChildType);
+  const constructorClass = generateConstructor(entryOrChildType, type);
   lines.push(...constructorClass);
   lines.push("}");
 
@@ -92,14 +122,56 @@ function shouldIgnoreField(field: ORMFieldDef) {
   return field.key.endsWith("#") || field.hidden ||
     ["id", "createdAt", "updatedAt", "parent"].includes(field.key);
 }
+
+function generateModelEnums(
+  typeDef: EntryType | ChildEntryType | SettingsType,
+): string[] {
+  const lines: string[] = [];
+  for (const field of typeDef.fields.values()) {
+    if (field.type === "ChoicesField") {
+      lines.push(...makeChoiceEnum(field as ChoicesFieldDef));
+    }
+  }
+  return lines;
+}
+function makeChoiceEnum(field: ChoicesFieldDef): string[] {
+  const lines: string[] = [];
+
+  const choices = field.choices.map((choice) => {
+    return `  ${choice.key}("${choice.key}","${choice.label}"),`;
+  });
+  choices[choices.length - 1] = choices[choices.length - 1].replace(
+    /,$/,
+    ";",
+  );
+  const enumName = convertString(field.key, "pascal", true);
+  lines.push(
+    `enum ${enumName} {`,
+    ...choices,
+    ``,
+    ` final String key;`,
+    ` final String label;`,
+    ` const ${enumName}(this.key,this.label);`,
+    `}`,
+  );
+
+  return lines;
+}
 function generateFieldDefs(fields: Map<string, ORMFieldDef>) {
   const output: string[] = [];
   fields.values().forEach((field) => {
     if (shouldIgnoreField(field)) {
       return;
     }
-    const fieldType = flutterTypeMap[field.type];
+    let fieldType;
+    switch (field.type) {
+      case "ChoicesField":
+        fieldType = convertString(field.key, "pascal", true);
+        break;
 
+      default:
+        fieldType = flutterTypeMap[field.type];
+    }
     const lines: string[] = [
       `  /// ${field.label}: ${field.description}`,
       `  ${fieldType}${field.required ? "" : "?"} ${field.key};`,
@@ -110,23 +182,34 @@ function generateFieldDefs(fields: Map<string, ORMFieldDef>) {
   return output;
 }
 
-function generateJsonConverting(entryOrChildType: EntryType | ChildEntryType) {
+function generateJsonConverting(
+  entryOrChildType: EntryType | ChildEntryType | SettingsType,
+  type: "Entry" | "Settings" | "Child",
+) {
   const className = convertString(entryOrChildType.name, "pascal", true);
+  let toJsonMixin = `
+    'id': valueIfNotNull<String>(id,(value)=>value),
+    'createdAt': valueIfNotNull<DateTime>(createdAt,(value)=>value.millisecondsSinceEpoch),
+    'updatedAt': valueIfNotNull<DateTime>(updatedAt,(value)=>value.millisecondsSinceEpoch),
+    `;
+  let fromJsonMixin = `
+    id: valueIfNotNull<String>(json['id'], (value) => value),
+    createdAt: valueIfNotNull<int>(json['createdAt'],
+      (value) => DateTime.fromMillisecondsSinceEpoch(value)),
+      updatedAt: valueIfNotNull<int>(json['updatedAt'],
+      (value) => DateTime.fromMillisecondsSinceEpoch(value)),`;
+  if (type == "Settings") {
+    toJsonMixin = ``;
+    fromJsonMixin = ``;
+  }
   const toJson: string[] = [
     ` Map<String, dynamic> toJson() {`,
     `    return {
-    'id': valueIfNotNull<String>(id,(value)=>value),
-    'createdAt': valueIfNotNull<DateTime>(createdAt,(value)=>value.millisecondsSinceEpoch),
-    'updatedAt': valueIfNotNull<DateTime>(updatedAt,(value)=>value.millisecondsSinceEpoch),`,
+      ${toJsonMixin}`,
   ];
   const fromJson: string[] = [
     `  factory ${className}.fromJson(Map<String, dynamic> json) {
-    return ${className}(
-      id: valueIfNotNull<String>(json['id'], (value) => value),
-      createdAt: valueIfNotNull<int>(json['createdAt'],
-          (value) => DateTime.fromMillisecondsSinceEpoch(value)),
-      updatedAt: valueIfNotNull<int>(json['updatedAt'],
-          (value) => DateTime.fromMillisecondsSinceEpoch(value)),`,
+    return ${className}(${fromJsonMixin}`,
   ];
   // const toJson: string[] = [
   //   `  Map<String, dynamic> toJson() {`,
@@ -171,6 +254,25 @@ function generateJsonConverting(entryOrChildType: EntryType | ChildEntryType) {
         );
 
         break;
+      case "ChoicesField": {
+        const enumName = convertString(field.key, "pascal", true);
+        let val = `    ${field.key}:`;
+        if (!field.required) {
+          val += `json['${field.key}'] != null\n        ?`;
+        }
+        val += ` ${enumName}.values
+          .firstWhere((e) => e.key == json['${field.key}'] as String)`;
+
+        if (!field.required) {
+          val += `\n          : null`;
+        }
+        val += `,`;
+        fromJson.push(val);
+        toJson.push(
+          `    '${field.key}': ${field.key}${field.required ? "" : "?"}.key,`,
+        );
+        break;
+      }
       case "TimeStampField":
         fromJson.push(
           `    ${field.key}: DateTime.fromMillisecondsSinceEpoch(json['${field.key}'] as int${
@@ -227,16 +329,24 @@ function generateChildrenFields(children: Map<string, ChildEntryType>) {
   }
   return output;
 }
-function generateConstructor(entryOrChildType: EntryType | ChildEntryType) {
+function generateConstructor(
+  entryOrChildType: EntryType | ChildEntryType | SettingsType,
+  type: "Entry" | "Settings" | "Child",
+) {
   const isChild = entryOrChildType instanceof ChildEntryType;
   const className = convertString(entryOrChildType.name, "pascal", true);
   const req = `${!isChild ? "required " : ""}`;
   const constructor: string[] = [
     ` ${className}({`,
-    `    ${req}super.id,`,
-    `    ${req}super.createdAt,`,
-    `    ${req}super.updatedAt,`,
   ];
+  if (type === "Entry" || type === "Child") {
+    constructor.push(
+      `    ${req}super.id,`,
+      `    ${req}super.createdAt,`,
+      `    ${req}super.updatedAt,`,
+    );
+  }
+
   for (const field of entryOrChildType.fields.values()) {
     if (shouldIgnoreField(field)) {
       continue;
@@ -329,6 +439,10 @@ abstract base class Entry {
     required this.updatedAt,
   });
 }
+`;
+
+const settings = `
+abstract base class Settings {}
 `;
 const childEntry = `
 abstract base class ChildEntry {

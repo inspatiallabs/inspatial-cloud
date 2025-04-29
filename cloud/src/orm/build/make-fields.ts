@@ -14,6 +14,15 @@ export function makeFields(
   dataClass: typeof Entry | typeof Settings | typeof ChildEntry,
 ): void {
   const fields = typeClass.fields;
+  const children = typeClass.children || [];
+  for (const childName of children.keys()) {
+    Object.defineProperty(dataClass.prototype, childName, {
+      get(): any {
+        return (this as Entry | Settings).getChild(childName as string);
+      },
+      enumerable: true,
+    });
+  }
   for (const field of fields.values()) {
     Object.defineProperty(dataClass.prototype, field.key, {
       enumerable: true,

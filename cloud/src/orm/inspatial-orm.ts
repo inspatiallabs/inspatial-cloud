@@ -340,9 +340,9 @@ export class InSpatialORM {
   /**
    * Gets a list of entries for a specific EntryType.
    */
-  async getEntryList<E extends string>(
-    entryType: E,
-    options?: ListOptions,
+  async getEntryList<E extends EntryBase>(
+    entryType: string,
+    options?: ListOptions<E>,
     user?: SessionData,
   ): Promise<GetListResponse<E>> {
     const entryTypeObj = this.getEntryType(entryType, user);
@@ -362,7 +362,8 @@ export class InSpatialORM {
     const titleColumns = new Set();
     if (options?.columns && Array.isArray(options.columns)) {
       const columns: string[] = [];
-      options.columns.forEach((column) => {
+      options.columns.forEach((col) => {
+        const column = col as string;
         const field = entryTypeObj.fields.get(column);
         if (!field) {
           raiseORMException(
@@ -397,7 +398,7 @@ export class InSpatialORM {
 
     if (options) {
       delete options.columns;
-      dbOptions = { ...dbOptions, ...options };
+      dbOptions = { ...dbOptions, ...options as any };
     }
     const result = await this.db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;

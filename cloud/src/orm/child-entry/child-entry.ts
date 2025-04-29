@@ -11,15 +11,17 @@ import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { ORMField } from "#/orm/field/orm-field.ts";
 import ulid from "#/orm/utils/ulid.ts";
 import { dateUtils } from "#/utils/date-utils.ts";
-export interface ChildEntry {
+export interface ChildEntry<T extends Record<string, unknown>> {
   [key: string]: any;
 }
-export class ChildEntry {
+export class ChildEntry<
+  T extends Record<string, unknown> = any,
+> {
   // id: string | undefined;
   // createdAt: number | undefined;
   // updatedAt: number | undefined;
   // parent: string | undefined;
-  _data: Map<string, any> = new Map();
+  _data: Map<string, T> = new Map();
   _getFieldDef: (fieldKey: string) => ORMFieldDef;
   _getFieldType: (fieldType: string) => ORMField<any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
@@ -29,7 +31,7 @@ export class ChildEntry {
   }
 }
 
-export class ChildEntryList<T = Record<string, unknown>> {
+export class ChildEntryList<T extends Record<string, unknown> = any> {
   _name: string = "";
   _childClass: typeof ChildEntry = ChildEntry;
   _fields: Map<string, ORMFieldDef> = new Map();
@@ -37,8 +39,8 @@ export class ChildEntryList<T = Record<string, unknown>> {
   _changeableFields: Map<string, ORMFieldDef> = new Map();
   _orm!: InSpatialORM;
   _tableName: string = "";
-  _data: Map<string, ChildEntry> = new Map();
-  _newData: Map<string, ChildEntry> = new Map();
+  _data: Map<string, ChildEntry<T>> = new Map();
+  _newData: Map<string, ChildEntry<T>> = new Map();
   _parentId: string = "";
   _getFieldType<T extends keyof FieldDefMap>(fieldType: T): ORMField<T> {
     const fieldTypeDef = this._orm.fieldTypes.get(fieldType);
@@ -62,13 +64,20 @@ export class ChildEntryList<T = Record<string, unknown>> {
     this._orm = orm;
   }
 
-  get data(): Array<any> {
-    return Array.from(
+  get data(): Array<T> {
+    const data = Array.from(
       this._data.values().map((child) => {
         const childData = Object.fromEntries(child._data.entries());
-        return childData;
+        return childData as T;
       }),
     );
+    const newData = Array.from(
+      this._newData.values().map((child) => {
+        const childData = Object.fromEntries(child._data.entries());
+        return childData as T;
+      }),
+    );
+    return [...data, ...newData];
   }
   async load(parentId: string): Promise<void> {
     this._data = new Map();
@@ -90,7 +99,7 @@ export class ChildEntryList<T = Record<string, unknown>> {
       for (const [key, value] of Object.entries(childRow)) {
         const fieldDef = this._getFieldDef(key);
         const fieldType = this._getFieldType(fieldDef.type);
-        child._data.set(key, fieldType.parseDbValue(value, fieldDef));
+        child._data.set(key, fieldType.parseDbValue(value, fieldDef) as any);
       }
       this._data.set(childRow.id, child);
     }

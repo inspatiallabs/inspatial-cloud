@@ -19,7 +19,7 @@ export async function generateEntryInterface(
   const filePath = `${entriesPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { EntryBase } from "@inspatial/cloud/types";',
+    'import type { EntryBase, ChildList } from "@inspatial/cloud/types";',
     `export interface ${
       convertString(entryType.name, "pascal", true)
     } extends EntryBase {`,
@@ -28,6 +28,12 @@ export async function generateEntryInterface(
 
   const fields = buildFields(orm, entryType.fields);
   outLines.push(...fields);
+  for (const child of entryType.children?.values() || []) {
+    const childFields = buildFields(orm, child.fields);
+    outLines.push(
+      `${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
+    );
+  }
 
   outLines.push("}");
   await writeInterfaceFile(filePath, outLines.join("\n"));
@@ -45,7 +51,7 @@ export async function generateSettingsInterfaces(
   const filePath = `${settingsPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { SettingsBase }from "@inspatial/cloud/types";',
+    'import type { SettingsBase, ChildList }from "@inspatial/cloud/types";',
     `export interface ${
       convertString(settingsType.name, "pascal", true)
     } extends SettingsBase {`,
@@ -54,7 +60,12 @@ export async function generateSettingsInterfaces(
 
   const fields = buildFields(orm, settingsType.fields);
   outLines.push(...fields);
-
+  for (const child of settingsType.children?.values() || []) {
+    const childFields = buildFields(orm, child.fields);
+    outLines.push(
+      `${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
+    );
+  }
   outLines.push("}");
   await writeInterfaceFile(filePath, outLines.join("\n"));
   await formatInterfaceFile(filePath);
