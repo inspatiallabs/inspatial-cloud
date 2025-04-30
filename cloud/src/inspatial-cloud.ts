@@ -319,10 +319,14 @@ export class InCloud<
         this.#handleInitError(e);
       }
     }
-    this.orm = setupOrm({
-      app: this,
-      extensionManager: this.#extensionManager,
-    });
+    try {
+      this.orm = setupOrm({
+        app: this,
+        extensionManager: this.#extensionManager,
+      });
+    } catch (e) {
+      this.#handleInitError(e);
+    }
   }
 
   #installExtension(appExtension: CloudExtension): void {

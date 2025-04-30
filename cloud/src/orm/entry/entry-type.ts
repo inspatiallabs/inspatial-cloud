@@ -43,6 +43,7 @@ export class EntryType<
        */
       titleField?: FK;
       idMode?: IDMode;
+      imageField?: FK;
       defaultListFields?: Array<FK>;
       defaultSortField?: FK;
       defaultSortDirection?: "asc" | "desc";

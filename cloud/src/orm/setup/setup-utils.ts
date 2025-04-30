@@ -3,7 +3,7 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { FieldDefMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
-import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 
 export function buildConnectionFields(
   orm: InSpatialORM,
@@ -20,7 +20,15 @@ export function buildConnectionFields(
       default:
         continue;
     }
-    const connectionEntryType = orm.getEntryType(field.entryType);
+    let connectionEntryType: EntryType;
+    try {
+      connectionEntryType = orm.getEntryType(field.entryType);
+    } catch (_e) {
+      raiseORMException(
+        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist`,
+        "Invalid Connection",
+      );
+    }
     const titleField = buildConnectionTitleField(
       orm,
       field,

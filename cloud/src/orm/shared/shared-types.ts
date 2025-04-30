@@ -30,9 +30,9 @@ export interface BaseTypeConfig {
   };
 }
 
-export interface BaseConfig {
+export interface BaseConfig<F extends Array<ORMFieldDef> = Array<ORMFieldDef>> {
   label?: string;
   description?: string;
-  fields: Array<ORMFieldDef>;
+  fields: F;
   children?: Array<ChildEntryType<any>>;
 }
