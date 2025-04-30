@@ -5,9 +5,9 @@ import type {
   EntryTypeListener,
   EntyCallbackMap,
   SocketStatus,
-} from "#client/in-live/in-live-types.ts";
-import { InLiveClientBase } from "#client/in-live/in-live-base.ts";
-import type { Entry } from "#client/client-types.ts";
+} from "./in-live-types.ts";
+import { InLiveClientBase } from "./in-live-base.ts";
+import type { Entry } from "../client-types.ts";
 
 export class InLiveClient {
   #client: InLiveClientBase;
@@ -223,7 +223,7 @@ export class InLiveClient {
     entryType: string,
     id: string,
     event: string,
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ) {
     const entryListeners = this.#ensureEntry(entryType, id);
     if (entryListeners.size === 0) {
@@ -231,14 +231,14 @@ export class InLiveClient {
       return;
     }
     for (const listener of entryListeners.values()) {
-      listener.callback(event as EntryEvent<any>, data);
+      listener.callback(event as EntryEvent, data);
     }
   }
 
   #handleEntryTypeEvent(
     entryType: string,
     event: string,
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ) {
     const listenerMap = this.#ensureEntryType(entryType);
     if (listenerMap.listeners.size === 0) {
@@ -246,7 +246,7 @@ export class InLiveClient {
       return;
     }
     for (const listener of listenerMap.listeners.values()) {
-      listener.callback(event as EntryTypeEvent<any>, data);
+      listener.callback(event as EntryTypeEvent, data);
     }
   }
 }

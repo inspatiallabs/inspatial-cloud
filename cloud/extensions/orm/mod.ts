@@ -41,7 +41,7 @@ const afterDeleteHook: EntryHookFunction = (
   });
 };
 
-const ormCloudExtension = new CloudExtension("orm", {
+const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
   description: "ORM Extension",
   label: "ORM Extension",
   version: "0.0.1",

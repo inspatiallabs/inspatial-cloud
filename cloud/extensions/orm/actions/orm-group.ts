@@ -25,7 +25,7 @@ const entryTypesInfo = new CloudAPIAction("entryTypes", {
   run({ app }): Array<EntryTypeInfo> {
     return Array.from(
       app.orm.entryTypes.values().map((entryType) => entryType.info),
-    );
+    ) as Array<EntryTypeInfo>;
   },
   params: [],
 });
@@ -36,7 +36,7 @@ const settingsTypesInfo = new CloudAPIAction("settingsTypes", {
   run({ app }): Array<SettingsTypeInfo> {
     return Array.from(
       app.orm.settingsTypes.values().map((settingsType) => settingsType.info),
-    );
+    ) as Array<SettingsTypeInfo>;
   },
   params: [],
 });

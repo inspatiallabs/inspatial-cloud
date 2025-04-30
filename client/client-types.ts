@@ -1,5 +1,8 @@
-import type { ExtractFieldKeys } from "#/orm/entry/types.ts";
-import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
+import type { ExtractFieldKeys } from "../cloud/src/orm/entry/types.ts";
+import type {
+  EntryBase,
+  GenericEntry,
+} from "../cloud/src/orm/entry/entry-base.ts";
 export type Entry<T extends EntryBase = GenericEntry> = Omit<
   T,
   ExtractFieldKeys<T>
@@ -10,19 +13,19 @@ export type {
   CloudAPIDocs,
   CloudAPIGroupDocs,
   DocsActionParam,
-} from "#/api/api-types.ts";
+} from "../cloud/src/api/api-types.ts";
 
-export type { SessionData } from "#extensions/auth/types.ts";
-export type { EntryTypeInfo, IDValue } from "#/orm/entry/types.ts";
-export type { GetListResponse } from "#/orm/orm-types.ts";
+export type { SessionData } from "../cloud/extensions/auth/types.ts";
+export type { EntryTypeInfo, IDValue } from "../cloud/src/orm/entry/types.ts";
+export type { GetListResponse } from "../cloud/src/orm/orm-types.ts";
 
 export type {
   AdvancedFilter,
   DBFilter,
   ListOptions,
-} from "#/orm/db/db-types.ts";
+} from "../cloud/src/orm/db/db-types.ts";
 
-export type { SettingsTypeInfo } from "#/orm/settings/types.ts";
+export type { SettingsTypeInfo } from "../cloud/src/orm/settings/types.ts";
 
 export type Settings = Record<string, unknown>;
 export interface SettingsWithTimestamp<S extends Settings = Settings> {

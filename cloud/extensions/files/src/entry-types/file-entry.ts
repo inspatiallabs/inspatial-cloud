@@ -60,7 +60,6 @@ const fileEntry = new EntryType<CloudFile>("cloudFile", {
       name: "deleteFile",
       async handler({
         cloudFile,
-        orm,
       }) {
         const path = cloudFile.filePath;
         try {

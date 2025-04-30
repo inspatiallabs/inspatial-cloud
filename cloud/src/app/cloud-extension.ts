@@ -153,6 +153,9 @@ export class CloudExtension<
       }
     }
   }
+  /**
+   * Returns information about the extension.
+   */
   get info(): CloudExtensionInfo {
     const middleware = this.middleware?.map((m) => {
       return {

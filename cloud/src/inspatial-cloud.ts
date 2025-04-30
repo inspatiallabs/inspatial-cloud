@@ -243,6 +243,9 @@ export class InCloud<
     return this.#extensionObjects.get(extensionKey) as T;
   }
 
+  /**
+   * Runs an action from the specified action group.
+   */
   async runAction(
     groupName: string,
     actionName: string,
@@ -275,6 +278,7 @@ export class InCloud<
   getExtensionConfig<T>(extensionKey: string): T {
     return this.#extensionManager.getExtensionConfig<T>(extensionKey);
   }
+
   getExtensionConfigValue<T>(extension: string, key: string): T {
     return this.#extensionManager.getExtensionConfigValue<T>(extension, key);
   }

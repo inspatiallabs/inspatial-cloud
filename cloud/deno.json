@@ -7,13 +7,11 @@
     "./extensions": "./extensions/mod.ts",
     "./types": "./types.ts"
   },
-
   "imports": {
     "#/": "./src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",
-    "#client/": "./client/",
-    "@inspatial/cloud": "./mod.ts"
+    "#client/": "./client/"
   },
   "tasks": {
     "check": "deno publish --dry-run"

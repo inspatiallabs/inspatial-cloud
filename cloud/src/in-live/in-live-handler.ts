@@ -108,7 +108,7 @@ export class InLiveHandler {
       try {
         data = JSON.parse(event.data);
       } catch (_e) {
-        serveLogger.warn("Error parsing JSON data from client", event.data);
+        inLog.warn("Error parsing JSON data from client", event.data);
         return;
       }
       try {

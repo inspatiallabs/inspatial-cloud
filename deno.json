@@ -1,4 +1,4 @@
 {
-  "workspace": ["cloud", "dev"],
+  "workspace": ["cloud", "dev", "client"],
   "unstable": ["broadcast-channel"]
 }

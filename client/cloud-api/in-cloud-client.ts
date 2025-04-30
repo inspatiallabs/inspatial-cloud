@@ -1,15 +1,9 @@
-import type { ErrorInfo } from "#client/cloud-api/api-client-types.ts";
-import { EntryGroup } from "#client/cloud-api/groups/entry-group.ts";
-import { SettingsGroup } from "#client/cloud-api/groups/settings-group.ts";
-import { AuthGroup } from "#client/cloud-api/groups/auth-group.ts";
-import { ORMGroup } from "#client/cloud-api/groups/orm-group.ts";
-import type { CloudAPIGroupDocs } from "#client/client-types.ts";
-
-interface NotificationInfo {
-  title: string;
-  message: string;
-  type: "success" | "error" | "warning" | "info";
-}
+import { CloudAPIDocs } from "../client-types.ts";
+import { ErrorInfo, NotificationInfo } from "./api-client-types.ts";
+import { AuthGroup } from "./groups/auth-group.ts";
+import { EntryGroup } from "./groups/entry-group.ts";
+import { ORMGroup } from "./groups/orm-group.ts";
+import { SettingsGroup } from "./groups/settings-group.ts";
 
 export class InCloudClient {
   host: string;
@@ -59,10 +53,10 @@ export class InCloudClient {
     }
   }
 
-  async getApiInfo(): Promise<CloudAPIGroupDocs | null> {
-    const result = await this.call("api", "getDocs");
+  async getApiInfo(): Promise<CloudAPIDocs | null> {
+    const result = await this.call<CloudAPIDocs>("api", "getDocs");
     if (typeof result === "object" && "groups" in result) {
-      return result as CloudAPIGroupDocs;
+      return result;
     }
     return null;
   }
@@ -83,10 +77,10 @@ export class InCloudClient {
     return hasServer;
   }
 
-  async call<T = any>(
+  async call<T = unknown>(
     group: string,
     action: string,
-    data?: Record<string, any>,
+    data?: Record<string, unknown>,
     method: RequestInit["method"] = "POST",
   ): Promise<T> {
     const url = `${this.host}?group=${group as string}&action=${action}`;
@@ -137,11 +131,54 @@ export class InCloudClient {
       } as T;
     }
   }
+  uploadFile(options: {
+    fileName: string;
+    file: File;
+    progressCallback?: (progress: ProgressEvent, uid?: string) => void;
+    completeCallback?: (response: unknown, uid?: string) => void;
+    errorCallback?: (response: unknown, uid?: string) => void;
+    abortCallback?: (response: unknown, uid?: string) => void;
+  }): void {
+    const data = new FormData();
 
+    data.append("content", options.file);
+
+    data.append("fileName", options.fileName);
+
+    const request = new XMLHttpRequest();
+    request.withCredentials = true;
+    request.open(
+      "POST",
+      `${this.host}?group=files&action=upload`,
+    );
+
+    // upload progress event
+    if (typeof options.progressCallback == "function") {
+      const progressCallback = options.progressCallback;
+      request.upload.addEventListener("progress", function (e) {
+        progressCallback(e);
+      });
+    }
+
+    // request finished event
+    request.addEventListener("load", function () {
+      if (request.status >= 200 && request.status < 300) {
+        if (typeof options.completeCallback == "function") {
+          options.completeCallback(JSON.parse(request.responseText).file);
+        }
+      } else {
+        if (typeof options.errorCallback == "function") {
+          options.errorCallback(request);
+        }
+      }
+    });
+
+    request.send(data);
+  }
   #parseError(response: Response, errorContent: string) {
     const info = {} as ErrorInfo;
     info.statusCode = response.status;
-    let content: any;
+    let content;
     try {
       content = JSON.parse(errorContent ?? "");
       if ("error" in content) {

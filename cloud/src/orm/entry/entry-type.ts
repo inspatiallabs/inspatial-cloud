@@ -12,6 +12,9 @@ import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { BaseConfig } from "#/orm/shared/shared-types.ts";
 
+/**
+ * This class is used to define an Entry Type in the ORM.
+ */
 export class EntryType<
   E extends EntryBase = GenericEntry,
   N extends string = string,

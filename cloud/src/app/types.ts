@@ -1,10 +1,26 @@
 import type { ConfigDefinition } from "#types/serve-types.ts";
 
+/**
+ * Information about a {@link CloudExtension}
+ */
 export interface CloudExtensionInfo {
+  /**
+   * The key of the extension used to identify it programmatically.
+   */
   key: string;
+
+  /**
+   * A human-readable name for the extension.
+   */
   label: string;
+  /**
+   * A brief description of the extension.
+   */
   description: string;
-  version: string;
+  /**
+   * The version of the extension.
+   */
+  version?: string;
   /**
    * The environment variable configuration for the extension.
    */
@@ -17,6 +33,10 @@ export interface CloudExtensionInfo {
    * The path handlers for the extension.
    */
   pathHandlers: DetailInfo[];
+
+  /**
+   * The lifecycle handlers for the extension.
+   */
   lifeCycleHanders: {
     setup: DetailInfo[];
     cleanup: DetailInfo[];

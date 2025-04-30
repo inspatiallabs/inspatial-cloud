@@ -1,4 +1,4 @@
-import type { SocketStatus } from "#client/in-live/in-live-types.ts";
+import type { SocketStatus } from "./in-live-types.ts";
 
 /**
  * RealtimeClient is a WebSocket client to connect to the Realtime Extension of InSpatial Server.
@@ -12,7 +12,7 @@ export class InLiveClientBase {
   #authToken?: string;
   #rooms: Set<string> = new Set();
   #messageListeners: Set<
-    (room: string, event: string, data: any) => void
+    (room: string, event: string, data: Record<string, unknown>) => void
   > = new Set();
   #statusListeners: Set<(status: SocketStatus) => void> = new Set();
   #manualClose = false;
@@ -69,7 +69,11 @@ export class InLiveClientBase {
    * Add a listener for messages from the server.
    */
   onMessage(
-    callback: (room: string, event: string, data: Record<string, any>) => void,
+    callback: (
+      room: string,
+      event: string,
+      data: Record<string, unknown>,
+    ) => void,
   ): void {
     this.#messageListeners.add(callback);
   }
@@ -78,7 +82,11 @@ export class InLiveClientBase {
    * Remove a listener for messages from the server.
    */
   removeMessageListener(
-    callback: (room: string, event: string, data: Record<string, any>) => void,
+    callback: (
+      room: string,
+      event: string,
+      data: Record<string, unknown>,
+    ) => void,
   ): void {
     this.#messageListeners.delete(callback);
   }
@@ -210,7 +218,7 @@ export class InLiveClientBase {
     this.#socket.close();
   }
 
-  #send(message: Record<string, any>): void {
+  #send(message: Record<string, unknown>): void {
     if (!this.connected) {
       return;
     }

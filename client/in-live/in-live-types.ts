@@ -1,5 +1,4 @@
-import type { IDValue } from "#/orm/entry/types.ts";
-import type { Entry } from "#client/client-types.ts";
+import type { Entry, IDValue } from "../client-types.ts";
 
 /**
  * The status of the websocket connection.
@@ -17,7 +16,7 @@ export interface EntryEventDelete<E> {
   [key: string]: unknown;
 }
 
-export interface EntryEventJoin<E> {
+export interface EntryEventJoin<E = Entry> {
   [key: string]: unknown;
 }
 
@@ -31,9 +30,12 @@ export type EntryEventMap<E extends Entry> = {
   join: EntryEventJoin<E>;
   leave: EntryEventLeave<E>;
 };
-export type EntryEvent<E extends Entry> = keyof EntryEventMap<E>;
+export type EntryEvent<E extends Entry = Entry> = keyof EntryEventMap<E>;
 
-export type EntryListener<T extends Entry, E extends EntryEvent<T>> = {
+export type EntryListener<
+  T extends Entry = Entry,
+  E extends EntryEvent<T> = EntryEvent<T>,
+> = {
   name: ListenerName;
   callback(event: E, data: EntryEventMap<T>[E]): Promise<void> | void;
 };
@@ -57,9 +59,12 @@ export type EntryTypeEventMap<E> = {
   update: EntryTypeEventUpdate<E>;
   delete: EntryTypeEventDelete;
 };
-export type EntryTypeEvent<E> = keyof EntryTypeEventMap<E>;
+export type EntryTypeEvent<E = unknown> = keyof EntryTypeEventMap<E>;
 
-export type EntryTypeListener<T, E extends EntryTypeEvent<T>> = {
+export type EntryTypeListener<
+  T = unknown,
+  E extends EntryTypeEvent<T> = EntryTypeEvent,
+> = {
   name: ListenerName;
   callback(event: E, data: EntryTypeEventMap<T>[E]): Promise<void> | void;
 };
@@ -67,6 +72,6 @@ type EntryTypeName = string;
 type EntryId = string;
 type ListenerName = string;
 export type EntyCallbackMap = Map<EntryTypeName, {
-  listeners: Map<ListenerName, EntryTypeListener<any, any>>;
-  entries: Map<EntryId, Map<ListenerName, EntryListener<any, any>>>;
+  listeners: Map<ListenerName, EntryTypeListener>;
+  entries: Map<EntryId, Map<ListenerName, EntryListener>>;
 }>;

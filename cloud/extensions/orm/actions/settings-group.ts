@@ -1,14 +1,14 @@
 import { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
-import type { SettingsTypeInfo } from "#/orm/settings/types.ts";
+import type { SettingsType } from "#/orm/mod.ts";
 
 const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
   label: "Get Settings Info",
   description: "Get the settings info for a given settings type",
-  run({ app, inRequest, params }): SettingsTypeInfo {
+  run({ app, inRequest, params }): SettingsType["info"] {
     const user = inRequest.context.get("user");
     const { settingsType } = params;
-    const settingsTypeInfo = app.orm.getSettingsType(settingsType, user);
-    return settingsTypeInfo.info;
+    const settingsTypeDef = app.orm.getSettingsType(settingsType, user);
+    return settingsTypeDef.info;
   },
   params: [{
     key: "settingsType",

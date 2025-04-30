@@ -1,5 +1,5 @@
-import type { ServerCall } from "#client/cloud-api/api-client-types.ts";
-import type { SessionData } from "#client/client-types.ts";
+import { SessionData } from "../../client-types.ts";
+import type { ServerCall } from "../api-client-types.ts";
 
 export class AuthGroup {
   #call: ServerCall;
@@ -27,7 +27,7 @@ export class AuthGroup {
   async signInWithGoogle(options?: {
     redirectTo?: string;
     csrfToken?: string;
-  }): Promise<any> {
+  }): Promise<void> {
     const { redirectTo, csrfToken } = options || {};
     const redirect = redirectTo || globalThis.location.href;
     const csrf = csrfToken || localStorage.getItem("csrfToken");

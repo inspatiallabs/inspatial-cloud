@@ -191,8 +191,15 @@ export class PostgresClient {
         }
         case "S": {
           const param = this.reader.readCString();
-          this.serverParams[param] = this.reader.readCString();
+          if (param === null) {
+            throw new PgError({ message: "Server parameter is null" });
+          }
 
+          const nextString = this.reader.readCString();
+          if (nextString === null) {
+            throw new PgError({ message: "Server parameter value is null" });
+          }
+          this.serverParams[param] = nextString;
           break;
         }
         case "Z": {
@@ -293,6 +300,9 @@ export class PostgresClient {
     const columns: ColumnDescription[] = [];
     for (let i = 0; i < columnCount; i++) {
       const name = this.reader.readCString();
+      if (name === null) {
+        throw new PgError({ message: "Column name is null" });
+      }
       const tableID = this.reader.readInt32();
       const columnID = this.reader.readInt16();
       const dataTypeID = this.reader.readInt32();

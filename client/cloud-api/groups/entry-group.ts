@@ -1,10 +1,10 @@
-import type { ServerCall } from "#client/cloud-api/api-client-types.ts";
+import type { ServerCall } from "../api-client-types.ts";
 import type {
   Entry,
   GetListResponse,
   IDValue,
   ListOptions,
-} from "#client/client-types.ts";
+} from "../../client-types.ts";
 
 export class EntryGroup {
   #call: ServerCall;

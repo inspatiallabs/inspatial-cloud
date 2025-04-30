@@ -1,5 +1,5 @@
-import type { ServerCall } from "#client/cloud-api/api-client-types.ts";
-import type { EntryTypeInfo, SettingsTypeInfo } from "#client/client-types.ts";
+import type { ServerCall } from "../api-client-types.ts";
+import type { EntryTypeInfo, SettingsTypeInfo } from "../../client-types.ts";
 
 export class ORMGroup {
   readonly #call: ServerCall;

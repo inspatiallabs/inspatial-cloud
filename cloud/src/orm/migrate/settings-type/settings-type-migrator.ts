@@ -8,7 +8,8 @@ export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
   get settingsType(): SettingsType {
     return this.typeDef as SettingsType;
   }
-  migrationPlan: SettingsMigrationPlan;
+
+  override migrationPlan: SettingsMigrationPlan;
 
   existingFields: Map<string, Omit<SettingsRow, "updatedAt">>;
   targetFields: Map<string, Omit<SettingsRow, "updatedAt">>;

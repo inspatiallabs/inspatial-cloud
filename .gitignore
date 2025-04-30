@@ -1,7 +1,5 @@
 .vscode
-.idea
-.zed
-docs
+.zed/
 deno.lock
 .inspatial/
 serve-config.json

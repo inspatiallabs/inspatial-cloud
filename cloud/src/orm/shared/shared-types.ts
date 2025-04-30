@@ -26,7 +26,7 @@ export interface BaseTypeConfig {
     key: string;
     label: string;
     description: string;
-    version: string;
+    version?: string;
   };
 }
 

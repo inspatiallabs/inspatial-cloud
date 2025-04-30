@@ -4,14 +4,19 @@ import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 export const customerAccount = new EntryType("customerAccount", {
   label: "Customer Account",
   idMode: "ulid",
-  // titleField: "customerName",
+  titleField: "customerName",
   fields: [
     {
       key: "customerName",
       type: "DataField",
       label: "Customer Name",
       required: true,
-    },
+    },{
+      key: "customerId",
+      type: "DataField",
+      label: "Customer ID",
+      required: true,
+    }
   ],
   children: [
     new ChildEntryType("users", {
