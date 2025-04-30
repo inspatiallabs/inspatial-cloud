@@ -1,5 +1,3 @@
-.vscode
-.zed/
 deno.lock
 .inspatial/
 serve-config.json
