@@ -1,0 +1,410 @@
+{
+  "aac": {
+    "extension": "aac",
+    "description": "AAC audio",
+    "mimeType": "audio/aac",
+    "category": "audio"
+  },
+  "apng": {
+    "extension": "apng",
+    "description": "Animated Portable Network Graphics (APNG) image",
+    "mimeType": "image/apng",
+    "category": "image"
+  },
+  "avif": {
+    "extension": "avif",
+    "description": "AVIF image",
+    "mimeType": "image/avif",
+    "category": "image"
+  },
+  "avi": {
+    "extension": "avi",
+    "description": "AVI: Audio Video Interleave",
+    "mimeType": "video/x-msvideo",
+    "category": "video"
+  },
+  "azw": {
+    "extension": "azw",
+    "description": "Amazon Kindle eBook format",
+    "mimeType": "application/vnd.amazon.ebook",
+    "category": "document"
+  },
+  "bin": {
+    "extension": "bin",
+    "description": "Any kind of binary data",
+    "mimeType": "application/octet-stream",
+    "category": "application"
+  },
+  "bmp": {
+    "extension": "bmp",
+    "description": "Windows OS/2 Bitmap Graphics",
+    "mimeType": "image/bmp",
+    "category": "image"
+  },
+  "csh": {
+    "extension": "csh",
+    "description": "C-Shell script",
+    "mimeType": "application/x-csh",
+    "category": "code"
+  },
+  "css": {
+    "extension": "css",
+    "description": "Cascading Style Sheets (CSS)",
+    "mimeType": "text/css",
+    "category": "text"
+  },
+  "csv": {
+    "extension": "csv",
+    "description": "Comma-separated values (CSV)",
+    "mimeType": "text/csv",
+    "category": "document"
+  },
+  "doc": {
+    "extension": "doc",
+    "description": "Microsoft Word",
+    "mimeType": "application/msword",
+    "category": "document"
+  },
+  "docx": {
+    "extension": "docx",
+    "description": "Microsoft Word (OpenXML)",
+    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "category": "document"
+  },
+  "eot": {
+    "extension": "eot",
+    "description": "MS Embedded OpenType fonts",
+    "mimeType": "application/vnd.ms-fontobject",
+    "category": "font"
+  },
+  "epub": {
+    "extension": "epub",
+    "description": "Electronic publication (EPUB)",
+    "mimeType": "application/epub+zip",
+    "category": "document"
+  },
+  "gz": {
+    "extension": "gz",
+    "description": "GZip Compressed Archive",
+    "mimeType": "application/gzip",
+    "category": "archive"
+  },
+  "gif": {
+    "extension": "gif",
+    "description": "Graphics Interchange Format (GIF)",
+    "mimeType": "image/gif",
+    "category": "image"
+  },
+  "htm": {
+    "extension": "htm",
+    "description": "HyperText Markup Language (HTML)",
+    "mimeType": "text/html",
+    "category": "text"
+  },
+  "html": {
+    "extension": "html",
+    "description": "HyperText Markup Language (HTML)",
+    "mimeType": "text/html",
+    "category": "text"
+  },
+  "ico": {
+    "extension": "ico",
+    "description": "Icon format",
+    "mimeType": "image/vnd.microsoft.icon",
+    "category": "image"
+  },
+  "ics": {
+    "extension": "ics",
+    "description": "iCalendar format",
+    "mimeType": "text/calendar",
+    "category": "text"
+  },
+  "jar": {
+    "extension": "jar",
+    "description": "Java Archive (JAR)",
+    "mimeType": "application/java-archive",
+    "category": "archive"
+  },
+  "jpeg": {
+    "extension": "jpeg",
+    "description": "JPEG images",
+    "mimeType": "image/jpeg",
+    "category": "image"
+  },
+  "jpg": {
+    "extension": "jpg",
+    "description": "JPEG images",
+    "mimeType": "image/jpeg",
+    "category": "image"
+  },
+  "js": {
+    "extension": "js",
+    "description": "JavaScript",
+    "mimeType": "text/javascript",
+    "category": "code"
+  },
+  "json": {
+    "extension": "json",
+    "description": "JSON format",
+    "mimeType": "application/json",
+    "category": "code"
+  },
+  "jsonld": {
+    "extension": "jsonld",
+    "description": "JSON-LD format",
+    "mimeType": "application/ld+json",
+    "category": "application"
+  },
+  "mid": {
+    "extension": "mid",
+    "description": "Musical Instrument Digital Interface (MIDI)",
+    "mimeType": "audio/midi",
+    "category": "audio"
+  },
+  "midi": {
+    "extension": "midi",
+    "description": "Musical Instrument Digital Interface (MIDI)",
+    "mimeType": "audio/midi",
+    "category": "audio"
+  },
+  "mjs": {
+    "extension": "mjs",
+    "description": "JavaScript module",
+    "mimeType": "text/javascript",
+    "category": "code"
+  },
+  "mp3": {
+    "extension": "mp3",
+    "description": "MP3 audio",
+    "mimeType": "audio/mpeg",
+    "category": "audio"
+  },
+  "mp4": {
+    "extension": "mp4",
+    "description": "MP4 video",
+    "mimeType": "video/mp4",
+    "category": "video"
+  },
+  "mpeg": {
+    "extension": "mpeg",
+    "description": "MPEG Video",
+    "mimeType": "video/mpeg",
+    "category": "video"
+  },
+  "mpkg": {
+    "extension": "mpkg",
+    "description": "Apple Installer Package",
+    "mimeType": "application/vnd.apple.installer+xml",
+    "category": "application"
+  },
+  "odp": {
+    "extension": "odp",
+    "description": "OpenDocument presentation document",
+    "mimeType": "application/vnd.oasis.opendocument.presentation",
+    "category": "document"
+  },
+  "ods": {
+    "extension": "ods",
+    "description": "OpenDocument spreadsheet document",
+    "mimeType": "application/vnd.oasis.opendocument.spreadsheet",
+    "category": "document"
+  },
+  "odt": {
+    "extension": "odt",
+    "description": "OpenDocument text document",
+    "mimeType": "application/vnd.oasis.opendocument.text",
+    "category": "document"
+  },
+  "oga": {
+    "extension": "oga",
+    "description": "Ogg audio",
+    "mimeType": "audio/ogg",
+    "category": "audio"
+  },
+  "ogv": {
+    "extension": "ogv",
+    "description": "Ogg video",
+    "mimeType": "video/ogg",
+    "category": "video"
+  },
+  "ogx": {
+    "extension": "ogx",
+    "description": "Ogg",
+    "mimeType": "application/ogg",
+    "category": "application"
+  },
+  "opus": {
+    "extension": "opus",
+    "description": "Opus audio in Ogg container",
+    "mimeType": "audio/ogg",
+    "category": "audio"
+  },
+  "otf": {
+    "extension": "otf",
+    "description": "OpenType font",
+    "mimeType": "font/otf",
+    "category": "font"
+  },
+  "png": {
+    "extension": "png",
+    "description": "Portable Network Graphics",
+    "mimeType": "image/png",
+    "category": "image"
+  },
+  "pdf": {
+    "extension": "pdf",
+    "description": "PDF",
+    "mimeType": "application/pdf",
+    "category": "document"
+  },
+  "php": {
+    "extension": "php",
+    "description": "Hypertext Preprocessor (<strong>Personal Home Page</strong>)",
+    "mimeType": "application/x-httpd-php",
+    "category": "code"
+  },
+  "ppt": {
+    "extension": "ppt",
+    "description": "Microsoft PowerPoint",
+    "mimeType": "application/vnd.ms-powerpoint",
+    "category": "document"
+  },
+  "pptx": {
+    "extension": "pptx",
+    "description": "Microsoft PowerPoint (OpenXML)",
+    "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "category": "document"
+  },
+  "rar": {
+    "extension": "rar",
+    "description": "RAR archive",
+    "mimeType": "application/vnd.rar",
+    "category": "archive"
+  },
+  "rtf": {
+    "extension": "rtf",
+    "description": "Rich Text Format (RTF)",
+    "mimeType": "application/rtf",
+    "category": "document"
+  },
+  "sh": {
+    "extension": "sh",
+    "description": "Bourne shell script",
+    "mimeType": "application/x-sh",
+    "category": "code"
+  },
+  "svg": {
+    "extension": "svg",
+    "description": "Scalable Vector Graphics (SVG)",
+    "mimeType": "image/svg+xml",
+    "category": "image"
+  },
+  "tar": {
+    "extension": "tar",
+    "description": "Tape Archive (TAR)",
+    "mimeType": "application/x-tar",
+    "category": "archive"
+  },
+  "tif": {
+    "extension": "tif",
+    "description": "Tagged Image File Format (TIFF)",
+    "mimeType": "image/tiff",
+    "category": "image"
+  },
+  "tiff": {
+    "extension": "tiff",
+    "description": "Tagged Image File Format (TIFF)",
+    "mimeType": "image/tiff",
+    "category": "image"
+  },
+  "ts": {
+    "extension": "ts",
+    "description": "MPEG transport stream",
+    "mimeType": "video/mp2t",
+    "category": "video"
+  },
+  "ttf": {
+    "extension": "ttf",
+    "description": "TrueType Font",
+    "mimeType": "font/ttf",
+    "category": "font"
+  },
+  "txt": {
+    "extension": "txt",
+    "description": "Plain text",
+    "mimeType": "text/plain",
+    "category": "text"
+  },
+  "wav": {
+    "extension": "wav",
+    "description": "Waveform Audio Format",
+    "mimeType": "audio/wav",
+    "category": "audio"
+  },
+  "weba": {
+    "extension": "weba",
+    "description": "WEBM audio",
+    "mimeType": "audio/webm",
+    "category": "audio"
+  },
+  "webm": {
+    "extension": "webm",
+    "description": "WEBM video",
+    "mimeType": "video/webm",
+    "category": "video"
+  },
+  "webp": {
+    "extension": "webp",
+    "description": "WEBP image",
+    "mimeType": "image/webp",
+    "category": "image"
+  },
+  "woff": {
+    "extension": "woff",
+    "description": "Web Open Font Format (WOFF)",
+    "mimeType": "font/woff",
+    "category": "font"
+  },
+  "woff2": {
+    "extension": "woff2",
+    "description": "Web Open Font Format (WOFF)",
+    "mimeType": "font/woff2",
+    "category": "font"
+  },
+  "xhtml": {
+    "extension": "xhtml",
+    "description": "XHTML",
+    "mimeType": "application/xhtml+xml",
+    "category": "application"
+  },
+  "xls": {
+    "extension": "xls",
+    "description": "Microsoft Excel",
+    "mimeType": "application/vnd.ms-excel",
+    "category": "document"
+  },
+  "xlsx": {
+    "extension": "xlsx",
+    "description": "Microsoft Excel (OpenXML)",
+    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "category": "document"
+  },
+  "xml": {
+    "extension": "xml",
+    "description": "XML",
+    "mimeType": "application/xml",
+    "category": "code"
+  },
+  "zip": {
+    "extension": "zip",
+    "description": "ZIP archive",
+    "mimeType": "application/zip",
+    "category": "archive"
+  },
+  "arc": {
+    "extension": "arc",
+    "description": "Archive document (multiple files embedded)",
+    "mimeType": "application/x-freearc",
+    "category": "archive"
+  }
+}
