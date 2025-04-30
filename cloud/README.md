@@ -146,9 +146,9 @@ deno add jsr:@inspatial/cloud
 ### Basic Usage
 
 ```ts
-import { InSpatialCloud } from "@inspatial/cloud";
+import { InCloud } from "@inspatial/cloud";
 
-const app = new InSpatialCloud("myApp");
+const app = new InCloud("myApp");
 
 if(import.meta.main){
   app.run();
