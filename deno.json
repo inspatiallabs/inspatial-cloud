@@ -1,12 +1,13 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
     "./extensions": "./extensions/mod.ts",
     "./types": "./types.ts",
-    "./client": "./client/mod.ts"
+    "./client": "./client/mod.ts",
+    "./client/types": "./client/client-types.ts"
   },
   "imports": {
     "#/": "./src/",
