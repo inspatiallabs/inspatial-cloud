@@ -1,9 +1,10 @@
-import { joinPath } from "#/utils/path-utils.ts";
+import { joinPath, normalizePath } from "#/utils/path-utils.ts";
 import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigDefinition } from "#types/serve-types.ts";
 function getPath() {
-  const realPath = Deno.mainModule.replace("file://", "");
-  return realPath.split("/").slice(0, -1).join("/");
+  return normalizePath(Deno.mainModule, {
+    toDirname: true,
+  });
 }
 /**
  * Checks for a serve-config.json file in the current working directory and loads it to the environment variables.
