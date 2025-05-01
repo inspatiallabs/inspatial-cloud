@@ -1,5 +1,5 @@
-import { CloudAPIDocs } from "../client-types.ts";
-import { ErrorInfo, NotificationInfo } from "./api-client-types.ts";
+import type { CloudAPIDocs } from "../client-types.ts";
+import type { ErrorInfo, NotificationInfo } from "./api-client-types.ts";
 import { AuthGroup } from "./groups/auth-group.ts";
 import { EntryGroup } from "./groups/entry-group.ts";
 import { ORMGroup } from "./groups/orm-group.ts";
@@ -144,7 +144,7 @@ export class InCloudClient {
     data.append("content", options.file);
 
     data.append("fileName", options.fileName);
-
+    // @ts-ignore temporary fix for including the browser client library in the jsr package
     const request = new XMLHttpRequest();
     request.withCredentials = true;
     request.open(
@@ -155,7 +155,7 @@ export class InCloudClient {
     // upload progress event
     if (typeof options.progressCallback == "function") {
       const progressCallback = options.progressCallback;
-      request.upload.addEventListener("progress", function (e) {
+      request.upload.addEventListener("progress", function (e: ProgressEvent) {
         progressCallback(e);
       });
     }
