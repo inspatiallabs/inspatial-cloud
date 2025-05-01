@@ -34,7 +34,7 @@ _Reality is your canvas_
 
 </div>
 
-##
+## 
 
 <div align="center">
 
@@ -51,13 +51,14 @@ _Reality is your canvas_
 
 ## 🗃 InSpatial ORM (🔴 Unstable)
 
+`InSpatialORM` is a high-level object-relational mapping library for Deno
+powered by `InSpatialDB` to connect to `PostgreSQL`.
 
-`InSpatialORM` is a high-level object-relational mapping library for Deno powered by `InSpatialDB` to connect to `PostgreSQL`.
+It is designed to work with InSpatial Cloud and can be used as a standalone
+module for any Deno project.
 
-It is designed to work with InSpatial Cloud and can be used as a standalone module for any Deno project.
-
-InSpatial ORM is currently in development and is not recommended for production use.
-
+InSpatial ORM is currently in development and is not recommended for production
+use.
 
 ## 📦 Install InSpatial ORM
 
@@ -65,12 +66,11 @@ InSpatial ORM is currently in development and is not recommended for production 
 deno add jsr:@inspatial/orm
 ```
 
-
 ## Basic Usage
 
 ### Define an EntryType
-```ts
 
+```ts
 // user.ts
 export const userEntry = new EntryType("user", {
   idMode: "ulid",
@@ -132,40 +132,39 @@ export const userEntry = new EntryType("user", {
 ```
 
 ### Create an ORM instance
+
 ```ts
-import { InSpatialORM, InSpatialDB } from "@inspatial/orm";
+import { InSpatialDB, InSpatialORM } from "@inspatial/orm";
 import { userEntry } from "./user.ts";
 
 const orm = new InSpatialORM({
   db: new InSpatialDB({
-    connection:{
-        connectionType: "tcp",
-        host: "localhost",
-        port: 5432,
-        user: "postgres",
-        schema: "public", // optional, default is public
-        password: "password",
-        database: "inspatial" // database name, be sure to create it first with postgres `createdb <database>`
-    }
+    connection: {
+      connectionType: "tcp",
+      host: "localhost",
+      port: 5432,
+      user: "postgres",
+      schema: "public", // optional, default is public
+      password: "password",
+      database: "inspatial", // database name, be sure to create it first with postgres `createdb <database>`
+    },
   }),
   entries: [userEntry], // array of defined `EntryType` objects
   settings: [], // array of defined `SettingType` objects
 });
 
 await orm.migrate(); // create tables and indexes
-
 ```
 
 ### Use the ORM
-```ts
 
+```ts
 // create a new user entry
 const user = await orm.createEntry("user", {
   firstName: "Some",
   lastName: "Dev",
   email: "some@dev.email",
-  });
-
+});
 
 // run an action on the user entry
 const result = await user.runAction("sayHello", { friendName: "Other Dev" });

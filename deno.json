@@ -1,4 +1,28 @@
 {
-  "workspace": ["cloud", "dev", "client"],
-  "unstable": ["broadcast-channel"]
+  "name": "@inspatial/cloud",
+  "version": "0.1.1",
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./extensions": "./extensions/mod.ts",
+    "./types": "./types.ts",
+    "./client": "./client/mod.ts"
+  },
+  "imports": {
+    "#/": "./src/",
+    "#extensions/": "./extensions/",
+    "#types/": "./src/types/",
+    "#client/": "./client/"
+  },
+  "tasks": {
+    "check": "deno publish --dry-run"
+  },
+  "unstable": ["broadcast-channel"],
+  "lint": {
+    "rules": {
+      "tags": ["jsr", "recommended"],
+      "include": ["explicit-module-boundary-types", "verbatim-module-syntax"],
+      "exclude": ["no-explicit-any"]
+    }
+  }
 }

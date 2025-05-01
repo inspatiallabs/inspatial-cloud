@@ -34,6 +34,7 @@ import type { LogLevel } from "#/in-log/types.ts";
 import { initCloud } from "#/init.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
+import { normalizePath } from "./utils/path-utils.ts";
 
 export class InCloud<
   N extends string = any,
@@ -111,10 +112,7 @@ export class InCloud<
     };
     config?: CloudConfig;
   }) {
-    this.#appRoot = Deno.mainModule.replace("file://", "").split("/").slice(
-      0,
-      -1,
-    ).join("/");
+    this.#appRoot = normalizePath(Deno.mainModule, { toDirname: true });
     this.inLog = inLog;
 
     loadServeConfigFile();
@@ -137,10 +135,14 @@ export class InCloud<
         break;
     }
     this.appName = appName;
-    this.inCache = new InCache();
-    this.api = new CloudAPI();
-    this.inLive = new InLiveHandler();
+    try {
+      this.inCache = new InCache();
+      this.inLive = new InLiveHandler();
+    } catch (e) {
+      this.#handleInitError(e);
+    }
 
+    this.api = new CloudAPI();
     /*Serve constructor */
     this.#config = {
       ...options?.config,
@@ -431,6 +433,20 @@ export class InCloud<
         "Cloud Init",
       );
       Deno.exit(1);
+    }
+    if (e instanceof ReferenceError) {
+      if (e.message.includes("BroadcastChannel")) {
+        const message = [
+          "InSpatial Cloud requires Deno's BroadcastChannel API to be enabled.\n",
+          "Please run your app again with the --unstable-broadcast-channel flag,",
+          'or add "unstable":["broadcast-channel"] to your deno.json file.',
+        ];
+        this.inLog.warn(
+          message,
+          "BroadcastChannel",
+        );
+        Deno.exit(1);
+      }
     }
     if (e instanceof Error) {
       this.inLog.error(e.message, e.stack || "No stack trace available");

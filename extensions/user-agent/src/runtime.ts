@@ -180,13 +180,13 @@ export class RuntimeDetectionError extends Error {
  * Either the runtime name or detailed runtime information if detailed mode is enabled
  */
 export function detectJSRuntime(
-  options: RuntimeDetectionOptions & { detailed: true }
+  options: RuntimeDetectionOptions & { detailed: true },
 ): RuntimeInfo;
 export function detectJSRuntime(
-  options?: RuntimeDetectionOptions
+  options?: RuntimeDetectionOptions,
 ): JSRuntimeProp;
 export function detectJSRuntime(
-  options: RuntimeDetectionOptions = {}
+  options: RuntimeDetectionOptions = {},
 ): JSRuntimeProp | RuntimeInfo {
   const { strict = false, detailed = false } = options;
 
@@ -225,8 +225,7 @@ export function detectJSRuntime(
     version = (globalThis as any).Deno.version?.deno;
     capabilities.hasFileSystem = true;
     capabilities.hasNetwork = true;
-  }
-  // Node.js detection
+  } // Node.js detection
   else if (
     "process" in globalThis &&
     (globalThis as any).process?.versions?.node
@@ -235,36 +234,30 @@ export function detectJSRuntime(
     version = (globalThis as any).process.versions.node;
     capabilities.hasFileSystem = true;
     capabilities.hasNetwork = true;
-  }
-  // Bun detection
+  } // Bun detection
   else if ("Bun" in globalThis) {
     runtime = "bun";
     version = (globalThis as any).Bun.version;
     capabilities.hasFileSystem = true;
     capabilities.hasNetwork = true;
-  }
-  // Cloudflare Worker detection
+  } // Cloudflare Worker detection
   else if ("WorkerGlobalScope" in globalThis && "CF_WORKER" in globalThis) {
     runtime = "cloudflare-worker";
     capabilities.hasNetwork = true;
-  }
-  // Edge Runtime detection (Vercel Edge, Netlify Edge, etc)
+  } // Edge Runtime detection (Vercel Edge, Netlify Edge, etc)
   else if ("EdgeRuntime" in globalThis) {
     runtime = "edge-runtime";
     capabilities.hasNetwork = true;
-  }
-  // WebContainer detection
+  } // WebContainer detection
   else if ("WebContainer" in globalThis) {
     runtime = "webcontainer";
     capabilities.hasFileSystem = true;
     capabilities.hasNetwork = true;
-  }
-  // Web Worker detection
+  } // Web Worker detection
   else if ("WorkerGlobalScope" in globalThis && "importScripts" in globalThis) {
     runtime = "worker";
     capabilities.hasNetwork = true;
-  }
-  // Browser detection (should be last as it's the most generic)
+  } // Browser detection (should be last as it's the most generic)
   else if ("document" in globalThis) {
     runtime = "browser";
     capabilities.hasNetwork = true;
@@ -273,7 +266,7 @@ export function detectJSRuntime(
   // Handle unknown runtime in strict mode
   if (runtime === null && strict) {
     throw new RuntimeDetectionError(
-      "Unable to detect JavaScript runtime environment"
+      "Unable to detect JavaScript runtime environment",
     );
   }
 
