@@ -11,12 +11,13 @@ export const customerAccount = new EntryType("customerAccount", {
       type: "DataField",
       label: "Customer Name",
       required: true,
-    },{
+    },
+    {
       key: "customerId",
       type: "DataField",
       label: "Customer ID",
       required: true,
-    }
+    },
   ],
   children: [
     new ChildEntryType("users", {
