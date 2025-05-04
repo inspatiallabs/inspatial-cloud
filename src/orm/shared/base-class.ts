@@ -1,6 +1,5 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { InSpatialDB } from "#/orm/db/inspatial-db.ts";
-import type { InFieldMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import type { SettingsActionDefinition } from "#/orm/settings/types.ts";
@@ -9,6 +8,11 @@ import type { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
 import convertString from "#/utils/convert-string.ts";
+import type {
+  InField,
+  InFieldMap,
+  InFieldType,
+} from "#/orm/field/field-def-types.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -17,9 +21,9 @@ export class BaseClass<N extends string = string> {
   _db: InSpatialDB;
   _data: Map<string, any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
-  _fields: Map<string, ORMFieldDef> = new Map();
-  _titleFields: Map<string, ORMFieldDef> = new Map();
-  _changeableFields: Map<string, ORMFieldDef> = new Map();
+  _fields: Map<string, InField> = new Map();
+  _titleFields: Map<string, InField> = new Map();
+  _changeableFields: Map<string, InField> = new Map();
   _childrenClasses: Map<string, typeof ChildEntryList> = new Map();
   _childrenData: Map<string, ChildEntryList> = new Map();
   readonly _user?: Record<string, any>;
@@ -34,7 +38,7 @@ export class BaseClass<N extends string = string> {
     }
     return fieldTypeDef as unknown as ORMFieldConfig<T>;
   }
-  _getFieldDef<T extends keyof InFieldMap>(fieldKey: string): InFieldMap[T] {
+  _getFieldDef<T extends InFieldType>(fieldKey: string): InFieldMap[T] {
     const fieldDef = this._fields.get(fieldKey);
     if (!fieldDef) {
       raiseORMException(

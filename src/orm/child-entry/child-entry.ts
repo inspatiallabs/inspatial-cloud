@@ -1,5 +1,5 @@
 import { BaseType } from "#/orm/shared/base-type-class.ts";
-import type { InFieldMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField, InFieldMap } from "#/orm/field/field-def-types.ts";
 import { inLog } from "#/in-log/in-log.ts";
 import type {
   BaseTypeConfig,
@@ -22,7 +22,7 @@ export class ChildEntry<
   // updatedAt: number | undefined;
   // parent: string | undefined;
   _data: Map<string, T> = new Map();
-  _getFieldDef: (fieldKey: string) => ORMFieldDef;
+  _getFieldDef: (fieldKey: string) => InField;
   _getFieldType: (fieldType: string) => ORMFieldConfig<any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
   constructor(getFieldDef: any, getFieldType: any) {
@@ -34,9 +34,9 @@ export class ChildEntry<
 export class ChildEntryList<T extends Record<string, unknown> = any> {
   _name: string = "";
   _childClass: typeof ChildEntry = ChildEntry;
-  _fields: Map<string, ORMFieldDef> = new Map();
-  _titleFields: Map<string, ORMFieldDef> = new Map();
-  _changeableFields: Map<string, ORMFieldDef> = new Map();
+  _fields: Map<string, InField> = new Map();
+  _titleFields: Map<string, InField> = new Map();
+  _changeableFields: Map<string, InField> = new Map();
   _orm!: InSpatialORM;
   _tableName: string = "";
   _data: Map<string, ChildEntry<T>> = new Map();
@@ -248,7 +248,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
   constructor(name: N, config: {
     description?: string;
     label?: string;
-    fields: Array<ORMFieldDef>;
+    fields: Array<InField>;
   }) {
     if ("children" in config) {
       delete config.children;

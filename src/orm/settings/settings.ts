@@ -2,17 +2,17 @@ import { BaseClass } from "#/orm/shared/base-class.ts";
 import type { SettingsRow } from "#/orm/settings/types.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { HookName } from "#/orm/orm-types.ts";
-import type { TimeStampFieldDef } from "#/orm/field/field-def-types.ts";
 
-import type { InValueTypeMap } from "#/orm/field/types.ts";
 import dateUtils from "#/utils/date-utils.ts";
+import { InField } from "#/orm/field/field-def-types.ts";
+import { InValue } from "#/orm/field/types.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
 
   #updatedAt: Map<string, number> = new Map();
 
-  static #updatedAtDef: TimeStampFieldDef = {
+  static #updatedAtDef: InField<"TimeStampField"> = {
     key: "updatedAt",
     type: "TimeStampField",
     label: "Updated At",
@@ -38,7 +38,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     };
   }
 
-  get updatedAt(): Record<string, InValueTypeMap["TimeStampField"]> {
+  get updatedAt(): Record<string, InValue<"TimeStampField">> {
     return Object.fromEntries(this.#updatedAt.entries());
   }
 

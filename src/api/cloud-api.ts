@@ -1,6 +1,7 @@
 import type { CloudAPIDocs, CloudAPIGroupDocs } from "#/api/api-types.ts";
 import { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
+import { InField } from "#/orm/field/field-def-types.ts";
 
 /**
  * CloudAPI is a class that provides the main interface for InSpatial Cloud
@@ -36,7 +37,7 @@ export class CloudAPI {
           actionName,
           description: action.description,
           label: action.label,
-          params: Array.from(action.params.values()),
+          params: Array.from(action.params.values()) as Array<InField>,
         });
       });
       docs.groups.push(groupDocs);
