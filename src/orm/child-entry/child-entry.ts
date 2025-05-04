@@ -1,5 +1,5 @@
 import { BaseType } from "#/orm/shared/base-type-class.ts";
-import type { FieldDefMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField, InFieldMap } from "#/orm/field/field-def-types.ts";
 import { inLog } from "#/in-log/in-log.ts";
 import type {
   BaseTypeConfig,
@@ -8,7 +8,7 @@ import type {
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import { convertString } from "#/utils/mod.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { ORMField } from "#/orm/field/orm-field.ts";
+import type { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 import ulid from "#/orm/utils/ulid.ts";
 import { dateUtils } from "#/utils/date-utils.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
@@ -22,8 +22,8 @@ export class ChildEntry<
   // updatedAt: number | undefined;
   // parent: string | undefined;
   _data: Map<string, T> = new Map();
-  _getFieldDef: (fieldKey: string) => ORMFieldDef;
-  _getFieldType: (fieldType: string) => ORMField<any>;
+  _getFieldDef: (fieldKey: string) => InField;
+  _getFieldType: (fieldType: string) => ORMFieldConfig<any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
   constructor(getFieldDef: any, getFieldType: any) {
     this._getFieldDef = getFieldDef;
@@ -34,31 +34,31 @@ export class ChildEntry<
 export class ChildEntryList<T extends Record<string, unknown> = any> {
   _name: string = "";
   _childClass: typeof ChildEntry = ChildEntry;
-  _fields: Map<string, ORMFieldDef> = new Map();
-  _titleFields: Map<string, ORMFieldDef> = new Map();
-  _changeableFields: Map<string, ORMFieldDef> = new Map();
+  _fields: Map<string, InField> = new Map();
+  _titleFields: Map<string, InField> = new Map();
+  _changeableFields: Map<string, InField> = new Map();
   _orm!: InSpatialORM;
   _tableName: string = "";
   _data: Map<string, ChildEntry<T>> = new Map();
   _newData: Map<string, ChildEntry<T>> = new Map();
   _parentId: string = "";
-  _getFieldType<T extends keyof FieldDefMap>(fieldType: T): ORMField<T> {
+  _getFieldType<T extends keyof InFieldMap>(fieldType: T): ORMFieldConfig<T> {
     const fieldTypeDef = this._orm.fieldTypes.get(fieldType);
     if (!fieldTypeDef) {
       raiseORMException(
         `Field type ${fieldType} does not exist in ORM`,
       );
     }
-    return fieldTypeDef as unknown as ORMField<T>;
+    return fieldTypeDef as unknown as ORMFieldConfig<T>;
   }
-  _getFieldDef<T extends keyof FieldDefMap>(fieldKey: string): FieldDefMap[T] {
+  _getFieldDef<T extends keyof InFieldMap>(fieldKey: string): InFieldMap[T] {
     const fieldDef = this._fields.get(fieldKey);
     if (!fieldDef) {
       raiseORMException(
         `Field with key ${fieldKey} does not exist in EntryType ${this._name}`,
       );
     }
-    return fieldDef as unknown as FieldDefMap[T];
+    return fieldDef as unknown as InFieldMap[T];
   }
   constructor(orm: InSpatialORM) {
     this._orm = orm;
@@ -248,7 +248,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
   constructor(name: N, config: {
     description?: string;
     label?: string;
-    fields: Array<ORMFieldDef>;
+    fields: Array<InField>;
   }) {
     if ("children" in config) {
       delete config.children;

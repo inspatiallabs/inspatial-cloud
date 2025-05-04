@@ -1,4 +1,4 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
 export default [{
   key: "user",
@@ -19,4 +19,4 @@ export default [{
   label: "Session Data",
   type: "JSONField",
   description: "Data associated with the session",
-}] as Array<ORMFieldDef>;
+}] as Array<InField>;

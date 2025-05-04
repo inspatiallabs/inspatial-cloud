@@ -1,4 +1,4 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import { InField } from "#/orm/field/field-def-types.ts";
 
 export default [{
   key: "firstName",
@@ -57,4 +57,4 @@ export default [{
   type: "PasswordField",
   description: "The user's API token",
   readOnly: true,
-}] as Array<ORMFieldDef>;
+}] as Array<InField>;

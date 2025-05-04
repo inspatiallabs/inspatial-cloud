@@ -1,6 +1,3 @@
-import type { ParsedUserAgentProp } from "#user-agent/types.ts";
-import { UserAgent } from "#user-agent/user-agent.ts";
-
 /**
  * # ParseUserAgent
  * #### Analyzes and extracts detailed information from a browser's user agent string

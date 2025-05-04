@@ -1,11 +1,11 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { fieldTypeMap } from "#/orm/build/generate-interface/field-type-map.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
 export function buildFields(
   _orm: InSpatialORM,
-  fieldDefs: Map<string, ORMFieldDef>,
+  fieldDefs: Map<string, InField>,
 ): Array<string> {
   const fields: string[] = [];
   fieldDefs.forEach((field) => {

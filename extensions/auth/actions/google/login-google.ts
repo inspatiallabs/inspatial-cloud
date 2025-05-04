@@ -47,12 +47,14 @@ const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
   },
   params: [{
     key: "redirectTo",
-    type: "string",
+    label: "Redirect To",
+    type: "TextField",
     required: false,
     description: "The redirect URI to use for the Google OAuth2 login",
   }, {
     key: "csrfToken",
-    type: "string",
+    label: "CSRF Token",
+    type: "DataField",
     required: false,
     description: "The CSRF token to use for the Google OAuth2 login",
   }],

@@ -28,7 +28,7 @@ export class CloudExtension<
   key: string;
   label: string;
   description: string;
-  version: string;
+  version?: string;
   /**
    * The lifecycle handlers for incoming requests.
    */
@@ -63,7 +63,7 @@ export class CloudExtension<
   constructor(extensionName: N, options: {
     label: string;
     description: string;
-    version: string;
+    version?: string;
     config?: C;
     entryTypes?: E;
     settingsTypes?: ST;

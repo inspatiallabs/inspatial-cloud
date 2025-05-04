@@ -1,6 +1,7 @@
 // deno-lint-ignore-file
-import { EMPTY } from "#user-agent/matchers.ts";
-import type { MatchingTupleProp } from "#user-agent/types.ts";
+
+import { EMPTY } from "#extensions/user-agent/src/matchers.ts";
+import { MatchingTupleProp } from "#extensions/user-agent/src/types.ts";
 
 export function lowerize(str: string): string {
   return str.toLowerCase();

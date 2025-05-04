@@ -1,5 +1,9 @@
-import { lowerize, mapWinVer, trim } from "#user-agent/helpers.ts";
-import type { Matchers } from "#user-agent/types.ts";
+import {
+  lowerize,
+  mapWinVer,
+  trim,
+} from "#extensions/user-agent/src/helpers.ts";
+import type { Matchers } from "#extensions/user-agent/src/types.ts";
 
 export const EMPTY = "";
 const ARCHITECTURE = "architecture";

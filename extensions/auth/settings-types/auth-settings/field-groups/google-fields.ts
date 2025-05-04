@@ -1,6 +1,6 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
-export const googleFields: Array<ORMFieldDef> = [{
+export const googleFields: Array<InField> = [{
   key: "googleClientId",
   type: "TextField",
   label: "Google Client ID",

@@ -1,13 +1,9 @@
-import { CloudAPIAction, type CloudAPIActionType } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/app/cloud-action.ts";
 import convertString from "#/utils/convert-string.ts";
-import type { ORMFieldType } from "#/orm/field/types.ts";
 import { EntryType } from "#/orm/entry/entry-type.ts";
-import type {
-  ChoicesFieldDef,
-  ORMFieldDef,
-} from "#/orm/field/field-def-types.ts";
 import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 import { SettingsType } from "#/orm/settings/settings-type.ts";
+import type { InField, InFieldType } from "#/orm/field/field-def-types.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",
@@ -15,7 +11,7 @@ const generateModels = new CloudAPIAction(
     description: "Generate flutter models for entry types",
     params: [{
       key: "path",
-      type: "string",
+      type: "TextField",
       description: "Path to the generated models",
       required: false,
       label: "Path",
@@ -73,7 +69,7 @@ async function buildModel(
   await writeModelFile(filePath, model.join("\n"));
   return `${subDir}/${fileName}`;
 }
-export default generateModels as CloudAPIActionType;
+export default generateModels as CloudAPIAction<any, any>;
 function getHelperClasses() {
   return [
     entry,
@@ -118,7 +114,7 @@ function generateFlutterModel(
 
   return lines;
 }
-function shouldIgnoreField(field: ORMFieldDef) {
+function shouldIgnoreField(field: InField) {
   return field.key.endsWith("#") || field.hidden ||
     ["id", "createdAt", "updatedAt", "parent"].includes(field.key);
 }
@@ -129,12 +125,12 @@ function generateModelEnums(
   const lines: string[] = [];
   for (const field of typeDef.fields.values()) {
     if (field.type === "ChoicesField") {
-      lines.push(...makeChoiceEnum(field as ChoicesFieldDef));
+      lines.push(...makeChoiceEnum(field as InField<"ChoicesField">));
     }
   }
   return lines;
 }
-function makeChoiceEnum(field: ChoicesFieldDef): string[] {
+function makeChoiceEnum(field: InField<"ChoicesField">): string[] {
   const lines: string[] = [];
 
   const choices = field.choices.map((choice) => {
@@ -157,7 +153,7 @@ function makeChoiceEnum(field: ChoicesFieldDef): string[] {
 
   return lines;
 }
-function generateFieldDefs(fields: Map<string, ORMFieldDef>) {
+function generateFieldDefs(fields: Map<string, InField>) {
   const output: string[] = [];
   fields.values().forEach((field) => {
     if (shouldIgnoreField(field)) {
@@ -365,7 +361,7 @@ function generateConstructor(
   return constructor;
 }
 
-const flutterTypeMap: Record<ORMFieldType, string> = {
+const flutterTypeMap: Record<InFieldType, string> = {
   URLField: "String",
   IDField: "String",
   BigIntField: "int",

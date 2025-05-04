@@ -1,8 +1,8 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 import type { BaseTypeInfo } from "#/orm/shared/shared-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
 export class BaseType<N extends string = string> {
   name: N;
@@ -12,16 +12,16 @@ export class BaseType<N extends string = string> {
   /**
    * The fields of the settings type.
    */
-  fields: Map<string, ORMFieldDef> = new Map();
-  displayFields: Map<string, ORMFieldDef> = new Map();
-  connectionTitleFields: Map<string, ORMFieldDef> = new Map();
+  fields: Map<string, InField> = new Map();
+  displayFields: Map<string, InField> = new Map();
+  connectionTitleFields: Map<string, InField> = new Map();
   children?: Map<string, ChildEntryType<any>>;
   #baseInfo: BaseTypeInfo;
   #info: Record<string, any> = {};
   constructor(
     name: N,
     config: {
-      fields: Array<ORMFieldDef>;
+      fields: Array<InField>;
       label?: string;
       description?: string;
       children?: Array<ChildEntryType<any>>;

@@ -52,7 +52,7 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   },
   params: [{
     key: "accessToken",
-    type: "string",
+    type: "TextField",
     description: "Access token from Google OAuth2",
     label: "Access Token",
     required: true,

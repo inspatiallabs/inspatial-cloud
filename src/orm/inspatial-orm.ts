@@ -1,6 +1,6 @@
 import { InSpatialDB } from "#/orm/db/inspatial-db.ts";
-import type { FieldDefType } from "#/orm/field/field-def-types.ts";
-import type { ORMField } from "#/orm/field/orm-field.ts";
+import type { InFieldType } from "#/orm/field/field-def-types.ts";
+import type { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { Settings } from "#/orm/settings/settings.ts";
@@ -35,7 +35,7 @@ import { inLog } from "#/in-log/in-log.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
-  fieldTypes: Map<FieldDefType, ORMField<any>>;
+  fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType>;
@@ -75,9 +75,9 @@ export class InSpatialORM {
       });
     }
   }
-  _getFieldType<T extends FieldDefType = FieldDefType>(
+  _getFieldType<T extends InFieldType = InFieldType>(
     fieldType: T,
-  ): ORMField<T> {
+  ): ORMFieldConfig<T> {
     const fieldTypeDef = this.fieldTypes.get(fieldType);
     if (!fieldTypeDef) {
       raiseORMException(
@@ -144,7 +144,7 @@ export class InSpatialORM {
 
     this.fieldTypes = new Map();
     for (const field of ormFields) {
-      this.fieldTypes.set(field.type, field as ORMField);
+      this.fieldTypes.set(field.type, field as ORMFieldConfig);
     }
     this.db = options.db || new InSpatialDB(options.dbConfig);
     this.entryTypes = new Map();

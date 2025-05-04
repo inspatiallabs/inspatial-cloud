@@ -5,9 +5,7 @@
   "exports": {
     ".": "./mod.ts",
     "./extensions": "./extensions/mod.ts",
-    "./types": "./types.ts",
-    "./client": "./client/mod.ts",
-    "./client/types": "./client/client-types.ts"
+    "./types": "./types.ts"
   },
   "imports": {
     "#/": "./src/",
