@@ -1,5 +1,11 @@
 import authCloudExtension from "#extensions/auth/mod.ts";
 import flutterExtension from "#extensions/flutter/mod.ts";
 import ormCloudExtension from "#extensions/orm/mod.ts";
+import userAgentExtension from "#extensions/user-agent/mod.ts";
 
-export { authCloudExtension, flutterExtension, ormCloudExtension };
+export {
+  authCloudExtension,
+  flutterExtension,
+  ormCloudExtension,
+  userAgentExtension,
+};

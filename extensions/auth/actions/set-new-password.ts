@@ -21,13 +21,13 @@ const setNewPassword = new CloudAPIAction("setNewPassword", {
     key: "token",
     label: "Token",
     description: "Token to reset password",
-    type: "string",
+    type: "TextField",
     required: true,
   }, {
     key: "password",
     label: "Password",
     description: "New password to set",
-    type: "string",
+    type: "PasswordField",
     required: true,
   }],
 });

@@ -12,7 +12,7 @@ const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
   },
   params: [{
     key: "settingsType",
-    type: "string",
+    type: "DataField",
     label: "Settings Type",
     description: "The settings type to get",
     required: true,
@@ -36,13 +36,13 @@ const getSettings = new CloudAPIAction("getSettings", {
   },
   params: [{
     key: "settingsType",
-    type: "string",
+    type: "DataField",
     label: "Settings Type",
     description: "The settings type to get",
     required: true,
   }, {
     key: "withModifiedTime",
-    type: "boolean",
+    type: "BooleanField",
     label: "With Modified Time",
     description: "Whether to include the modified time for each field",
     required: false,
@@ -60,13 +60,13 @@ const updateSettings = new CloudAPIAction("updateSettings", {
   },
   params: [{
     key: "settingsType",
-    type: "string",
+    type: "DataField",
     label: "Settings Type",
     description: "The settings type to update",
     required: true,
   }, {
     key: "data",
-    type: "object",
+    type: "JSONField",
     label: "Data",
     description: "The data to update the settings with",
     required: true,
@@ -83,19 +83,19 @@ const runSettingsAction = new CloudAPIAction("runSettingsAction", {
   },
   params: [{
     key: "settingsType",
-    type: "string",
+    type: "DataField",
     label: "Settings Type",
     description: "The settings type to run the action for",
     required: true,
   }, {
     key: "action",
-    type: "string",
+    type: "DataField",
     label: "Action",
     description: "The action to run",
     required: true,
   }, {
     key: "data",
-    type: "object",
+    type: "JSONField",
     label: "Data",
     description: "The data to run the action with",
     required: false,

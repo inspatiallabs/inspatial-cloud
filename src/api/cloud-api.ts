@@ -1,8 +1,4 @@
-import type {
-  CloudAPIActionDocs,
-  CloudAPIDocs,
-  CloudAPIGroupDocs,
-} from "#/api/api-types.ts";
+import type { CloudAPIDocs, CloudAPIGroupDocs } from "#/api/api-types.ts";
 import { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 
@@ -36,20 +32,11 @@ export class CloudAPI {
       };
 
       group.actions.forEach((action, actionName) => {
-        const params: CloudAPIActionDocs["params"] = Array.from(
-          action.params.values().map((param) => ({
-            paramName: param.key as string,
-            required: param.required || false,
-            description: param.description || "",
-            type: param.type,
-          })),
-        );
-
         groupDocs.actions.push({
           actionName,
           description: action.description,
           label: action.label,
-          params,
+          params: Array.from(action.params.values()),
         });
       });
       docs.groups.push(groupDocs);

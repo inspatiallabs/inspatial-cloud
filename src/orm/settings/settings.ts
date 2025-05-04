@@ -4,7 +4,7 @@ import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { HookName } from "#/orm/orm-types.ts";
 import type { TimeStampFieldDef } from "#/orm/field/field-def-types.ts";
 
-import type { ORMFieldMap } from "#/orm/field/types.ts";
+import type { InValueTypeMap } from "#/orm/field/types.ts";
 import dateUtils from "#/utils/date-utils.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
@@ -38,7 +38,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     };
   }
 
-  get updatedAt(): Record<string, ORMFieldMap["TimeStampField"]> {
+  get updatedAt(): Record<string, InValueTypeMap["TimeStampField"]> {
     return Object.fromEntries(this.#updatedAt.entries());
   }
 

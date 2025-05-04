@@ -1,6 +1,6 @@
-import { ORMField } from "#/orm/field/orm-field.ts";
+import { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 
-export default new ORMField("PhoneField", {
+export default new ORMFieldConfig("PhoneField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,

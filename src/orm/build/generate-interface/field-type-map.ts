@@ -1,6 +1,6 @@
-import type { FieldDefType } from "#/orm/field/field-def-types.ts";
+import type { InFieldType } from "#/orm/field/field-def-types.ts";
 
-export const fieldTypeMap: Record<FieldDefType, string> = {
+export const fieldTypeMap: Record<InFieldType, string> = {
   URLField: "string",
   BigIntField: "number",
   BooleanField: "boolean",

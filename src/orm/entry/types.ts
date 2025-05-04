@@ -1,6 +1,6 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
-import type { IDMode, ORMFieldMap } from "#/orm/field/types.ts";
+import type { IDMode, InValueTypeMap } from "#/orm/field/types.ts";
 import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type {
   BaseTypeConfig,
@@ -65,7 +65,7 @@ export type ParamsMap<T> = RequiredParams<T> & OptionalParams<T>;
 
 type RequiredParams<T> = T extends Array<ORMFieldDef> ? {
     [K in T[number] as K["required"] extends true ? K["key"] : never]:
-      ORMFieldMap[K["type"]];
+      InValueTypeMap[K["type"]];
   }
   : never;
 
@@ -74,7 +74,7 @@ type RequiredParams<T> = T extends Array<ORMFieldDef> ? {
  */
 type OptionalParams<T> = T extends Array<ORMFieldDef> ? {
     [K in T[number] as K["required"] extends true ? never : K["key"]]?:
-      | ORMFieldMap[K["type"]]
+      | InValueTypeMap[K["type"]]
       | undefined;
   }
   : never;

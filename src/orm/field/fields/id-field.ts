@@ -1,7 +1,7 @@
-import { ORMField } from "#/orm/field/orm-field.ts";
+import { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 import type { PgColumnDefinition } from "#/orm/db/db-types.ts";
 
-export default new ORMField("IDField", {
+export default new ORMFieldConfig("IDField", {
   dbColumn: (fieldDef) => {
     const pgColumn: PgColumnDefinition = {
       columnName: fieldDef.key,

@@ -1,6 +1,6 @@
-import { ORMField } from "#/orm/field/orm-field.ts";
+import { ORMFieldConfig } from "#/orm/field/orm-field.ts";
 
-export const dataField = new ORMField("DataField", {
+export const dataField = new ORMFieldConfig("DataField", {
   dbColumn: (fieldDef) => {
     return {
       columnName: fieldDef.key,

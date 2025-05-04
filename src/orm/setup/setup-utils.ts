@@ -1,6 +1,6 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
-import type { FieldDefMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InFieldMap, ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
@@ -51,7 +51,7 @@ export function buildConnectionFields(
 
 function setFileConnection(
   orm: InSpatialORM,
-  field: FieldDefMap["ImageField"] | FieldDefMap["FileField"],
+  field: InFieldMap["ImageField"] | InFieldMap["FileField"],
   entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
 ) {
   const fileEntryType = orm.getEntryType("cloudFile");
@@ -100,9 +100,9 @@ export function validateConnectionFields(
 function buildConnectionTitleField(
   _orm: InSpatialORM,
   field:
-    | FieldDefMap["ConnectionField"]
-    | FieldDefMap["FileField"]
-    | FieldDefMap["ImageField"],
+    | InFieldMap["ConnectionField"]
+    | InFieldMap["FileField"]
+    | InFieldMap["ImageField"],
   connectionEntryType: EntryType,
 ): ORMFieldDef | undefined {
   const titleFieldKey = connectionEntryType.config.titleField;
