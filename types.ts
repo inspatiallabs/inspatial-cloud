@@ -10,7 +10,15 @@ export type {
   HookName,
 } from "#/orm/orm-types.ts";
 
-export type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+export type {
+  FetchOptions,
+  InField,
+  InFieldMap,
+  InFieldType,
+  IntFormat,
+} from "#/orm/field/field-def-types.ts";
+
+export type { Choice, IDMode, InValue } from "#/orm/field/types.ts";
 
 export type { EntryBase } from "#/orm/entry/entry-base.ts";
 export type { SettingsBase } from "#/orm/settings/settings-base.ts";

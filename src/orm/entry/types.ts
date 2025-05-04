@@ -1,11 +1,11 @@
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
-import type { IDMode, ORMFieldMap } from "#/orm/field/types.ts";
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { IDMode, InValue } from "#/orm/field/types.ts";
 import type {
   BaseTypeConfig,
   BaseTypeInfo,
 } from "#/orm/shared/shared-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 /* Hooks */
 type EntryHookFunction<
   E extends EntryBase = EntryBase,
@@ -51,7 +51,7 @@ export type EntryActionDefinition<
         data: Record<string, any>;
       },
   ) => Promise<any> | any;
-  params: Array<ORMFieldDef>;
+  params: Array<InField>;
 };
 
 /**
@@ -63,18 +63,19 @@ export type ParamsMap<T> = RequiredParams<T> & OptionalParams<T>;
  * A typed map of required parameters passed to an action handler.
  */
 
-type RequiredParams<T> = T extends Array<ORMFieldDef> ? {
-    [K in T[number] as K["required"] extends true ? K["key"] : never]:
-      ORMFieldMap[K["type"]];
+type RequiredParams<T> = T extends Array<InField> ? {
+    [K in T[number] as K["required"] extends true ? K["key"] : never]: InValue<
+      K["type"]
+    >;
   }
   : never;
 
 /**
  * A typed map of optional parameters passed to an action handler.
  */
-type OptionalParams<T> = T extends Array<ORMFieldDef> ? {
+type OptionalParams<T> = T extends Array<InField> ? {
     [K in T[number] as K["required"] extends true ? never : K["key"]]?:
-      | ORMFieldMap[K["type"]]
+      | InValue<K["type"]>
       | undefined;
   }
   : never;
@@ -82,7 +83,7 @@ type OptionalParams<T> = T extends Array<ORMFieldDef> ? {
 export interface EntryTypeInfo extends BaseTypeInfo {
   config: EntryTypeConfig;
   actions: Array<Omit<EntryActionDefinition, "action">>;
-  defaultListFields: Array<ORMFieldDef>;
+  defaultListFields: Array<InField>;
 }
 
 export interface EntryTypeConfig extends BaseTypeConfig {

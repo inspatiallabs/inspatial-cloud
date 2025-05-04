@@ -1,4 +1,4 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 import type {
   ChildEntryType,
   ChildEntryTypeInfo,
@@ -9,10 +9,10 @@ export interface BaseTypeInfo {
   description: string;
   extension?: string;
   label: string;
-  fields: Array<ORMFieldDef>;
-  titleFields: Array<ORMFieldDef>;
+  fields: Array<InField>;
+  titleFields: Array<InField>;
   children?: Array<ChildEntryTypeInfo>;
-  displayFields: Array<ORMFieldDef>;
+  displayFields: Array<InField>;
 }
 
 export interface BaseTypeConfig {
@@ -33,6 +33,6 @@ export interface BaseTypeConfig {
 export interface BaseConfig {
   label?: string;
   description?: string;
-  fields: Array<ORMFieldDef>;
+  fields: Array<InField>;
   children?: Array<ChildEntryType<any>>;
 }

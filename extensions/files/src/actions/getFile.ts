@@ -5,11 +5,13 @@ import { raiseServerException } from "#/app/server-exception.ts";
 const getFileAction = new CloudAPIAction("getFile", {
   params: [{
     key: "fileId",
-    type: "string",
+    label: "File ID",
+    type: "DataField",
     required: true,
   }, {
     key: "download",
-    type: "boolean",
+    label: "Download",
+    type: "BooleanField",
   }],
   async run({ app, params, inResponse }) {
     const { fileId } = params;

@@ -1,11 +1,10 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
 import type {
   BaseTypeConfig,
   BaseTypeInfo,
 } from "#/orm/shared/shared-types.ts";
-import type { ORMFieldType } from "#/orm/field/types.ts";
 import type { SettingsBase } from "#/orm/settings/settings-base.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
+import type { InField, InFieldType } from "#/orm/field/field-def-types.ts";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -20,7 +19,7 @@ export interface SettingsRow {
   field: string;
   value: {
     value: any;
-    type: ORMFieldType;
+    type: InFieldType;
   };
   updatedAt: number;
 }
@@ -55,5 +54,5 @@ export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
         data: Record<string, any>;
       },
   ): Promise<any | void> | any | void;
-  params: Array<ORMFieldDef>;
+  params: Array<InField>;
 };

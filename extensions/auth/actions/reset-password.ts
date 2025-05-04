@@ -50,7 +50,7 @@ const resetPassword = new CloudAPIAction("resetPassword", {
       key: "email",
       label: "Email",
       description: "Email of the user to reset password",
-      type: "string",
+      type: "EmailField",
       required: true,
     },
   ],

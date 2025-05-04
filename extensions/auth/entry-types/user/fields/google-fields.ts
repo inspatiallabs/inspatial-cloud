@@ -1,6 +1,6 @@
-import type { ORMFieldDef } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
-const googleFields: Array<ORMFieldDef> = [{
+const googleFields: Array<InField> = [{
   key: "googleAccessToken",
   type: "PasswordField",
   label: "Access Token",

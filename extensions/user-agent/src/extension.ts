@@ -1,7 +1,8 @@
-import { ServerExtension } from "#/extension/server-extension.ts";
-import { parseUserAgent } from "#user-agent/parse.ts";
+import { CloudExtension } from "#/app/cloud-extension.ts";
+import { parseUserAgent } from "#extensions/user-agent/src/parse.ts";
 
-export const userAgentExtension = new ServerExtension("userAgent", {
+export const userAgentExtension = new CloudExtension("userAgent", {
+  label: "User Agent",
   description: "This extension provides user-agent parsing",
   config: {
     userAgentDebug: {
@@ -32,4 +33,4 @@ export const userAgentExtension = new ServerExtension("userAgent", {
     }],
   },
   install() {},
-}) as ServerExtension<"userAgent", void>;
+}) as CloudExtension;

@@ -1,14 +1,15 @@
 import type { InCloud } from "#/inspatial-cloud.ts";
-import type { ActionParamProp, ParamsMap } from "#/api/api-types.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
+import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
+import type { CloudParam, ExtractParams } from "#/api/api-types.ts";
 
 export class CloudAPIAction<
-  N extends string,
-  K extends string,
-  P extends Array<ActionParamProp<K>>,
-  D extends ParamsMap<P>,
+  K extends PropertyKey = PropertyKey,
+  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
+  D extends ExtractParams<K, P> = ExtractParams<K, P>,
   R extends (args: {
     app: InCloud;
     params: D;
@@ -24,11 +25,11 @@ export class CloudAPIAction<
   description: string = "This is an easy action";
   label?: string;
   raw: boolean = false;
-  actionName: N;
+  actionName: string;
   authRequired: boolean = true;
 
   includeInAPI: boolean = true;
-  params: Map<string, ActionParamProp<K>>;
+  params: Map<string, CloudParam<K>>;
   requiredParams: string[] = [];
 
   #_run: (args: {
@@ -43,7 +44,7 @@ export class CloudAPIAction<
   }
 
   constructor(
-    actionName: N,
+    actionName: string,
     config: {
       run: R;
       /**
@@ -69,15 +70,16 @@ export class CloudAPIAction<
     if (config.hideFromApi === true) {
       this.includeInAPI = false;
     }
-    this.params = new Map(config.params.map((p) => [p.key, p]));
+    this.params = new Map(config.params.map((p) => [p.key as string, p]));
     this.requiredParams = config.params.filter((param) => param.required).map(
-      (p) => p.key,
+      (p) => p.key as string,
     );
   }
 
   #validateParams(
+    orm: InSpatialORM,
     params?: Record<string, any>,
-  ): ParamsMap<P> {
+  ): D {
     const requiredParams = this.requiredParams;
     if (requiredParams.length === 0 && !params) {
       this.raiseError(
@@ -85,7 +87,7 @@ export class CloudAPIAction<
       );
     }
     if (!params) {
-      return {} as ParamsMap<P>;
+      return {} as D;
     }
     const missingParams = new Set();
     const incomingParams = new Map(Object.entries(params));
@@ -97,7 +99,7 @@ export class CloudAPIAction<
 
     const errors: string[] = [];
     for (const key of incomingParams.keys()) {
-      const paramConfig = this.params.get(key);
+      const paramConfig = this.params.get(key) as InField;
       if (!paramConfig) {
         this.raiseError(
           `${key} is not a valid parameter for ${this.actionName}`,
@@ -109,83 +111,11 @@ export class CloudAPIAction<
       if (value === undefined || value === null) {
         isEmpty = true;
       }
-
-      switch (paramConfig.type) {
-        case "string":
-          if (value === "") {
-            isEmpty = true;
-            break;
-          }
-          if (isEmpty) {
-            break;
-          }
-          if (typeof value !== "string") {
-            errors.push(`${key} must be a string`);
-          }
-          break;
-        case "number":
-          if (isEmpty) {
-            break;
-          }
-          if (typeof value !== "number") {
-            value = Number(value);
-          }
-          if (Number.isNaN(value)) {
-            errors.push(`${key} must be a number`);
-          }
-          break;
-        case "boolean":
-          if (isEmpty) {
-            value = false;
-            break;
-          }
-          if (typeof value !== "boolean") {
-            if (value === 0 || value === "0" || value === "false") {
-              value = false;
-              break;
-            }
-            if (value === 1 || value === "1" || value === "true") {
-              value = true;
-              break;
-            }
-            errors.push(`${key} must be a boolean`);
-          }
-          break;
-        case "object":
-          if (isEmpty) {
-            break;
-          }
-          if (typeof value === "string") {
-            try {
-              value = JSON.parse(value);
-            } catch (_e) {
-              errors.push(`${key} must be a valid JSON object`);
-            }
-            break;
-          }
-          if (typeof value !== "object") {
-            errors.push(`${key} must be a JSON object`);
-          }
-          break;
-        case "array":
-          if (isEmpty) {
-            break;
-          }
-          if (typeof value === "string") {
-            try {
-              value = JSON.parse(value);
-            } catch (_e) {
-              errors.push(`${key} must be a valid JSON array`);
-            }
-            break;
-          }
-          if (!Array.isArray(value)) {
-            errors.push(`${key} must be an array`);
-          }
-          break;
-        default:
-          errors.push(`${key} is not a valid parameter type`);
-          break;
+      const fieldType = orm._getFieldType(paramConfig.type);
+      value = fieldType.normalize(value, paramConfig);
+      const isValid = fieldType.validate(value, paramConfig);
+      if (!isValid) {
+        errors.push(`${key} doesn't have a valid value`);
       }
       incomingParams.set(key, value);
       if (isEmpty && paramConfig.required) {
@@ -203,7 +133,7 @@ export class CloudAPIAction<
       this.raiseError(errors.join(", "));
     }
 
-    return Object.fromEntries(incomingParams) as ParamsMap<P>;
+    return Object.fromEntries(incomingParams) as D;
   }
 
   async run(args: {
@@ -212,7 +142,7 @@ export class CloudAPIAction<
     inRequest: InRequest;
     inResponse: InResponse;
   }): Promise<ReturnType<R>> {
-    const validatedData = this.#validateParams(args.params);
+    const validatedData = this.#validateParams(args.app.orm, args.params);
     return await this.#_run({
       app: args.app,
       params: validatedData as any,
@@ -224,23 +154,16 @@ export class CloudAPIAction<
 
 export class CloudAPIGroup<
   G extends string = string,
-  N extends string = string,
-  K extends string = string,
-  P extends Array<ActionParamProp<K>> = Array<ActionParamProp<K>>,
-  D extends ParamsMap<P> = ParamsMap<P>,
-  A extends Array<CloudAPIAction<N, K, P, D>> = Array<
-    CloudAPIAction<N, K, P, D>
-  >,
 > {
   groupName: G;
   description: string;
   label?: string;
-  actions: Map<string, CloudAPIAction<N, K, P, D>>;
+  actions: Map<string, CloudAPIAction>;
 
   constructor(groupName: G, config: {
     description: string;
     label?: string;
-    actions: A;
+    actions: Array<CloudAPIAction>;
   }) {
     this.groupName = groupName;
     this.description = config.description;
@@ -250,10 +173,3 @@ export class CloudAPIGroup<
     );
   }
 }
-
-export type CloudAPIActionType = CloudAPIAction<
-  string,
-  string,
-  Array<ActionParamProp<string>>,
-  ParamsMap<Array<ActionParamProp<string>>>
->;

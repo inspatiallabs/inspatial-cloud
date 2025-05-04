@@ -27,14 +27,14 @@ const login = new CloudAPIAction("login", {
   },
   params: [{
     key: "email",
-    type: "string",
     label: "Email",
+    type: "EmailField",
     description: "The email of the user",
     required: true,
   }, {
     key: "password",
-    type: "string",
     label: "Password",
+    type: "PasswordField",
     description: "The password of the user",
     required: true,
   }],
