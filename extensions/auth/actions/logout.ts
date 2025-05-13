@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 
 const logout = new CloudAPIAction("logout", {
   label: "Logout",

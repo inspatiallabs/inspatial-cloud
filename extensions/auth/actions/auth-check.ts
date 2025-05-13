@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 
 const authCheck = new CloudAPIAction("authCheck", {
   description: "Check if user is authenticated",

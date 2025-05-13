@@ -7,7 +7,8 @@ import type { AuthSettings } from "#extensions/auth/generated-interfaces/setting
 import type { InCloud } from "#/inspatial-cloud.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+
 import { raiseServerException } from "#/app/server-exception.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";

@@ -1,5 +1,5 @@
 import { CloudExtension } from "#/app/cloud-extension.ts";
-import { CloudAPIGroup } from "#/app/cloud-action.ts";
+import { CloudAPIGroup } from "#/api/cloud-group.ts";
 import generateModels from "./actions/generate-models.ts";
 
 const flutterExtension = new CloudExtension("flutter", {
