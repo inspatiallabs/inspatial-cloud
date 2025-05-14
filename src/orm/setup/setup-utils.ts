@@ -96,7 +96,38 @@ export function validateConnectionFields(
     }
   }
 }
+export function registerFetchFields(
+  orm: InSpatialORM,
+  entryType: EntryType,
+): void {
+  for (const field of entryType.fields.values()) {
+    if (!field.fetchField) {
+      continue;
+    }
+    const fetchOptions = field.fetchField!;
+    const connectionIdField = entryType.fields.get(
+      fetchOptions.connectionField,
+    ) as InField<"ConnectionField">;
+    const referencedEntryType = orm.getEntryType(connectionIdField.entryType);
+    const referencedField = referencedEntryType.fields.get(
+      fetchOptions.fetchField,
+    );
 
+    if (!referencedField) {
+      raiseORMException(
+        "InvalidField",
+        `Connection field ${fetchOptions.fetchField} does not exist on entry type ${referencedEntryType.name}`,
+      );
+    }
+    orm.registry.registerField({
+      referencedEntryType: referencedEntryType.name,
+      referencedFieldKey: referencedField.key,
+      referencingEntryType: entryType.name,
+      referencingFieldKey: field.key,
+      referencingIdFieldKey: connectionIdField.key,
+    });
+  }
+}
 function buildConnectionTitleField(
   _orm: InSpatialORM,
   field:
