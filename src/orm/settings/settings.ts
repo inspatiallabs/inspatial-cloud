@@ -4,8 +4,9 @@ import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { HookName } from "#/orm/orm-types.ts";
 
 import dateUtils from "#/utils/date-utils.ts";
-import { InField } from "#/orm/field/field-def-types.ts";
-import { InValue } from "#/orm/field/types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
+import type { InValue } from "#/orm/field/types.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -23,8 +24,8 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   get _settingsType(): SettingsType {
     return this._orm.getSettingsType(this._name);
   }
-  constructor(orm: any, name: N, user?: any) {
-    super(orm, name, "settings", user);
+  constructor(orm: any, inCloud: InCloud, name: N, user?: any) {
+    super(orm, inCloud, name, "settings", user);
   }
   get data(): Record<string, any> {
     const data = Object.fromEntries(this._data.entries());
