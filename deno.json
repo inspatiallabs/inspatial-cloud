@@ -16,7 +16,6 @@
   "tasks": {
     "check": "deno publish --dry-run"
   },
-  "unstable": ["broadcast-channel"],
   "lint": {
     "rules": {
       "tags": ["jsr", "recommended"],
