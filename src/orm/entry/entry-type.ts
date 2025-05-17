@@ -11,6 +11,7 @@ import type { IDMode } from "#/orm/field/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { BaseConfig } from "#/orm/shared/shared-types.ts";
+import { EntryPermissions, EntryRole } from "./permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -38,6 +39,7 @@ export class EntryType<
     beforeValidate: [],
     validate: [],
   };
+  roles: Map<string, EntryRole> = new Map();
   constructor(
     name: N,
     config: BaseConfig & {
@@ -53,7 +55,7 @@ export class EntryType<
       searchFields?: Array<FK>;
       actions?: A;
       hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-      roles?: Array<unknown>;
+      roles?: Array<EntryRole>;
     },
   ) {
     super(name, config);
@@ -118,6 +120,7 @@ export class EntryType<
     this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
+    this.#setupRoles(config.roles);
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()),
@@ -127,6 +130,7 @@ export class EntryType<
       ),
     };
   }
+
   #setChildrenParent() {
     if (!this.children) {
       return;
@@ -165,5 +169,17 @@ export class EntryType<
   #generateTableName(): string {
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;
+  }
+  #setupRoles(roles?: Array<EntryRole>) {
+    if (!roles) return;
+    for (const role of roles) {
+      const { roleName } = role;
+      if (this.roles.has(roleName)) {
+        raiseORMException(
+          `Role ${roleName} is already set for Entry Type ${this.name}`,
+        );
+      }
+      this.roles.set(roleName, role);
+    }
   }
 }
