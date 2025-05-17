@@ -2,7 +2,6 @@ import type { CloudExtension } from "#/app/cloud-extension.ts";
 
 import { CloudAPI } from "#/api/cloud-api.ts";
 import { InCache } from "#/app/cache/in-cache.ts";
-import type { CloudAPIGroup } from "#/app/cloud-action.ts";
 import { InRequest } from "#/app/in-request.ts";
 import authCloudExtension from "#extensions/auth/mod.ts";
 import ormCloudExtension from "#extensions/orm/mod.ts";
@@ -35,6 +34,8 @@ import { initCloud } from "#/init.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
+import { RoleManager } from "#/orm/roles/role.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 
 export class InCloud<
   N extends string = any,
@@ -65,7 +66,7 @@ export class InCloud<
   #config: CloudConfig;
   orm!: InSpatialORM;
   api: CloudAPI;
-
+  roles: RoleManager;
   inLive: InLiveHandler;
   inLog: InLog;
 
@@ -143,6 +144,8 @@ export class InCloud<
     }
 
     this.api = new CloudAPI();
+
+    this.roles = new RoleManager();
     /*Serve constructor */
     this.#config = {
       ...options?.config,
@@ -318,6 +321,10 @@ export class InCloud<
   }
 
   #setup(): void {
+    for (const role of this.#extensionManager.roles.values()) {
+      this.roles.addRole(role);
+    }
+
     for (const extension of this.#extensionManager.extensions.values()) {
       try {
         this.#installExtension(extension);

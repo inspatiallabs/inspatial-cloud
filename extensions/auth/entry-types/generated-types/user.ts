@@ -108,4 +108,6 @@ export interface User extends EntryBase {
    * @required true
    */
   updatedAt: number;
+
+  role: string;
 }

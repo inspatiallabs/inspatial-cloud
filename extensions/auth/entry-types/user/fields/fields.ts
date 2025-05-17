@@ -1,6 +1,5 @@
-import { InField } from "#/orm/field/field-def-types.ts";
-
-export default [{
+import type { InField } from "#/orm/field/field-def-types.ts";
+export const userFields: Array<InField> = [{
   key: "firstName",
   type: "DataField",
   label: "First Name",
@@ -26,10 +25,15 @@ export default [{
   description: "The user's full name (automatically generated)",
   readOnly: true,
 }, {
+  key: "role",
+  label: "Role",
+  type: "ChoicesField",
+  choices: [],
+}, {
   key: "profilePicture",
   type: "ImageField",
   label: "Profile Picture",
-  allowedImageTypes: ["png", "jpeg", "svg+xml", "png"],
+  allowedImageTypes: ["png", "jpeg", "jpg", "svg"],
   description: "The user's profile picture",
 }, {
   key: "password",
@@ -48,7 +52,7 @@ export default [{
   key: "systemAdmin",
   label: "System Administrator",
   type: "BooleanField",
-  readOnly: true,
+  readOnly: false,
   description:
     "Is the user a system administrator? (admin users have access to all parts of the system)",
 }, {
@@ -57,4 +61,4 @@ export default [{
   type: "PasswordField",
   description: "The user's API token",
   readOnly: true,
-}] as Array<InField>;
+}];

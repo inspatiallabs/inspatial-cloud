@@ -1,20 +1,20 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import { buildConnectionFields } from "#/orm/setup/setup-utils.ts";
+import type { Role } from "#/orm/roles/role.ts";
 
 export function buildEntryType(
-  orm: InSpatialORM,
+  role: Role,
   entryType: EntryType,
 ): void {
   // if (entryType.config.statusField) {
   //   entryType.statusField = entryType.config.statusField;
   // }
-  buildConnectionFields(orm, entryType);
+  buildConnectionFields(role, entryType);
   if (!entryType.children) {
     return;
   }
   for (const child of entryType.children.values()) {
-    buildConnectionFields(orm, child);
+    buildConnectionFields(role, child);
   }
   // // const groups: FieldGroup[] = buildFieldGroups(entryType);
   // const listFields = buildListFields(entryType);
@@ -56,29 +56,4 @@ export function buildEntryType(
 //       }),
 //     };
 //   }).filter((group) => group.fields.length > 0);
-// }
-
-// function buildListFields(entryType: EntryType) {
-//   const listFields: Array<string> = [];
-
-//   if (entryType.config.titleField) {
-//     const titleField = entryType.fields.find((field) =>
-//       field.key === entryType.config.titleField
-//     );
-//     if (titleField) {
-//       titleField.inList = true;
-//     }
-//   }
-//   for (const field of entryType.fields) {
-//     if (field.inList) {
-//       listFields.push(field.key);
-//       if (field.connectionTitleField) {
-//         listFields.push(field.connectionTitleField);
-//       }
-//     }
-//   }
-//   listFields.push("createdAt");
-//   listFields.push("updatedAt");
-//   listFields.push("id");
-//   return listFields;
 // }

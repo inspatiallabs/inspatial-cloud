@@ -11,7 +11,7 @@ import type { IDMode } from "#/orm/field/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { BaseConfig } from "#/orm/shared/shared-types.ts";
-import { EntryPermissions, EntryRole } from "./permissions.ts";
+import type { EntryRole } from "#/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -40,6 +40,21 @@ export class EntryType<
     validate: [],
   };
   roles: Map<string, EntryRole> = new Map();
+  sourceConfig: BaseConfig & {
+    /**
+     * The field to use as the display value instead of the ID.
+     */
+    titleField?: FK;
+    idMode?: IDMode;
+    imageField?: FK;
+    defaultListFields?: Array<FK>;
+    defaultSortField?: FK;
+    defaultSortDirection?: "asc" | "desc";
+    searchFields?: Array<FK>;
+    actions?: A;
+    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
+    roles?: Array<EntryRole>;
+  };
   constructor(
     name: N,
     config: BaseConfig & {
@@ -59,6 +74,9 @@ export class EntryType<
     },
   ) {
     super(name, config);
+    this.sourceConfig = {
+      ...config,
+    };
     this.defaultSortField = config.defaultSortField;
     this.defaultSortDirection = config.defaultSortDirection;
     this.fields.set("id", {
@@ -171,12 +189,21 @@ export class EntryType<
     return `entry_${snakeName}`;
   }
   #setupRoles(roles?: Array<EntryRole>) {
+    this.roles.set("systemAdmin", {
+      roleName: "systemAdmin",
+      permission: {
+        view: true,
+        create: true,
+        modify: true,
+        delete: true,
+      },
+    });
     if (!roles) return;
     for (const role of roles) {
       const { roleName } = role;
       if (this.roles.has(roleName)) {
         raiseORMException(
-          `Role ${roleName} is already set for Entry Type ${this.name}`,
+          `Role ${roleName} is already set for Settings Type ${this.name}`,
         );
       }
       this.roles.set(roleName, role);

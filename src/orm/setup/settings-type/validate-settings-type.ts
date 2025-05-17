@@ -1,6 +1,6 @@
-import type { InSpatialORM } from "#/inspatial-orm.ts";
-import type { SettingsType } from "#/settings/settings-type.ts";
-import { validateConnectionFields } from "#/setup/setup-utils.ts";
+import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
+import type { SettingsType } from "#/orm/mod.ts";
+import { validateConnectionFields } from "#/orm/setup/setup-utils.ts";
 
 export function validateSettingsType(
   orm: InSpatialORM,

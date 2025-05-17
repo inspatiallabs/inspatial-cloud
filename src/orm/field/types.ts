@@ -1,6 +1,7 @@
 export interface Choice {
   key: string;
   label: string;
+  description?: string;
 }
 
 export type InValue<T extends keyof InValueTypeMap = keyof InValueTypeMap> =

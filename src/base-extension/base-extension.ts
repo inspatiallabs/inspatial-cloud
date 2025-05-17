@@ -18,4 +18,13 @@ export const baseExtension = new CloudExtension("cloud", {
   entryTypes: [],
   middleware: [corsMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandeler],
+  roles: [{
+    roleName: "systemAdmin",
+    label: "System Administrator",
+    description: "Super user role assigned to the system administrators",
+  }, {
+    roleName: "basic",
+    label: "Basic User",
+    description: "The default limited role assigned to new users",
+  }],
 });

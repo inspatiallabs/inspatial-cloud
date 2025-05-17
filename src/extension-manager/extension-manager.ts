@@ -8,6 +8,8 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
+import type { RoleConfig } from "#/orm/roles/role.ts";
+import { raiseCloudException } from "#/app/exeption/cloud-exception.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();
@@ -15,6 +17,7 @@ export class ExtensionManager {
   exceptionHandlers: Map<string, ExceptionHandler> = new Map();
   extensions: Map<string, CloudExtension> = new Map();
   extensionsConfig: Map<string, Map<string, any>> = new Map();
+  roles: Map<string, RoleConfig> = new Map();
   entryTypes: Array<EntryType> = [];
   settingsTypes: Array<SettingsType> = [];
   ormGlobalHooks: EntryHooks = {
@@ -120,6 +123,18 @@ export class ExtensionManager {
           ...(ormGlobalHooks[hookName as keyof EntryHooks] || []),
         );
       }
+    }
+    for (const roleConfig of extension.roles.values()) {
+      if (this.roles.has(roleConfig.roleName)) {
+        raiseCloudException(
+          `${roleConfig.roleName} is already a registered role!`,
+          {
+            type: "fatal",
+            scope: "Install Extension",
+          },
+        );
+      }
+      this.roles.set(roleConfig.roleName, roleConfig);
     }
   }
   /**

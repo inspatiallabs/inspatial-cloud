@@ -1,7 +1,7 @@
 type EntryTypeKey = string;
 type FieldKey = string;
 
-type EntryTypeRegistry = Map<FieldKey, Array<RegistryField>>;
+export type EntryTypeRegistry = Map<FieldKey, Array<RegistryField>>;
 
 interface RegisterFieldConfig {
   referencingEntryType: EntryTypeKey;

@@ -89,6 +89,7 @@ export function setupOrm(args: {
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,
     dbConfig,
+    roleManager: app.roles,
   });
   return orm;
 }

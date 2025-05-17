@@ -9,10 +9,11 @@ import type { RequestLifecycle } from "#/app/request-lifecycle.ts";
 import { convertString } from "#/utils/mod.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { CloudAPIGroup } from "#/app/cloud-action.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
+import type { RoleConfig } from "#/orm/roles/role.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 export type CloudInstallFunction<R = any> = (
   app: InCloud,
 ) => R;
@@ -52,6 +53,7 @@ export class CloudExtension<
 
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
+  roles: RoleConfig[];
   ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
@@ -83,6 +85,7 @@ export class CloudExtension<
     pathHandlers?: PathHandler[];
     /** Exception handlers */
     exceptionHandlers?: ExceptionHandler[];
+    roles?: Array<RoleConfig>;
   }) {
     this.key = extensionName;
     this.label = options.label;
@@ -102,6 +105,7 @@ export class CloudExtension<
     };
     /* Server Extension */
     this.config = options.config;
+    this.roles = options.roles || [];
     this.requestLifecycle = {
       setup: options.requestLifecycle?.setup || [],
       cleanup: options.requestLifecycle?.cleanup || [],

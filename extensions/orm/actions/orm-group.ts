@@ -3,6 +3,7 @@ import { CloudAPIGroup } from "#/api/cloud-group.ts";
 import type { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
 import type { SettingsTypeInfo } from "#/orm/settings/types.ts";
 import type { EntryTypeInfo } from "#/orm/entry/types.ts";
+import type { SessionData } from "#extensions/auth/types.ts";
 
 const migrateAction = new CloudAPIAction("migrate", {
   label: "Migrate Database",
@@ -23,9 +24,14 @@ const planMigrationAction = new CloudAPIAction("planMigration", {
 const entryTypesInfo = new CloudAPIAction("entryTypes", {
   description: "Get EntryType Definitions",
   label: "Entry Types",
-  run({ app }): Array<EntryTypeInfo> {
+  run({ app, inRequest }): Array<EntryTypeInfo> {
+    const user = inRequest.context.get<SessionData>("user");
+    if (!user) {
+      return [];
+    }
+    const role = app.roles.getRole(user.role);
     return Array.from(
-      app.orm.entryTypes.values().map((entryType) => entryType.info),
+      role.entryTypes.values().map((entryType) => entryType.info),
     ) as Array<EntryTypeInfo>;
   },
   params: [],
@@ -34,9 +40,14 @@ const entryTypesInfo = new CloudAPIAction("entryTypes", {
 const settingsTypesInfo = new CloudAPIAction("settingsTypes", {
   description: "Get SettingsType Definitions",
   label: "Settings Types",
-  run({ app }): Array<SettingsTypeInfo> {
+  run({ app, inRequest }): Array<SettingsTypeInfo> {
+    const user = inRequest.context.get<SessionData>("user");
+    if (!user) {
+      return [];
+    }
+    const role = app.roles.getRole(user.role);
     return Array.from(
-      app.orm.settingsTypes.values().map((settingsType) => settingsType.info),
+      role.settingsTypes.values().map((settingsType) => settingsType.info),
     ) as Array<SettingsTypeInfo>;
   },
   params: [],
