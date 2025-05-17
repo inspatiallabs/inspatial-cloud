@@ -35,6 +35,9 @@ export function compareDataTypes(
   if (!hasChanges) {
     return;
   }
+  if ("characterMaximumLength" in to && !("dataType" in to)) {
+    (to as PgDataTypeDefinition)["dataType"] = "character varying";
+  }
   return {
     from: from as PgDataTypeDefinition,
     to: to as PgDataTypeDefinition,

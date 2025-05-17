@@ -5,7 +5,8 @@ export {
   ChildEntryType,
 } from "#/orm/child-entry/child-entry.ts";
 
-export { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
+export { CloudAPIAction } from "#/api/cloud-action.ts";
+export { CloudAPIGroup } from "#/api/cloud-group.ts";
 export { CloudExtension } from "#/app/cloud-extension.ts";
 
 export { InCloud } from "#/inspatial-cloud.ts";

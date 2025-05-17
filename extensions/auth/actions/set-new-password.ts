@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 
 const setNewPassword = new CloudAPIAction("setNewPassword", {

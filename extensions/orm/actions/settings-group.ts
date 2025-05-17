@@ -1,4 +1,5 @@
-import { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+import { CloudAPIGroup } from "#/api/cloud-group.ts";
 import type { SettingsType } from "#/orm/mod.ts";
 
 const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {

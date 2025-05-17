@@ -1,6 +1,7 @@
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+
 import { raiseServerException } from "#/app/server-exception.ts";
 
 const login = new CloudAPIAction("login", {
