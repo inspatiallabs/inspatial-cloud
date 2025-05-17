@@ -84,7 +84,7 @@ export function setupOrm(args: {
       lazy: true,
     },
   };
-  const orm = new InSpatialORM({
+  const orm = new InSpatialORM(app, {
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,

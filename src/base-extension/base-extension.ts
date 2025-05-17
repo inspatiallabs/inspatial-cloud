@@ -4,6 +4,7 @@ import { cloudConfig } from "#/base-extension/config.ts";
 import { inLiveMiddleware } from "#/base-extension/middleware/inLive.ts";
 import { apiPathHandeler } from "#/api/api-handler.ts";
 import systemSettings from "#/base-extension/settings-types/systemSettings.ts";
+import { inTask } from "#/in-queue/entry-types/in-task/in-task.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
   description: "InSpatial Cloud Base Extension",
@@ -15,7 +16,7 @@ export const baseExtension = new CloudExtension("cloud", {
   config: cloudConfig,
   actionGroups: [],
   settingsTypes: [systemSettings],
-  entryTypes: [],
+  entryTypes: [inTask],
   middleware: [corsMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandeler],
 });

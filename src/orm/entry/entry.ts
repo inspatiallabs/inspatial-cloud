@@ -5,7 +5,7 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import ulid from "#/orm/utils/ulid.ts";
-import { inLog } from "#/in-log/in-log.ts";
+import type { InCloud } from "#/inspatial-cloud.ts";
 
 export class Entry<
   N extends string = string,
@@ -46,8 +46,8 @@ export class Entry<
     };
   }
 
-  constructor(orm: InSpatialORM, name: N, user?: any) {
-    super(orm, name, "entry", user);
+  constructor(orm: InSpatialORM, inCloud: InCloud, name: N, user?: any) {
+    super(orm, inCloud, name, "entry", user);
   }
   /**
    * Creates a new instance of this entry type, and sets all the fields to their default values.
@@ -163,6 +163,7 @@ export class Entry<
     for (const hook of this._entryType.hooks[hookName]) {
       await hook.handler({
         orm: this._orm,
+        inCloud: this._inCloud,
         entry: this as any,
         [this._name]: this as any,
         [this._type]: this as any,

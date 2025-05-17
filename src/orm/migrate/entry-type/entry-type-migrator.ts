@@ -7,7 +7,7 @@ import type {
   TableConstraint,
 } from "#/orm/db/db-types.ts";
 import { EntryMigrationPlan } from "#/orm/migrate/entry-type/entry-migration-plan.ts";
-import type { InFieldMap } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
@@ -140,7 +140,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   #loadTargetColumns(): void {
     for (const field of this.entryType.fields.values()) {
       if (field.key == "id") {
-        const idField = field as InFieldMap["IDField"];
+        const idField = field as InField<"IDField">;
         this.migrationPlan.table.idMode = idField.idMode;
         continue;
       }

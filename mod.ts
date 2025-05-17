@@ -1,4 +1,5 @@
 import { InCloud } from "#/inspatial-cloud.ts";
+export { InQueue } from "#/in-queue/in-queue.ts";
 export {
   ChildEntry,
   ChildEntryList,

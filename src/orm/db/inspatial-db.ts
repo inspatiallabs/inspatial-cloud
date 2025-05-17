@@ -658,7 +658,7 @@ export class InSpatialDB {
       query += ` NOT NULL`;
     }
     if (column.columnDefault) {
-      query += ` DEFAULT ${column.columnDefault}`;
+      query += ` DEFAULT ${this.#formatValue(column.columnDefault)}`;
     }
 
     // return query;

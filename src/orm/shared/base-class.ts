@@ -13,11 +13,13 @@ import type {
   InFieldMap,
   InFieldType,
 } from "#/orm/field/field-def-types.ts";
+import InCloud from "@inspatial/cloud";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
   _name: N;
   _orm: InSpatialORM;
+  _inCloud: InCloud;
   _db: InSpatialDB;
   _data: Map<string, any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
@@ -50,6 +52,7 @@ export class BaseClass<N extends string = string> {
 
   constructor(
     orm: InSpatialORM,
+    inCloud: InCloud,
     name: N,
     type: "settings" | "entry",
     user?: Record<string, any>,
@@ -58,12 +61,12 @@ export class BaseClass<N extends string = string> {
     this._type = type;
     this._name = name;
     this._orm = orm;
-    this._db = orm.db;
+    this._inCloud = inCloud, this._db = orm.db;
     this._data = new Map();
     this._childrenData = new Map();
   }
 
-  async runAction<T = void>(
+  async runAction<T = unknown>(
     actionKey: string,
     data?: Record<string, any>,
   ): Promise<T> {
@@ -72,6 +75,7 @@ export class BaseClass<N extends string = string> {
     data = data || {};
     return await action.action({
       orm: this._orm,
+      inCloud: this._inCloud,
       data,
       [this._name]: this as any,
       [this._type]: this as any,
