@@ -26,6 +26,9 @@ import type {
 } from "#/orm/settings/settings-base.ts";
 import type { InField } from "#/orm/field/field-def-types.ts";
 import type { Choice } from "#/orm/field/types.ts";
+import { EntryConfig, EntryTypeConfig } from "#/orm/entry/types.ts";
+import { SettingsConfig, SettingsTypeConfig } from "#/orm/settings/types.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class Role {
   readonly roleName: string;
@@ -276,8 +279,12 @@ function buildEntryTypeForRole(
   const config = {
     ...entryType.sourceConfig,
   };
+  delete config.roles;
 
+  setFieldPermissions(config, permission);
   const roleEntryType = new EntryType(entryType.name, config);
+  roleEntryType.permission = permission;
+  roleEntryType.config.extension = entryType.config.extension;
   return roleEntryType;
 }
 
@@ -288,7 +295,39 @@ function buildSettingsTypeForRole(
   const config = {
     ...settingsType.sourceConfig,
   };
-
+  delete config.roles;
+  setFieldPermissions(config, permission);
   const roleSettingsType = new SettingsType(settingsType.name, config);
+  roleSettingsType.config.extension = settingsType.config.extension;
+  roleSettingsType.permission = permission;
   return roleSettingsType;
+}
+
+function setFieldPermissions(
+  config: EntryConfig | SettingsConfig,
+  permission: EntryPermission | SettingsPermission,
+): void {
+  const fields: Map<string, InField> = new Map(
+    config.fields.map((field) => [field.key, { ...field }]),
+  );
+
+  if (permission.modify === false) {
+    for (const field of fields.values()) {
+      field.readOnly = true;
+    }
+  }
+  if (permission.fields) {
+    for (
+      const [fieldKey, fieldPermission] of Object.entries(permission.fields)
+    ) {
+      const field = fields.get(fieldKey);
+      if (!field) {
+        raiseCloudException(`field ${fieldKey} doesn't exist!`);
+      }
+      if (fieldPermission?.view === false) {
+        field.hidden = true;
+      }
+    }
+  }
+  config.fields = Array.from(fields.values());
 }

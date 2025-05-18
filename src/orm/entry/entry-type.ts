@@ -1,5 +1,6 @@
 import type {
   EntryActionDefinition,
+  EntryConfig,
   EntryHookDefinition,
   EntryTypeConfig,
   ExtractFieldKeys,
@@ -11,7 +12,10 @@ import type { IDMode } from "#/orm/field/types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { BaseConfig } from "#/orm/shared/shared-types.ts";
-import type { EntryRole } from "#/orm/roles/entry-permissions.ts";
+import type {
+  EntryPermission,
+  EntryRole,
+} from "#/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -39,39 +43,12 @@ export class EntryType<
     beforeValidate: [],
     validate: [],
   };
+  permission: EntryPermission;
   roles: Map<string, EntryRole> = new Map();
-  sourceConfig: BaseConfig & {
-    /**
-     * The field to use as the display value instead of the ID.
-     */
-    titleField?: FK;
-    idMode?: IDMode;
-    imageField?: FK;
-    defaultListFields?: Array<FK>;
-    defaultSortField?: FK;
-    defaultSortDirection?: "asc" | "desc";
-    searchFields?: Array<FK>;
-    actions?: A;
-    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-    roles?: Array<EntryRole>;
-  };
+  sourceConfig: EntryConfig<E, A, FK>;
   constructor(
     name: N,
-    config: BaseConfig & {
-      /**
-       * The field to use as the display value instead of the ID.
-       */
-      titleField?: FK;
-      idMode?: IDMode;
-      imageField?: FK;
-      defaultListFields?: Array<FK>;
-      defaultSortField?: FK;
-      defaultSortDirection?: "asc" | "desc";
-      searchFields?: Array<FK>;
-      actions?: A;
-      hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-      roles?: Array<EntryRole>;
-    },
+    config: EntryConfig<E, A, FK>,
   ) {
     super(name, config);
     this.sourceConfig = {
@@ -79,6 +56,12 @@ export class EntryType<
     };
     this.defaultSortField = config.defaultSortField;
     this.defaultSortDirection = config.defaultSortDirection;
+    this.permission = {
+      create: true,
+      view: true,
+      modify: true,
+      delete: true,
+    };
     this.fields.set("id", {
       key: "id",
       type: "IDField",

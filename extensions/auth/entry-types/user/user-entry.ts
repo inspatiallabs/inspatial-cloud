@@ -33,6 +33,12 @@ const userEntry = new EntryType<User>("user", {
       modify: false,
       create: false,
       delete: false,
+      fields: {
+        systemAdmin: {
+          view: false,
+          modify: false,
+        },
+      },
     },
   }],
   hooks: {

@@ -2,10 +2,13 @@ import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
 import type { IDMode, InValue } from "#/orm/field/types.ts";
 import type {
+  BaseConfig,
   BaseTypeConfig,
   BaseTypeInfo,
 } from "#/orm/shared/shared-types.ts";
 import type { InField } from "#/orm/field/field-def-types.ts";
+import type { EntryHookName } from "#/orm/orm-types.ts";
+import type { EntryRole } from "#/orm/roles/entry-permissions.ts";
 /* Hooks */
 type EntryHookFunction<
   E extends EntryBase = EntryBase,
@@ -93,6 +96,28 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   searchFields?: Array<any>;
   defaultListFields?: Array<string>;
 }
+
+export type EntryConfig<
+  E extends EntryBase = GenericEntry,
+  A extends Array<EntryActionDefinition<E>> = Array<
+    EntryActionDefinition<E>
+  >,
+  FK extends PropertyKey = ExtractFieldKeys<E>,
+> = BaseConfig & {
+  /**
+   * The field to use as the display value instead of the ID.
+   */
+  titleField?: FK;
+  idMode?: IDMode;
+  imageField?: FK;
+  defaultListFields?: Array<FK>;
+  defaultSortField?: FK;
+  defaultSortDirection?: "asc" | "desc";
+  searchFields?: Array<FK>;
+  actions?: A;
+  hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
+  roles?: Array<EntryRole<FK>>;
+};
 
 export type IDValue = string | number;
 

@@ -1,10 +1,16 @@
 import type {
+  BaseConfig,
   BaseTypeConfig,
   BaseTypeInfo,
 } from "#/orm/shared/shared-types.ts";
-import type { SettingsBase } from "#/orm/settings/settings-base.ts";
+import type {
+  GenericSettings,
+  SettingsBase,
+} from "#/orm/settings/settings-base.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { InField, InFieldType } from "#/orm/field/field-def-types.ts";
+import type { HookName } from "#/orm/orm-types.ts";
+import type { SettingsRole } from "#/orm/roles/settings-permissions.ts";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -12,6 +18,14 @@ export interface SettingsTypeInfo extends BaseTypeInfo {
 
 export interface SettingsTypeConfig extends BaseTypeConfig {
 }
+
+export type SettingsConfig<S extends SettingsBase = GenericSettings> =
+  & BaseConfig
+  & {
+    actions?: Array<SettingsActionDefinition<S>>;
+    hooks?: Partial<Record<HookName, Array<SettingsHookDefinition<S>>>>;
+    roles?: Array<SettingsRole>;
+  };
 
 export interface SettingsRow {
   id: string;
