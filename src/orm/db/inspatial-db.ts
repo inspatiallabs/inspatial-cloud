@@ -1105,7 +1105,9 @@ export class InSpatialDB {
           return "null" as ValueType<Join>;
         }
         try {
-          return `'${JSON.stringify(value) as ValueType<Join>}'` as ValueType<
+          return `'${JSON.stringify(value).replaceAll(/'/g, "''") as ValueType<
+            Join
+          >}'` as ValueType<
             Join
           >;
         } catch (_e) {
