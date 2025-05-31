@@ -20,7 +20,7 @@ import {
 } from "#/orm/db/postgres/maps/maps.ts";
 import { AUTH } from "#/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "#/orm/db/postgres/scram.ts";
-import { toCamelCase } from "#/orm/db/utils.ts";
+import { convertString } from "#/utils/mod.ts";
 
 export class PostgresClient {
   private conn!: Deno.Conn;
@@ -311,7 +311,7 @@ export class PostgresClient {
       const format = this.reader.readInt16();
       const column: ColumnDescription = {
         name,
-        camelName: toCamelCase(name),
+        camelName: convertString(name, "camel"),
         tableID,
         columnID,
         dataTypeID,

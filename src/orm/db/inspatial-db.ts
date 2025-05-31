@@ -8,16 +8,16 @@ import type {
   PostgresColumn,
   QueryResultFormatted,
   TableConstraint,
-  ValueType,
 } from "#/orm/db/db-types.ts";
 
 import type { IDMode } from "#/orm/field/types.ts";
 import type { IDValue } from "#/orm/entry/types.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
 import { PostgresPool } from "#/orm/db/postgres/pgPool.ts";
 import type { PgClientConfig } from "#/orm/db/postgres/pgTypes.ts";
 import convertString from "#/utils/convert-string.ts";
 import { inLog } from "#/in-log/in-log.ts";
+import { makeFilterQuery } from "#/orm/db/filters.ts";
+import { formatColumnName, formatDbValue } from "#/orm/db/utils.ts";
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -128,7 +128,7 @@ export class InSpatialDB {
    * Get a list of column definitions for a table
    */
   async getTableColumns(tableName: string): Promise<PostgresColumn[]> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const columns = [
       "tableCatalog",
       "tableSchema",
@@ -175,9 +175,7 @@ export class InSpatialDB {
       "generationExpression",
       "isUpdatable",
     ];
-    const formattedColumns = columns.map((column) =>
-      this.#formatColumnName(column)
-    );
+    const formattedColumns = columns.map((column) => formatColumnName(column));
     const query = `SELECT ${
       formattedColumns.join(", ")
     } FROM information_schema.columns WHERE table_schema = '${this.schema}' AND table_name = '${tableName}'`;
@@ -185,7 +183,7 @@ export class InSpatialDB {
     return result.rows.map((row) => {
       return {
         ...row,
-        columnName: this.#snakeToCamel(row.columnName),
+        columnName: snakeToCamel(row.columnName),
       };
     });
   }
@@ -194,7 +192,7 @@ export class InSpatialDB {
    * Add a comment to a table
    */
   async addTableComment(tableName: string, comment: string): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       `COMMENT ON TABLE ${this.schema}.${tableName} IS '${comment}'`;
     await this.query(query);
@@ -204,7 +202,7 @@ export class InSpatialDB {
    * Get the comment for a table
    */
   async getTableComment(tableName: string): Promise<string> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       `SELECT obj_description('${this.schema}.${tableName}'::regclass, 'pg_class') as comment`;
     const result = await this.query<{ comment: string }>(query);
@@ -217,14 +215,14 @@ export class InSpatialDB {
     const query =
       `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}'`;
     const result = await this.query<{ tableName: string }>(query);
-    return result.rows.map((row) => this.#snakeToCamel(row.tableName));
+    return result.rows.map((row) => snakeToCamel(row.tableName));
   }
 
   /**
    * Check if a table exists in the database
    */
   async tableExists(tableName: string): Promise<boolean> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${tableName}'`;
     const result = await this.query<{ tableName: string }>(query);
@@ -240,7 +238,7 @@ export class InSpatialDB {
     tableName: string,
     idMode?: IDMode | "manual",
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     idMode = idMode || "ulid";
     let query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} ( id`;
     switch (idMode) {
@@ -275,14 +273,14 @@ export class InSpatialDB {
     tableName: string,
     data: Record<string, any>,
   ): Promise<QueryResultFormatted<T>["rows"][number]> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const columnKeys = Object.keys(data);
     const columns = columnKeys.map((key) => {
-      return this.#formatColumnName(key);
+      return formatColumnName(key);
     });
 
     const values = columnKeys.map((key) => {
-      return this.#formatValue(data[key]);
+      return formatDbValue(data[key]);
     });
     const query = `INSERT INTO ${this.schema}.${tableName} (${
       columns.join(", ")
@@ -301,8 +299,8 @@ export class InSpatialDB {
     tableName: string,
     value: unknown,
   ): Promise<T | undefined> {
-    tableName = this.#toSnake(tableName);
-    value = this.#formatValue(value);
+    tableName = toSnake(tableName);
+    value = formatDbValue(value);
     const query =
       `SELECT * FROM ${this.schema}.${tableName} WHERE id = ${value}`;
     const result = await this.query<T>(query);
@@ -324,11 +322,11 @@ export class InSpatialDB {
     id: string | number,
     data: Record<string, any>,
   ): Promise<QueryResultFormatted<T>> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const values = Object.entries(data).map(([key, value]) => {
-      return `${this.#formatColumnName(key)} = ${this.#formatValue(value)}`;
+      return `${formatColumnName(key)} = ${formatDbValue(value)}`;
     });
-    const idValue = this.#formatValue(id);
+    const idValue = formatDbValue(id);
 
     const query = `UPDATE ${this.schema}.${tableName} SET ${
       values.join(", ")
@@ -342,9 +340,9 @@ export class InSpatialDB {
    * @param id
    */
   async deleteRow(tableName: string, id: IDValue): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query = `DELETE FROM ${this.schema}.${tableName} WHERE id = ${
-      this.#formatValue(id)
+      formatDbValue(id)
     }`;
     await this.query(query);
   }
@@ -362,11 +360,11 @@ export class InSpatialDB {
     tableName: string,
     filters?: DBFilter,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     let query = `DELETE FROM ${this.schema}.${tableName}`;
     if (filters) {
       query += " WHERE ";
-      query += this.#makeFilter(filters);
+      query += this.#makeAndFilter(filters);
     }
     await this.query(query);
   }
@@ -380,7 +378,7 @@ export class InSpatialDB {
     options?: DBListOptions,
     schema?: string,
   ): Promise<QueryResultFormatted<T> & { totalCount: number }> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     schema = schema || this.schema;
     if (!options) {
       options = {} as DBListOptions;
@@ -396,7 +394,7 @@ export class InSpatialDB {
             column.key,
           );
         }
-        return this.#formatColumnName(column);
+        return formatColumnName(column);
       }).join(", ");
     }
     let query = `SELECT ${columns} FROM ${schema}.${tableName}`;
@@ -421,7 +419,7 @@ export class InSpatialDB {
     }
 
     if (options.orderBy) {
-      query += ` ORDER BY ${this.#formatColumnName(options.orderBy)}`;
+      query += ` ORDER BY ${formatColumnName(options.orderBy)}`;
       const order = options.order || "ASC";
       query += ` ${order}`;
     }
@@ -460,13 +458,13 @@ export class InSpatialDB {
     value: unknown,
     filters: DBFilter,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     let query = `UPDATE ${this.schema}.${tableName} SET ${
-      this.#formatColumnName(column)
-    } = ${this.#formatValue(value)}`;
+      formatColumnName(column)
+    } = ${formatDbValue(value)}`;
     if (filters) {
       query += " WHERE ";
-      query += this.#makeFilter(filters);
+      query += this.#makeAndFilter(filters);
     }
     await this.query(query);
   }
@@ -478,10 +476,10 @@ export class InSpatialDB {
     id: string,
     column: string,
   ): Promise<T | undefined> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query = `SELECT ${
-      this.#formatColumnName(column)
-    } FROM ${this.schema}.${tableName} WHERE id = ${this.#formatValue(id)}`;
+      formatColumnName(column)
+    } FROM ${this.schema}.${tableName} WHERE id = ${formatDbValue(id)}`;
     const result = await this.query<Record<string, T>>(query);
     if (result.rowCount === 0) {
       return undefined;
@@ -500,12 +498,12 @@ export class InSpatialDB {
       groupBy?: K;
     },
   ): Promise<any> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     let countQuery = `SELECT COUNT(*) FROM ${this.schema}.${tableName}`;
     if (options?.groupBy) {
       countQuery = `SELECT ${
         options.groupBy.map((column) => {
-          return this.#formatColumnName(column as string);
+          return formatColumnName(column as string);
         }).join(", ")
       }, COUNT(*) FROM ${this.schema}.${tableName}`;
     }
@@ -527,7 +525,7 @@ export class InSpatialDB {
     if (options?.groupBy) {
       countQuery += ` GROUP BY ${
         options.groupBy.map((column) => {
-          return this.#formatColumnName(column as string);
+          return formatColumnName(column as string);
         }).join(", ")
       }`;
       const groupedResult = await this.query<CountGroupedResult<K>>(countQuery);
@@ -540,7 +538,7 @@ export class InSpatialDB {
    * Drop a table from the database
    */
   dropTable(tableName: string): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     throw new Error(`dropTable not implemented for postgres`);
   }
   /**
@@ -557,14 +555,14 @@ export class InSpatialDB {
   ): Promise<void> {
     const { tableName, indexName, columns, unique } = options;
     const uniqueStr = unique ? "UNIQUE" : "";
-    const tableNameSnake = this.#toSnake(tableName);
+    const tableNameSnake = toSnake(tableName);
 
     const fieldsStr = (Array.isArray(columns) ? columns : [columns]).map(
-      (column) => this.#formatColumnName(column),
+      (column) => formatColumnName(column),
     ).join(", ");
     const includeStr = options.include
       ? `INCLUDE (${
-        options.include.map((col) => this.#formatColumnName(col)).join(", ")
+        options.include.map((col) => formatColumnName(col)).join(", ")
       })`
       : "";
     const query =
@@ -577,7 +575,7 @@ export class InSpatialDB {
    * @param indexName The name of the index
    */
   async dropIndex(tableName: string, indexName: string): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query = `DROP INDEX ${indexName}`;
     await this.query(query);
   }
@@ -586,7 +584,7 @@ export class InSpatialDB {
    * Check if an index exists on a table
    */
   async hasIndex(tableName: string, indexName: string): Promise<boolean> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       `SELECT indexname FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
     const result = await this.query<{ indexname: string }>(query);
@@ -597,7 +595,7 @@ export class InSpatialDB {
    * Get an index info from a table
    */
   async getIndex(tableName: string, indexName: string): Promise<any> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       `SELECT * FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
     const result = await this.query(query);
@@ -614,7 +612,7 @@ export class InSpatialDB {
       const query = `VACUUM ANALYZE`;
       return await this.query(query);
     }
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query = `VACUUM ANALYZE ${this.schema}.${tableName}`;
     return await this.query(query);
   }
@@ -627,7 +625,7 @@ export class InSpatialDB {
     tableName: string,
     column: PgColumnDefinition,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const columnName = convertString(column.columnName, "snake", true);
 
     let query = `ALTER TABLE ${this.schema}.${tableName} ADD "${columnName}"`;
@@ -670,8 +668,8 @@ export class InSpatialDB {
    * Drop a column from a table
    */
   async removeColumn(tableName: string, columnName: string): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    columnName = this.#formatColumnName(columnName);
+    tableName = toSnake(tableName);
+    columnName = formatColumnName(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} DROP COLUMN ${columnName}`;
     await this.query(query);
@@ -685,8 +683,8 @@ export class InSpatialDB {
     columnName: string,
     columnDataType: PgDataTypeDefinition,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    columnName = this.#formatColumnName(columnName);
+    tableName = toSnake(tableName);
+    columnName = formatColumnName(columnName);
     let query =
       `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName}`;
     const { dataType } = columnDataType;
@@ -710,9 +708,9 @@ export class InSpatialDB {
    * @param columnName The name of the column
    */
   async makeColumnUnique(tableName: string, columnName: string): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    columnName = this.#toSnake(columnName);
-    const formattedColumn = this.#formatColumnName(columnName);
+    tableName = toSnake(tableName);
+    columnName = toSnake(columnName);
+    const formattedColumn = formatColumnName(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${formattedColumn})`;
     await this.query(query);
@@ -724,8 +722,8 @@ export class InSpatialDB {
     tableName: string,
     columnName: string,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    columnName = this.#toSnake(columnName);
+    tableName = toSnake(tableName);
+    columnName = toSnake(columnName);
     const query =
       `ALTER TABLE ${this.schema}.${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
     await this.query(query);
@@ -743,16 +741,16 @@ export class InSpatialDB {
     allowNull: boolean,
     defaultIfNull?: unknown,
   ): Promise<void> {
-    tableName = this.#toSnake(tableName);
-    columnName = this.#formatColumnName(columnName);
+    tableName = toSnake(tableName);
+    columnName = formatColumnName(columnName);
     let query = "";
     if (defaultIfNull !== undefined && !allowNull) {
       query +=
         `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} SET DEFAULT ${
-          this.#formatValue(defaultIfNull)
+          formatDbValue(defaultIfNull)
         };`;
       query += `UPDATE ${this.schema}.${tableName} SET ${columnName} = ${
-        this.#formatValue(defaultIfNull)
+        formatDbValue(defaultIfNull)
       } WHERE ${columnName} IS NULL;`;
     }
     query +=
@@ -799,10 +797,10 @@ export class InSpatialDB {
       foreignColumnName,
       options,
     } = foreignKey;
-    tableName = this.#toSnake(tableName);
-    const formattedCol = this.#formatColumnName(columnName);
-    foreignTableName = this.#toSnake(foreignTableName);
-    foreignColumnName = this.#formatColumnName(foreignColumnName);
+    tableName = toSnake(tableName);
+    const formattedCol = formatColumnName(columnName);
+    foreignTableName = toSnake(foreignTableName);
+    foreignColumnName = formatColumnName(foreignColumnName);
     let query =
       `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES ${this.schema}.${foreignTableName} (${foreignColumnName})`;
     if (options?.onDelete) {
@@ -855,7 +853,7 @@ export class InSpatialDB {
   async getTableConstraints(
     tableName: string,
   ): Promise<Array<TableConstraint>> {
-    tableName = this.#toSnake(tableName);
+    tableName = toSnake(tableName);
     const query =
       // `SELECT * FROM information_schema.table_constraints WHERE table_name = '${tableName}' AND table_schema = '${this.schema}'`;
       `SELECT
@@ -875,20 +873,20 @@ export class InSpatialDB {
     return result.rows.map((row) => {
       return {
         ...row,
-        columnName: this.#snakeToCamel(row.columnName),
+        columnName: snakeToCamel(row.columnName),
       };
     });
   }
   #makeOrFilter(
     filters: DBFilter,
   ) {
-    const filterStrings = this.#makeFilter(filters);
+    const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" OR ");
   }
   #makeAndFilter(
     filters: DBFilter,
   ) {
-    const filterStrings = this.#makeFilter(filters);
+    const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" AND ");
   }
 
@@ -899,208 +897,21 @@ export class InSpatialDB {
     fieldName: string,
     parentAlias?: string,
   ): string {
-    fieldName = this.#toSnake(fieldName);
+    fieldName = toSnake(fieldName);
     const parentTable = parentAlias ?? `${schema}.${parentTableName}`;
     return `(SELECT string_agg(values.value, ', ')
     FROM (SELECT value FROM ${schema}.${entryType}_${fieldName}_mc_values WHERE parent_id = ${parentTable}.id) AS values) AS ${fieldName}`;
   }
-  #makeFilter(
-    filters: DBFilter,
-  ): string[] {
-    if (filters.length === 0) {
-      return [];
-    }
 
-    const filterStrings = filters.map((filter) => {
-      let filterString = "";
-      const column = this.#formatColumnName(filter.field);
-
-      const operator = filter.op;
-
-      switch (operator) {
-        case "=":
-        case "equal":
-          filterString = `${column} = ${this.#formatValue(filter.value)}`;
-          break;
-        case "!=":
-        case "notEqual":
-          filterString = `${column} <> ${this.#formatValue(filter.value)}`;
-          break;
-
-        case ">":
-        case "greaterTan":
-          filterString = `${column} >${this.#formatValue(filter.value)}`;
-          break;
-        case "<":
-        case "lessThan":
-          filterString = `${column} < ${this.#formatValue(filter.value)}`;
-          break;
-        case "greaterThanOrEqual":
-        case ">=":
-          filterString = `${column} >= ${this.#formatValue(filter.value)}`;
-          break;
-        case "lessThanOrEqual":
-        case "<=":
-          filterString = `${column} <= ${this.#formatValue(filter.value)}`;
-          break;
-        case "contains":
-          filterString = `${column} ${
-            filter.caseSensitive ? "LIKE" : "ILIKE"
-          } '%${this.#formatValue(filter.value, false, true)}%'`;
-          break;
-        case "notContains":
-          filterString = `${column} NOT ${
-            filter.caseSensitive ? "LIKE" : "ILIKE"
-          } '%${this.#formatValue(filter.value, false, true)}%'`;
-          break;
-        case "startsWith":
-          filterString = `${column} ${
-            filter.caseSensitive ? "LIKE" : "ILIKE"
-          } '${this.#formatValue(filter.value, false, true)}%'`;
-          break;
-        case "endsWith":
-          filterString = `${column} ${
-            filter.caseSensitive ? "LIKE" : "ILIKE"
-          } '%${this.#formatValue(filter.value, false, true)}'`;
-          break;
-        case "isEmpty":
-          filterString = `${column} IS NULL`;
-          break;
-        case "isNotEmpty":
-          filterString = `${column} IS NOT NULL`;
-          break;
-        case "inList":
-          filterString = `${column} IN (${
-            this.#formatValue(filter.value, true)
-          })`;
-          break;
-        case "notInList":
-          filterString = `${column} NOT IN (${
-            this.#formatValue(filter.value, true)
-          })`;
-          break;
-        case "between":
-          {
-            filterString = `${column} BETWEEN ${
-              this.#formatValue(filter.value[0])
-            } AND ${this.#formatValue(filter.value[1])}`;
-          }
-          break;
-        case "notBetween":
-          {
-            filterString = `${column} NOT BETWEEN ${
-              this.#formatValue(filter.value[0])
-            } AND ${this.#formatValue(filter.value[1])}`;
-          }
-          break;
-        default:
-          raiseORMException(
-            `filter operation ${filter} is not an valid option`,
-          );
-      }
-      return filterString;
-    });
-
-    return filterStrings.filter((filter) => filter !== "");
-  }
-  /**
-   * Format a column name for use in a query. Keywords are escaped with double quotes
-   */
-  #formatColumnName(column: string): string {
-    column = this.#toSnake(column);
-    const reservedWords = ["order", "user", "group"];
-    if (reservedWords.includes(column)) {
-      return `"${column}"`;
-    }
-    if (column.endsWith("#")) {
-      return `"${column}"`;
-    }
-
-    return column;
-  }
-
-  /**
-   * Convert a camelCase string to snake_case
-   */
-  #toSnake(value: string): string {
-    return convertString(value, "snake", true);
-  }
-  /**
-   * Convert a snake_case string to camelCase
-   */
-  #snakeToCamel(value: string): string {
-    return convertString(value, "camel");
-  }
   /**
    * Format a value for use in a query
    */
-  #formatValue<Join extends boolean>(
-    value: any,
-    joinList?: Join,
-    noQuotes?: boolean,
-  ): ValueType<Join> | undefined {
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return;
-      }
-      if (joinList) {
-        return value.map((v) => this.#formatValue(v)).join(", ") as ValueType<
-          Join
-        >;
-      }
-      return value.map((v) => this.#formatValue(v)) as ValueType<Join>;
-    }
-    if (value === '"') {
-      return '""' as ValueType<Join>;
-    }
-    switch (typeof value) {
-      case "string":
-        if (value === "") {
-          return "''" as ValueType<Join>;
-        }
-        // escape single quotes
+}
 
-        value = value.replaceAll(/'/g, "''");
-        if (noQuotes) {
-          return value as ValueType<Join>;
-        }
-        return `'${value}'` as ValueType<Join>;
-      case "number":
-      case "bigint":
-        if (Number.isNaN(value)) {
-          return "null" as ValueType<Join>;
-        }
-        return value as ValueType<Join>;
-      case "boolean":
-        if (value === true) {
-          return "true" as ValueType<Join>;
-        }
-        if (value === false) {
-          return "false" as ValueType<Join>;
-        }
-        return "null" as ValueType<Join>;
-      case "undefined":
-        return "null" as ValueType<Join>;
-      case "object":
-        if (value === null) {
-          return "null" as ValueType<Join>;
-        }
-        try {
-          return `'${JSON.stringify(value).replaceAll(/'/g, "''") as ValueType<
-            Join
-          >}'` as ValueType<
-            Join
-          >;
-        } catch (_e) {
-          inLog.error(`Error formatting value: ${value}`);
-          raiseORMException(
-            `Error formatting value for database: ${value.toString()}`,
-            "InSpatialDB",
-          );
-        }
-        break;
-      default:
-        return value;
-    }
-  }
+function toSnake(value: string) {
+  return convertString(value, "snake", true);
+}
+
+function snakeToCamel(value: string) {
+  return convertString(value, "camel");
 }
