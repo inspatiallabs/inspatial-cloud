@@ -4,8 +4,8 @@ import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { HookName } from "#/orm/orm-types.ts";
 
 import dateUtils from "#/utils/date-utils.ts";
-import { InField } from "#/orm/field/field-def-types.ts";
-import { InValue } from "#/orm/field/types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
+import type { InValue } from "#/orm/field/types.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -47,9 +47,11 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     this._modifiedValues.clear();
     this.#updatedAt.clear();
     const result = await this._db.getRows<SettingsRow>("inSettings", {
-      filter: {
-        settingsType: this._name,
-      },
+      filter: [{
+        field: "settingsType",
+        op: "=",
+        value: this._name,
+      }],
       columns: ["field", "value", "updatedAt"],
     });
     for (const row of result.rows) {

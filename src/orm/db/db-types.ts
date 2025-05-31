@@ -113,49 +113,20 @@ export interface QueryResultFormatted<T = Record<string, any>> {
 
 export type ValueType<Join> = Join extends false ? Array<string>
   : string | number;
-export interface AdvancedFilter {
-  op:
-    | "contains"
-    | "notContains"
-    | "inList"
-    | "notInList"
-    | "between"
-    | "notBetween"
-    | "is"
-    | "isNot"
-    | "isEmpty"
-    | "isNotEmpty"
-    | "startsWith"
-    | "endsWith"
-    | "greaterThan"
-    | "lessThan"
-    | "greaterThanOrEqual"
-    | "lessThanOrEqual"
-    | "equal"
-    | ">"
-    | "<"
-    | ">="
-    | "<="
-    | "="
-    | "!=";
-  value: any;
-}
+
 type BaseKeys = "id" | "createdAt" | "updatedAt";
 export interface ListOptions<T extends EntryBase = EntryBase> {
   columns?: (ExtractFieldKeys<T> | BaseKeys)[];
-  filter?: DBFilter<T>;
-  orFilter?: DBFilter<T>;
+  filter?: DBFilter;
+  orFilter?: DBFilter;
   limit?: number;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
 }
 
-export type DBFilter<T = Record<string, unknown>> = Partial<
-  Record<
-    (ExtractFieldKeys<T> | BaseKeys),
-    string | number | boolean | null | AdvancedFilter
-  >
+export type DBFilter = Array<
+  InFilter
 >;
 
 export interface DBListOptions {
@@ -192,3 +163,65 @@ type DBColumnType =
   | "TEXT"
   | "TIMESTAMP WITH TIME ZONE"
   | "TIMESTAMP WITHOUT TIME ZONE";
+
+// Filters
+
+type EqualsOp = "=" | "equal" | "!=" | "notEqual";
+type ComparisonOp =
+  | "<"
+  | "<="
+  | ">"
+  | ">="
+  | "lessThanOrEqual"
+  | "lessThan"
+  | "greaterTan"
+  | "greaterThanOrEqual";
+type BetweenOps = "between" | "notBetween";
+type EmptyOps = "isEmpty" | "isNotEmpty";
+type ListOps = "notInList" | "inList";
+type ContainsOps = "contains" | "notContains" | "startsWith" | "endsWith";
+export type FilterOps =
+  | EqualsOp
+  | ComparisonOp
+  | BetweenOps
+  | EmptyOps
+  | ListOps
+  | ContainsOps;
+interface FilterBase {
+  field: string;
+}
+
+interface FilterInList extends FilterBase {
+  op: ListOps;
+  value: Array<string> | Array<number>;
+}
+
+interface FilterEqual extends FilterBase {
+  op: EqualsOp;
+  value: string | number;
+}
+interface FilterBetween extends FilterBase {
+  op: BetweenOps;
+  value: [string, string] | [number, number];
+}
+
+interface FilterEmpty extends FilterBase {
+  op: EmptyOps;
+}
+interface FilterCompare extends FilterBase {
+  op: ComparisonOp;
+  value: string | number;
+}
+
+interface FilterContains extends FilterBase {
+  op: ContainsOps;
+  value: string;
+  caseSensitive?: boolean;
+}
+export type InFilter =
+  | FilterInList
+  | FilterEqual
+  | FilterBetween
+  | FilterEmpty
+  | FilterCompare
+  | FilterContains;

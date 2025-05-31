@@ -86,9 +86,11 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       this._tableName,
       {
         columns: "*",
-        filter: {
-          parent: this._parentId,
-        },
+        filter: [{
+          field: "parent",
+          op: "=",
+          value: this._parentId,
+        }],
       },
     );
     for (const childRow of children.rows) {
@@ -105,9 +107,11 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
   }
   async clear(): Promise<void> {
-    await this._orm.db.deleteRows(this._tableName, {
-      parent: this._parentId,
-    });
+    await this._orm.db.deleteRows(this._tableName, [{
+      field: "parent",
+      op: "=",
+      value: this._parentId,
+    }]);
 
     await this.load(this._parentId);
   }
@@ -115,9 +119,11 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     const dbRecords = await this._orm.db.getRows<{ id: string }>(
       this._tableName,
       {
-        filter: {
-          parent: this._parentId,
-        },
+        filter: [{
+          field: "parent",
+          op: "=",
+          value: this._parentId,
+        }],
         columns: ["id"],
       },
     );

@@ -2,7 +2,6 @@ import type { CloudExtension } from "#/app/cloud-extension.ts";
 
 import { CloudAPI } from "#/api/cloud-api.ts";
 import { InCache } from "#/app/cache/in-cache.ts";
-import type { CloudAPIGroup } from "#/app/cloud-action.ts";
 import { InRequest } from "#/app/in-request.ts";
 import authCloudExtension from "#extensions/auth/mod.ts";
 import ormCloudExtension from "#extensions/orm/mod.ts";
@@ -35,6 +34,7 @@ import { initCloud } from "#/init.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
+import { CloudAPIGroup } from "#/api/cloud-group.ts";
 
 export class InCloud<
   N extends string = any,

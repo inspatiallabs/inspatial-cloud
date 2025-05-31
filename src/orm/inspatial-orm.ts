@@ -406,6 +406,7 @@ export class InSpatialORM {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options as any };
     }
+    console.log({ dbOptions });
     const result = await this.db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;
   }

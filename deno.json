@@ -14,9 +14,9 @@
     "#client/": "./client/"
   },
   "tasks": {
-    "check": "deno publish --dry-run"
+    "check": "deno publish --dry-run",
+    "type-check": "deno check --all mod.ts"
   },
-  "unstable": ["broadcast-channel"],
   "lint": {
     "rules": {
       "tags": ["jsr", "recommended"],

@@ -7,9 +7,11 @@ const resetPassword = new CloudAPIAction("resetPassword", {
   authRequired: false,
   async run({ app, inRequest, params }) {
     const { email } = params;
-    const user = await app.orm.findEntry("user", {
-      email,
-    });
+    const user = await app.orm.findEntry("user", [{
+      field: "email",
+      op: "=",
+      value: email,
+    }]);
     if (!user) {
       raiseServerException(
         404,

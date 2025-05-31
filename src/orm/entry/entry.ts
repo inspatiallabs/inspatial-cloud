@@ -5,7 +5,6 @@ import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import ulid from "#/orm/utils/ulid.ts";
-import { inLog } from "#/in-log/in-log.ts";
 
 export class Entry<
   N extends string = string,
@@ -274,9 +273,11 @@ export class Entry<
           registryField.targetEntryType,
           registryField.targetValueField,
           this._modifiedValues.get(fieldKey)!.to,
-          {
-            [registryField.targetIdField]: this.id,
-          },
+          [{
+            field: registryField.targetIdField,
+            op: "=",
+            value: this.id,
+          }],
         );
       }
     }

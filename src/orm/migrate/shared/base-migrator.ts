@@ -32,13 +32,15 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
   async loadExistingChildren(): Promise<void> {
     const result = await this.db.getRows<{ tableName: string }>("tables", {
       columns: ["tableName"],
-      filter: {
-        tableSchema: this.db.schema,
-        tableName: {
-          op: "startsWith",
-          value: convertString(`child_${this.typeDef.name}`, "snake", true),
-        },
-      },
+      filter: [{
+        field: "tableSchema",
+        op: "=",
+        value: this.db.schema,
+      }, {
+        field: "tableName",
+        op: "startsWith",
+        value: convertString(`child_${this.typeDef.name}`, "snake", true),
+      }],
     }, "information_schema");
     for (const row of result.rows) {
       const columns = await this.db.getTableColumns(row.tableName);
