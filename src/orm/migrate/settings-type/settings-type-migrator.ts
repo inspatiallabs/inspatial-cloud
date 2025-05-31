@@ -52,9 +52,13 @@ export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
       return;
     }
     const result = await this.db.getRows<SettingsRow>("inSettings", {
-      filter: {
-        settingsType: this.settingsType.name,
-      },
+      filter: [
+        {
+          field: "settingsType",
+          op: "=",
+          value: this.settingsType.name,
+        },
+      ],
       columns: ["id", "settingsType", "field", "value"],
     });
     this.existingFields = new Map();

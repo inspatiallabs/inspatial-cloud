@@ -1,5 +1,4 @@
 import type {
-  AdvancedFilter,
   CountGroupedResult,
   DBConfig,
   DBFilter,
@@ -908,116 +907,98 @@ export class InSpatialDB {
   #makeFilter(
     filters: DBFilter,
   ): string[] {
-    const keys = Object.keys(filters);
-    if (keys.length === 0) {
+    if (filters.length === 0) {
       return [];
     }
 
-    const filterStrings = keys.map((key) => {
+    const filterStrings = filters.map((filter) => {
       let filterString = "";
-      const column = this.#formatColumnName(key);
+      const column = this.#formatColumnName(filter.field);
 
-      if (typeof filters[key] === "object") {
-        const filter = filters[key] as AdvancedFilter;
+      const operator = filter.op;
 
-        const operator = filter.op;
-        const joinList = !(operator === "between" || operator === "notBetween");
-        const value = this.#formatValue(filter.value, joinList);
-        if (!value) {
-          return "";
-        }
-        switch (operator) {
-          case "=":
-            filterString = `${column} = ${value}`;
-            break;
-          case "!=":
-            filterString = `${column} != ${value}`;
-            break;
-          case ">":
-            filterString = `${column} > ${value}`;
-            break;
-          case "<":
-            filterString = `${column} < ${value}`;
-            break;
-          case ">=":
-            filterString = `${column} >= ${value}`;
-            break;
-          case "<=":
-            filterString = `${column} <= ${value}`;
-            break;
-          case "is":
-            filterString = `${column} IS ${value}`;
-            break;
-          case "isNot":
-            filterString = `${column} IS NOT ${value}`;
-            break;
+      switch (operator) {
+        case "=":
+        case "equal":
+          filterString = `${column} = ${this.#formatValue(filter.value)}`;
+          break;
+        case "!=":
+        case "notEqual":
+          filterString = `${column} <> ${this.#formatValue(filter.value)}`;
+          break;
 
-          case "contains":
-            filterString = `${column} ILIKE '%${
-              this.#formatValue(filter.value, false, true)
-            }%'`;
-            break;
-          case "notContains":
-            filterString = `${column} NOT ILIKE '%${
-              this.#formatValue(filter.value, false, true)
-            }%'`;
-            break;
-          case "startsWith":
-            filterString = `${column} ILIKE '${
-              this.#formatValue(filter.value, false, true)
-            }%'`;
-            break;
-          case "endsWith":
-            filterString = `${column} ILIKE '%${
-              this.#formatValue(filter.value, false, true)
-            }'`;
-            break;
-          case "isEmpty":
-            filterString = `${column} IS NULL`;
-            break;
-          case "isNotEmpty":
-            filterString = `${column} IS NOT NULL`;
-            break;
-          case "inList":
-            filterString = `${column} IN (${value})`;
-            break;
-          case "notInList":
-            filterString = `${column} NOT IN (${value})`;
-            break;
-          case "equal":
-            filterString = `${column} = ${value}`;
-            break;
-          case "greaterThan":
-            filterString = `${column} > ${value}`;
-            break;
-          case "lessThan":
-            filterString = `${column} < ${value}`;
-            break;
-          case "greaterThanOrEqual":
-            filterString = `${column} >= ${value}`;
-            break;
-          case "lessThanOrEqual":
-            filterString = `${column} <= ${value}`;
-            break;
-          case "between":
-            {
-              const val = value as string[];
-              filterString = `${column} BETWEEN ${val[0]} AND ${val[1]}`;
-            }
-            break;
-          case "notBetween":
-            {
-              const val = value as string[];
-              filterString = `${column} NOT BETWEEN ${val[0]} AND ${val[1]}`;
-            }
-            break;
-          default:
-            filterString = `${column} = ${value}`;
-            break;
-        }
-        return filterString;
+        case ">":
+        case "greaterTan":
+          filterString = `${column} >${this.#formatValue(filter.value)}`;
+          break;
+        case "<":
+        case "lessThan":
+          filterString = `${column} < ${this.#formatValue(filter.value)}`;
+          break;
+        case "greaterThanOrEqual":
+        case ">=":
+          filterString = `${column} >= ${this.#formatValue(filter.value)}`;
+          break;
+        case "lessThanOrEqual":
+        case "<=":
+          filterString = `${column} <= ${this.#formatValue(filter.value)}`;
+          break;
+        case "contains":
+          filterString = `${column} ${
+            filter.caseSensitive ? "LIKE" : "ILIKE"
+          } '%${this.#formatValue(filter.value, false, true)}%'`;
+          break;
+        case "notContains":
+          filterString = `${column} NOT ${
+            filter.caseSensitive ? "LIKE" : "ILIKE"
+          } '%${this.#formatValue(filter.value, false, true)}%'`;
+          break;
+        case "startsWith":
+          filterString = `${column} ${
+            filter.caseSensitive ? "LIKE" : "ILIKE"
+          } '${this.#formatValue(filter.value, false, true)}%'`;
+          break;
+        case "endsWith":
+          filterString = `${column} ${
+            filter.caseSensitive ? "LIKE" : "ILIKE"
+          } '%${this.#formatValue(filter.value, false, true)}'`;
+          break;
+        case "isEmpty":
+          filterString = `${column} IS NULL`;
+          break;
+        case "isNotEmpty":
+          filterString = `${column} IS NOT NULL`;
+          break;
+        case "inList":
+          filterString = `${column} IN (${
+            this.#formatValue(filter.value, true)
+          })`;
+          break;
+        case "notInList":
+          filterString = `${column} NOT IN (${
+            this.#formatValue(filter.value, true)
+          })`;
+          break;
+        case "between":
+          {
+            filterString = `${column} BETWEEN ${
+              this.#formatValue(filter.value[0])
+            } AND ${this.#formatValue(filter.value[1])}`;
+          }
+          break;
+        case "notBetween":
+          {
+            filterString = `${column} NOT BETWEEN ${
+              this.#formatValue(filter.value[0])
+            } AND ${this.#formatValue(filter.value[1])}`;
+          }
+          break;
+        default:
+          raiseORMException(
+            `filter operation ${filter} is not an valid option`,
+          );
       }
-      return `${column} = ${this.#formatValue(filters[key])}`;
+      return filterString;
     });
 
     return filterStrings.filter((filter) => filter !== "");
@@ -1105,7 +1086,9 @@ export class InSpatialDB {
           return "null" as ValueType<Join>;
         }
         try {
-          return `'${JSON.stringify(value) as ValueType<Join>}'` as ValueType<
+          return `'${JSON.stringify(value).replaceAll(/'/g, "''") as ValueType<
+            Join
+          >}'` as ValueType<
             Join
           >;
         } catch (_e) {

@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 import convertString from "#/utils/convert-string.ts";
 import { EntryType } from "#/orm/entry/entry-type.ts";
 import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";

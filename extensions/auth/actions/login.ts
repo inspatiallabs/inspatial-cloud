@@ -1,6 +1,7 @@
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+
 import { raiseServerException } from "#/app/server-exception.ts";
 
 const login = new CloudAPIAction("login", {
@@ -10,9 +11,11 @@ const login = new CloudAPIAction("login", {
   async run({ app, inRequest, inResponse, params }) {
     const { email, password } = params;
     const { orm } = app;
-    const user = await orm.findEntry<User>("user", {
-      email,
-    });
+    const user = await orm.findEntry<User>("user", [{
+      field: "email",
+      op: "=",
+      value: email,
+    }]);
     if (!user) {
       raiseServerException(401, "unauthorized");
     }

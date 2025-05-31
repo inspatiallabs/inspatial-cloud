@@ -1,4 +1,5 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+
 import { GoogleOAuth } from "#extensions/auth/providers/google/accessToken.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
@@ -27,9 +28,11 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
         "Google auth: Email not verified",
       );
     }
-    const user = await app.orm.findEntry<User>("user", {
-      email,
-    });
+    const user = await app.orm.findEntry<User>("user", [{
+      field: "email",
+      op: "=",
+      value: email,
+    }]);
 
     if (!user) {
       raiseServerException(

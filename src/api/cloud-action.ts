@@ -6,34 +6,52 @@ import type { InField } from "#/orm/field/field-def-types.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { CloudParam, ExtractParams } from "#/api/api-types.ts";
 
+export type ActionMethod<
+  K extends PropertyKey = PropertyKey,
+  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
+> = (args: {
+  app: InCloud;
+  orm: InSpatialORM;
+  params: ExtractParams<K, P>;
+  inRequest: InRequest;
+  inResponse: InResponse;
+}) => Promise<any> | any;
+
+export type ActionConfig<
+  K extends PropertyKey = PropertyKey,
+  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
+  R extends ActionMethod<K, P> = ActionMethod<K, P>,
+> = {
+  run: R;
+  /**
+   * Whether to skip reading the request body. Should be set to true if the action
+   * will be reading the request body itself, such as when uploading files.
+   */
+  raw?: boolean;
+  description?: string;
+  label?: string;
+  authRequired?: boolean;
+  hideFromApi?: boolean;
+  params: P;
+};
 export class CloudAPIAction<
   K extends PropertyKey = PropertyKey,
   P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
-  D extends ExtractParams<K, P> = ExtractParams<K, P>,
-  R extends (args: {
-    app: InCloud;
-    params: D;
-    inRequest: InRequest;
-    inResponse: InResponse;
-  }) => Promise<any> | any = (args: {
-    app: InCloud;
-    params: D;
-    inRequest: InRequest;
-    inResponse: InResponse;
-  }) => Promise<any> | any,
+  R extends ActionMethod<K, P> = ActionMethod<K, P>,
 > {
-  description: string = "This is an easy action";
+  description: string = "This is a Cloud API action";
   label?: string;
   raw: boolean = false;
   actionName: string;
   authRequired: boolean = true;
 
   includeInAPI: boolean = true;
-  params: Map<string, CloudParam<K>>;
+  params: Map<string, CloudParam<PropertyKey>>;
   requiredParams: string[] = [];
 
   #_run: (args: {
     app: InCloud;
+    orm: InSpatialORM;
     params: any;
     inRequest: InRequest;
     inResponse: InResponse;
@@ -45,19 +63,7 @@ export class CloudAPIAction<
 
   constructor(
     actionName: string,
-    config: {
-      run: R;
-      /**
-       * Whether to skip reading the request body. Should be set to true if the action
-       * will be reading the request body itself, such as when uploading files.
-       */
-      raw?: boolean;
-      description?: string;
-      label?: string;
-      authRequired?: boolean;
-      hideFromApi?: boolean;
-      params: P;
-    },
+    config: ActionConfig<K, P, R>,
   ) {
     this.#_run = config.run;
     this.actionName = actionName;
@@ -79,7 +85,7 @@ export class CloudAPIAction<
   #validateParams(
     orm: InSpatialORM,
     params?: Record<string, any>,
-  ): D {
+  ) {
     const requiredParams = this.requiredParams;
     if (requiredParams.length === 0 && !params) {
       this.raiseError(
@@ -87,7 +93,7 @@ export class CloudAPIAction<
       );
     }
     if (!params) {
-      return {} as D;
+      return {};
     }
     const missingParams = new Set();
     const incomingParams = new Map(Object.entries(params));
@@ -133,7 +139,7 @@ export class CloudAPIAction<
       this.raiseError(errors.join(", "));
     }
 
-    return Object.fromEntries(incomingParams) as D;
+    return Object.fromEntries(incomingParams);
   }
 
   async run(args: {
@@ -141,35 +147,14 @@ export class CloudAPIAction<
     params?: Record<string, any>;
     inRequest: InRequest;
     inResponse: InResponse;
-  }): Promise<ReturnType<R>> {
+  }): Promise<any> {
     const validatedData = this.#validateParams(args.app.orm, args.params);
     return await this.#_run({
       app: args.app,
+      orm: args.app.orm,
       params: validatedData as any,
       inRequest: args.inRequest,
       inResponse: args.inResponse,
     });
-  }
-}
-
-export class CloudAPIGroup<
-  G extends string = string,
-> {
-  groupName: G;
-  description: string;
-  label?: string;
-  actions: Map<string, CloudAPIAction>;
-
-  constructor(groupName: G, config: {
-    description: string;
-    label?: string;
-    actions: Array<CloudAPIAction>;
-  }) {
-    this.groupName = groupName;
-    this.description = config.description;
-    this.label = config.label;
-    this.actions = new Map(
-      config.actions.map((action) => [action.actionName, action]),
-    );
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
@@ -10,13 +10,12 @@
   "imports": {
     "#/": "./src/",
     "#extensions/": "./extensions/",
-    "#types/": "./src/types/",
-    "#client/": "./client/"
+    "#types/": "./src/types/"
   },
   "tasks": {
-    "check": "deno publish --dry-run"
+    "check": "deno publish --dry-run",
+    "type-check": "deno check --all mod.ts"
   },
-  "unstable": ["broadcast-channel"],
   "lint": {
     "rules": {
       "tags": ["jsr", "recommended"],

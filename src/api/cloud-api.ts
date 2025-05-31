@@ -1,7 +1,9 @@
 import type { CloudAPIDocs, CloudAPIGroupDocs } from "#/api/api-types.ts";
-import { CloudAPIAction, CloudAPIGroup } from "#/app/cloud-action.ts";
+
 import { raiseServerException } from "#/app/server-exception.ts";
-import { InField } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
+import { CloudAPIGroup } from "#/api/cloud-group.ts";
 
 /**
  * CloudAPI is a class that provides the main interface for InSpatial Cloud
@@ -72,7 +74,7 @@ export class CloudAPI {
   getAction(
     group: string | undefined,
     action: string | undefined,
-  ): CloudAPIAction<any, any, any, any> {
+  ): CloudAPIAction {
     if (!group || !action) {
       raiseServerException(400, "Group and action names are required");
     }
@@ -139,7 +141,7 @@ export class CloudAPI {
    * @param group
    * @param {ActionsAPIAction} action
    */
-  addAction(group: string, action: CloudAPIAction<any, any, any, any>): void {
+  addAction(group: string, action: CloudAPIAction): void {
     const actionGroup = this.getGroup(group);
     if (!actionGroup) return;
     actionGroup.actions.set(action.actionName, action);

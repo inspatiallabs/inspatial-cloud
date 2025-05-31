@@ -32,6 +32,9 @@ import {
 import { ormFields } from "#/orm/field/fields.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
 import { inLog } from "#/in-log/in-log.ts";
+import { ConnectionRegistry } from "#/orm/registry/connection-registry.ts";
+import type { InValue } from "#/orm/field/types.ts";
+import { registerFetchFields } from "#/orm/setup/setup-utils.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -40,6 +43,7 @@ export class InSpatialORM {
   #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType>;
   #settingsClasses: Map<string, typeof Settings>;
+  registry: ConnectionRegistry;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
@@ -141,6 +145,7 @@ export class InSpatialORM {
   ) {
     this.#rootPath = options.rootPath || Deno.cwd();
     this.#rootPath = `${this.#rootPath}/.inspatial`;
+    this.registry = new ConnectionRegistry();
 
     this.fieldTypes = new Map();
     for (const field of ormFields) {
@@ -215,6 +220,7 @@ export class InSpatialORM {
     }
     for (const entryType of this.entryTypes.values()) {
       validateEntryType(this, entryType);
+      registerFetchFields(this, entryType);
     }
   }
   #addSettingsType(settingsType: SettingsType): void {
@@ -400,6 +406,7 @@ export class InSpatialORM {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options as any };
     }
+    console.log({ dbOptions });
     const result = await this.db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;
   }
@@ -475,6 +482,35 @@ export class InSpatialORM {
   ): Promise<any> {
     const settings = this.#getSettingsInstance(settingsType, user);
     return await settings.getValue(field);
+  }
+
+  async batchUpdateField(
+    entryType: string,
+    field: string,
+    value: InValue,
+    filters: DBFilter,
+  ): Promise<void> {
+    const entryTypeDef = this.getEntryType(entryType);
+    if (!entryTypeDef.fields.has(field)) {
+      raiseORMException(
+        `EntryType ${entryType} doesn't have a field with key '${field}'`,
+      );
+    }
+    const inField = entryTypeDef.fields.get(field)!;
+
+    const fieldType = this._getFieldType(inField.type);
+    value = fieldType.normalize(value, inField);
+    if (!fieldType.validate(value, inField)) {
+      raiseORMException("Value is not valid!");
+    }
+    value = fieldType.prepareForDB(value, inField);
+
+    await this.db.batchUpdateColumn(
+      entryTypeDef.config.tableName,
+      field,
+      value,
+      filters,
+    );
   }
 
   /**

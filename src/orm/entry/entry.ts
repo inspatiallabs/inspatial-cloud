@@ -119,9 +119,9 @@ export class Entry<
     ).catch((e) => this.handlePGError(e));
 
     await this.saveChildren();
+    await this.#afterUpdate();
     // Reload the entry to get the updated values
     await this.load(this.id);
-    await this.#afterUpdate();
   }
 
   /**
@@ -209,6 +209,7 @@ export class Entry<
     await this._orm._runGlobalHooks("beforeUpdate", this);
   }
   async #afterUpdate(): Promise<void> {
+    await this.#syncReferences();
     await this.#runHooks("afterUpdate");
     await this._orm._runGlobalHooks("afterUpdate", this);
   }
@@ -254,5 +255,31 @@ export class Entry<
         raiseORMException(`Invalid idMode ${idMode}`);
     }
     return id;
+  }
+
+  async #syncReferences() {
+    const entryRegistry = this._orm.registry.getEntryTypeRegistry(this._name);
+    if (entryRegistry === undefined) {
+      return;
+    }
+    for (const [fieldKey, registryFields] of entryRegistry.entries()) {
+      if (!this._modifiedValues.has(fieldKey)) {
+        continue;
+      }
+
+      for (const registryField of registryFields) {
+        registryField;
+        await this._orm.batchUpdateField(
+          registryField.targetEntryType,
+          registryField.targetValueField,
+          this._modifiedValues.get(fieldKey)!.to,
+          [{
+            field: registryField.targetIdField,
+            op: "=",
+            value: this.id,
+          }],
+        );
+      }
+    }
   }
 }

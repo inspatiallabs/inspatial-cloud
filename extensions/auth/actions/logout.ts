@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 
 const logout = new CloudAPIAction("logout", {
   label: "Logout",
@@ -6,9 +6,11 @@ const logout = new CloudAPIAction("logout", {
   async run({ app, inRequest, inResponse }) {
     const sessionId = inRequest.context.get<string>("userSession");
     if (sessionId) {
-      const userSession = await app.orm.findEntry("userSession", {
-        sessionId,
-      });
+      const userSession = await app.orm.findEntry("userSession", [{
+        field: "sessionId",
+        op: "=",
+        value: sessionId,
+      }]);
       if (userSession) {
         await userSession.delete();
       }

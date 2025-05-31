@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/app/cloud-action.ts";
+import { CloudAPIAction } from "#/api/cloud-action.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 
 const setNewPassword = new CloudAPIAction("setNewPassword", {
@@ -6,9 +6,11 @@ const setNewPassword = new CloudAPIAction("setNewPassword", {
   authRequired: false,
   async run({ app, params }) {
     const { token, password } = params;
-    const user = await app.orm.findEntry("user", {
-      resetPasswordToken: token,
-    });
+    const user = await app.orm.findEntry("user", [{
+      field: "resetPasswordToken",
+      op: "=",
+      value: token,
+    }]);
     if (!user) {
       raiseServerException(400, "Invalid token");
     }
