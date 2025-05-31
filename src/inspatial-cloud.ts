@@ -34,7 +34,7 @@ import { initCloud } from "#/init.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 
 export class InCloud<
   N extends string = any,

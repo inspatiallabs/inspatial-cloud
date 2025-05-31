@@ -13,7 +13,7 @@ import type { SettingsType } from "#/orm/settings/settings-type.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 export type CloudInstallFunction<R = any> = (
   app: InCloud,
 ) => R;
