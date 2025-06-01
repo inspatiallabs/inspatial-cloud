@@ -1,7 +1,11 @@
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import convertString from "#/utils/convert-string.ts";
 import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
-import type { BaseTypeInfo } from "#/orm/shared/shared-types.ts";
+import type {
+  BaseTypeInfo,
+  FieldGroup,
+  FieldGroupConfig,
+} from "#/orm/shared/shared-types.ts";
 import type { InField } from "#/orm/field/field-def-types.ts";
 
 export class BaseType<N extends string = string> {
@@ -9,11 +13,9 @@ export class BaseType<N extends string = string> {
   label: string;
 
   description: string;
-  /**
-   * The fields of the settings type.
-   */
   fields: Map<string, InField> = new Map();
   displayFields: Map<string, InField> = new Map();
+  fieldGroups: Map<string, FieldGroup> = new Map();
   connectionTitleFields: Map<string, InField> = new Map();
   children?: Map<string, ChildEntryType<any>>;
   #baseInfo: BaseTypeInfo;
@@ -22,6 +24,7 @@ export class BaseType<N extends string = string> {
     name: N,
     config: {
       fields: Array<InField>;
+      fieldGroups?: Array<FieldGroupConfig>;
       label?: string;
       description?: string;
       children?: Array<ChildEntryType<any>>;
@@ -52,6 +55,7 @@ export class BaseType<N extends string = string> {
     }
 
     this.#setDisplayFields();
+    this.#addFieldGroups(config.fieldGroups);
     this.#baseInfo = {
       name: this.name,
       label: this.label,
@@ -59,6 +63,7 @@ export class BaseType<N extends string = string> {
       fields: Array.from(this.fields.values()),
       titleFields: Array.from(this.connectionTitleFields.values()),
       displayFields: Array.from(this.displayFields.values()),
+      fieldGroups: Array.from(this.fieldGroups.values()),
     };
     this.#addChildren(config.children);
   }
@@ -97,6 +102,50 @@ export class BaseType<N extends string = string> {
     );
   }
 
+  #addFieldGroups(fieldGroups?: Array<FieldGroupConfig>): void {
+    const allFields = new Set(Array.from(this.fields.keys()));
+    for (const group of fieldGroups || []) {
+      this.#addFieldGroup(group, allFields);
+    }
+    if (allFields.size > 0) {
+      const defaultGroup: FieldGroupConfig = {
+        key: "default",
+        label: "",
+        fields: Array.from(allFields),
+      };
+      this.#addFieldGroup(defaultGroup, allFields);
+    }
+  }
+  #addFieldGroup(fieldGroupConfig: FieldGroupConfig, allFields: Set<string>) {
+    const fieldGroup: FieldGroup = {
+      ...fieldGroupConfig,
+      label: fieldGroupConfig.label === undefined
+        ? convertString(fieldGroupConfig.key, "title", true)
+        : fieldGroupConfig.label,
+      fields: [],
+      displayFields: [],
+    };
+    if (this.fieldGroups.has(fieldGroupConfig.key)) {
+      raiseORMException(
+        `Field group ${fieldGroupConfig.key} already exists in ${this.name}`,
+      );
+    }
+    for (const fieldKey of fieldGroupConfig.fields) {
+      const field = this.fields.get(fieldKey as string);
+      if (!field) {
+        raiseORMException(
+          `field ${fieldKey as string} does not exists in ${this.name}`,
+        );
+      }
+      allFields.delete(field.key);
+      fieldGroup.fields.push(field);
+      const displayField = this.displayFields.get(field.key);
+      if (displayField) {
+        fieldGroup.displayFields.push(displayField);
+      }
+    }
+    this.fieldGroups.set(fieldGroup.key, fieldGroup);
+  }
   set info(info: Record<string, any>) {
     this.#info = info;
   }
