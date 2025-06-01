@@ -35,6 +35,7 @@ import { inLog } from "#/in-log/in-log.ts";
 import { ConnectionRegistry } from "#/orm/registry/connection-registry.ts";
 import type { InValue } from "#/orm/field/types.ts";
 import { registerFetchFields } from "#/orm/setup/setup-utils.ts";
+import { IDValue } from "./entry/types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -287,7 +288,7 @@ export class InSpatialORM {
    */
   async getEntry<E extends EntryBase = GenericEntry>(
     entryType: string,
-    id: string,
+    id: IDValue,
     user?: SessionData,
   ): Promise<E> {
     const entry = this.#getEntryInstance(entryType, user) as E;

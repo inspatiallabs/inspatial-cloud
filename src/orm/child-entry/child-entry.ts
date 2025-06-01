@@ -225,7 +225,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
 
     await this.deleteStaleRecords();
-    this.load(this._parentId);
+    await this.load(this._parentId);
   }
   async #refreshFetchedFields(child: ChildEntry): Promise<void> {
     for (const field of this._fields.values()) {

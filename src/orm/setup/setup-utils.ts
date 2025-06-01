@@ -137,7 +137,7 @@ function buildConnectionTitleField(
   connectionEntryType: EntryType,
 ): InField | undefined {
   const titleFieldKey = connectionEntryType.config.titleField;
-  if (!titleFieldKey) {
+  if (!titleFieldKey || titleFieldKey === "id") {
     return;
   }
 

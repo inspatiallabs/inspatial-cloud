@@ -24,7 +24,7 @@ export class EntryType<
   FK extends PropertyKey = ExtractFieldKeys<E>,
 > extends BaseType<N> {
   config: EntryTypeConfig;
-  defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
+  defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
@@ -40,7 +40,7 @@ export class EntryType<
   };
   constructor(
     name: N,
-    config: BaseConfig & {
+    config: BaseConfig<FK> & {
       /**
        * The field to use as the display value instead of the ID.
        */
@@ -57,8 +57,8 @@ export class EntryType<
     },
   ) {
     super(name, config);
-    this.defaultSortField = config.defaultSortField;
-    this.defaultSortDirection = config.defaultSortDirection;
+    this.defaultSortField = config.defaultSortField || "id" as FK;
+    this.defaultSortDirection = config.defaultSortDirection || "asc";
     this.fields.set("id", {
       key: "id",
       type: "IDField",
@@ -112,6 +112,8 @@ export class EntryType<
         this.defaultListFields.add(fieldKey);
       }
     }
+    this.defaultListFields.add("updatedAt");
+    this.defaultListFields.add("createdAt");
     if (this.config.titleField) {
       this.defaultListFields.add(this.config.titleField);
     }

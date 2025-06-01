@@ -112,6 +112,35 @@ function generateFlutterModel(
   lines.push(...constructorClass);
   lines.push("}");
 
+  if (type === "Entry") {
+    const listModelLines = generateListModel(entryOrChildType as EntryType);
+    lines.push(...listModelLines);
+  }
+  return lines;
+}
+
+function generateListModel(entryType: EntryType): Array<string> {
+  const listFields = new Map();
+  entryType.defaultListFields.forEach((fieldKey) => {
+    listFields.set(fieldKey, entryType.fields.get(fieldKey));
+  });
+  const listType = {
+    ...entryType,
+    name: entryType.name + "List",
+    fields: listFields,
+    children: undefined,
+  } as EntryType;
+  const className = convertString(listType.name, "pascal", true);
+  const lines: string[] = [
+    `final class ${className} extends Entry {`,
+  ];
+  const fields = generateFieldDefs(listType.fields);
+  lines.push(...fields);
+  const converting = generateJsonConverting(listType, "Entry");
+  lines.push(...converting);
+  const constructorClass = generateConstructor(listType, "Entry");
+  lines.push(...constructorClass);
+  lines.push("}");
   return lines;
 }
 function shouldIgnoreField(field: InField) {
