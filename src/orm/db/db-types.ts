@@ -124,9 +124,11 @@ export interface ListOptions<T extends EntryBase = EntryBase> {
   order?: "asc" | "desc";
 }
 
-export type DBFilter = Array<
-  InFilter
->;
+export type DBFilter =
+  | Array<
+    InFilter
+  >
+  | Record<string, string | number | null | boolean>;
 
 export interface DBListOptions {
   columns?:

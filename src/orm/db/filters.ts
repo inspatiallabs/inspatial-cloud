@@ -1,9 +1,27 @@
-import type { DBFilter, FilterAll } from "#/orm/db/db-types.ts";
+import type { DBFilter, FilterAll, InFilter } from "#/orm/db/db-types.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import { formatColumnName, formatDbValue } from "#/orm/db/utils.ts";
 
-export function makeFilterQuery(filters: DBFilter): Array<string> {
+export function makeFilterQuery(dbFilter: DBFilter): Array<string> {
   const filterQ: Array<string> = [];
+  const filters: Array<InFilter> = [];
+  if (Array.isArray(dbFilter)) {
+    filters.push(...dbFilter);
+  } else if (typeof dbFilter === "object") {
+    Object.entries(dbFilter).map(([key, value]) => {
+      if (value === null) {
+        return {
+          field: key,
+          op: "isEmpty",
+        };
+      }
+      return {
+        field: key,
+        op: "=",
+        value,
+      };
+    }) as Array<InFilter>;
+  }
   for (const filter of filters) {
     let filterString = "";
     const strings: Array<string> = [];
