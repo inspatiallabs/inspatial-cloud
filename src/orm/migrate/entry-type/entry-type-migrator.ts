@@ -160,7 +160,6 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
           continue;
       }
       const titleField = this.entryType.connectionTitleFields.get(field.key);
-
       if (titleField) {
         const ormTitleField = this.orm._getFieldType(titleField.type);
         const dbTitleColumn = ormTitleField.generateDbColumn(titleField);
@@ -209,12 +208,12 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   }
   async #checkTableInfo(): Promise<void> {
     const tableExists = await this.db.tableExists(this.#tableName);
-    const newDescription = this.entryType.config.description;
+    const newDescription = this.entryType.config.description || null;
     if (!tableExists) {
       this.migrationPlan.table.create = true;
       this.migrationPlan.table.updateDescription = {
         from: "",
-        to: newDescription,
+        to: newDescription ?? "",
       };
       return;
     }
@@ -223,7 +222,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     if (existingDescription != newDescription) {
       this.migrationPlan.table.updateDescription = {
         from: existingDescription,
-        to: newDescription,
+        to: newDescription ?? "",
       };
     }
   }
