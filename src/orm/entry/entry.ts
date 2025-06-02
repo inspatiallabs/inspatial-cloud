@@ -3,8 +3,9 @@ import type { EntryHookDefinition, IDValue } from "#/orm/entry/types.ts";
 import type { EntryHookName } from "#/orm/orm-types.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "#/orm/orm-exception.ts";
 import ulid from "#/orm/utils/ulid.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class Entry<
   N extends string = string,
@@ -80,9 +81,19 @@ export class Entry<
       );
     }
     for (const [key, value] of Object.entries(dbRow)) {
-      const fieldDef = this._getFieldDef(key);
-      const fieldType = this._getFieldType(fieldDef.type);
-      this._data.set(key, fieldType.parseDbValue(value, fieldDef));
+      try {
+        const fieldDef = this._getFieldDef(key);
+        const fieldType = this._getFieldType(fieldDef.type);
+        this._data.set(key, fieldType.parseDbValue(value, fieldDef));
+      } catch (e) {
+        if (e instanceof ORMException && e.responseCode === 404) {
+          inLog.warn(`${e.message} but was loaded from the database`, {
+            subject: e.subject,
+          });
+          continue;
+        }
+        throw e;
+      }
     }
 
     await this.loadChildren(this.id as string);
