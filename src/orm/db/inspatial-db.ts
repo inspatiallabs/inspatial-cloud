@@ -8,6 +8,7 @@ import type {
   PostgresColumn,
   QueryResultFormatted,
   TableConstraint,
+  TableIndex,
 } from "#/orm/db/db-types.ts";
 
 import type { IDMode } from "#/orm/field/types.ts";
@@ -586,7 +587,7 @@ export class InSpatialDB {
   async hasIndex(tableName: string, indexName: string): Promise<boolean> {
     tableName = toSnake(tableName);
     const query =
-      `SELECT indexname FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
+      `SELECT indexname FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '${tableName}' AND indexname = '${indexName}'`;
     const result = await this.query<{ indexname: string }>(query);
     return result.rowCount > 0;
   }
@@ -594,15 +595,25 @@ export class InSpatialDB {
   /**
    * Get an index info from a table
    */
-  async getIndex(tableName: string, indexName: string): Promise<any> {
+  async getIndex(
+    tableName: string,
+    indexName: string,
+  ): Promise<TableIndex | undefined> {
     tableName = toSnake(tableName);
     const query =
-      `SELECT * FROM pg_indexes WHERE tablename = '${tableName}' AND indexname = '${indexName}'`;
-    const result = await this.query(query);
+      `SELECT * FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '${tableName}' AND indexname = '${indexName}'`;
+    const result = await this.query<TableIndex>(query);
     if (result.rowCount === 0) {
       return undefined;
     }
     return result.rows[0];
+  }
+
+  async getTableIndexes(tableName: string): Promise<Array<TableIndex>> {
+    const query =
+      `SELECT * FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '${tableName}'`;
+    const result = await this.query<TableIndex>(query);
+    return result.rows;
   }
   /**
    * Run a VACUUM ANALYZE on the database or a specific table

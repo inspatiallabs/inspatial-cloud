@@ -1,6 +1,7 @@
 import type {
   EntryActionDefinition,
   EntryHookDefinition,
+  EntryIndex,
   EntryTypeConfig,
   ExtractFieldKeys,
 } from "#/orm/entry/types.ts";
@@ -51,6 +52,7 @@ export class EntryType<
       defaultSortField?: FK;
       defaultSortDirection?: "asc" | "desc";
       searchFields?: Array<FK>;
+      index?: Array<EntryIndex<FK>>;
       actions?: A;
       hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
       roles?: Array<unknown>;
@@ -92,6 +94,7 @@ export class EntryType<
     this.config = {
       tableName: this.#generateTableName(),
       label: this.label,
+      index: config.index as Array<EntryIndex<string>> || [],
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
       searchFields: Array.from(searchFields),
@@ -120,6 +123,7 @@ export class EntryType<
     this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
+    this.#validateIndexFields();
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()),
@@ -167,5 +171,17 @@ export class EntryType<
   #generateTableName(): string {
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;
+  }
+
+  #validateIndexFields(): void {
+    for (const index of this.config.index) {
+      index.fields.forEach((field) => {
+        if (!this.fields.has(field)) {
+          raiseORMException(
+            `field ${field} is not a valid field for and index on ${this.name}`,
+          );
+        }
+      });
+    }
   }
 }

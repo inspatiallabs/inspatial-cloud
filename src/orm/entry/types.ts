@@ -92,10 +92,16 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   idMode: IDMode;
   searchFields?: Array<any>;
   defaultListFields?: Array<string>;
+  index: Array<EntryIndex<string>>;
 }
 
 export type IDValue = string | number;
 
 export type ExtractFieldKeys<T> = keyof {
   [K in keyof T as K extends keyof EntryBase ? never : K]: K;
+};
+
+export type EntryIndex<FK extends PropertyKey = PropertyKey> = {
+  fields: Array<FK>;
+  unique?: boolean;
 };

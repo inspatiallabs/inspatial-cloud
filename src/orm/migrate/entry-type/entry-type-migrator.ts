@@ -1,10 +1,11 @@
-import type { EntryType } from "#/orm/entry/entry-type.ts";
+import { EntryType } from "#/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type {
   ForeignKeyConstraint,
   PgColumnDefinition,
   PostgresColumn,
   TableConstraint,
+  TableIndex,
 } from "#/orm/db/db-types.ts";
 import { EntryMigrationPlan } from "#/orm/migrate/entry-type/entry-migration-plan.ts";
 import type { InFieldMap } from "#/orm/field/field-def-types.ts";
@@ -20,6 +21,8 @@ import {
 import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
 import { raiseORMException } from "#/orm/orm-exception.ts";
 import { BaseMigrator } from "#/orm/migrate/shared/base-migrator.ts";
+import type { EntryIndex } from "#/orm/entry/types.ts";
+import { convertString } from "#/utils/mod.ts";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {
@@ -40,6 +43,8 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     primaryKey: Map<string, TableConstraint>;
     foreignKey: Map<string, ForeignKeyConstraint>;
   };
+  existingIndexes: Map<string, TableIndex>;
+  targetIndexes: Map<string, EntryIndex<string>>;
 
   get #tableName(): string {
     if (!this.entryType.config.tableName) {
@@ -65,7 +70,8 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     this.isChild = config.isChild || false;
     this.existingColumns = new Map();
     this.targetColumns = new Map();
-
+    this.existingIndexes = new Map();
+    this.targetIndexes = new Map();
     this.existingConstraints = {
       unique: new Map(),
       primaryKey: new Map(),
@@ -88,15 +94,21 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     this.migrationPlan.table.tableName = this.#tableName;
     await this.#checkTableInfo();
     this.#loadTargetColumns();
+    this.#loadTargetIndexes();
+    await this.#loadExistingIndexes();
+    this.#validateIndexes();
     if (this.migrationPlan.table.create) {
       this.#checkForColumnsToCreate();
+
       return this.migrationPlan;
     }
     await this.#loadExistingColumns();
     await this.#loadExistingConstraints();
+
     this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
     this.#checkForColumnsToModify();
+
     if (!this.isChild) {
       await this.loadExistingChildren();
       await this.makeChildrenMigrationPlan();
@@ -108,6 +120,40 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     const columns = await this.db.getTableColumns(this.#tableName);
     for (const column of columns) {
       this.existingColumns.set(column.columnName, column);
+    }
+  }
+
+  async #loadExistingIndexes() {
+    const result = await this.db.getTableIndexes(this.#tableName);
+
+    for (const index of result) {
+      if (!index.indexname.startsWith("idx_")) {
+        continue;
+      }
+
+      this.existingIndexes.set(index.indexname, index);
+    }
+  }
+  #loadTargetIndexes() {
+    if (this.entryType instanceof EntryType) {
+      for (const index of this.entryType.config.index) {
+        const indexName = `idx_${this.#tableName}_${
+          index.fields.map((f) => convertString(f, "snake")).join("_")
+        }`;
+        this.targetIndexes.set(indexName, index);
+      }
+    }
+  }
+  #validateIndexes() {
+    for (const indexName of this.existingIndexes.keys()) {
+      if (!this.targetIndexes.has(indexName)) {
+        this.migrationPlan.indexes.drop.push(indexName);
+      }
+    }
+    for (const [indexName, index] of this.targetIndexes.entries()) {
+      if (!this.existingIndexes.has(indexName)) {
+        this.migrationPlan.indexes.create.push({ ...index, indexName });
+      }
     }
   }
   async #loadExistingConstraints(): Promise<void> {

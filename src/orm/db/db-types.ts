@@ -62,7 +62,13 @@ export interface PgColumnDefinition extends PgDataTypeDefinition {
   unique?: boolean;
   isIdentity?: boolean;
 }
-
+export interface TableIndex {
+  schemaname: string;
+  tablename: string;
+  indexname: string;
+  tablespace: string | null;
+  indexdef: string;
+}
 export interface TableConstraint {
   constraintSchema: string;
   constraintName: string;
