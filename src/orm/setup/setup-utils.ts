@@ -40,6 +40,9 @@ export function buildConnectionFields(
     field.connectionIdMode = connectionEntryType.config.idMode;
 
     entryOrSettingsOrChildType.connectionTitleFields.set(field.key, titleField);
+    if (!field.hidden) {
+      entryOrSettingsOrChildType.info.titleFields.push(titleField);
+    }
   }
   for (
     const titleField of entryOrSettingsOrChildType.connectionTitleFields
