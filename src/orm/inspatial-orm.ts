@@ -341,7 +341,23 @@ export class InSpatialORM {
     const entry = await this.getEntry<E>(entryType, result.rows[0].id, user);
     return entry;
   }
-
+  async findEntryId(
+    entryType: string,
+    filter: DBFilter,
+    user?: SessionData,
+  ): Promise<IDValue | null> {
+    const entryTypeObj = this.getEntryType(entryType, user);
+    const tableName = entryTypeObj.config.tableName;
+    const result = await this.db.getRows(tableName, {
+      filter,
+      limit: 1,
+      columns: ["id"],
+    });
+    if (result.rowCount === 0) {
+      return null;
+    }
+    return result.rows[0].id;
+  }
   // Multiple Entry Operations
 
   /**
