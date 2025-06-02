@@ -148,7 +148,7 @@ function buildConnectionTitleField(
 
   const titleField = {
     ...entryTitleField,
-    key: `${field.key}#`,
+    key: `${field.key}__title`,
     readOnly: true,
     required: false,
     unique: false,
