@@ -252,14 +252,14 @@ function generateJsonConverting(
             `    ${field.key}: json['${field.key}'] != null `,
             `        ? ${field.type}(`,
             `              json['${field.key}'] as String,`,
-            `              json['${field.key}#'] as String,`,
+            `              json['${field.key}__title'] as String,`,
             `         ) : null,`,
           );
           toJson.push(
             `    '${field.key}': ${field.key}${
               field.required ? "" : "?"
             }.value,`,
-            `    '${field.key}#': ${field.key}${
+            `    '${field.key}__title': ${field.key}${
               field.required ? "" : "?"
             }.label,`,
           );
@@ -268,12 +268,12 @@ function generateJsonConverting(
         fromJson.push(
           `    ${field.key}:${field.type}(`,
           `      json['${field.key}'] as String,`,
-          `      json['${field.key}#'] as String,`,
+          `      json['${field.key}__title'] as String,`,
           `    ),`,
         );
         toJson.push(
           `    '${field.key}': ${field.key}.value,`,
-          `    '${field.key}#': ${field.key}${
+          `    '${field.key}__title': ${field.key}${
             field.required ? "" : "?"
           }.label,`,
         );
