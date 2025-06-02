@@ -1,4 +1,6 @@
 import type {
+  ActionParam,
+  EntryActionConfig,
   EntryActionDefinition,
   EntryHookDefinition,
   EntryIndex,
@@ -126,7 +128,9 @@ export class EntryType<
     this.#validateIndexFields();
     this.info = {
       config: this.config,
-      actions: Array.from(this.actions.values()),
+      actions: Array.from(this.actions.values()).filter((action) =>
+        !action.private
+      ),
       displayFields: Array.from(this.displayFields.values()),
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
@@ -183,5 +187,24 @@ export class EntryType<
         }
       });
     }
+  }
+
+  addAction<
+    K extends PropertyKey = PropertyKey,
+    P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
+  >(action: EntryActionConfig<E, K, P>): void {
+    if (this.actions.has(action.key)) {
+      raiseORMException(
+        `Action with key ${action.key} already exists in EntryType ${this.name}`,
+      );
+    }
+    this.actions.set(action.key, action as any);
+    console.log("adding action");
+    this.info = {
+      ...this.info,
+      actions: Array.from(this.actions.values()).filter((action) =>
+        !action.private
+      ),
+    };
   }
 }
