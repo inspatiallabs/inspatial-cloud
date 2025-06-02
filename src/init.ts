@@ -3,14 +3,14 @@ import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigEnv } from "#types/serve-types.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import ColorMe from "#/utils/color-me.ts";
-import { generateConfigSchema } from "#/cloud-config/serve-config.ts";
+import { generateConfigSchema } from "#/cloud-config/cloud-config.ts";
 import { joinPath } from "#/utils/path-utils.ts";
 
 export function initCloud(app: InCloud): void {
   if (hasDirectory(app.inRoot)) {
     return;
   }
-  const filePath = joinPath(app.appRoot, "serve-config.json");
+  const filePath = joinPath(app.appRoot, "cloud-config.json");
   app.inLog.warn(
     "Cloud has not been initialized yet. Initializing now...",
     "Cloud Init",
@@ -22,7 +22,7 @@ export function initCloud(app: InCloud): void {
   });
 
   const config = {
-    $schema: ".inspatial/serve-config-schema.json",
+    $schema: ".inspatial/cloud-config-schema.json",
     ...Object.fromEntries(masterConfig),
   };
 

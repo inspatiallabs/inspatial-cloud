@@ -7,10 +7,10 @@ import authCloudExtension from "#extensions/auth/mod.ts";
 import ormCloudExtension from "#extensions/orm/mod.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import {
+  generateCloudConfigFile,
   generateConfigSchema,
-  generateServeConfigFile,
-  loadServeConfigFile,
-} from "#/cloud-config/serve-config.ts";
+  loadCloudConfigFile,
+} from "#/cloud-config/cloud-config.ts";
 import {
   isServerException,
   raiseServerException,
@@ -115,7 +115,7 @@ export class InCloud<
     this.#appRoot = normalizePath(Deno.mainModule, { toDirname: true });
     this.inLog = inLog;
 
-    loadServeConfigFile();
+    loadCloudConfigFile();
     this.#extensionManager = new ExtensionManager();
     this.#extensionManager.registerExtension(baseExtension);
 
@@ -270,11 +270,11 @@ export class InCloud<
     });
   }
   /**
-   * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
+   * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
    */
   generateConfigFile(): void {
     generateConfigSchema(this);
-    generateServeConfigFile(this);
+    generateCloudConfigFile(this);
   }
 
   getExtensionConfig<T>(extensionKey: string): T {

@@ -7,11 +7,11 @@ function getPath() {
   });
 }
 /**
- * Checks for a serve-config.json file in the current working directory and loads it to the environment variables.
+ * Checks for a cloud-config.json file in the current working directory and loads it to the environment variables.
  */
-export function loadServeConfigFile(): Record<string, any> | undefined {
+export function loadCloudConfigFile(): Record<string, any> | undefined {
   try {
-    const filePath = joinPath(getPath(), "serve-config.json");
+    const filePath = joinPath(getPath(), "cloud-config.json");
     const file = Deno.readTextFileSync(filePath);
     const config = JSON.parse(file);
 
@@ -31,12 +31,12 @@ export function loadServeConfigFile(): Record<string, any> | undefined {
 }
 
 /**
- * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
+ * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
  */
-export function generateServeConfigFile(
+export function generateCloudConfigFile(
   app: InCloud,
 ): void {
-  const filePath = joinPath(getPath(), "serve-config.json");
+  const filePath = joinPath(getPath(), "cloud-config.json");
   try {
     const existingFile = Deno.statSync(filePath);
     if (existingFile.isFile) {
@@ -77,7 +77,7 @@ export function generateServeConfigFile(
     masterConfig.set(extension.key, Object.fromEntries(mappedConfig));
   });
   const config = {
-    $schema: ".inspatial/serve-config-schema.json",
+    $schema: ".inspatial/cloud-config-schema.json",
     ...Object.fromEntries(masterConfig),
   };
 
@@ -91,7 +91,7 @@ export function generateConfigSchema(
   const filePath = joinPath(
     getPath(),
     ".inspatial",
-    "serve-config-schema.json",
+    "cloud-config-schema.json",
   );
   const schema = {
     $schema: "http://json-schema.org/draft-07/schema#",
