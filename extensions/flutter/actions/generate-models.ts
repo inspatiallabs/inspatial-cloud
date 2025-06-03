@@ -144,7 +144,7 @@ function generateListModel(entryType: EntryType): Array<string> {
   return lines;
 }
 function shouldIgnoreField(field: InField) {
-  return field.key.endsWith("#") || field.hidden ||
+  return field.key.endsWith("__title") || field.hidden ||
     ["id", "createdAt", "updatedAt", "parent"].includes(field.key);
 }
 
