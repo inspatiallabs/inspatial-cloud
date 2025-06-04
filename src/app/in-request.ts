@@ -1,5 +1,6 @@
 import { InContext } from "#/app/in-context.ts";
 import type { RequestMethod } from "#types/serve-types.ts";
+import { inLog } from "../in-log/in-log.ts";
 
 /**
  * InRequest is a class that wraps the incoming request object and parses it,
@@ -226,11 +227,21 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
           this.#body.set(key, value);
         }
       }
-    } catch (_e) {
-      if (_e instanceof SyntaxError) {
+    } catch (e) {
+      if (e instanceof SyntaxError) {
         return;
       }
-      console.error(_e);
+      if (e instanceof Deno.errors.BadResource) {
+        return;
+      }
+      if (Error.isError(e)) {
+        inLog.error(e.message, {
+          subject: e.name,
+          stackTrace: e.stack,
+        });
+        return;
+      }
+      console.error(e);
     }
   }
 }

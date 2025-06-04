@@ -199,7 +199,6 @@ export class EntryType<
       );
     }
     this.actions.set(action.key, action as any);
-    console.log("adding action");
     this.info = {
       ...this.info,
       actions: Array.from(this.actions.values()).filter((action) =>
