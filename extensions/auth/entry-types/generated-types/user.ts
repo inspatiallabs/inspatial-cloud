@@ -25,10 +25,16 @@ export interface User extends EntryBase {
   email: string;
   /**
    * **Full Name** (DataField)
-   * @description The user's password used for login
+   * @description The user's full name (automatically generated)
    * @type {string}
    */
   fullName?: string;
+  /**
+   * **Profile Picture** (ImageField)
+   * @description The user's profile picture
+   * @type {string}
+   */
+  profilePicture?: string;
   /**
    * **Password** (PasswordField)
    * @description The user's password used for login
@@ -108,4 +114,9 @@ export interface User extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  /**
+   * **Profile Picture Title** (DataField)
+   * @type {string}
+   */
+  profilePicture__title?: string;
 }
