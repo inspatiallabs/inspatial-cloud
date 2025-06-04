@@ -262,7 +262,7 @@ export class InSpatialORM {
    * Creates a new entry in the database with the provided data.
    */
   async createEntry<E extends EntryBase = GenericEntry>(
-    entryType: string,
+    entryType: E["_name"],
     data: Record<string, any>,
     user?: SessionData,
   ): Promise<E> {
@@ -276,7 +276,7 @@ export class InSpatialORM {
    * Gets an instance of a new entry with default values set. This is not saved to the database.
    */
   getNewEntry<E extends EntryBase = GenericEntry>(
-    entryType: string,
+    entryType: E["_name"],
     user?: SessionData,
   ): E {
     const entry = this.#getEntryInstance(entryType, user) as E;
@@ -287,7 +287,7 @@ export class InSpatialORM {
    * Gets an entry from the database by its ID.
    */
   async getEntry<E extends EntryBase = GenericEntry>(
-    entryType: string,
+    entryType: E["_name"],
     id: IDValue,
     user?: SessionData,
   ): Promise<E> {
@@ -299,8 +299,8 @@ export class InSpatialORM {
    * Updates an entry in the database with the provided data.
    * The data object should contain the fields that need to be updated with their new values.
    */
-  async updateEntry<E extends string>(
-    entryType: E,
+  async updateEntry<E extends EntryBase = GenericEntry>(
+    entryType: E["_name"],
     id: string,
     data: Record<string, any>,
     user?: SessionData,
@@ -313,8 +313,8 @@ export class InSpatialORM {
   /**
    * Deletes an entry from the database.
    */
-  async deleteEntry<E extends string>(
-    entryType: E,
+  async deleteEntry<E extends EntryBase = GenericEntry>(
+    entryType: E["_name"],
     id: string,
     user?: SessionData,
   ): Promise<any> {
@@ -324,7 +324,7 @@ export class InSpatialORM {
   }
 
   async findEntry<E extends EntryBase = GenericEntry>(
-    entryType: string,
+    entryType: E["_name"],
     filter: DBFilter,
     user?: SessionData,
   ): Promise<E | null> {
@@ -363,8 +363,8 @@ export class InSpatialORM {
   /**
    * Gets a list of entries for a specific EntryType.
    */
-  async getEntryList<E extends EntryBase>(
-    entryType: string,
+  async getEntryList<E extends EntryBase = GenericEntry>(
+    entryType: E["_name"],
     options?: ListOptions<E>,
     user?: SessionData,
   ): Promise<GetListResponse<E>> {
@@ -446,8 +446,8 @@ export class InSpatialORM {
   /**
    * Gets the value of a specific field in an entry.
    */
-  getEntryValue<E extends string>(
-    _entryType: E,
+  getEntryValue<E extends EntryBase = GenericEntry>(
+    _entryType: E["_name"],
     _id: string,
     _field: string,
     _user?: SessionData,
@@ -465,7 +465,7 @@ export class InSpatialORM {
    * Gets the settings for a specific settings type.
    */
   async getSettings<T extends SettingsBase = GenericSettings>(
-    settingsType: string,
+    settingsType: T["_name"],
     user?: SessionData,
   ): Promise<T> {
     const settings = this.#getSettingsInstance(settingsType, user) as T;
@@ -478,7 +478,7 @@ export class InSpatialORM {
   async updateSettings<
     T extends SettingsBase = GenericSettings,
   >(
-    settingsType: string,
+    settingsType: T["_name"],
     data: Record<string, any>,
     user?: SessionData,
   ): Promise<T> {
@@ -491,8 +491,10 @@ export class InSpatialORM {
   /**
    * Gets the value of a specific setting field.
    */
-  async getSettingsValue<S extends string>(
-    settingsType: S,
+  async getSettingsValue<
+    T extends SettingsBase = GenericSettings,
+  >(
+    settingsType: T["_name"],
     field: string,
     user?: SessionData,
   ): Promise<any> {
