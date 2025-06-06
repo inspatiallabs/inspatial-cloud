@@ -5,16 +5,21 @@ import type {
   QueryResponse,
 } from "#/orm/db/postgres/pgTypes.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
+import { InPGClient } from "./in-pg/inPgClient.ts";
 
 class PostgresPoolClient {
   locked: boolean;
   client: PostgresClient;
   close: boolean;
   config: PgClientConfig;
-  constructor(config: PgClientConfig) {
+  constructor(config: PgClientConfig, isDev?: boolean) {
     this.close = false;
     this.config = config;
     this.locked = false;
+    if (isDev) {
+      this.client = new InPGClient(config);
+      return;
+    }
     this.client = new PostgresClient(config);
   }
   async connect(): Promise<void> {
@@ -54,7 +59,20 @@ export class PostgresPool {
   private readonly maxClients: number;
   constructor(config: PgPoolConfig) {
     const { pool, clientConfig } = config;
+
     this.clients = [];
+    this.maxWait = pool.idleTimeout || 5000;
+    this.clientConfig = clientConfig;
+    if (config.useDev) {
+      this.size = 1;
+      this.lazy = false;
+      this.maxClients = 1;
+
+      this.clients = [
+        new PostgresPoolClient(clientConfig, true),
+      ];
+      return;
+    }
     this.maxClients = pool.maxSize || 10;
     this.clientConfig = clientConfig;
 
@@ -64,7 +82,7 @@ export class PostgresPool {
       this.maxClients = this.size;
     }
     this.lazy = pool.lazy || false;
-    this.maxWait = pool.idleTimeout || 5000;
+
     for (let i = 0; i < this.size; i++) {
       this.clients.push(new PostgresPoolClient(this.clientConfig));
     }

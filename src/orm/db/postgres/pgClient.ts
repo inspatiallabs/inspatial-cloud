@@ -23,8 +23,8 @@ import { ScramClient } from "#/orm/db/postgres/scram.ts";
 import { convertString } from "#/utils/mod.ts";
 
 export class PostgresClient {
-  private conn!: Deno.Conn;
-  private readonly connectionParams: PgClientConfig;
+  conn!: Deno.Conn;
+  readonly connectionParams: PgClientConfig;
   cancelInfo: {
     pid: number;
     secret: number;
@@ -32,10 +32,10 @@ export class PostgresClient {
   private readonly serverParams: Record<string, string>;
 
   private readonly writer: MessageWriter;
-  private reader!: MessageReader;
+  reader!: MessageReader;
   private decoder: TextDecoder = new TextDecoder();
   serverStatus: ServerStatus;
-  private status: "connected" | "notConnected" = "notConnected";
+  status: "connected" | "notConnected" = "notConnected";
 
   get connected(): boolean {
     return this.status === "connected";
@@ -332,7 +332,9 @@ export class PostgresClient {
     const writer = this.writer;
     writer.setMessageType("Q");
     writer.addCString(query);
-    await this.conn.write(writer.message);
+    const message = writer.message;
+
+    await this.conn.write(message);
     let status;
     const fields: ColumnDescription[] = [];
     const data: T[] = [];

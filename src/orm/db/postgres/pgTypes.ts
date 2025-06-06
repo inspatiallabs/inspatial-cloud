@@ -17,6 +17,7 @@ export type PgClientConfig = ClientConnectionType & {
 
 export interface PgPoolConfig {
   clientConfig: PgClientConfig;
+  useDev?: boolean;
   pool: {
     size: number;
     lazy: boolean;
