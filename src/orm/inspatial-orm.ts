@@ -35,7 +35,7 @@ import { inLog } from "#/in-log/in-log.ts";
 import { ConnectionRegistry } from "#/orm/registry/connection-registry.ts";
 import type { InValue } from "#/orm/field/types.ts";
 import { registerFetchFields } from "#/orm/setup/setup-utils.ts";
-import { IDValue } from "./entry/types.ts";
+import type { IDValue } from "./entry/types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -126,10 +126,6 @@ export class InSpatialORM {
        */
       entries: Array<EntryType>;
       /**
-       * An instance of the InSpatialDB class that will be used to interact with the database.
-       */
-      db?: InSpatialDB;
-      /**
        * A list of SettingsTypes that will be used to define the structure of the settings
        */
       settings: Array<SettingsType>;
@@ -152,7 +148,9 @@ export class InSpatialORM {
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
     }
-    this.db = options.db || new InSpatialDB(options.dbConfig);
+    this.db = new InSpatialDB({
+      ...options.dbConfig,
+    });
     this.entryTypes = new Map();
     this.#entryClasses = new Map();
     this.settingsTypes = new Map();

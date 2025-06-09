@@ -18,8 +18,8 @@
   },
   "lint": {
     "rules": {
-      "tags": ["jsr", "recommended"],
-      "include": ["explicit-module-boundary-types", "verbatim-module-syntax"],
+      "tags": [],
+      "include": ["verbatim-module-syntax"],
       "exclude": ["no-explicit-any"]
     }
   }

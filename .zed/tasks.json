@@ -1,13 +1,19 @@
 [
   {
     "command": "deno",
-    "args": ["task", "dev"],
-    "cwd": "$ZED_WORKTREE_ROOT/dev",
-    "label": "Dev App",
+    "args": [
+      "run",
+      "-A",
+      "--watch",
+      "--watch-exclude=.inspatial",
+      "--unstable-broadcast-channel",
+      "mainApp.ts"
+    ],
+    "cwd": "$ZED_WORKTREE_ROOT/examples/basic",
+    "label": "Example: Basic",
     "allow_concurrent_runs": false,
     "reveal": "always",
     "use_new_terminal": false,
-    "tags": ["App"],
     "reveal_target": "dock"
   }
 ]

@@ -21,6 +21,7 @@ import {
 import { AUTH } from "#/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "#/orm/db/postgres/scram.ts";
 import { convertString } from "#/utils/mod.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class PostgresClient {
   conn!: Deno.Conn;
@@ -71,10 +72,6 @@ export class PostgresClient {
       offset += chunkSize;
     }
     return message;
-  }
-  private async readResponseHeader(): Promise<void> {
-    const buffer = new Uint8Array(5);
-    await this.conn.read(buffer);
   }
 
   async connect(): Promise<void> {
@@ -449,9 +446,7 @@ export class PostgresClient {
       throw new PgError({ ...errors[0], query });
     }
     if (notices.length) {
-      console.debug(notices, "PostgresClient NOTICE", {
-        hideTrace: true,
-      });
+      inLog.debug(notices, "PostgresClient NOTICE");
     }
     return {
       rowCount: data.length,

@@ -5,7 +5,7 @@ import type {
   QueryResponse,
 } from "#/orm/db/postgres/pgTypes.ts";
 import { PgError } from "#/orm/db/postgres/pgError.ts";
-import { InPGClient } from "./in-pg/inPgClient.ts";
+import { InPGClient } from "./in-pg/in-pg-client.ts";
 
 class PostgresPoolClient {
   locked: boolean;

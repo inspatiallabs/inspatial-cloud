@@ -13,6 +13,8 @@ export interface ConnectionOptions {
 
 export type PgClientConfig = ClientConnectionType & {
   options?: ConnectionOptions;
+  /** The path where the postgres data should be stored when in dev mode */
+  pgDataRoot?: string;
 };
 
 export interface PgPoolConfig {

@@ -35,7 +35,7 @@ import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
 import type { CloudAPIGroup } from "#/api/cloud-group.ts";
-
+export type RunMode = "denoServe" | "run";
 export class InCloud<
   N extends string = any,
   P extends Array<CloudExtension> = any,
@@ -113,6 +113,7 @@ export class InCloud<
     config?: CloudConfig;
   }) {
     this.#appRoot = normalizePath(Deno.mainModule, { toDirname: true });
+    Deno.env.set("IN_ROOT", this.inRoot);
     this.inLog = inLog;
 
     loadCloudConfigFile();
@@ -362,7 +363,7 @@ export class InCloud<
         hostname: this.#config.hostname,
         port: this.#config.port,
         onListen: (localAddr) => {
-          const logo = makeLogo("upArrow", "brightMagenta");
+          const logo = makeLogo("downLeft", "brightMagenta");
 
           const url = `http://${localAddr.hostname}:${localAddr.port}`;
 

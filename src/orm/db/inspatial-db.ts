@@ -101,8 +101,6 @@ export class InSpatialDB {
 
   async init(): Promise<void> {
     await this.#pool.initialized();
-    const version = await this.version();
-    console.log({ version });
   }
   /**
    * Get the version number of the postgres database
