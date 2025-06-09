@@ -152,14 +152,12 @@ export class WasmLoader {
     const entsry = this.GOT["__heap_base"];
 
     for (var [symName, entry] of Object.entries(this.GOT)) {
-      console.log({ symName });
       if (entry.value == 0) {
         var value = this.resolveGlobalSymbol(symName, true).sym;
         if (!value && !entry.required) {
           continue;
         }
         if (typeof value == "number") {
-          console.log({ value });
           entry.value = value;
         } else {
           throw new Error(
