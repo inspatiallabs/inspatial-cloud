@@ -23,7 +23,7 @@ export class PGMem {
   constructor(inPg: InPG) {
     this.inPg = inPg;
     this.initMemory = 16777216;
-    this.___heap_base = 15195744;
+    this.___heap_base = 15414992;
     this.wasmMemory = new WebAssembly.Memory({
       initial: this.initMemory / 65536,
       maximum: 32768,

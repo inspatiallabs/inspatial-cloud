@@ -17,10 +17,13 @@ export class InPGClient extends PostgresClient {
       PGDATA: pgDataRoot,
       MODE: "REACT",
       PGDATABASE: "postgres",
+      WASM_PGOPTS: "--show",
+      // WASM_USERNAME: "postgres",
       PGUSER: "postgres",
+      PGDEBUG: 1,
       PREFIX: `${thisDir}/postgresql`,
       REPL: "N",
-      debug: options.debug,
+      debug: true,
     });
   }
   override async connect(): Promise<void> {

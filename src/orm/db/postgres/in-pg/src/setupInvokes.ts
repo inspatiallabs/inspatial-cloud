@@ -7,7 +7,7 @@ export function setupInvokeImports(inPg: InPG) {
   const stackRestore = (val) => wasmLoader.pgMem.stackRestore(val);
   const _setThrew = (one, two) => wasmLoader._setThrew(one, two);
   function invoke_iii(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -17,7 +17,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiii(index, a1, a2, a3, a4) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4);
     } catch (e) {
@@ -27,7 +27,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vi(index, a1) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1);
     } catch (e) {
@@ -37,7 +37,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_v(index) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)();
     } catch (e) {
@@ -47,7 +47,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_j(index) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)();
     } catch (e) {
@@ -58,7 +58,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiiii(index, a1, a2, a3, a4, a5, a6) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
     } catch (e) {
@@ -68,7 +68,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vii(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -78,7 +78,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiii(index, a1, a2, a3, a4, a5) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5);
     } catch (e) {
@@ -88,7 +88,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_i(index) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)();
     } catch (e) {
@@ -98,7 +98,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_ii(index, a1) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1);
     } catch (e) {
@@ -108,7 +108,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viii(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -118,7 +118,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiii(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -128,7 +128,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vji(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -138,7 +138,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiii(index, a1, a2, a3, a4) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4);
     } catch (e) {
@@ -148,7 +148,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
     } catch (e) {
@@ -158,7 +158,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     } catch (e) {
@@ -168,7 +168,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiii(index, a1, a2, a3, a4, a5) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5);
     } catch (e) {
@@ -178,7 +178,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_jii(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -189,7 +189,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_ji(index, a1) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1);
     } catch (e) {
@@ -200,7 +200,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_jiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     } catch (e) {
@@ -211,7 +211,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_jiiiiii(index, a1, a2, a3, a4, a5, a6) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
     } catch (e) {
@@ -237,7 +237,7 @@ export function setupInvokeImports(inPg: InPG) {
     a12,
     a13,
   ) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(
         a1,
@@ -261,7 +261,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiijii(index, a1, a2, a3, a4, a5, a6) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
     } catch (e) {
@@ -271,7 +271,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vijiji(index, a1, a2, a3, a4, a5) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5);
     } catch (e) {
@@ -281,7 +281,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viji(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -291,7 +291,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiji(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -301,7 +301,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8);
     } catch (e) {
@@ -330,7 +330,7 @@ export function setupInvokeImports(inPg: InPG) {
     a16,
     a17,
   ) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(
         a1,
@@ -358,7 +358,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiij(index, a1, a2, a3, a4) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4);
     } catch (e) {
@@ -368,7 +368,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiiii(index, a1, a2, a3, a4, a5, a6) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
     } catch (e) {
@@ -378,7 +378,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vj(index, a1) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1);
     } catch (e) {
@@ -388,7 +388,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9);
     } catch (e) {
@@ -398,7 +398,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiji(index, a1, a2, a3, a4) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4);
     } catch (e) {
@@ -408,7 +408,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8);
     } catch (e) {
@@ -418,7 +418,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vij(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -428,7 +428,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_ij(index, a1) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1);
     } catch (e) {
@@ -438,7 +438,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
     } catch (e) {
@@ -448,7 +448,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viiiji(index, a1, a2, a3, a4, a5) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5);
     } catch (e) {
@@ -458,7 +458,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiij(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -468,7 +468,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_vid(index, a1, a2) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2);
     } catch (e) {
@@ -478,7 +478,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_ijiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
     } catch (e) {
@@ -488,7 +488,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viijii(index, a1, a2, a3, a4, a5) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5);
     } catch (e) {
@@ -498,7 +498,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_iiiiiji(index, a1, a2, a3, a4, a5, a6) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
     } catch (e) {
@@ -508,7 +508,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viijiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7);
     } catch (e) {
@@ -518,7 +518,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_viij(index, a1, a2, a3) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(a1, a2, a3);
     } catch (e) {
@@ -528,7 +528,7 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   function invoke_jiiii(index, a1, a2, a3, a4) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       return getWasmTableEntry(index)(a1, a2, a3, a4);
     } catch (e) {
@@ -553,7 +553,7 @@ export function setupInvokeImports(inPg: InPG) {
     a11,
     a12,
   ) {
-    const sp = stackSave();
+    var sp = stackSave();
     try {
       getWasmTableEntry(index)(
         a1,
@@ -575,11 +575,63 @@ export function setupInvokeImports(inPg: InPG) {
       _setThrew(1, 0);
     }
   }
-
-  function invoke_iiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
-    const sp = stackSave();
+  function invoke_di(index, a1) {
+    var sp = stackSave();
     try {
-      return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+      return getWasmTableEntry(index)(a1);
+    } catch (e) {
+      stackRestore(sp);
+      if (e !== e + 0) throw e;
+      _setThrew(1, 0);
+    }
+  }
+  function invoke_id(index, a1) {
+    var sp = stackSave();
+    try {
+      return getWasmTableEntry(index)(a1);
+    } catch (e) {
+      stackRestore(sp);
+      if (e !== e + 0) throw e;
+      _setThrew(1, 0);
+    }
+  }
+  function invoke_ijiiiii(index, a1, a2, a3, a4, a5, a6) {
+    var sp = stackSave();
+    try {
+      return getWasmTableEntry(index)(a1, a2, a3, a4, a5, a6);
+    } catch (e) {
+      stackRestore(sp);
+      if (e !== e + 0) throw e;
+      _setThrew(1, 0);
+    }
+  }
+  function invoke_iiiiiiiiiii(
+    index,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+    a10,
+  ) {
+    var sp = stackSave();
+    try {
+      return getWasmTableEntry(index)(
+        a1,
+        a2,
+        a3,
+        a4,
+        a5,
+        a6,
+        a7,
+        a8,
+        a9,
+        a10,
+      );
     } catch (e) {
       stackRestore(sp);
       if (e !== e + 0) throw e;
@@ -587,7 +639,9 @@ export function setupInvokeImports(inPg: InPG) {
     }
   }
   return {
+    invoke_di,
     invoke_i,
+    invoke_id,
     invoke_ii,
     invoke_iii,
     invoke_iiii,
@@ -606,6 +660,7 @@ export function setupInvokeImports(inPg: InPG) {
     invoke_iiij,
     invoke_iiji,
     invoke_ij,
+    invoke_ijiiiii,
     invoke_ijiiiiii,
     invoke_j,
     invoke_ji,

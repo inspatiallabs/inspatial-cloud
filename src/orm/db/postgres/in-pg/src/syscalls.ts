@@ -30,7 +30,7 @@ export class SysCalls {
     const debug = this.inPg.debug;
 
     const func = function (...params: any) {
-      // debug && console.log("syscall", name, params);
+      // debug && console.log("syscall", name);
       try {
         return method(...params);
       } catch (e) {
@@ -98,7 +98,13 @@ export class SysCalls {
       }
       return -28;
     });
-
+    this.add(
+      "__syscall_getsockname",
+      "",
+      (fd, level, optname, optval, optlen, d1) => {
+        ni();
+      },
+    );
     this.add(
       "__syscall_getsockopt",
       "iiiippi",

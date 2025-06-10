@@ -52,7 +52,7 @@ export class WasmLoader {
     this.functionsInTableMap = new WeakMap();
     this.freeTableIndexes = [];
     this.wasmTable = new WebAssembly.Table({
-      initial: 5551,
+      initial: 5919,
       element: "anyfunc",
     });
   }

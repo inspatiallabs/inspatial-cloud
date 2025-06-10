@@ -250,9 +250,6 @@ export function setupOther(inPg: InPG) {
         break;
       }
       const chunk = buffer.slice(0, readCount);
-      if (file.path.endsWith("postgres.bki")) {
-        console.log(new TextDecoder().decode(new Uint8Array(chunk)));
-      }
       pgMem.HEAPU8.set(chunk, ptr);
 
       bytesRead += chunk.length;

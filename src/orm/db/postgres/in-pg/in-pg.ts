@@ -53,6 +53,7 @@ export class InPG implements Deno.Conn {
     await this.wasmLoader.load();
   }
   sendQuery(message: Uint8Array) {
+    return;
     this.wasmLoader.callExportFunction("use_wire", 1);
     const msg_len = message.length;
 
@@ -86,8 +87,45 @@ export class InPG implements Deno.Conn {
     await this.#setup();
     await this.initRuntime();
     this.#callMain();
-    this.initDB();
+
+    const idb = this.initDB();
+    console.log({ idb });
+    if (!idb) {
+      console.error("FATAL: INITDB failed to return value");
+      return;
+    }
+
+    if (idb & 0b0001) {
+      console.error("INITDB failed");
+      return;
+    }
+
+    if (idb & 0b0010) {
+      console.log(" #1 initdb was called");
+      if (idb & 0b0100) {
+        console.log(" #2 found db");
+
+        if (idb & (0b0100 | 0b1000)) {
+          console.log(" #3 found db+user : switch user");
+          // switch role
+          // vm.readline("SET ROLE ${PGUSER};");
+        }
+        console.error("Invalid user ?");
+      } else {
+        console.warn(" TODO:  create db+user here / callback / throw ");
+      }
+    }
     this.initBackend();
+    Deno.exit(1);
+  }
+  async shutdown() {
+    for (const [fd, file] of this.fileManager.openFiles.entries()) {
+      if (file.isMem) {
+        continue;
+      }
+      file.file.close();
+    }
+    this.fileManager.openFiles.clear();
   }
   initDB() {
     const result = this.wasmLoader.callExportFunction("pgl_initdb");
