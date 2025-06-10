@@ -23,11 +23,28 @@ export function setupOther(inPg: InPG) {
   sys.add("__call_sighandler", "vpi", () => {
     ni();
   });
-  sys.add("__cxa_throw", "vppp", () => {
-    ni();
-  });
   sys.add("_abort_js", "v", () => sys.inPg.abort(""));
-  sys.add("_dlopen_js", "pp", () => {
+  sys.add("_dlopen_js", "pp", (ptr, jsflags) => {
+    let path = fm.getPtrPath(ptr + 36);
+    var flags = pgMem.HEAP32[(ptr + 4) >> 2];
+    path = fm.parsePath(path);
+    var global = Boolean(flags & 256);
+    var localScope = global ? null : {};
+    var combinedFlags = {
+      global,
+      nodelete: Boolean(flags & 4096),
+      loadAsync: jsflags.loadAsync,
+    };
+    if (jsflags.loadAsync) {
+      return loadDynamicLibrary(filename, combinedFlags, localScope, handle);
+    }
+    try {
+      return loadDynamicLibrary(filename, combinedFlags, localScope, handle);
+    } catch (e) {
+      dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
+      return 0;
+    }
+    fm.debugLog({ path });
     ni();
   });
   sys.add("_dlsym_js", "pppp", () => {
@@ -160,10 +177,14 @@ export function setupOther(inPg: InPG) {
   });
   sys.add("fd_fdstat_get", "iip", (fd, pbuf) => {
     let type;
-    if (fd === 2 || fd === 1) {
-      type = 2;
-    } else {
-      Deno.exit(1);
+    switch (fd) {
+      case 0:
+      case 1:
+      case 2:
+        type = 4; // file
+        break;
+      default:
+        ni("unexpected");
     }
     pgMem.HEAP8[pbuf] = type;
     pgMem.HEAP16[(pbuf + 2) >> 1] = 0;
@@ -273,6 +294,7 @@ export function setupOther(inPg: InPG) {
         return 0;
       }
       const newPos = file.file.seekSync(offset, whence);
+
       pgMem.HEAPU32[newOffsetPtr >> 2] = newPos >>> 0;
       pgMem.HEAPU32[(newOffsetPtr + 4) >> 2] = (newPos / 2 ** 32) >>> 0;
       return 0;

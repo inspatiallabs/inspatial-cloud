@@ -1,11 +1,12 @@
-import { InPG } from "../in-pg.ts";
+import type { InPG } from "../in-pg.ts";
 
 export function setupInvokeImports(inPg: InPG) {
   const wasmLoader = inPg.wasmLoader;
   const stackSave = () => wasmLoader.pgMem.stackSave();
-  const getWasmTableEntry = (index) => wasmLoader.getWasmTableEntry(index);
+  const getWasmTableEntry = (index: any) => wasmLoader.getWasmTableEntry(index);
   const stackRestore = (val) => wasmLoader.pgMem.stackRestore(val);
-  const _setThrew = (one, two) => wasmLoader._setThrew(one, two);
+  const _setThrew = (one, two) =>
+    wasmLoader.callExportFunction("setThrew", one, two);
   function invoke_iii(index, a1, a2) {
     var sp = stackSave();
     try {

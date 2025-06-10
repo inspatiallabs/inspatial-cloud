@@ -53,7 +53,6 @@ export class InPG implements Deno.Conn {
     await this.wasmLoader.load();
   }
   sendQuery(message: Uint8Array) {
-    return;
     this.wasmLoader.callExportFunction("use_wire", 1);
     const msg_len = message.length;
 
@@ -116,17 +115,8 @@ export class InPG implements Deno.Conn {
       }
     }
     this.initBackend();
-    Deno.exit(1);
   }
-  async shutdown() {
-    for (const [fd, file] of this.fileManager.openFiles.entries()) {
-      if (file.isMem) {
-        continue;
-      }
-      file.file.close();
-    }
-    this.fileManager.openFiles.clear();
-  }
+
   initDB() {
     const result = this.wasmLoader.callExportFunction("pgl_initdb");
     return result;
@@ -237,7 +227,7 @@ export class InPG implements Deno.Conn {
     throw new Error("Method not implemented.");
   }
 }
-export function ni(message?: string) {
+export function ni(message?: string): never {
   console.log(message || "not implemented");
   Deno.exit(1);
 }

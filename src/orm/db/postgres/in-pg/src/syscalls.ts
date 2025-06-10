@@ -28,9 +28,14 @@ export class SysCalls {
       throw new Error(`already has ${name}`);
     }
     const debug = this.inPg.debug;
-
+    const encoder = new TextEncoder();
+    let lastMessage: string;
+    const debugLog = (message) => this.fm.debugLog(message);
     const func = function (...params: any) {
-      // debug && console.log("syscall", name);
+      let message = name + ": " + params;
+
+      debugLog(message);
+
       try {
         return method(...params);
       } catch (e) {
@@ -70,7 +75,7 @@ export class SysCalls {
 
     this.add("__syscall_fcntl64", "iiip", (fd: number, cmd, varargs) => {
       this.varargs = varargs;
-      const file = this.fm.getFile(fd);
+      // const file = this.fm.getFile(fd);
       switch (cmd) {
         case 0: {
           ni();
@@ -84,6 +89,12 @@ export class SysCalls {
         case 4: {
           // ni();
           var arg = this.syscallGetVarargI();
+          this.fm.debugLog({
+            O_APPEND: 0x400,
+            O_NONBLOCK: 0x800,
+            O_SYNC: 0x101000,
+          });
+          this.fm.debugLog({ arg });
           return 0;
         }
         case 12: {
@@ -139,7 +150,7 @@ export class SysCalls {
             read: accessMode === 0 || accessMode === 2,
             write: accessMode === 1 || accessMode === 2,
           });
-
+          this.fm.debugLog(file.fd.toString() + " " + path);
           return file.fd;
         } catch (e) {
           if (e instanceof Deno.errors.NotFound) {
@@ -310,13 +321,12 @@ export class SysCalls {
       ni();
     });
     this.add("__syscall_pipe", "ip", (fdPtr) => {
-      const readFd = 0;
-      const writeFd = 1;
+      const { readableFD, writableFD } = this.fm.createPipe();
 
       // Simulate the pipe ends
 
-      this.pgMem.HEAPU32[fdPtr >> 2] = readFd;
-      this.pgMem.HEAPU32[(fdPtr + 4) >> 2] = writeFd;
+      this.pgMem.HEAPU32[fdPtr >> 2] = readableFD;
+      this.pgMem.HEAPU32[(fdPtr + 4) >> 2] = writableFD;
 
       return 0;
     });

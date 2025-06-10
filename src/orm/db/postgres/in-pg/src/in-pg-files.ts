@@ -15,71 +15,169 @@ export class FileManager {
   stdErr!: WritableStreamDefaultWriter<Uint8Array>;
   #currFD: number;
   dirReadOffsets: Map<number, number>;
+  debugFile: Deno.FsFile;
+  lastDebugMessage: string;
+  messageCount: number = 0;
   constructor(inPg: InPG, options?: {
     debug?: boolean;
   }) {
+    this.lastDebugMessage = "";
     this.dirReadOffsets = new Map();
     this.debug = options?.debug;
     this.#currFD = 100;
     this.inPg = inPg;
     this.mem = inPg.pgMem;
     this.openFiles = new Map();
+    this.debugFile = Deno.openSync(Deno.cwd() + "/debug.log", {
+      create: true,
+      write: true,
+      truncate: true,
+    });
     this.init();
   }
 
   init() {
     this.setupStdStreams();
   }
-  dupe(fd: number) {
-    const file = this.openFiles.get(fd);
-    if (!file) {
-      throw new Error("no file");
+  debugLog(message: string | object) {
+    if (typeof message === "object") {
+      message = JSON.stringify(message);
     }
+    if (message == this.lastDebugMessage) {
+      let seek = -8;
+      if (this.messageCount === 0) {
+        seek = -1;
+      }
+      this.messageCount += 1;
+      const offset = this.debugFile.seekSync(seek, Deno.SeekMode.Current);
+      const out = this.messageCount.toString().padStart(4, "0");
+      const written = this.debugFile.writeSync(
+        new TextEncoder().encode(" (" + out + ")\n"),
+      );
+    } else {
+      this.messageCount = 0;
+      const output = new TextEncoder().encode(message + "\n");
+      this.debugFile.writeSync(output);
+    }
+    this.lastDebugMessage = message;
+  }
+  dupe(stdin: number) {
+    if (stdin !== 0) {
+      ni("dupe not stdin");
+    }
+    const path = Deno.cwd() + "/stdinfake.log";
+    const fakestdin = Deno.openSync(path, {
+      create: true,
+      write: true,
+      truncate: true,
+    });
+
     const newFD = this.nextFD();
-    this.openFiles.set(newFD, file);
+    this.openFiles.set(newFD, {
+      file: fakestdin,
+      isMem: false,
+      fd: stdin,
+      info: fakestdin.statSync(),
+      path: path,
+    });
+    this.debugLog(newFD.toString());
     return newFD;
   }
-  dupe3(oldFD: number, newFD: number) {
-    const file = this.openFiles.get(oldFD);
-    if (!file) {
-      return -ERRNO_CODES.EEXIST;
-    }
-    this.closeFile(newFD);
-    this.openFiles.set(newFD, file);
-    this.openFiles.delete(oldFD);
+  createPipe() {
+    const readableFD = this.nextFD();
+    // const readablePath = Deno.cwd() + "rpipe_" + readableFD + ".txt";
+    // const readableFile = Deno.openSync(readablePath, {
+    //   create: true,
+    //   truncate: true,
+    //   write: true,
+    //   read: true,
+    // });
+    // this.openFiles.set(readableFD, {
+    //   file: readableFile,
+    //   isMem: false,
+    //   fd: readableFD,
+    //   path: readablePath,
+    // });
+    const writableFD = this.nextFD();
+    this.debugLog(JSON.stringify({ readableFD, writableFD }));
+    return {
+      writableFD,
+      readableFD,
+    };
+  }
+
+  dupe3(contentfd: number, stdinfd: number) {
+    const file = this.getFile(contentfd);
+
+    file.file.seekSync(0, Deno.SeekMode.Start);
+    const size = file.file.statSync().size;
+    const buffer = new Uint8Array(size);
+    file.file.readSync(buffer);
+
+    const stdfile = this.getFile(stdinfd);
+    stdfile.file.truncateSync();
+    const written = stdfile.file.writeSync(buffer);
+    const path = stdfile.path;
+    this.closeFile(stdinfd);
+    const reopen = Deno.openSync(path, {
+      read: true,
+    });
+    this.openFiles.set(stdinfd, {
+      file: reopen,
+      isMem: false,
+      fd: stdinfd,
+      info: reopen.statSync(),
+      path,
+    });
     return 0;
   }
   setupStdStreams() {
-    const stdin = new MemFile(this.mem, "tty", this.debug);
-    const stdout = new MemFile(this.mem, "tty", this.debug);
-    const stderr = new MemFile(this.mem, "tty", this.debug);
+    // const stdin = new MemFile(this.mem, "tty", this.debug); //15177656
+    // const stdout = new MemFile(this.mem, "tty", this.debug); //15177808
+    // const stderr = new MemFile(this.mem, "tty", this.debug); //15177504
+    const stdinPath = Deno.cwd() + "/stdin.log";
+    const stderrPath = Deno.cwd() + "/stderr.log";
+    const stdoutPath = Deno.cwd() + "/stdout.log";
+    const stdin = Deno.openSync(stdinPath, {
+      create: true,
+      write: true,
+      truncate: true,
+    });
+    const stdout = Deno.openSync(stdoutPath, {
+      create: true,
+      write: true,
+      truncate: true,
+    });
+    const stderr = Deno.openSync(stderrPath, {
+      create: true,
+      write: true,
+      truncate: true,
+    });
+
     this.openFiles.set(0, {
       fd: 0,
-      isMem: true,
-      devType: "tty",
       file: stdin,
-      path: "/dev/tty",
+      path: stdinPath,
       info: stdin.statSync(),
+      isMem: false,
     });
     this.openFiles.set(1, {
-      fd: 0,
-      isMem: true,
-      devType: "tty",
+      fd: 1,
       file: stdout,
-      path: "/dev/tty",
-      info: stdin.statSync(),
+      path: stdoutPath,
+      info: stdout.statSync(),
+      isMem: false,
     });
     this.openFiles.set(2, {
-      fd: 0,
-      isMem: true,
-      devType: "tty",
+      fd: 2,
       file: stderr,
-      path: "/dev/tty",
-      info: stdin.statSync(),
+      path: stderrPath,
+      info: stderr.statSync(),
+      isMem: false,
     });
   }
 
-  getFile(fd: number): PGFile | PGFileMem {
+  getFile(fd: number): PGFile {
     if (!this.openFiles.has(fd)) {
       this.raise(`no file with file descriptor ${fd}`);
     }
@@ -96,9 +194,14 @@ export class FileManager {
     let file: Deno.FsFile | MemFile;
     let isMem = false;
     switch (devType) {
-      case "tmp":
-      case "shm":
       case "urandom":
+        file = this.#openMemFile(devType);
+        isMem = true;
+        break;
+      case "tmp":
+        file = Deno.openSync(Deno.cwd() + "/" + path.split("/").pop(), options);
+        break;
+      case "shm":
         file = this.#openMemFile(devType);
         isMem = true;
         break;
@@ -110,7 +213,10 @@ export class FileManager {
     }
 
     const fd = this.nextFD();
-
+    if (devType == "shm" || devType == "tmp") {
+      this.debugLog(path);
+      this.debugLog(fd.toString());
+    }
     this.openFiles.set(fd, {
       fd,
       file,
@@ -129,7 +235,11 @@ export class FileManager {
       if (file.isMem) {
         return 0;
       }
-      file.file.close();
+      try {
+        file.file.close();
+      } catch (e) {
+        console.warn(e);
+      }
 
       this.openFiles.delete(ptr);
     }
@@ -177,6 +287,7 @@ export class FileManager {
     }
     let path = this.getPtrPath(fd);
     this.closeFile(fd);
+
     if (!this.exists(path)) {
       return -ERRNO_CODES.ENOENT;
     }
@@ -270,7 +381,7 @@ export class FileManager {
     return parts.join("/").replaceAll("\\", "/");
   }
   raise(errorType: string): never {
-    throw new FMError(errorType);
+    throw new Error(errorType);
   }
   /** List a directory base on a file descriptor */
   listDirFD(

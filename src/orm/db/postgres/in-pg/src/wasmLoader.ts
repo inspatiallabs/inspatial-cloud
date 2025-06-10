@@ -1,6 +1,6 @@
 // import { setupInvokeImports } from "./setupInvokes.js";
 
-import type { InPG } from "../in-pg.ts";
+import { type InPG, ni } from "../in-pg.ts";
 
 import type { PGMem } from "./pgMem.ts";
 import { setupInvokeImports } from "./setupInvokes.ts";
@@ -76,6 +76,7 @@ export class WasmLoader {
     };
     this.setupImports();
     const wasmImports = this.wasmImports;
+    console.log();
     const info: WebAssembly.Imports = {
       env: this.wasmImports,
       wasi_snapshot_preview1: wasmImports,
@@ -146,6 +147,9 @@ export class WasmLoader {
   }
   callExportFunction(functionName: string, ...args: any) {
     const func = this.wasmExports[functionName];
+    if (!func) {
+      ni(functionName);
+    }
     return func(...args);
   }
   reportUndefinedSymbols() {
@@ -180,7 +184,6 @@ export class WasmLoader {
     return { sym, name: symName };
   }
   createInvokeFunction(sig: any) {
-    console.log({ sig });
     return (ptr: number, ...args: any) => {
       var sp = this.inPg.pgMem.stackSave();
       try {
@@ -224,8 +227,19 @@ export class WasmLoader {
       }
     }
   }
-  getWasmTableEntry(funcPtr: number) {
-    return this.wasmTable.get(funcPtr);
+  getWasmTableEntry(funcPtr: number): Function {
+    try {
+      const ent = this.wasmTable.get(funcPtr);
+      if (!ent) {
+        throw new Error("no fucntion");
+      }
+      return ent;
+    } catch (e) {
+      this.inPg.fileManager.debugLog({
+        funcPtr,
+      });
+      ni("gette");
+    }
   }
   setWasmTableEntry(idx: number, func: Function) {
     this.wasmTable.set(idx, func);

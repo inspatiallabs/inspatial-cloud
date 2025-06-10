@@ -2,7 +2,7 @@ import type { MemFile } from "./src/memFile.ts";
 
 export interface PGFileBase {
   path: string;
-  info: Deno.FileInfo;
+  info?: Deno.FileInfo;
   fd: number;
   isMem: boolean;
 }
