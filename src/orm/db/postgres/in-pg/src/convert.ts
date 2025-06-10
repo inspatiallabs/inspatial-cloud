@@ -122,3 +122,11 @@ export function bigintToI53Checked(num) {
 export function jstoi_q(str) {
   return parseInt(str);
 }
+
+export function normalizePath(path: string) {
+  // Convert backslashes to forward slashes for consistency
+  return path.replaceAll("\\", "/").replace(/^[a-zA-Z]:/g, "/").replaceAll(
+    /\/+/g,
+    "/",
+  );
+}

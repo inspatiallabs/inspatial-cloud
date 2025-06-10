@@ -1,6 +1,7 @@
 import { type InPG, ni } from "../in-pg.ts";
 import type { PGFile, PGFileMem } from "../types.ts";
 import { ERRNO_CODES } from "./constants.ts";
+import { normalizePath } from "./convert.ts";
 import { MemFile } from "./memFile.ts";
 import type { PGMem } from "./pgMem.ts";
 
@@ -89,9 +90,9 @@ export class FileManager {
     return memFile;
   }
   openFile(path: string, options: Deno.OpenOptions) {
+    const devType = this.isDev(path);
     path = this.parsePath(path);
 
-    const devType = this.isDev(path);
     let file: Deno.FsFile | MemFile;
     let isMem = false;
     switch (devType) {
@@ -153,11 +154,12 @@ export class FileManager {
     if (!path.startsWith("/")) {
       path = this.join(this.cwd, path);
     }
+    path = this.parsePath(path);
     try {
       const result = Deno.statSync(path);
     } catch (e) {
       if (e instanceof Deno.errors.NotFound) {
-        return -ERRNO_CODES.EEXIST;
+        return -ERRNO_CODES.ENOENT;
       }
       throw e;
     }
@@ -207,6 +209,7 @@ export class FileManager {
     // Deno.renameSync()
   }
   parsePath(path: string) {
+    path = normalizePath(path);
     switch (path) {
       case "":
         path = this.cwd;
@@ -220,6 +223,7 @@ export class FileManager {
         path = this.join(this.cwd, path);
         break;
     }
+
     return path;
   }
   resolvePath(path: string) {
@@ -236,6 +240,7 @@ export class FileManager {
   }
   exists(path: string) {
     path = this.parsePath(path);
+
     try {
       Deno.statSync(path);
     } catch (e) {
@@ -248,9 +253,11 @@ export class FileManager {
     return true;
   }
   mkdir(path: string) {
+    path = this.parsePath(path);
     if (
       path.includes("/tmp") ||
-      path.includes("/dev")
+      path.includes("/dev") ||
+      path === "/"
     ) {
       return -ERRNO_CODES.EEXIST;
     }
@@ -260,7 +267,7 @@ export class FileManager {
     Deno.mkdirSync(path);
   }
   join(...parts: string[]) {
-    return parts.join("/");
+    return parts.join("/").replaceAll("\\", "/");
   }
   raise(errorType: string): never {
     throw new FMError(errorType);
@@ -276,6 +283,7 @@ export class FileManager {
     const results = [];
     for (const entry of Deno.readDirSync(dir.path)) {
       const fullPath = `${dir.path}/${entry.name}`;
+
       const fileInfo = Deno.statSync(fullPath);
       results.push({
         stat: fileInfo,

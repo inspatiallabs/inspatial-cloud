@@ -4,7 +4,7 @@ export function setupInvokeImports(inPg: InPG) {
   const wasmLoader = inPg.wasmLoader;
   const stackSave = () => wasmLoader.pgMem.stackSave();
   const getWasmTableEntry = (index) => wasmLoader.getWasmTableEntry(index);
-  const stackRestore = () => wasmLoader.stackRestore();
+  const stackRestore = (val) => wasmLoader.pgMem.stackRestore(val);
   const _setThrew = (one, two) => wasmLoader._setThrew(one, two);
   function invoke_iii(index, a1, a2) {
     const sp = stackSave();

@@ -27,14 +27,23 @@ export class SysCalls {
     if (this.methods.has(name)) {
       throw new Error(`already has ${name}`);
     }
+    const debug = this.inPg.debug;
+
     const func = function (...params: any) {
+      // debug && console.log("syscall", name, params);
       try {
         return method(...params);
       } catch (e) {
-        console.log({ e });
-        if (e instanceof ErrnoError) {
-          return -e.errno;
+        if (Error.isError(e) && "code" in e) {
+          const code = e.code as keyof typeof ERRNO_CODES;
+          console.log(e.name, e.message, e.code);
+          const codeNum = ERRNO_CODES[code];
+          Deno.exit(1);
+          if (codeNum) {
+            return -codeNum;
+          }
         }
+        console.log({ e });
         Deno.exit(1);
         throw e;
       }
@@ -177,11 +186,12 @@ export class SysCalls {
       "iipii",
       (dirfd, pathPointer, amode, flags) => {
         const path = this.fm.getPtrPath(pathPointer);
-        if (amode & ~7) {
-          return -28;
-        }
+
+        // if (amode & ~7) {
+        //   return -28;
+        // }
         if (!this.fm.exists(path)) {
-          return -44;
+          return -ERRNO_CODES.ENOENT;
         }
 
         // Simulate success: file is accessible

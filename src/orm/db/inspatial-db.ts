@@ -66,6 +66,7 @@ export class InSpatialDB {
     };
     const clientConfig: PgClientConfig = {
       ...config.connection,
+      debug: this.#debugMode,
       options: {
         application_name: config.appName || "InSpatial",
       },

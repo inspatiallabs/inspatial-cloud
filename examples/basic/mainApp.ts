@@ -21,4 +21,8 @@ const app = new InCloud("myApp", {
 
 if (import.meta.main) {
   app.run();
+  // const result = Deno.readDirSync("/");
+  // for (const item of result) {
+  //   console.log(item.name, item.isFile, item.isDirectory, item.isSymlink);
+  // }
 }

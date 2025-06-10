@@ -1,3 +1,4 @@
+import { normalizePath } from "./src/convert.ts";
 import { FileManager } from "./src/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
@@ -15,6 +16,7 @@ export class InPG implements Deno.Conn {
   sysCalls: SysCalls;
   asmCodes: Record<number, Function>;
   fileManager: FileManager;
+  debug?: boolean;
   get env() {
     const envs = [];
     for (const [key, value] of Object.entries(this.#env)) {
@@ -24,7 +26,7 @@ export class InPG implements Deno.Conn {
   }
   constructor(wasmPath: string, options: Record<string, any>) {
     this.#env = options;
-
+    this.debug = options?.debug;
     this.#bufferData = new Uint8Array(0);
     this.runtimeInitialized = false;
     this.pgMem = new PGMem(this);
@@ -84,15 +86,15 @@ export class InPG implements Deno.Conn {
     await this.#setup();
     await this.initRuntime();
     this.#callMain();
-    await this.initDB();
-    await this.initBackend();
+    this.initDB();
+    this.initBackend();
   }
-  async initDB() {
-    const result = await this.wasmLoader.callExportFunction("pgl_initdb");
+  initDB() {
+    const result = this.wasmLoader.callExportFunction("pgl_initdb");
     return result;
   }
-  async initBackend() {
-    const result = await this.wasmLoader.callExportFunction("pgl_backend");
+  initBackend() {
+    const result = this.wasmLoader.callExportFunction("pgl_backend");
     return result;
   }
   #callMain(args: Array<string> = []) {
@@ -100,7 +102,7 @@ export class InPG implements Deno.Conn {
     const entryFunction = sym as Function;
 
     if (!entryFunction) return;
-    args.unshift(Deno.mainModule);
+    args.unshift(normalizePath(Deno.mainModule));
     const argc = args.length;
     const argv = this.pgMem.stackAlloc((argc + 1) * 4);
     let argv_ptr = argv;
