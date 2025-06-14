@@ -5,7 +5,7 @@ import { bigintToI53Checked } from "./convert.ts";
 export function setupOther(inPg: InPG) {
   const sys = inPg.sysCalls;
   const pgMem = inPg.pgMem;
-
+  const loader = inPg.wasmLoader;
   const fm = inPg.fileManager;
 
   sys.add("getaddrinfo", "ipppp", (node, service, hint, out) => {
@@ -20,35 +20,57 @@ export function setupOther(inPg: InPG) {
   sys.add("__assert_fail", "vppip", () => {
     ni();
   });
+  "_emscripten_fs_load_embedded_files";
   sys.add("__call_sighandler", "vpi", () => {
     ni();
   });
+
   sys.add("_abort_js", "v", () => sys.inPg.abort(""));
-  sys.add("_dlopen_js", "pp", (ptr, jsflags) => {
+  sys.add("_dlopen_js", "pp", (ptr) => {
     let path = fm.getPtrPath(ptr + 36);
     var flags = pgMem.HEAP32[(ptr + 4) >> 2];
     path = fm.parsePath(path);
+    fm.debugLog(path);
     var global = Boolean(flags & 256);
     var localScope = global ? null : {};
     var combinedFlags = {
       global,
       nodelete: Boolean(flags & 4096),
-      loadAsync: jsflags.loadAsync,
+      loadAsync: false,
     };
-    if (jsflags.loadAsync) {
-      return loadDynamicLibrary(filename, combinedFlags, localScope, handle);
-    }
     try {
-      return loadDynamicLibrary(filename, combinedFlags, localScope, handle);
+      return loader.loadDynamicLibrary(
+        path,
+        combinedFlags,
+        localScope,
+        ptr,
+      );
     } catch (e) {
-      dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
+      console.log(e);
+      // dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
       return 0;
     }
-    fm.debugLog({ path });
-    ni();
   });
-  sys.add("_dlsym_js", "pppp", () => {
-    ni();
+  sys.add("_dlsym_js", "pppp", (handle, symbol, symbolIndex) => {
+    symbol = pgMem.UTF8ToString(symbol);
+    var result;
+    var newSymIndex;
+    var lib = loader.LDSO.loadedLibsByHandle[handle];
+    if (!lib.exports.hasOwnProperty(symbol) || lib.exports[symbol].stub) {
+      return 0;
+    }
+    newSymIndex = Object.keys(lib.exports).indexOf(symbol);
+    result = lib.exports[symbol];
+    if (typeof result == "function") {
+      var addr = loader.getFunctionAddress(result);
+      if (addr) {
+        result = addr;
+      } else {
+        result = loader.addFunction(result, result.sig);
+        pgMem.HEAPU32[symbolIndex >> 2] = newSymIndex;
+      }
+    }
+    return result;
   });
   sys.add("_emscripten_get_progname", "vpi", (str, len) => {
     return pgMem.stringToUTF8(inPg.getExecutableName(), str, len);
@@ -313,7 +335,6 @@ export function setupOther(inPg: InPG) {
   });
   sys.add("fd_write", "iippp", (fd, iov, iovcnt, pnum) => {
     const file = fm.getFile(fd);
-
     let written = 0;
     for (let i = 0; i < iovcnt; i++) {
       const ptr = pgMem.HEAPU32[iov >> 2];

@@ -330,7 +330,6 @@ export class PostgresClient {
     writer.setMessageType("Q");
     writer.addCString(query);
     const message = writer.message;
-
     await this.conn.write(message);
     let status;
     const fields: ColumnDescription[] = [];

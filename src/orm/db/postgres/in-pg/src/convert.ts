@@ -31,7 +31,13 @@ export function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
   heap[outIdx] = 0;
   return outIdx - startIdx;
 }
-
+export function uleb128Encode(n, target) {
+  if (n < 128) {
+    target.push(n);
+  } else {
+    target.push(n % 128 | 128, n >> 7);
+  }
+}
 export function intArrayFromString(stringy, dontAddNull, length) {
   var len = length > 0 ? length : lengthBytesUTF8(stringy) + 1;
   var u8array = new Array(len);

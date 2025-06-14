@@ -48,7 +48,7 @@ export class SysCalls {
             return -codeNum;
           }
         }
-        console.log({ e });
+        console.log("unknown error", { e });
         Deno.exit(1);
         throw e;
       }
@@ -220,8 +220,36 @@ export class SysCalls {
       file.file.syncDataSync();
       return 0;
     });
-    this.add("__syscall_fstat64", "iip", () => {
-      ni();
+    this.add("__syscall_fstat64", "iip", (pathPointer, buf) => {
+      let path = this.fm.getPtrPath(pathPointer);
+      path = this.fm.parsePath(path);
+      if (!this.fm.exists(path)) {
+        return -ERRNO_CODES.ENOENT;
+      }
+      const stat = Deno.statSync(path);
+      console.log({ path });
+      const now = new Date().getTime();
+      this.pgMem.HEAP32[buf >> 2] = stat.dev;
+      this.pgMem.HEAP32[(buf + 4) >> 2] = stat.mode || 0;
+      this.pgMem.HEAPU32[(buf + 8) >> 2] = stat.nlink || 1;
+      this.pgMem.HEAP32[(buf + 12) >> 2] = stat.uid || 0;
+      this.pgMem.HEAP32[(buf + 16) >> 2] = stat.gid || 0;
+      this.pgMem.HEAP32[(buf + 20) >> 2] = stat.rdev || 0;
+      this.pgMem.HEAP64[(buf + 24) >> 3] = BigInt(stat.size);
+      this.pgMem.HEAP32[(buf + 32) >> 2] = 4096;
+      this.pgMem.HEAP32[(buf + 36) >> 2] = stat.blocks || 0;
+      const atime = stat.atime?.getTime() || now;
+      const mtime = stat.mtime?.getTime() || now;
+      const ctime = stat.ctime?.getTime() || now;
+      this.pgMem.HEAP64[(buf + 40) >> 3] = BigInt(Math.floor(atime / 1e3));
+      this.pgMem.HEAPU32[(buf + 48) >> 2] = (atime % 1e3) * 1e3 * 1e3;
+      this.pgMem.HEAP64[(buf + 56) >> 3] = BigInt(Math.floor(mtime / 1e3));
+      this.pgMem.HEAPU32[(buf + 64) >> 2] = (mtime % 1e3) * 1e3 * 1e3;
+      this.pgMem.HEAP64[(buf + 72) >> 3] = BigInt(Math.floor(ctime / 1e3));
+      this.pgMem.HEAPU32[(buf + 80) >> 2] = (ctime % 1e3) * 1e3 * 1e3;
+      this.pgMem.HEAP64[(buf + 88) >> 3] = BigInt(stat.ino || 1);
+
+      return 0; // success
     });
     this.add("__syscall_ftruncate64", "iij", (fd, length) => {
       // return 0;

@@ -10,6 +10,12 @@ export class InPG implements Deno.Conn {
   runtimeInitialized;
   #bufferData: Uint8Array;
   #env;
+  args: Array<string> = [];
+  initMemory: number = 16777216;
+  ___heap_base: number = 15414848;
+  __memory_base: number = 12582912;
+  __stack_pointer: number = 15414848;
+  tableSize: number = 5918;
   readEmAsmArgsArray: Array<number | bigint>;
   FD_BUFFER_MAX?: number;
   is_worker: boolean = false;
@@ -25,7 +31,8 @@ export class InPG implements Deno.Conn {
     return envs;
   }
   constructor(wasmPath: string, options: Record<string, any>) {
-    this.#env = options;
+    this.args = [...options.arguments];
+    this.#env = { ...options, arguments: undefined };
     this.debug = options?.debug;
     this.#bufferData = new Uint8Array(0);
     this.runtimeInitialized = false;
@@ -85,36 +92,36 @@ export class InPG implements Deno.Conn {
   async run() {
     await this.#setup();
     await this.initRuntime();
-    this.#callMain();
-
+    this.#callMain(this.args);
     const idb = this.initDB();
     console.log({ idb });
     if (!idb) {
-      console.error("FATAL: INITDB failed to return value");
-      return;
+      // This would be a sab worker crash before pg_initdb can be called
+      throw new Error("INITDB failed to return value");
     }
 
-    if (idb & 0b0001) {
-      console.error("INITDB failed");
-      return;
+    // initdb states:
+    // - populating pgdata
+    // - reconnect a previous db
+    // - found valid db+user
+    // currently unhandled:
+    // - db does not exist
+    // - user is invalid for db
+    //
+    if (idb === 2) {
+      // first load
     }
 
-    if (idb & 0b0010) {
-      console.log(" #1 initdb was called");
-      if (idb & 0b0100) {
-        console.log(" #2 found db");
-
-        if (idb & (0b0100 | 0b1000)) {
-          console.log(" #3 found db+user : switch user");
-          // switch role
-          // vm.readline("SET ROLE ${PGUSER};");
-        }
-        console.error("Invalid user ?");
-      } else {
-        console.warn(" TODO:  create db+user here / callback / throw ");
-      }
+    if (idb === 14) {
+      // db already init
     }
-    this.initBackend();
+    try {
+      this.initBackend();
+    } catch (e) {
+      console.log(e);
+      console.log("exiting");
+      Deno.exit(0);
+    }
   }
 
   initDB() {
@@ -139,7 +146,12 @@ export class InPG implements Deno.Conn {
       argv_ptr += 4;
     });
     this.pgMem.HEAPU32[argv_ptr >> 2] = 0;
-    entryFunction(argc, argv);
+    try {
+      const ret = entryFunction(argc, argv);
+      console.log({ ret });
+    } catch (e) {
+      console.log(e);
+    }
   }
   getMemory(size: number) {
     if (this.runtimeInitialized) {
