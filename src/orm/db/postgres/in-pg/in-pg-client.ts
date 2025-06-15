@@ -1,3 +1,4 @@
+import { inLog } from "../../../../in-log/in-log.ts";
 import { MessageReader } from "../messageReader.ts";
 import { PostgresClient } from "../pgClient.ts";
 import type { PgClientConfig } from "../pgTypes.ts";
@@ -24,7 +25,7 @@ export class InPGClient extends PostgresClient {
       // PGDEBUG: 1,
       PREFIX: `${thisDir}/postgresql`,
       REPL: "N",
-      // debug: false,
+      debug: false,
       arguments: [
         "--single",
         "postgres",
@@ -42,7 +43,13 @@ export class InPGClient extends PostgresClient {
     if (this.connected) {
       return;
     }
+    inLog.warn("Initializing embedded database...", {
+      subject: "InPG",
+    });
     await this.#inPg.run();
+    inLog.info("Database Initialized!", {
+      subject: "InPG",
+    });
     this.conn = this.#inPg;
     this.reader = new MessageReader(this.conn);
     this.status = "connected";

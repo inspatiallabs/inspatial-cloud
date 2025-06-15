@@ -1,6 +1,7 @@
 import { type InPG, ni } from "../in-pg.ts";
 import { ERRNO_CODES } from "./constants.ts";
 import { bigintToI53Checked } from "./convert.ts";
+import { ExceptionInfo, ExitStatus } from "./utils.ts";
 
 export function setupOther(inPg: InPG) {
   const sys = inPg.sysCalls;
@@ -14,8 +15,9 @@ export function setupOther(inPg: InPG) {
   sys.add("getnameinfo", "ipipipii", () => {
     ni();
   });
-  sys.add("proc_exit", "vi", () => {
-    ni();
+  sys.add("proc_exit", "vi", (code) => {
+    inPg.EXITSTATUS = code;
+    throw new ExitStatus(code);
   });
   sys.add("__assert_fail", "vppip", () => {
     ni();
@@ -191,8 +193,15 @@ export function setupOther(inPg: InPG) {
     pgMem.HEAPU32[penviron_buf_size >> 2] = bufSize;
     return 0;
   });
+  sys.add("__cxa_throw", "vppp", (ptr, type, destructor) => {
+    const info = new ExceptionInfo(ptr, pgMem);
+    info.init(type, destructor);
+    inPg.exceptionLast = ptr;
+    inPg.uncaughtExceptionCount++;
+    throw inPg.exceptionLast;
+  });
   sys.add("exit", "vi", (status, implicit) => {
-    Deno.exit(status);
+    inPg.exitJS(status, implicit);
   });
   sys.add("fd_close", "ii", (fd) => {
     return fm.closeFile(fd);
@@ -220,9 +229,6 @@ export function setupOther(inPg: InPG) {
 
     const pgFile = fm.getFile(fd);
     if (!pgFile) return -1;
-    if (pgFile.isMem) {
-      return;
-    }
     const file = pgFile.file;
     const originalPos = file.seekSync(0, Deno.SeekMode.Current);
 
@@ -253,9 +259,6 @@ export function setupOther(inPg: InPG) {
     offset = bigintToI53Checked(offset);
     const pgFile = fm.getFile(fd);
     if (!pgFile) return -1;
-    if (pgFile.isMem) {
-      return 0;
-    }
     const file = pgFile.file;
     let total = 0;
     const originalPos = file.seekSync(0, Deno.SeekMode.Current);
@@ -312,9 +315,6 @@ export function setupOther(inPg: InPG) {
       offset = bigintToI53Checked(offset);
       const file = fm.getFile(fd);
       if (!file) return -1;
-      if (file.isMem) {
-        return 0;
-      }
       const newPos = file.file.seekSync(offset, whence);
 
       pgMem.HEAPU32[newOffsetPtr >> 2] = newPos >>> 0;
@@ -327,14 +327,23 @@ export function setupOther(inPg: InPG) {
     if (!file) {
       return -1;
     }
-    if (file.isMem) {
-      return 0;
-    }
     file.file.syncSync();
     return 0;
   });
   sys.add("fd_write", "iippp", (fd, iov, iovcnt, pnum) => {
-    const file = fm.getFile(fd);
+    let file;
+    let std: "out" | "err" | null = null;
+    switch (fd) {
+      case 1:
+        std = "out";
+        break;
+      case 2:
+        std = "err";
+        break;
+      default:
+        file = fm.getFile(fd);
+    }
+
     let written = 0;
     for (let i = 0; i < iovcnt; i++) {
       const ptr = pgMem.HEAPU32[iov >> 2];
@@ -342,8 +351,14 @@ export function setupOther(inPg: InPG) {
       iov += 8;
 
       const chunk = pgMem.HEAPU8.slice(ptr, ptr + len);
-      const writtenLength = file!.file.writeSync(chunk);
-      written += writtenLength;
+      if (file) {
+        const writtenLength = file!.file.writeSync(chunk);
+        written += writtenLength;
+      }
+      if (std) {
+        inPg.log(std, chunk);
+        written += chunk.length;
+      }
     }
     pgMem.HEAPU32[pnum >> 2] = written;
 

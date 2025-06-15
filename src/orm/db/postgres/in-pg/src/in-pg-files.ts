@@ -7,17 +7,18 @@ import type { PGMem } from "./pgMem.ts";
 
 export class FileManager {
   openFiles: Map<number, PGFile | PGFileMem>;
+  openTmpFDs: Map<string, number>;
   mem: PGMem;
   inPg: InPG;
   #cwd: string = "/";
   debug?: boolean;
-  stdOut!: WritableStreamDefaultWriter<Uint8Array>;
-  stdErr!: WritableStreamDefaultWriter<Uint8Array>;
   #currFD: number;
   dirReadOffsets: Map<number, number>;
   debugFile: Deno.FsFile;
+  tmpMap: Map<string, string>;
   lastDebugMessage: string;
   messageCount: number = 0;
+  tmDir!: string;
   constructor(inPg: InPG, options?: {
     debug?: boolean;
   }) {
@@ -28,11 +29,18 @@ export class FileManager {
     this.inPg = inPg;
     this.mem = inPg.pgMem;
     this.openFiles = new Map();
-    this.debugFile = Deno.openSync(Deno.cwd() + "/debug.log", {
-      create: true,
-      write: true,
-      truncate: true,
+    this.openTmpFDs = new Map();
+    this.tmDir = Deno.makeTempDirSync({
+      prefix: "inspatial_",
     });
+    this.tmpMap = new Map();
+    if (this.debug) {
+      this.debugFile = Deno.openSync(Deno.cwd() + "/debug.log", {
+        create: true,
+        write: true,
+        truncate: true,
+      });
+    }
     this.init();
   }
 
@@ -40,6 +48,9 @@ export class FileManager {
     this.setupStdStreams();
   }
   debugLog(message: string | object) {
+    if (!this.debug || !this.debugFile) {
+      return;
+    }
     if (typeof message === "object") {
       message = JSON.stringify(message);
     }
@@ -65,39 +76,14 @@ export class FileManager {
     if (stdin !== 0) {
       ni("dupe not stdin");
     }
-    const path = Deno.cwd() + "/stdinfake.log";
-    const fakestdin = Deno.openSync(path, {
-      create: true,
-      write: true,
-      truncate: true,
-    });
 
     const newFD = this.nextFD();
-    this.openFiles.set(newFD, {
-      file: fakestdin,
-      isMem: false,
-      fd: stdin,
-      info: fakestdin.statSync(),
-      path: path,
-    });
-    this.debugLog(newFD.toString());
+
     return newFD;
   }
   createPipe() {
     const readableFD = this.nextFD();
-    // const readablePath = Deno.cwd() + "rpipe_" + readableFD + ".txt";
-    // const readableFile = Deno.openSync(readablePath, {
-    //   create: true,
-    //   truncate: true,
-    //   write: true,
-    //   read: true,
-    // });
-    // this.openFiles.set(readableFD, {
-    //   file: readableFile,
-    //   isMem: false,
-    //   fd: readableFD,
-    //   path: readablePath,
-    // });
+
     const writableFD = this.nextFD();
     this.debugLog(JSON.stringify({ readableFD, writableFD }));
     return {
@@ -107,85 +93,59 @@ export class FileManager {
   }
 
   dupe3(contentfd: number, stdinfd: number) {
-    const file = this.getFile(contentfd);
+    const contentFile = this.getFile(contentfd);
+    const newContentFile = Deno.openSync(contentFile.path);
 
-    file.file.seekSync(0, Deno.SeekMode.Start);
-    const size = file.file.statSync().size;
-    const buffer = new Uint8Array(size);
-    file.file.readSync(buffer);
-
-    const stdfile = this.getFile(stdinfd);
-    stdfile.file.truncateSync();
-    const written = stdfile.file.writeSync(buffer);
-    const path = stdfile.path;
-    this.closeFile(stdinfd);
-    const reopen = Deno.openSync(path, {
-      read: true,
-    });
     this.openFiles.set(stdinfd, {
-      file: reopen,
-      isMem: false,
       fd: stdinfd,
-      info: reopen.statSync(),
-      path,
+      isMem: false,
+      path: contentFile.path,
+      file: newContentFile,
     });
     return 0;
   }
   setupStdStreams() {
-    // const stdin = new MemFile(this.mem, "tty", this.debug); //15177656
-    // const stdout = new MemFile(this.mem, "tty", this.debug); //15177808
-    // const stderr = new MemFile(this.mem, "tty", this.debug); //15177504
-    const stdinPath = Deno.cwd() + "/stdin.log";
-    const stderrPath = Deno.cwd() + "/stderr.log";
-    const stdoutPath = Deno.cwd() + "/stdout.log";
-    const stdin = Deno.openSync(stdinPath, {
-      create: true,
-      write: true,
-      truncate: true,
-    });
-    const stdout = Deno.openSync(stdoutPath, {
-      create: true,
-      write: true,
-      truncate: true,
-    });
-    const stderr = Deno.openSync(stderrPath, {
-      create: true,
-      write: true,
-      truncate: true,
-    });
+    const stdin = new MemFile(this.mem, "tmp", this.debug);
 
     this.openFiles.set(0, {
       fd: 0,
       file: stdin,
-      path: stdinPath,
+      path: "/tmp/stdin",
       info: stdin.statSync(),
-      isMem: false,
+      isMem: true,
+      devType: "tmp",
     });
-    this.openFiles.set(1, {
-      fd: 1,
-      file: stdout,
-      path: stdoutPath,
-      info: stdout.statSync(),
-      isMem: false,
-    });
-    this.openFiles.set(2, {
-      fd: 2,
-      file: stderr,
-      path: stderrPath,
-      info: stderr.statSync(),
-      isMem: false,
-    });
-  }
 
-  getFile(fd: number): PGFile {
+    this.openTmpFDs.set("/tmp/stdin", 0);
+  }
+  getFile(fd: number): PGFile | PGFileMem {
     if (!this.openFiles.has(fd)) {
       this.raise(`no file with file descriptor ${fd}`);
     }
     return this.openFiles.get(fd)!;
   }
-  #openMemFile(type: string): MemFile {
-    const memFile = new MemFile(this.mem, type);
-    return memFile;
+  #openMemFile(type: string, path: string): MemFile {
+    const fd = this.openTmpFDs.get(path);
+    if (fd === undefined) {
+      return new MemFile(this.mem, type, this.debug);
+    }
+    const memFile = this.openFiles.get(fd) as PGFileMem;
+
+    if (memFile) {
+      memFile.file.pos = 0;
+      return memFile.file as MemFile;
+    }
+    return new MemFile(this.mem, type, this.debug);
+  }
+  openTmpFile(path: string, options: Deno.OpenOptions) {
+    let realPath = this.tmpMap.get(path);
+    if (!realPath) {
+      realPath = Deno.makeTempFileSync({
+        dir: this.tmDir,
+      });
+      this.tmpMap.set(path, realPath);
+    }
+    return Deno.openSync(path, options);
   }
   openFile(path: string, options: Deno.OpenOptions) {
     const devType = this.isDev(path);
@@ -195,14 +155,14 @@ export class FileManager {
     let isMem = false;
     switch (devType) {
       case "urandom":
-        file = this.#openMemFile(devType);
+        file = this.#openMemFile(devType, path);
         isMem = true;
         break;
       case "tmp":
-        file = Deno.openSync(Deno.cwd() + "/" + path.split("/").pop(), options);
+        file = this.openTmpFile(path, options);
         break;
       case "shm":
-        file = this.#openMemFile(devType);
+        file = this.#openMemFile(devType, path);
         isMem = true;
         break;
       case null:
@@ -213,7 +173,8 @@ export class FileManager {
     }
 
     const fd = this.nextFD();
-    if (devType == "shm" || devType == "tmp") {
+    if (devType == "shm") {
+      this.openTmpFDs.set(path, fd);
       this.debugLog(path);
       this.debugLog(fd.toString());
     }

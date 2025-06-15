@@ -1,11 +1,10 @@
 import { ni } from "../in-pg.ts";
 import type { PGMem } from "./pgMem.ts";
 
-export class MemFile {
+export class MemFile implements Deno.FsFile {
   #pgMem: PGMem;
   #content?: Int8Array;
   #data: Uint8Array;
-  offset?: number;
   pos: number;
   length?: number;
   type?: string;
@@ -15,7 +14,14 @@ export class MemFile {
     dev: 0,
   } as Deno.FileInfo;
   debug: boolean;
+  readable: ReadableStream<Uint8Array<ArrayBuffer>>;
+  writable: WritableStream<Uint8Array<ArrayBufferLike>>;
+  get dataText(): string {
+    return new TextDecoder().decode(this.#data);
+  }
   constructor(pgMem: PGMem, type?: string, debug?: boolean) {
+    this.readable = new ReadableStream();
+    this.writable = new WritableStream();
     this.debug = debug || false;
     this.type = type;
     this.#pgMem = pgMem;
@@ -25,6 +31,75 @@ export class MemFile {
     this.statInfo.mtime = new Date();
     this.statInfo.atime = new Date();
     this.statInfo.ctime = new Date();
+  }
+
+  write(p: Uint8Array): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  truncate(len?: number): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  read(p: Uint8Array): Promise<number | null> {
+    throw new Error("Method not implemented.");
+  }
+  seek(offset: number | bigint, whence: Deno.SeekMode): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  seekSync(offset: number, whence: Deno.SeekMode): number {
+    switch (whence) {
+      case Deno.SeekMode.Start:
+        this.pos = offset;
+      case Deno.SeekMode.Current:
+        this.pos += offset;
+      case Deno.SeekMode.End:
+        this.pos = this.#data.length + offset;
+    }
+    return this.pos;
+  }
+  stat(): Promise<Deno.FileInfo> {
+    throw new Error("Method not implemented.");
+  }
+  sync(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  syncSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  syncData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  syncDataSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  utime(atime: number | Date, mtime: number | Date): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  utimeSync(atime: number | Date, mtime: number | Date): void {
+    throw new Error("Method not implemented.");
+  }
+  isTerminal(): boolean {
+    throw new Error("Method not implemented.");
+  }
+  setRaw(mode: boolean, options?: Deno.SetRawOptions): void {
+    throw new Error("Method not implemented.");
+  }
+  lock(exclusive?: boolean): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  lockSync(exclusive?: boolean): void {
+    throw new Error("Method not implemented.");
+  }
+  unlock(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  unlockSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  close(): void {
+    throw new Error("Method not implemented.");
+  }
+  [Symbol.dispose](): void {
+    throw new Error("Method not implemented.");
   }
   mmap(length: number, offset: number) {
     let ptr: number;

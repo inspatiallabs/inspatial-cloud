@@ -71,17 +71,6 @@ export class PGMem {
       return 1;
     } catch (e) {}
   }
-  stackSave() {
-    this.inPg.wasmLoader.callExportFunction(
-      "emscripten_stack_get_current",
-    );
-  }
-  stackRestore(val) {
-    this.inPg.wasmLoader.callExportFunction(
-      "_emscripten_stack_restore",
-      val,
-    );
-  }
 
   stackAlloc(sz) {
     return this.inPg.wasmLoader.callExportFunction(

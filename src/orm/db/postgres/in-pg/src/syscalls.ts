@@ -27,11 +27,9 @@ export class SysCalls {
     if (this.methods.has(name)) {
       throw new Error(`already has ${name}`);
     }
-    const debug = this.inPg.debug;
-    const encoder = new TextEncoder();
-    let lastMessage: string;
-    const debugLog = (message) => this.fm.debugLog(message);
-    const func = function (...params: any) {
+
+    const debugLog = (message: any) => this.fm.debugLog(message);
+    const func = (...params: any) => {
       let message = name + ": " + params;
 
       debugLog(message);
@@ -39,6 +37,9 @@ export class SysCalls {
       try {
         return method(...params);
       } catch (e) {
+        if (e === Infinity) {
+          throw e;
+        }
         if (Error.isError(e) && "code" in e) {
           const code = e.code as keyof typeof ERRNO_CODES;
           console.log(e.name, e.message, e.code);
@@ -49,7 +50,6 @@ export class SysCalls {
           }
         }
         console.log("unknown error", { e });
-        Deno.exit(1);
         throw e;
       }
     };
@@ -227,7 +227,6 @@ export class SysCalls {
         return -ERRNO_CODES.ENOENT;
       }
       const stat = Deno.statSync(path);
-      console.log({ path });
       const now = new Date().getTime();
       this.pgMem.HEAP32[buf >> 2] = stat.dev;
       this.pgMem.HEAP32[(buf + 4) >> 2] = stat.mode || 0;

@@ -2,6 +2,7 @@ import { normalizePath } from "./src/convert.ts";
 import { FileManager } from "./src/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
+import { ExitStatus } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 
 export class InPG implements Deno.Conn {
@@ -10,11 +11,20 @@ export class InPG implements Deno.Conn {
   runtimeInitialized;
   #bufferData: Uint8Array;
   #env;
+  EXITSTATUS: number = 0;
+  exceptionLast: number = 0;
+  uncaughtExceptionCount: number = 0;
   args: Array<string> = [];
   initMemory: number = 16777216;
   ___heap_base: number = 15414848;
-  __memory_base: number = 12582912;
-  __stack_pointer: number = 15414848;
+  __memory_base = new WebAssembly.Global(
+    { value: "i32", mutable: false },
+    12582912,
+  );
+  __stack_pointer = new WebAssembly.Global(
+    { value: "i32", mutable: true },
+    15414848,
+  );
   tableSize: number = 5918;
   readEmAsmArgsArray: Array<number | bigint>;
   FD_BUFFER_MAX?: number;
@@ -23,6 +33,22 @@ export class InPG implements Deno.Conn {
   asmCodes: Record<number, Function>;
   fileManager: FileManager;
   debug?: boolean;
+  #onStdErr: (message: any) => void;
+  #onStdOut: (message: any) => void;
+
+  log(type: "out" | "err", chunk: Uint8Array) {
+    if (!this.debug) {
+      return;
+    }
+    const message = new TextDecoder().decode(chunk);
+    switch (type) {
+      case "err":
+        this.#onStdErr(message);
+        break;
+      case "out":
+        this.#onStdOut(message);
+    }
+  }
   get env() {
     const envs = [];
     for (const [key, value] of Object.entries(this.#env)) {
@@ -42,6 +68,12 @@ export class InPG implements Deno.Conn {
     this.fileManager = new FileManager(this, {
       debug: options?.debug,
     });
+    this.#onStdErr = (message) => {
+      console.error(message);
+    };
+    this.#onStdOut = (message) => {
+      console.log(message);
+    };
     this.sysCalls = new SysCalls(this);
 
     this.asmCodes = {
@@ -81,6 +113,11 @@ export class InPG implements Deno.Conn {
 
     this.wasmLoader.callExportFunction("__wasm_call_ctors");
   }
+  clearTmpFiles() {
+    for (const file of this.fileManager.tmpMap.values()) {
+      Deno.removeSync(file);
+    }
+  }
   abort(what: string) {
     what = "Aborted(" + what + ")";
     console.error(what);
@@ -94,7 +131,6 @@ export class InPG implements Deno.Conn {
     await this.initRuntime();
     this.#callMain(this.args);
     const idb = this.initDB();
-    console.log({ idb });
     if (!idb) {
       // This would be a sab worker crash before pg_initdb can be called
       throw new Error("INITDB failed to return value");
@@ -108,19 +144,22 @@ export class InPG implements Deno.Conn {
     // - db does not exist
     // - user is invalid for db
     //
-    if (idb === 2) {
-      // first load
+    switch (idb) {
+      case 2:
+        // populating pgdata
+        break;
+      case 14:
+        //found valid db+user
+        break;
+      default:
+        throw new Error(`Bad initdb ${idb}`);
     }
-
-    if (idb === 14) {
-      // db already init
-    }
+    this.clearTmpFiles();
     try {
       this.initBackend();
     } catch (e) {
       console.log(e);
-      console.log("exiting");
-      Deno.exit(0);
+      Deno.exit(1);
     }
   }
 
@@ -148,9 +187,9 @@ export class InPG implements Deno.Conn {
     this.pgMem.HEAPU32[argv_ptr >> 2] = 0;
     try {
       const ret = entryFunction(argc, argv);
-      console.log({ ret });
+      this.exitJS(ret, true);
     } catch (e) {
-      console.log(e);
+      return this.handleException(e);
     }
   }
   getMemory(size: number) {
@@ -163,7 +202,11 @@ export class InPG implements Deno.Conn {
     this.wasmLoader.GOT["__heap_base"].value = end;
     return ret;
   }
+  exitJS(code: number, implicit?: boolean) {
+    this.EXITSTATUS = code;
 
+    throw new ExitStatus(code);
+  }
   getExecutableName() {
     return Deno.mainModule;
   }
@@ -221,7 +264,12 @@ export class InPG implements Deno.Conn {
       resolve(gotData.byteLength);
     });
   }
-
+  handleException(e: unknown) {
+    if (e instanceof ExitStatus || e == "unwind") {
+      return this.EXITSTATUS;
+    }
+    throw e;
+  }
   close(): void {
   }
   writable: WritableStream<Uint8Array<ArrayBufferLike>> = new WritableStream();

@@ -12,6 +12,10 @@ const app = new InCloud("myApp", {
             key: "thing",
             label: "Thingd",
             type: "DataField",
+          }, {
+            key: "more",
+            label: "More",
+            type: "DataField",
           }],
         }),
       ],

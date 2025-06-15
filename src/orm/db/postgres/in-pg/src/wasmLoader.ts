@@ -154,14 +154,8 @@ export class WasmLoader {
       { value: "i32", mutable: false },
       1,
     );
-    this.wasmImports.__memory_base = new WebAssembly.Global(
-      { value: "i32", mutable: false },
-      this.inPg.__memory_base,
-    );
-    this.wasmImports.__stack_pointer = new WebAssembly.Global(
-      { value: "i32", mutable: true },
-      this.inPg.__stack_pointer,
-    );
+    this.wasmImports.__memory_base = this.inPg.__memory_base;
+    this.wasmImports.__stack_pointer = this.inPg.__stack_pointer;
 
     // const invokes = setupInvokeImports();
   }
@@ -170,6 +164,7 @@ export class WasmLoader {
     if (!func) {
       ni(functionName);
     }
+    // console.log({ functionName });
     return func(...args);
   }
   reportUndefinedSymbols() {
