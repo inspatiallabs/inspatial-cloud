@@ -220,16 +220,21 @@ export class SysCalls {
       file.file.syncDataSync();
       return 0;
     });
-    this.add("__syscall_fstat64", "iip", (pathPointer, buf) => {
-      let path = this.fm.getPtrPath(pathPointer);
-      path = this.fm.parsePath(path);
-      if (!this.fm.exists(path)) {
-        return -ERRNO_CODES.ENOENT;
-      }
-      const stat = Deno.statSync(path);
+    this.add("__syscall_fstat64", "iip", (fd, buf) => {
+      const pgFile = this.fm.getFile(fd);
+
+      const stat = Deno.statSync(pgFile.path);
+      let mode = 0;
+      const S_IFMT = 0o170000; // bitmask for the file type bitfields
+      const S_IFDIR = 0o040000;
+      const S_IFREG = 0o100000;
+      const S_IFLNK = 0o120000;
+      if (stat.isDirectory) mode |= S_IFDIR;
+      else if (stat.isSymlink) mode |= S_IFLNK;
+      else mode |= S_IFREG;
       const now = new Date().getTime();
       this.pgMem.HEAP32[buf >> 2] = stat.dev;
-      this.pgMem.HEAP32[(buf + 4) >> 2] = stat.mode || 0;
+      this.pgMem.HEAP32[(buf + 4) >> 2] = mode;
       this.pgMem.HEAPU32[(buf + 8) >> 2] = stat.nlink || 1;
       this.pgMem.HEAP32[(buf + 12) >> 2] = stat.uid || 0;
       this.pgMem.HEAP32[(buf + 16) >> 2] = stat.gid || 0;

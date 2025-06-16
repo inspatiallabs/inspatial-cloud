@@ -4,10 +4,10 @@ import { PostgresClient } from "../pgClient.ts";
 import type { PgClientConfig } from "../pgTypes.ts";
 import { InPG } from "./in-pg.ts";
 import { normalizePath } from "./src/convert.ts";
+import { Output, OutputMore } from "./types.ts";
 
 export class InPGClient extends PostgresClient {
   #inPg: InPG;
-  options: Record<string, any>;
   wasmPath: string;
   constructor(options: PgClientConfig) {
     super(options);
@@ -15,18 +15,33 @@ export class InPGClient extends PostgresClient {
     const inRoot = Deno.env.get("IN_ROOT");
     const pgDataRoot = normalizePath(`${inRoot}/pgdata`);
     this.wasmPath = `${thisDir}/src/inpg.wasm`;
-    this.options = {
-      PGDATA: pgDataRoot,
-      MODE: "REACT",
-      PGDATABASE: "template1",
-      // WASM_PGOPTS: "--show",
-      // WASM_USERNAME: "postgres",
-      PGUSER: "postgres",
-      // PGDEBUG: 1,
-      PREFIX: `${thisDir}/postgresql`,
-      REPL: "N",
+
+    this.#inPg = new InPG(this.wasmPath, {
+      env: {
+        PGDATA: pgDataRoot,
+        MODE: "REACT",
+        PGDATABASE: "template1",
+        // WASM_PGOPTS: "--show",
+        // WASM_USERNAME: "postgres",
+        PGUSER: "postgres",
+        // PGDEBUG: 1,
+        PREFIX: `${thisDir}/postgresql`,
+        REPL: "N",
+      },
+      onStderr: (out) => {
+        if (this.#logOut(out)) {
+          return;
+        }
+        inLog.warn(out.message);
+      },
+      onStdout: (out) => {
+        if (this.#logOut(out)) {
+          return;
+        }
+        inLog.info(out.message);
+      },
       debug: false,
-      arguments: [
+      args: [
         "--single",
         "postgres",
         "--",
@@ -36,8 +51,40 @@ export class InPGClient extends PostgresClient {
         `PGUSER=postgres`,
         "REPL=N",
       ],
-    };
-    this.#inPg = new InPG(this.wasmPath, this.options);
+    });
+  }
+  #logOut(out: Output | OutputMore) {
+    if ("type" in out) {
+      const subject = `InPG - ${out.type}`;
+      switch (out.type) {
+        case "LOG":
+        case "NOTICE":
+          inLog.info(out.message, {
+            subject,
+          });
+          break;
+        case "DEBUG":
+          inLog.debug(out.message, {
+            subject,
+          });
+          break;
+        case "WARNING":
+          inLog.warn(out.message, {
+            subject,
+          });
+          break;
+        case "ERROR":
+          inLog.error(out.message, {
+            subject,
+          });
+          break;
+        default:
+          console.log(out.type);
+          Deno.exit();
+      }
+      return true;
+    }
+    return false;
   }
   override async connect(): Promise<void> {
     if (this.connected) {

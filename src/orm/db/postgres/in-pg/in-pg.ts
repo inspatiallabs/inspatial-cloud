@@ -4,6 +4,7 @@ import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
 import { ExitStatus } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
+import { InPgOptions } from "./types.ts";
 
 export class InPG implements Deno.Conn {
   pgMem: PGMem;
@@ -40,13 +41,32 @@ export class InPG implements Deno.Conn {
     if (!this.debug) {
       return;
     }
-    const message = new TextDecoder().decode(chunk);
+    const message = new TextDecoder().decode(chunk).trim();
+    if (message === "") {
+      return;
+    }
+    const match = message.match(
+      /(?<date>^[\d-]+)\s(?<time>[\d:]+)\.\d{3}\s[\S]+\s\[\d\]\s(?<type>[A-Z]+):\s+(?<message>.*)/,
+    );
+    let out: Record<string, string> = {
+      message,
+    };
+    if (match?.groups) {
+      const { date, time, type, message } = match.groups;
+      out = {
+        date,
+        time,
+        type: type.trim(),
+        message,
+      };
+    }
+
     switch (type) {
       case "err":
-        this.#onStdErr(message);
+        this.#onStdErr(out);
         break;
       case "out":
-        this.#onStdOut(message);
+        this.#onStdOut(out);
     }
   }
   get env() {
@@ -56,9 +76,14 @@ export class InPG implements Deno.Conn {
     }
     return envs;
   }
-  constructor(wasmPath: string, options: Record<string, any>) {
-    this.args = [...options.arguments];
-    this.#env = { ...options, arguments: undefined };
+  constructor(
+    wasmPath: string,
+    options: InPgOptions,
+  ) {
+    this.#onStdErr = options.onStderr || ((m) => console.error(m));
+    this.#onStdOut = options.onStdout || ((m) => console.log(m));
+    this.args = options.args;
+    this.#env = options.env;
     this.debug = options?.debug;
     this.#bufferData = new Uint8Array(0);
     this.runtimeInitialized = false;
@@ -68,12 +93,6 @@ export class InPG implements Deno.Conn {
     this.fileManager = new FileManager(this, {
       debug: options?.debug,
     });
-    this.#onStdErr = (message) => {
-      console.error(message);
-    };
-    this.#onStdOut = (message) => {
-      console.log(message);
-    };
     this.sysCalls = new SysCalls(this);
 
     this.asmCodes = {
@@ -113,11 +132,6 @@ export class InPG implements Deno.Conn {
 
     this.wasmLoader.callExportFunction("__wasm_call_ctors");
   }
-  clearTmpFiles() {
-    for (const file of this.fileManager.tmpMap.values()) {
-      Deno.removeSync(file);
-    }
-  }
   abort(what: string) {
     what = "Aborted(" + what + ")";
     console.error(what);
@@ -154,7 +168,7 @@ export class InPG implements Deno.Conn {
       default:
         throw new Error(`Bad initdb ${idb}`);
     }
-    this.clearTmpFiles();
+
     try {
       this.initBackend();
     } catch (e) {

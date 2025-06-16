@@ -16,3 +16,21 @@ export interface PGFileMem extends PGFileBase {
   isMem: true;
 }
 export type DevType = "shm" | "tty" | "tmp" | "urandom";
+
+export interface InPgOptions {
+  env: Record<string, any>;
+  args: Array<string>;
+  debug?: boolean;
+  onStderr?: (out: Output | OutputMore) => void;
+  onStdout?: (out: Output | OutputMore) => void;
+}
+
+export interface Output {
+  message: string;
+}
+export interface OutputMore {
+  message: string;
+  type: string;
+  date: string;
+  time: string;
+}

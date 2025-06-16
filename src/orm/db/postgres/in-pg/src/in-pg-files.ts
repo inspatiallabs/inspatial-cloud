@@ -14,7 +14,7 @@ export class FileManager {
   debug?: boolean;
   #currFD: number;
   dirReadOffsets: Map<number, number>;
-  debugFile: Deno.FsFile;
+  debugFile?: Deno.FsFile;
   tmpMap: Map<string, string>;
   lastDebugMessage: string;
   messageCount: number = 0;
@@ -30,6 +30,7 @@ export class FileManager {
     this.mem = inPg.pgMem;
     this.openFiles = new Map();
     this.openTmpFDs = new Map();
+    this.clearTmp();
     this.tmDir = Deno.makeTempDirSync({
       prefix: "inspatial_",
     });
@@ -46,6 +47,21 @@ export class FileManager {
 
   init() {
     this.setupStdStreams();
+  }
+  clearTmp() {
+    const path = Deno.makeTempFileSync();
+    Deno.removeSync(path);
+    const parts = path.split("/");
+    parts.pop();
+    const tmpdir = parts.join("/");
+    for (const item of Deno.readDirSync(tmpdir)) {
+      if (item.isDirectory && item.name.startsWith("inspatial_")) {
+        const fullPath = `${tmpdir}/${item.name}`;
+        Deno.removeSync(fullPath, {
+          recursive: true,
+        });
+      }
+    }
   }
   debugLog(message: string | object) {
     if (!this.debug || !this.debugFile) {
@@ -94,12 +110,12 @@ export class FileManager {
 
   dupe3(contentfd: number, stdinfd: number) {
     const contentFile = this.getFile(contentfd);
-    const newContentFile = Deno.openSync(contentFile.path);
-
+    const tmpPath = this.tmpMap.get(contentFile.path);
+    const newContentFile = Deno.openSync(tmpPath || contentFile.path);
     this.openFiles.set(stdinfd, {
       fd: stdinfd,
       isMem: false,
-      path: contentFile.path,
+      path: tmpPath || contentFile.path,
       file: newContentFile,
     });
     return 0;
@@ -145,7 +161,7 @@ export class FileManager {
       });
       this.tmpMap.set(path, realPath);
     }
-    return Deno.openSync(path, options);
+    return Deno.openSync(realPath, options);
   }
   openFile(path: string, options: Deno.OpenOptions) {
     const devType = this.isDev(path);
