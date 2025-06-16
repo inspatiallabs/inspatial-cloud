@@ -399,7 +399,9 @@ export class SysCalls {
     });
     this.add("__syscall_stat64", "ipp", (pathPointer: number, buf) => {
       let path = this.fm.getPtrPath(pathPointer);
+      console.log({ path });
       path = this.fm.parsePath(path);
+      console.log({ path });
       if (!this.fm.exists(path)) {
         return -ERRNO_CODES.ENOENT;
       }

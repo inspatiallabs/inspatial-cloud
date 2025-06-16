@@ -20,6 +20,7 @@ export type DevType = "shm" | "tty" | "tmp" | "urandom";
 export interface InPgOptions {
   env: Record<string, any>;
   args: Array<string>;
+  installDir: string;
   debug?: boolean;
   onStderr?: (out: Output | OutputMore) => void;
   onStdout?: (out: Output | OutputMore) => void;

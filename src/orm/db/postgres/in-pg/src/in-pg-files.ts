@@ -18,13 +18,16 @@ export class FileManager {
   tmpMap: Map<string, string>;
   lastDebugMessage: string;
   messageCount: number = 0;
+  installDir: string;
   tmDir!: string;
-  constructor(inPg: InPG, options?: {
+  constructor(inPg: InPG, options: {
     debug?: boolean;
+    installDir: string;
   }) {
     this.lastDebugMessage = "";
     this.dirReadOffsets = new Map();
     this.debug = options?.debug;
+    this.installDir = options.installDir;
     this.#currFD = 100;
     this.inPg = inPg;
     this.mem = inPg.pgMem;
@@ -164,8 +167,11 @@ export class FileManager {
     return Deno.openSync(realPath, options);
   }
   openFile(path: string, options: Deno.OpenOptions) {
-    const devType = this.isDev(path);
     path = this.parsePath(path);
+    const devType = this.isDev(path);
+    if (!path.includes("pgdata")) {
+      console.log({ path });
+    }
 
     let file: Deno.FsFile | MemFile;
     let isMem = false;
@@ -238,10 +244,10 @@ export class FileManager {
     return this.chdir(path);
   }
   chdir(path: string) {
+    path = this.parsePath(path);
     if (!path.startsWith("/")) {
       path = this.join(this.cwd, path);
     }
-    path = this.parsePath(path);
     try {
       const result = Deno.statSync(path);
     } catch (e) {
@@ -311,7 +317,7 @@ export class FileManager {
         path = this.join(this.cwd, path);
         break;
     }
-
+    path = path.replace("/tmp/pglite", this.installDir);
     return path;
   }
   resolvePath(path: string) {

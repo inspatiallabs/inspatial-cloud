@@ -25,9 +25,10 @@ export class InPGClient extends PostgresClient {
         // WASM_USERNAME: "postgres",
         PGUSER: "postgres",
         // PGDEBUG: 1,
-        PREFIX: `${thisDir}/postgresql`,
+        PREFIX: `/tmp/pglite`,
         REPL: "N",
       },
+      installDir: `${thisDir}/postgresql`,
       onStderr: (out) => {
         if (this.#logOut(out)) {
           return;
@@ -40,13 +41,13 @@ export class InPGClient extends PostgresClient {
         }
         inLog.info(out.message);
       },
-      debug: false,
+      debug: true,
       args: [
         "--single",
         "postgres",
         "--",
         `PGDATA=${pgDataRoot}`,
-        `PREFIX=${thisDir}/postgresql`,
+        `PREFIX=/tmp/pglite`,
         "PGDATABASE=template1",
         `PGUSER=postgres`,
         "REPL=N",
