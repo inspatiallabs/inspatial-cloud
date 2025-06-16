@@ -8,13 +8,11 @@ import type { Output, OutputMore } from "./types.ts";
 
 export class InPGClient extends PostgresClient {
   #inPg: InPG;
-  wasmPath: string;
   constructor(options: PgClientConfig) {
     super(options);
     const thisDir = normalizePath(import.meta.dirname || "");
     const inRoot = Deno.env.get("IN_ROOT");
     const pgDataRoot = normalizePath(`${inRoot}/pgdata`);
-    this.wasmPath = `${thisDir}/src/inpg.wasm`;
 
     this.#inPg = new InPG({
       env: {
@@ -32,7 +30,7 @@ export class InPGClient extends PostgresClient {
       onStdout: (out) => {
         console.log(out.message);
       },
-      debug: false,
+      debug: options.debug,
       args: [
         "--single",
         "postgres",

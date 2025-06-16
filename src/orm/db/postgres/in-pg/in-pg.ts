@@ -151,6 +151,7 @@ export class InPG implements Deno.Conn {
 
   async run() {
     await this.loadRemoteFiles();
+    this.fileManager.init();
     await this.#setup();
     await this.initRuntime();
     this.#callMain(this.args);

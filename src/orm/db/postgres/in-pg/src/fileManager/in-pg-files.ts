@@ -34,7 +34,6 @@ export class FileManager {
     this.openFiles = new Map();
     this.openTmpFDs = new Map();
     this.postgresFiles = new Map();
-    this.clearTmp();
 
     this.tmpMap = new Map();
     if (this.debug) {
@@ -44,6 +43,9 @@ export class FileManager {
         truncate: true,
       });
     }
+  }
+  init() {
+    this.clearTmp();
     this.loadPostgresFiles();
     this.setupStdStreams();
   }
@@ -412,7 +414,7 @@ export class FileManager {
     }
     return null;
   }
-  async loadPostgresFiles() {
+  loadPostgresFiles() {
     const data = this.inPg.fileData;
     let offset = 0;
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
