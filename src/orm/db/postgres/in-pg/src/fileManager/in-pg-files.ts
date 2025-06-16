@@ -2,7 +2,6 @@ import { type InPG, ni } from "../../in-pg.ts";
 import type { DevType, PGFile, PGFileMem } from "../../types.ts";
 import { ERRNO_CODES } from "../constants.ts";
 import { normalizePath } from "../convert.ts";
-
 import type { PGMem } from "../pgMem.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
 
@@ -19,18 +18,16 @@ export class FileManager {
   tmpMap: Map<string, string>;
   lastDebugMessage: string;
   messageCount: number = 0;
-  pgFilesDir: string;
   isWindows: boolean = Deno.build.os === "windows";
   tmDir!: string;
   postgresFiles: Map<string, PostgresFile>;
   constructor(inPg: InPG, options: {
     debug?: boolean;
-    pgFilesDir: string;
+    fileData: Uint8Array;
   }) {
     this.lastDebugMessage = "";
     this.dirReadOffsets = new Map();
     this.debug = options?.debug;
-    this.pgFilesDir = options.pgFilesDir;
     this.#currFD = 100;
     this.inPg = inPg;
     this.mem = inPg.pgMem;
@@ -47,11 +44,7 @@ export class FileManager {
         truncate: true,
       });
     }
-    this.init();
-  }
-
-  init() {
-    this.loadPostgresFiles();
+    this.loadPostgresFiles(options.fileData);
     this.setupStdStreams();
   }
   clearTmp() {
@@ -419,8 +412,7 @@ export class FileManager {
     }
     return null;
   }
-  loadPostgresFiles() {
-    const data = Deno.readFileSync(`${this.pgFilesDir}/src/inpg.data`);
+  loadPostgresFiles(data: Uint8Array) {
     let offset = 0;
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 

@@ -6,6 +6,8 @@ import { ExitStatus } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 import type { InPgOptions } from "./types.ts";
 
+const fileData = Deno.readFileSync(import.meta.dirname + `/src/inpg.data`);
+const wasmData = Deno.readFileSync(import.meta.dirname + `/src/inpg.wasm`);
 export class InPG implements Deno.Conn {
   pgMem: PGMem;
   wasmLoader;
@@ -77,7 +79,6 @@ export class InPG implements Deno.Conn {
     return envs;
   }
   constructor(
-    wasmPath: string,
     options: InPgOptions,
   ) {
     this.#onStdErr = options.onStderr || ((m) => console.error(m));
@@ -88,11 +89,11 @@ export class InPG implements Deno.Conn {
     this.#bufferData = new Uint8Array(0);
     this.runtimeInitialized = false;
     this.pgMem = new PGMem(this);
-    this.wasmLoader = new WasmLoader(this, wasmPath);
+    this.wasmLoader = new WasmLoader(this, wasmData);
     this.readEmAsmArgsArray = [];
     this.fileManager = new FileManager(this, {
       debug: options?.debug,
-      pgFilesDir: options.pgFilesDir,
+      fileData,
     });
     this.sysCalls = new SysCalls(this);
 

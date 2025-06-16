@@ -1,6 +1,6 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
@@ -10,6 +10,8 @@
   "publish": {
     "include": [
       "src/",
+      "src/**/*.wasm",
+      "src/**/*.data",
       "examples/",
       "extensions/",
       "types.ts",
