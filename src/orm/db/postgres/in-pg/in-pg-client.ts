@@ -16,7 +16,7 @@ export class InPGClient extends PostgresClient {
     const pgDataRoot = normalizePath(`${inRoot}/pgdata`);
     this.wasmPath = `${thisDir}/src/inpg.wasm`;
 
-    this.#inPg = new InPG(this.wasmPath, {
+    this.#inPg = new InPG({
       env: {
         PGDATA: pgDataRoot,
         MODE: "REACT",

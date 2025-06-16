@@ -27,7 +27,6 @@ class LDSO {
   }
 }
 export class WasmLoader {
-  wasmPath: string;
   wasmImports: WasmImports;
   wasmTable;
   GOT: Record<string, any>;
@@ -38,14 +37,14 @@ export class WasmLoader {
   wasmExports: WebAssembly.Exports;
   freeTableIndexes: Array<number>;
   inPg: InPG;
+  wasmData: Uint8Array;
 
   get pgMem(): PGMem {
     return this.inPg.pgMem;
   }
-  constructor(inPg: InPG, wasmPath: string) {
+  constructor(inPg: InPG, wasmData: Uint8Array) {
     this.GOT = {};
     this.inPg = inPg;
-    this.wasmPath = wasmPath;
     this.wasmExports = {};
     this.wasmImports = {};
     this.LDSO = new LDSO();
@@ -55,6 +54,7 @@ export class WasmLoader {
       initial: this.inPg.tableSize,
       element: "anyfunc",
     });
+    this.wasmData = wasmData;
 
     const GOT = this.GOT;
     const currentModuleWeakSymbols = this.currentModuleWeakSymbols;
@@ -92,8 +92,8 @@ export class WasmLoader {
         GOTHandler,
       ) as WebAssembly.ModuleImports,
     };
-    const buffer = await Deno.readFile(this.wasmPath);
-    const result = await WebAssembly.instantiate(buffer, info);
+
+    const result = await WebAssembly.instantiate(this.wasmData, info);
     this.wasmExports = result.instance.exports;
 
     for (var [sym, exp] of Object.entries(result.instance.exports)) {
