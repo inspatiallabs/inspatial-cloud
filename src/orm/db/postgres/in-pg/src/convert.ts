@@ -1,4 +1,9 @@
-export function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
+export function stringToUTF8Array(
+  str: string,
+  heap: any,
+  outIdx: number,
+  maxBytesToWrite: number,
+) {
   if (!(maxBytesToWrite > 0)) return 0;
   var startIdx = outIdx;
   var endIdx = outIdx + maxBytesToWrite - 1;
@@ -31,14 +36,18 @@ export function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
   heap[outIdx] = 0;
   return outIdx - startIdx;
 }
-export function uleb128Encode(n, target) {
+export function uleb128Encode(n: number, target: number[] = []) {
   if (n < 128) {
     target.push(n);
   } else {
     target.push(n % 128 | 128, n >> 7);
   }
 }
-export function intArrayFromString(stringy, dontAddNull, length) {
+export function intArrayFromString(
+  stringy: string,
+  dontAddNull: boolean,
+  length: number = 0,
+) {
   var len = length > 0 ? length : lengthBytesUTF8(stringy) + 1;
   var u8array = new Array(len);
   var numBytesWritten = stringToUTF8Array(stringy, u8array, 0, u8array.length);
@@ -46,7 +55,11 @@ export function intArrayFromString(stringy, dontAddNull, length) {
   return u8array;
 }
 const UTF8Decoder = new TextDecoder();
-export function UTF8ArrayToString(heapOrArray, idx = 0, maxBytesToRead = NaN) {
+export function UTF8ArrayToString(
+  heapOrArray: any,
+  idx = 0,
+  maxBytesToRead = NaN,
+) {
   let endIdx = idx + maxBytesToRead;
   let endPtr = idx;
   while (heapOrArray[endPtr] && !(endPtr >= endIdx)) ++endPtr;
@@ -82,8 +95,8 @@ export function UTF8ArrayToString(heapOrArray, idx = 0, maxBytesToRead = NaN) {
   return str;
 }
 
-export function sigToWasmTypes(sig) {
-  var typeNames = {
+export function sigToWasmTypes(sig: string) {
+  var typeNames: Record<string, string> = {
     i: "i32",
     j: "i64",
     f: "f32",
@@ -92,7 +105,7 @@ export function sigToWasmTypes(sig) {
     p: "i32",
   };
   var type = {
-    parameters: [],
+    parameters: [] as string[],
     results: sig[0] == "v" ? [] : [typeNames[sig[0]]],
   };
   for (var i = 1; i < sig.length; ++i) {
@@ -119,13 +132,13 @@ export function lengthBytesUTF8(str: string) {
   return len;
 }
 
-const INT53_MAX = 9007199254740992;
-const INT53_MIN = -9007199254740992;
-export function bigintToI53Checked(num) {
+const INT53_MAX = 9007199254740992n;
+const INT53_MIN = -9007199254740992n;
+export function bigintToI53Checked(num: bigint | number) {
   return num < INT53_MIN || num > INT53_MAX ? NaN : Number(num);
 }
 
-export function jstoi_q(str) {
+export function jstoi_q(str: string) {
   return parseInt(str);
 }
 

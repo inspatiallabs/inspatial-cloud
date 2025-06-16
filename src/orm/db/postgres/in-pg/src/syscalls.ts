@@ -1,23 +1,27 @@
 import { type InPG, ni } from "../in-pg.ts";
 import { ERRNO_CODES, IOCTL } from "./constants.ts";
 import { bigintToI53Checked, lengthBytesUTF8 } from "./convert.ts";
+import type { FileManager } from "./fileManager/in-pg-files.ts";
 import type { PGMem } from "./pgMem.ts";
+import { ExceptionInfo, ExitStatus } from "./utils.ts";
+import type { WasmLoader } from "./wasmLoader.ts";
 
 export class SysCalls {
   DEFAULT_POLLMASK: number;
   inPg: InPG;
   pgMem: PGMem;
+  loader: WasmLoader;
+  fm: FileManager;
   varargs?: number;
   methods: Map<string, Function>;
-  get fm() {
-    return this.inPg.fileManager;
-  }
 
   constructor(inPg: InPG) {
     this.DEFAULT_POLLMASK = 5;
     this.inPg = inPg;
-    this.pgMem = inPg.pgMem;
+    this.pgMem = this.inPg.pgMem;
     this.methods = new Map();
+    this.fm = this.inPg.fileManager;
+    this.loader = this.inPg.wasmLoader;
   }
   get imports() {
     return Object.fromEntries(this.methods);
@@ -104,20 +108,6 @@ export class SysCalls {
       }
       return -28;
     });
-    this.add(
-      "__syscall_getsockname",
-      "",
-      (fd, level, optname, optval, optlen, d1) => {
-        ni();
-      },
-    );
-    this.add(
-      "__syscall_getsockopt",
-      "iiiippi",
-      (fd, level, optname, optval, optlen, d1) => {
-        ni();
-      },
-    );
 
     this.add(
       "__syscall_openat",
@@ -133,7 +123,7 @@ export class SysCalls {
         const accessMode = flags & O_ACCMODE;
         const mode = varargs ? this.pgMem.HEAP32[+varargs >> 2] : 0;
 
-        const willFsync = path.startsWith("./");
+        const willFsync = this.fm.isWindows ? path.startsWith("./") : false;
         const create = !!(flags & O_CREAT);
         const append = !!(flags & O_APPEND);
         const truncate = !!(flags & O_TRUNC);
@@ -159,35 +149,15 @@ export class SysCalls {
         }
       },
     );
-    this.add("__syscall_socket", "iiiiiii", (domain, type, protocol) => {
-      ni();
-    });
-
-    this.add("__syscall_rmdir", "ip", (pathPointer: number) => {
-      ni();
-    });
 
     this.add("__syscall_unlinkat", "iipi", (dirfd, pathPointer, flags) => {
       return this.fm.unlinkat(dirfd, pathPointer, flags);
     });
-    this.add("__syscall_fallocate", "iiijj", (fd, mode, offset, len) => {
-      ni();
-    });
+
     this.add("__syscall_fadvise64", "iijji", () => {
       return 0;
     });
-    this.add("__syscall__newselect", "iipppp", () => {
-      ni();
-    });
-    this.add("__syscall_bind", "iippiii", () => {
-      ni();
-    });
-    this.add("__syscall_chmod", "ipi", () => {
-      ni();
-    });
-    this.add("__syscall_connect", "iippiii", () => {
-      ni();
-    });
+
     this.add("__syscall_dup", "ii", (fd) => {
       return this.fm.dupe(fd);
     });
@@ -195,7 +165,7 @@ export class SysCalls {
       if (fd === newfd) {
         return -ERRNO_CODES.EINVAL;
       }
-      return this.fm.dupe3(fd, newfd, flags);
+      return this.fm.dupe3(fd, newfd);
     });
     this.add(
       "__syscall_faccessat",
@@ -271,9 +241,7 @@ export class SysCalls {
       pgFile.file.truncateSync(length);
       return 0;
     });
-    this.add("__syscall_getcwd", "ipp", () => {
-      ni();
-    });
+
     this.add("__syscall_getdents64", "iipp", (fd, dirp, count) => {
       const entries = this.fm.listDirFD(fd);
       var struct_size = 280;
@@ -358,9 +326,7 @@ export class SysCalls {
         return this.fm.mkdir(path);
       },
     );
-    this.add("__syscall_newfstatat", "iippi", () => {
-      ni();
-    });
+
     this.add("__syscall_pipe", "ip", (fdPtr) => {
       const { readableFD, writableFD } = this.fm.createPipe();
 
@@ -371,9 +337,7 @@ export class SysCalls {
 
       return 0;
     });
-    this.add("__syscall_poll", "ipii", () => {
-      ni();
-    });
+
     this.add(
       "__syscall_readlinkat",
       "iippp",
@@ -390,9 +354,7 @@ export class SysCalls {
         return len;
       },
     );
-    this.add("__syscall_recvfrom", "iippipp", () => {
-      ni();
-    });
+
     this.add(
       "__syscall_renameat",
       "iipip",
@@ -403,9 +365,7 @@ export class SysCalls {
         return this.fm.rename(oldpath, newpath);
       },
     );
-    this.add("__syscall_sendto", "iippipp", () => {
-      ni();
-    });
+
     this.add("__syscall_stat64", "ipp", (pathPointer: number, buf) => {
       let path = this.fm.getPtrPath(pathPointer);
 
@@ -447,15 +407,342 @@ export class SysCalls {
 
       return 0; // success
     });
+    this.add("getaddrinfo", "ipppp", (node, service, hint, out) => {
+      return -1;
+    });
+    this.add("proc_exit", "vi", (code) => {
+      this.inPg.EXITSTATUS = code;
+      throw new ExitStatus(code);
+    });
+
+    this.add("_abort_js", "v", () => this.inPg.abort(""));
+    this.add("_dlopen_js", "pp", (ptr) => {
+      // dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
+      // return 0;
+      let path = this.fm.getPtrPath(ptr + 36);
+      var flags = this.pgMem.HEAP32[(ptr + 4) >> 2];
+      path = this.fm.parsePath(path);
+      var global = Boolean(flags & 256);
+      var localScope = global ? null : {};
+      var combinedFlags = {
+        global,
+        nodelete: Boolean(flags & 4096),
+        loadAsync: false,
+      };
+      try {
+        return this.loader.loadDynamicLibrary(
+          path,
+          combinedFlags,
+          localScope,
+          ptr,
+        );
+      } catch (e) {
+        console.log(e);
+        // dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
+        return 0;
+      }
+    });
+    this.add("_dlsym_js", "pppp", (handle, symbol, symbolIndex) => {
+      symbol = this.pgMem.UTF8ToString(symbol);
+      var result;
+      var newSymIndex;
+      var lib = this.loader.LDSO.loadedLibsByHandle[handle];
+      if (!lib.exports.hasOwnProperty(symbol) || lib.exports[symbol].stub) {
+        return 0;
+      }
+      newSymIndex = Object.keys(lib.exports).indexOf(symbol);
+      result = lib.exports[symbol];
+      if (typeof result == "function") {
+        var addr = this.loader.getFunctionAddress(result);
+        if (addr) {
+          result = addr;
+        } else {
+          result = this.loader.addFunction(result, result.sig);
+          this.pgMem.HEAPU32[symbolIndex >> 2] = newSymIndex;
+        }
+      }
+      return result;
+    });
+    this.add("_emscripten_get_progname", "vpi", (str, len) => {
+      return this.pgMem.stringToUTF8(this.inPg.getExecutableName(), str, len);
+    });
+    this.add("_emscripten_memcpy_js", "vppp", (dest, src, num) => {
+      this.pgMem.HEAPU8.copyWithin(dest, src, src + num);
+    });
+
+    this.add("_emscripten_system", "ip", (command) => {
+      if (!command) return 1;
+      return 0 << 8;
+    });
+    this.add("_emscripten_throw_longjmp", "v", () => {
+      throw Infinity;
+    });
+
     this.add(
-      "__syscall_symlinkat",
-      "ipip",
-      () => {
-        ni();
+      "_mmap_js",
+      "ipiiijpp",
+      (len, prot, flags, fd, offset, allocatedPtr, addr) => {
+        offset = bigintToI53Checked(offset);
+        if (isNaN(offset)) return 61;
+        const file = this.fm.getFile(fd);
+        if (file.isMem) {
+          const { ptr, allocated } = file.file.mmap(len, offset);
+          this.pgMem.HEAP32[allocatedPtr >> 2] = allocated ? 1 : 0;
+          this.pgMem.HEAPU32[addr >> 2] = ptr;
+          return 0;
+        }
+        return ERRNO_CODES.EBADF;
       },
     );
-    this.add("__syscall_truncate64", "ipj", () => {
-      ni();
+
+    this.add("clock_time_get", "iijp", (clk_id, ignored_precision, ptime) => {
+      ignored_precision = bigintToI53Checked(ignored_precision);
+      if (clk_id < 0 || clk_id > 3) {
+        return 28;
+      }
+      let now;
+      if (clk_id === 0) {
+        now = Date.now();
+      } else {
+        now = performance.now();
+      }
+      const nsec = Math.round(now * 1e3 * 1e3);
+      this.pgMem.HEAP64[ptime >> 3] = BigInt(nsec);
+      return 0;
+    });
+    this.add("emscripten_asm_const_int", "ippp", (
+      code: number,
+      sigPtr: number,
+      argbuf: number,
+    ) => {
+      return this.inPg.runEmAsmFunction(code, sigPtr, argbuf);
+    });
+    this.add("emscripten_date_now", "d", () => {
+      return Date.now();
+    });
+
+    this.add("emscripten_resize_heap", "ip", (requestedSize) => {
+      var oldSize = this.pgMem.HEAPU8.length;
+      requestedSize >>>= 0;
+      var maxHeapSize = this.pgMem.getHeapMax();
+      if (requestedSize > maxHeapSize) {
+        return false;
+      }
+      for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
+        var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
+        overGrownHeapSize = Math.min(
+          overGrownHeapSize,
+          requestedSize + 100663296,
+        );
+        var newSize = Math.min(
+          maxHeapSize,
+          this.pgMem.alignMemory(
+            Math.max(requestedSize, overGrownHeapSize),
+            65536,
+          ),
+        );
+        var replacement = this.pgMem.growMemory(newSize);
+        if (replacement) {
+          return true;
+        }
+      }
+      return false;
+    });
+    this.add("environ_get", "ipp", (__environ, environ_buf) => {
+      let bufSize = 0;
+      this.inPg.env.forEach((string, i) => {
+        const ptr = environ_buf + bufSize;
+        this.pgMem.HEAPU32[(__environ + i * 4) >> 2] = ptr;
+        this.pgMem.stringToAscii(string, ptr);
+        bufSize += string.length + 1;
+      });
+    });
+    this.add(
+      "environ_sizes_get",
+      "ipp",
+      (penviron_count, penviron_buf_size) => {
+        const strings = this.inPg.env;
+        this.pgMem.HEAPU32[penviron_count >> 2] = strings.length;
+        let bufSize = 0;
+        strings.forEach((string) => (bufSize += string.length + 1));
+        this.pgMem.HEAPU32[penviron_buf_size >> 2] = bufSize;
+        return 0;
+      },
+    );
+    this.add("__cxa_throw", "vppp", (ptr, type, destructor) => {
+      const info = new ExceptionInfo(ptr, this.pgMem);
+      info.init(type, destructor);
+      this.inPg.exceptionLast = ptr;
+      this.inPg.uncaughtExceptionCount++;
+      throw this.inPg.exceptionLast;
+    });
+    this.add("exit", "vi", (status, implicit) => {
+      this.inPg.exitJS(status, implicit);
+    });
+    this.add("fd_close", "ii", (fd) => {
+      return this.fm.closeFile(fd);
+    });
+    this.add("fd_fdstat_get", "iip", (fd, pbuf) => {
+      let type;
+      switch (fd) {
+        case 0:
+        case 1:
+        case 2:
+          type = 4; // file
+          break;
+        default:
+          ni("unexpected");
+      }
+      this.pgMem.HEAP8[pbuf] = type;
+      this.pgMem.HEAP16[(pbuf + 2) >> 1] = 0;
+      this.pgMem.HEAP64[(pbuf + 8) >> 3] = 0n;
+      this.pgMem.HEAP64[(pbuf + 16) >> 3] = 0n;
+      return 0;
+    });
+    this.add("fd_pread", "iippjp", (fd, iov, iovcnt, offset, pnum) => {
+      offset = bigintToI53Checked(offset);
+      if (isNaN(offset)) return 61;
+
+      const pgFile = this.fm.getFile(fd);
+      if (!pgFile) return -1;
+      const file = pgFile.file;
+      const originalPos = file.seekSync(0, Deno.SeekMode.Current);
+
+      let total = 0;
+
+      for (let i = 0; i < iovcnt; i++) {
+        const ptr = this.pgMem.HEAPU32[iov >> 2];
+        const len = this.pgMem.HEAPU32[(iov + 4) >> 2];
+        iov += 8;
+
+        const buffer = new Uint8Array(len);
+        file.seekSync(offset, Deno.SeekMode.Start);
+        const bytesRead = file.readSync(buffer) ?? 0;
+
+        this.pgMem.HEAPU8.set(buffer.subarray(0, bytesRead), ptr);
+
+        total += bytesRead;
+        if (bytesRead < len) break;
+        offset += bytesRead;
+      }
+
+      file.seekSync(originalPos, Deno.SeekMode.Start);
+      this.pgMem.HEAPU32[pnum >> 2] = total;
+
+      return 0;
+    });
+    this.add("fd_pwrite", "iippjp", (fd, iov, iovcnt, offset, pnum) => {
+      offset = bigintToI53Checked(offset);
+      const pgFile = this.fm.getFile(fd);
+      if (!pgFile) return -1;
+      const file = pgFile.file;
+      let total = 0;
+      const originalPos = file.seekSync(0, Deno.SeekMode.Current);
+      for (let i = 0; i < iovcnt; i++) {
+        const ptr = this.pgMem.HEAPU32[iov >> 2];
+        const len = this.pgMem.HEAPU32[(iov + 4) >> 2];
+        iov += 8;
+        const chunk = this.pgMem.HEAPU8.subarray(ptr, ptr + len);
+        file.seekSync(offset, Deno.SeekMode.Start);
+        const written = file.writeSync(chunk);
+        offset += written;
+        total += written;
+      }
+      file.seekSync(originalPos, Deno.SeekMode.Start);
+      this.pgMem.HEAPU32[pnum >> 2] = total;
+      return 0;
+    });
+    this.add("fd_read", "iippp", (fd, iov, iovcnt, pnum) => {
+      const file = this.fm.getFile(fd);
+
+      if (!file) {
+        Deno.exit(1);
+      }
+      let bytesRead = 0;
+      let dataOffset = 0;
+
+      for (let i = 0; i < iovcnt; i++) {
+        const ptr = this.pgMem.HEAPU32[iov >> 2];
+        const len = this.pgMem.HEAPU32[(iov + 4) >> 2];
+        iov += 8;
+        const buffer = new Uint8Array(len);
+        const readCount = file.file.readSync(buffer);
+
+        if (readCount === null) {
+          break;
+        }
+        const chunk = buffer.slice(0, readCount);
+        this.pgMem.HEAPU8.set(chunk, ptr);
+
+        bytesRead += chunk.length;
+        dataOffset += chunk.length;
+
+        if (chunk.length < len) break; // EOF
+      }
+
+      this.pgMem.HEAPU32[pnum >> 2] = bytesRead;
+
+      return 0;
+    });
+    this.add(
+      "fd_seek",
+      "iijip",
+      (fd, offset, whence, newOffsetPtr) => {
+        offset = bigintToI53Checked(offset);
+        const file = this.fm.getFile(fd);
+        if (!file) return -1;
+        const newPos = file.file.seekSync(offset, whence);
+
+        this.pgMem.HEAPU32[newOffsetPtr >> 2] = newPos >>> 0;
+        this.pgMem.HEAPU32[(newOffsetPtr + 4) >> 2] = (newPos / 2 ** 32) >>> 0;
+        return 0;
+      },
+    );
+    this.add("fd_sync", "ii", (fd) => {
+      // return 0;
+      const file = this.fm.getFile(fd);
+      if (!file) {
+        return -1;
+      }
+      if (this.fm.isWindows && file.info?.isDirectory) {
+        return 0;
+      }
+      file.file.syncSync();
+      return 0;
+    });
+    this.add("fd_write", "iippp", (fd, iov, iovcnt, pnum) => {
+      let file;
+      let std: "out" | "err" | null = null;
+      switch (fd) {
+        case 1:
+          std = "out";
+          break;
+        case 2:
+          std = "err";
+          break;
+        default:
+          file = this.fm.getFile(fd);
+      }
+
+      let written = 0;
+      for (let i = 0; i < iovcnt; i++) {
+        const ptr = this.pgMem.HEAPU32[iov >> 2];
+        const len = this.pgMem.HEAPU32[(iov + 4) >> 2];
+        iov += 8;
+
+        const chunk = this.pgMem.HEAPU8.slice(ptr, ptr + len);
+        if (file) {
+          const writtenLength = file!.file.writeSync(chunk);
+          written += writtenLength;
+        }
+        if (std) {
+          this.inPg.log(std, chunk);
+          written += chunk.length;
+        }
+      }
+      this.pgMem.HEAPU32[pnum >> 2] = written;
+
+      return 0;
     });
   }
 }

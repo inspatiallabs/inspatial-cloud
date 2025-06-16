@@ -1,4 +1,4 @@
-import type { MemFile } from "./src/memFile.ts";
+import type { MemFile } from "./src/fileManager/pg-file.ts";
 
 export interface PGFileBase {
   path: string;
@@ -34,4 +34,29 @@ export interface OutputMore {
   type: string;
   date: string;
   time: string;
+}
+
+export type WasmImports = Record<
+  string,
+  | Function
+  | WebAssembly.Global
+  | WebAssembly.Memory
+  | WebAssembly.Table
+  | number
+  | Function & { stub?: boolean }
+>;
+export interface DLMetaData {
+  neededDynlibs: Array<any>;
+  tlsExports: Set<any>;
+  weakImports: Set<any>;
+  memorySize: number;
+  memoryAlign: number;
+  tableSize: number;
+  tableAlign: number;
+}
+export interface DSO {
+  refcount: number;
+  name: string;
+  exports: any;
+  global: boolean;
 }

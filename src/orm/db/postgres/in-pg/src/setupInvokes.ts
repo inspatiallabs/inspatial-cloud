@@ -2,7 +2,35 @@ import { type InPG, ni } from "../in-pg.ts";
 
 export function setupInvokeImports(inPg: InPG) {
   const wasmLoader = inPg.wasmLoader;
-  const pgMem = inPg.pgMem;
+  const unused: Array<string> = [
+    "__assert_fail",
+    "emscripten_get_now",
+    "__syscall_socket",
+    "__syscall_getsockopt",
+    "__syscall_rmdir",
+    "__syscall_fallocate",
+    "__syscall_poll",
+    "__syscall_getcwd",
+    "__syscall_newfstatat",
+    "__syscall_sendto",
+    "__syscall_recvfrom",
+    "__syscall_getsockname",
+    "__syscall_truncate64",
+    "__syscall_symlinkat",
+    "__syscall_connect",
+    "__syscall_bind",
+    "__call_sighandler",
+    "_emscripten_runtime_keepalive_clear",
+    "__syscall__newselect",
+    "_setitimer_js",
+    "_gmtime_js",
+    "_localtime_js",
+    "_munmap_js",
+    "__syscall_chmod",
+    "_tzset_js",
+    "getnameinfo",
+    "emscripten_force_exit",
+  ];
 
   const invokesList = [
     "invoke_iii",
@@ -85,13 +113,15 @@ export function setupInvokeImports(inPg: InPG) {
     };
     invokes[item] = func;
   }
-  // for (const item of doThis) {
-  //   imports[item] = (index, ...params) => {
-  //     ni();
-  //   };
-  // }
+  const imports: Record<string, any> = {};
+  for (const item of unused) {
+    imports[item] = () => {
+      ni(`${item} is not implemented yet.`);
+    };
+  }
   // return imports;
   return {
+    ...imports,
     ...invokes,
   };
 }

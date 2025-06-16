@@ -1,10 +1,10 @@
 import { normalizePath } from "./src/convert.ts";
-import { FileManager } from "./src/in-pg-files.ts";
+import { FileManager } from "./src/fileManager/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
 import { ExitStatus } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
-import { InPgOptions } from "./types.ts";
+import type { InPgOptions } from "./types.ts";
 
 export class InPG implements Deno.Conn {
   pgMem: PGMem;

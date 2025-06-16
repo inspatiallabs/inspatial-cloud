@@ -1,29 +1,12 @@
 // import { setupInvokeImports } from "./setupInvokes.js";
 
 import { type InPG, ni } from "../in-pg.ts";
+import type { DLMetaData, DSO, WasmImports } from "../types.ts";
 import { uleb128Encode, UTF8ArrayToString } from "./convert.ts";
 
 import type { PGMem } from "./pgMem.ts";
 import { setupInvokeImports } from "./setupInvokes.ts";
-import { setupOther } from "./setupOther.ts";
 
-type WasmExports = Record<PropertyKey, Function>;
-type WasmImports = WebAssembly.ModuleImports;
-interface DLMetaData {
-  neededDynlibs: Array<any>;
-  tlsExports: Set<any>;
-  weakImports: Set<any>;
-  memorySize: number;
-  memoryAlign: number;
-  tableSize: number;
-  tableAlign: number;
-}
-interface DSO {
-  refcount: number;
-  name: string;
-  exports: any;
-  global: boolean;
-}
 class LDSO {
   loadedLibsByName: Record<string, DSO>;
   loadedLibsByHandle: Record<string, DSO>;
@@ -139,7 +122,6 @@ export class WasmLoader {
     this.wasmImports.__indirect_function_table = this.wasmTable;
     this.wasmImports.__heap_base = this.pgMem.___heap_base;
 
-    setupOther(this.inPg);
     const invokes = setupInvokeImports(this.inPg);
     this.inPg.sysCalls.setupImports();
     const sysCallImports = this.inPg.sysCalls.imports;
@@ -160,7 +142,7 @@ export class WasmLoader {
     // const invokes = setupInvokeImports();
   }
   callExportFunction(functionName: string, ...args: any) {
-    const func = this.wasmExports[functionName];
+    const func = this.wasmExports[functionName] as Function;
     if (!func) {
       ni(functionName);
     }
@@ -170,7 +152,7 @@ export class WasmLoader {
   reportUndefinedSymbols() {
     for (var [symName, entry] of Object.entries(this.GOT)) {
       if (entry.value == 0) {
-        var value = this.resolveGlobalSymbol(symName, true).sym;
+        var value = this.resolveGlobalSymbol(symName, true).sym as any;
         if (!value && !entry.required) {
           continue;
         }
@@ -185,7 +167,7 @@ export class WasmLoader {
       }
     }
   }
-  addFunction(func, sig?: any) {
+  addFunction(func: Function, sig?: any) {
     var rtn = this.getFunctionAddress(func);
     if (rtn) {
       return rtn;
@@ -203,7 +185,7 @@ export class WasmLoader {
     this.functionsInTableMap.set(func, ret);
     return ret;
   }
-  convertJsFunctionToWasm(func, sig) {
+  convertJsFunctionToWasm(func: Function, sig: string) {
     var typeSectionBody = [1];
     this.generateFuncType(sig, typeSectionBody);
     var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
@@ -212,13 +194,20 @@ export class WasmLoader {
     bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
     var module = new WebAssembly.Module(new Uint8Array(bytes));
     var instance = new WebAssembly.Instance(module, { e: { f: func } });
-    var wrappedFunc = instance.exports["f"];
+    var wrappedFunc = instance.exports["f"] as Function;
     return wrappedFunc;
   }
-  generateFuncType(sig, target) {
+  generateFuncType(sig: string, target: Array<number>) {
     var sigRet = sig.slice(0, 1);
     var sigParam = sig.slice(1);
-    var typeCodes = { i: 127, p: 127, j: 126, f: 125, d: 124, e: 111 };
+    var typeCodes: Record<string, number> = {
+      i: 127,
+      p: 127,
+      j: 126,
+      f: 125,
+      d: 124,
+      e: 111,
+    };
     target.push(96);
     uleb128Encode(sigParam.length, target);
     for (var i = 0; i < sigParam.length; ++i) {
@@ -243,12 +232,16 @@ export class WasmLoader {
   }
   createInvokeFunction(sig: any) {
     return (ptr: number, ...args: any) => {
-      var sp = this.inPg.pgMem.stackSave();
+      const getCurrentStack = this
+        .wasmExports["emscripten_stack_get_current"] as Function;
+      const sp = getCurrentStack();
       try {
         const func = this.getWasmTableEntry(ptr);
         return func?.(...args);
-      } catch (e) {
-        this.inPg.pgMem.stackRestore(sp);
+      } catch (e: any) {
+        const stackRestore = this
+          .wasmExports["_emscripten_stack_restore"] as Function;
+        stackRestore(sp);
         if (e !== e + 0) throw e;
         this.callExportFunction("setThrew", 1, 0);
         if (sig[0] == "j") return 0n;
@@ -257,8 +250,8 @@ export class WasmLoader {
   }
 
   #mergeLibSymbols(exports: WebAssembly.Exports) {
-    for (var [sym, exp] of Object.entries(exports)) {
-      const setImport = (target) => {
+    for (const [sym, exp] of Object.entries(exports)) {
+      const setImport = (target: string) => {
         if (!this.#isSymbolDefined(target)) {
           this.wasmImports[target] = exp;
         }
@@ -275,7 +268,8 @@ export class WasmLoader {
   }
 
   #isSymbolDefined(symName: string) {
-    const existing = this.wasmImports[symName];
+    const existing =
+      this.wasmImports[symName] as Function & { stub?: boolean } || undefined;
     if (!existing || existing.stub) {
       return false;
     }
@@ -426,7 +420,7 @@ export class WasmLoader {
       this.wasmTable.grow(tableGrowthNeeded);
     }
     let moduleExports: Record<string, any> = {};
-    const resolveSymbol = (sym) => {
+    const resolveSymbol = (sym: string) => {
       var resolved = this.resolveGlobalSymbol(sym).sym;
       if (!resolved && localScope) {
         resolved = localScope[sym];
@@ -438,24 +432,24 @@ export class WasmLoader {
     };
     const wasmImports = this.wasmImports;
     var proxyHandler = {
-      get(stubs, prop) {
+      get(stubs: Record<string, any>, prop: string) {
         switch (prop) {
           case "__memory_base":
             return memoryBase;
           case "__table_base":
             return tableBase;
         }
-        if (prop in wasmImports && !wasmImports[prop].stub) {
+        if (prop in wasmImports && !(wasmImports[prop] as any).stub) {
           return wasmImports[prop];
         }
         if (!(prop in stubs)) {
           var resolved;
-          stubs[prop] = (...args) => {
+          stubs[prop] = (...args: any) => {
             resolved ||= resolveSymbol(prop);
             if (!resolved) {
               if (prop === "getTempRet0") {
                 ni("foff");
-                return __emscripten_tempret_get(...args);
+                // return __emscripten_tempret_get(...args);
               }
               throw new Error(
                 `Dynamic linking error: cannot resolve symbol ${prop}`,
@@ -475,7 +469,7 @@ export class WasmLoader {
       env: proxy,
       wasi_snapshot_preview1: proxy,
     };
-    const postInstantiation = (module, instance) => {
+    const postInstantiation = (module: any, instance: any) => {
       this.updateTableMap(tableBase, metadata.tableSize);
       moduleExports = this.relocateExports(instance.exports, memoryBase);
       if (!flags.allowUndefined) {
@@ -546,11 +540,15 @@ export class WasmLoader {
       end = offset + section_size;
       name = getString();
     }
-    var customSection = {
+    const customSection: DLMetaData = {
       neededDynlibs: [],
       tlsExports: new Set<string>(),
       weakImports: new Set<string>(),
-    } as Partial<DLMetaData>;
+      memorySize: 0,
+      memoryAlign: 0,
+      tableSize: 0,
+      tableAlign: 0,
+    };
     if (name == "dylink") {
       customSection.memorySize = getLEB();
       customSection.memoryAlign = getLEB();
@@ -613,8 +611,8 @@ export class WasmLoader {
     }
     return customSection;
   }
-  relocateExports(exports, memoryBase, replace?: any) {
-    var relocated = {};
+  relocateExports(exports: any, memoryBase: number, replace?: any) {
+    var relocated: Record<string, any> = {};
     for (var e in exports) {
       var value = exports[e];
       if (typeof value == "object") {
@@ -628,7 +626,7 @@ export class WasmLoader {
     this.updateGOT(relocated, replace);
     return relocated;
   }
-  updateGOT(exports, replace) {
+  updateGOT(exports: Record<string, any>, replace: boolean) {
     for (var symName in exports) {
       if (this.isInternalSym(symName)) {
         continue;
@@ -649,7 +647,7 @@ export class WasmLoader {
       }
     }
   }
-  isInternalSym(symName) {
+  isInternalSym(symName: string) {
     return [
       "__cpp_exception",
       "__c_longjmp",

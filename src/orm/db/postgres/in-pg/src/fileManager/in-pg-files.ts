@@ -1,9 +1,10 @@
-import { type InPG, ni } from "../in-pg.ts";
-import type { DevType, PGFile, PGFileMem } from "../types.ts";
-import { ERRNO_CODES } from "./constants.ts";
-import { normalizePath } from "./convert.ts";
-import { MemFile, PostgresFile } from "./memFile.ts";
-import type { PGMem } from "./pgMem.ts";
+import { type InPG, ni } from "../../in-pg.ts";
+import type { DevType, PGFile, PGFileMem } from "../../types.ts";
+import { ERRNO_CODES } from "../constants.ts";
+import { normalizePath } from "../convert.ts";
+
+import type { PGMem } from "../pgMem.ts";
+import { MemFile, PostgresFile } from "./pg-file.ts";
 
 export class FileManager {
   openFiles: Map<number, PGFile | PGFileMem>;
@@ -19,6 +20,7 @@ export class FileManager {
   lastDebugMessage: string;
   messageCount: number = 0;
   pgFilesDir: string;
+  isWindows: boolean = Deno.build.os === "windows";
   tmDir!: string;
   postgresFiles: Map<string, PostgresFile>;
   constructor(inPg: InPG, options: {

@@ -72,7 +72,7 @@ export class PGMem {
     } catch (e) {}
   }
 
-  stackAlloc(sz) {
+  stackAlloc(sz: number) {
     return this.inPg.wasmLoader.callExportFunction(
       "_emscripten_stack_alloc",
       sz,
@@ -88,7 +88,7 @@ export class PGMem {
     if (ptr) this.zeroMemory(ptr, size);
     return ptr;
   }
-  stringToUTF8OnStack(str) {
+  stringToUTF8OnStack(str: string) {
     var size = lengthBytesUTF8(str) + 1;
     var ret = this.stackAlloc(size);
     this.stringToUTF8(str, ret, size);

@@ -4,7 +4,7 @@ import { PostgresClient } from "../pgClient.ts";
 import type { PgClientConfig } from "../pgTypes.ts";
 import { InPG } from "./in-pg.ts";
 import { normalizePath } from "./src/convert.ts";
-import { Output, OutputMore } from "./types.ts";
+import type { Output, OutputMore } from "./types.ts";
 
 export class InPGClient extends PostgresClient {
   #inPg: InPG;
@@ -21,27 +21,16 @@ export class InPGClient extends PostgresClient {
         PGDATA: pgDataRoot,
         MODE: "REACT",
         PGDATABASE: "template1",
-        // WASM_PGOPTS: "--show",
-        // WASM_USERNAME: "postgres",
         PGUSER: "postgres",
-        // PGDEBUG: 1,
         PREFIX: `/tmp/pglite`,
         REPL: "N",
       },
       pgFilesDir: `${thisDir}`,
       onStderr: (out) => {
-        // if (this.#logOut(out)) {
-        //   return;
-        // }
         console.log(out.message);
-        // inLog.warn(out.message);
       },
       onStdout: (out) => {
-        // if (this.#logOut(out)) {
-        //   return;
-        // }
         console.log(out.message);
-        // inLog.info(out.message);
       },
       debug: false,
       args: [

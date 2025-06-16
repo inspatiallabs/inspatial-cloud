@@ -1,5 +1,5 @@
-import { ni } from "../in-pg.ts";
-import type { PGMem } from "./pgMem.ts";
+import { ni } from "../../in-pg.ts";
+import type { PGMem } from "../pgMem.ts";
 
 export class MemFile implements Deno.FsFile {
   #pgMem: PGMem;
@@ -190,7 +190,6 @@ export class MemFile implements Deno.FsFile {
     }
 
     ni();
-    return null;
   }
   statSync(): Deno.FileInfo {
     return this.statInfo;
