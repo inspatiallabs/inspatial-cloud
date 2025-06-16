@@ -30,7 +30,7 @@ export interface DBConfig {
   connection: ClientConnectionType;
   appName?: string;
   idleTimeout?: number;
-  clientMode?: "pool" | "single";
+  clientMode?: "pool" | "single" | "dev";
   poolOptions?: PgPoolConfig["pool"];
 }
 

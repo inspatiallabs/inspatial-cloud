@@ -19,6 +19,7 @@ import convertString from "#/utils/convert-string.ts";
 import { inLog } from "#/in-log/in-log.ts";
 import { makeFilterQuery } from "#/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "#/orm/db/utils.ts";
+
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -65,6 +66,7 @@ export class InSpatialDB {
     };
     const clientConfig: PgClientConfig = {
       ...config.connection,
+      debug: this.#debugMode,
       options: {
         application_name: config.appName || "InSpatial",
       },
@@ -79,6 +81,13 @@ export class InSpatialDB {
             maxSize: 10,
             ...config.poolOptions,
           },
+        });
+        break;
+      case "dev":
+        this.#pool = new PostgresPool({
+          clientConfig: clientConfig,
+          useDev: true,
+          pool: poolOptions,
         });
         break;
       case "single":
@@ -666,7 +675,7 @@ export class InSpatialDB {
       query += ` NOT NULL`;
     }
     if (column.columnDefault) {
-      query += ` DEFAULT ${column.columnDefault}`;
+      query += ` DEFAULT ${formatDbValue(column.columnDefault)}`;
     }
 
     // return query;

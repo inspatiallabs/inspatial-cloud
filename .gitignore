@@ -1,3 +1,5 @@
 .inspatial/
 deno.lock
 cloud-config.json
+pgdata/
+debug.log

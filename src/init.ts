@@ -37,7 +37,7 @@ export function initCloud(app: InCloud): void {
 }
 
 function promptForConfig(extension: CloudExtensionInfo) {
-  console.log(extension.label);
+  // console.log(extension.label);
   const configResults = new Map<string, any>();
   const dependencies = new Map<string, ConfigEnv>();
   for (const [key, env] of Object.entries(extension.config)) {

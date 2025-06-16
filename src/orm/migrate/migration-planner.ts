@@ -45,7 +45,7 @@ export class MigrationPlanner {
   }
 
   #logResult(message: string): void {
-    this.onOutput(message);
+    // this.onOutput(message);
     this.#results.push(message);
   }
 

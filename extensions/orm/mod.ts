@@ -116,7 +116,7 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
     dbName: {
       type: "string",
       description: "Name of the database",
-      default: undefined,
+      default: "inspatial",
     },
     dbHost: {
       type: "string",
@@ -163,9 +163,9 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
     },
     dbClientMode: {
       type: "string",
-      enum: ["pool", "single"],
+      enum: ["pool", "single", "dev"],
       description: "Client mode for the database connection",
-      default: "pool",
+      default: "dev",
     },
     dbPoolSize: {
       type: "number",
