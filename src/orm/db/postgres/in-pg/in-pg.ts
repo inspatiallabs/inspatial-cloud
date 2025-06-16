@@ -2,12 +2,10 @@ import { normalizePath } from "./src/convert.ts";
 import { FileManager } from "./src/fileManager/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
-import { ExitStatus } from "./src/utils.ts";
+import { ExitStatus, getTempDirBase } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 import type { InPgOptions } from "./types.ts";
 
-const fileData = Deno.readFileSync(import.meta.dirname + `/src/inpg.data`);
-const wasmData = Deno.readFileSync(import.meta.dirname + `/src/inpg.wasm`);
 export class InPG implements Deno.Conn {
   pgMem: PGMem;
   wasmLoader;
@@ -38,6 +36,15 @@ export class InPG implements Deno.Conn {
   debug?: boolean;
   #onStdErr: (message: any) => void;
   #onStdOut: (message: any) => void;
+  #wasmData: Uint8Array = new Uint8Array(0);
+  #fileData: Uint8Array = new Uint8Array(0);
+  get wasmData() {
+    return this.#wasmData;
+  }
+
+  get fileData() {
+    return this.#fileData;
+  }
 
   log(type: "out" | "err", chunk: Uint8Array) {
     if (!this.debug) {
@@ -89,11 +96,10 @@ export class InPG implements Deno.Conn {
     this.#bufferData = new Uint8Array(0);
     this.runtimeInitialized = false;
     this.pgMem = new PGMem(this);
-    this.wasmLoader = new WasmLoader(this, wasmData);
+    this.wasmLoader = new WasmLoader(this);
     this.readEmAsmArgsArray = [];
     this.fileManager = new FileManager(this, {
       debug: options?.debug,
-      fileData,
     });
     this.sysCalls = new SysCalls(this);
 
@@ -112,6 +118,7 @@ export class InPG implements Deno.Conn {
 
     await this.wasmLoader.load();
   }
+
   sendQuery(message: Uint8Array) {
     this.wasmLoader.callExportFunction("use_wire", 1);
     const msg_len = message.length;
@@ -143,6 +150,7 @@ export class InPG implements Deno.Conn {
   }
 
   async run() {
+    await this.loadRemoteFiles();
     await this.#setup();
     await this.initRuntime();
     this.#callMain(this.args);
@@ -178,7 +186,39 @@ export class InPG implements Deno.Conn {
       Deno.exit(1);
     }
   }
+  async loadRemoteFiles() {
+    const wasmUrl =
+      "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.wasm";
+    const dataUrl =
+      "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.data";
+    const tmpDirBase = getTempDirBase();
+    const tmpDir = `${tmpDirBase}/in-pg`;
 
+    Deno.mkdirSync(tmpDir, { recursive: true });
+
+    const wasmFile = `${tmpDir}/inpg.0.2.2.wasm`;
+    const dataFile = `${tmpDir}/inpg.0.2.2.data`;
+    this.#wasmData = await this.loadRemoteFile(wasmFile, wasmUrl);
+    this.#fileData = await this.loadRemoteFile(dataFile, dataUrl);
+  }
+  async loadRemoteFile(fileName: string, remoteUrl: string) {
+    try {
+      Deno.statSync(fileName);
+      return Deno.readFileSync(fileName);
+    } catch (e) {
+      if (e instanceof Deno.errors.NotFound) {
+        const response = await fetch(remoteUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch file: ${response.statusText}`);
+        }
+        const data = new Uint8Array(await response.arrayBuffer());
+        await Deno.writeFile(fileName, data);
+        return data;
+      } else {
+        throw e;
+      }
+    }
+  }
   initDB() {
     const result = this.wasmLoader.callExportFunction("pgl_initdb");
     return result;

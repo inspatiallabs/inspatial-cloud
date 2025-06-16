@@ -6,7 +6,9 @@ import { uleb128Encode, UTF8ArrayToString } from "./convert.ts";
 
 import type { PGMem } from "./pgMem.ts";
 import { setupInvokeImports } from "./setupInvokes.ts";
-
+import { getTempDirBase } from "./utils.ts";
+const wasmURL =
+  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.wasm";
 class LDSO {
   loadedLibsByName: Record<string, DSO>;
   loadedLibsByHandle: Record<string, DSO>;
@@ -37,12 +39,10 @@ export class WasmLoader {
   wasmExports: WebAssembly.Exports;
   freeTableIndexes: Array<number>;
   inPg: InPG;
-  wasmData: Uint8Array;
-
   get pgMem(): PGMem {
     return this.inPg.pgMem;
   }
-  constructor(inPg: InPG, wasmData: Uint8Array) {
+  constructor(inPg: InPG) {
     this.GOT = {};
     this.inPg = inPg;
     this.wasmExports = {};
@@ -54,7 +54,6 @@ export class WasmLoader {
       initial: this.inPg.tableSize,
       element: "anyfunc",
     });
-    this.wasmData = wasmData;
 
     const GOT = this.GOT;
     const currentModuleWeakSymbols = this.currentModuleWeakSymbols;
@@ -74,6 +73,7 @@ export class WasmLoader {
       },
     };
   }
+
   async load() {
     const GOTHandler = this.GOTHandler;
     this.setupImports();
@@ -93,7 +93,7 @@ export class WasmLoader {
       ) as WebAssembly.ModuleImports,
     };
 
-    const result = await WebAssembly.instantiate(this.wasmData, info);
+    const result = await WebAssembly.instantiate(this.inPg.wasmData, info);
     this.wasmExports = result.instance.exports;
 
     for (var [sym, exp] of Object.entries(result.instance.exports)) {

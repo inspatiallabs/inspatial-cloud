@@ -1,3 +1,4 @@
+import { normalizePath } from "./convert.ts";
 import type { PGMem } from "./pgMem.ts";
 
 export class ExitStatus {
@@ -56,4 +57,17 @@ export class ExceptionInfo {
   get_adjusted_ptr() {
     return this.mem.HEAPU32[(this.ptr + 16) >> 2];
   }
+}
+
+export function getTempDirBase() {
+  let path = Deno.makeTempFileSync();
+  if (Deno.build.os === "windows") {
+    const driveLetter = path.match(/^[a-zA-Z]:/)?.[0] || "";
+    path = `${driveLetter}${normalizePath(path)}`;
+  }
+  Deno.removeSync(path);
+  const parts = path.split("/");
+  parts.pop();
+  const tmpdir = parts.join("/");
+  return tmpdir;
 }

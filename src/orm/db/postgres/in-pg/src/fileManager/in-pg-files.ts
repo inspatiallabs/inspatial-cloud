@@ -4,7 +4,8 @@ import { ERRNO_CODES } from "../constants.ts";
 import { normalizePath } from "../convert.ts";
 import type { PGMem } from "../pgMem.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
-
+const dataURL =
+  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.data";
 export class FileManager {
   openFiles: Map<number, PGFile | PGFileMem>;
   openTmpFDs: Map<string, number>;
@@ -23,7 +24,6 @@ export class FileManager {
   postgresFiles: Map<string, PostgresFile>;
   constructor(inPg: InPG, options: {
     debug?: boolean;
-    fileData: Uint8Array;
   }) {
     this.lastDebugMessage = "";
     this.dirReadOffsets = new Map();
@@ -44,7 +44,7 @@ export class FileManager {
         truncate: true,
       });
     }
-    this.loadPostgresFiles(options.fileData);
+    this.loadPostgresFiles();
     this.setupStdStreams();
   }
   clearTmp() {
@@ -412,7 +412,8 @@ export class FileManager {
     }
     return null;
   }
-  loadPostgresFiles(data: Uint8Array) {
+  async loadPostgresFiles() {
+    const data = this.inPg.fileData;
     let offset = 0;
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 
