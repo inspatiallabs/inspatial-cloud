@@ -28,18 +28,20 @@ export class InPGClient extends PostgresClient {
         PREFIX: `/tmp/pglite`,
         REPL: "N",
       },
-      installDir: `${thisDir}/postgresql`,
+      pgFilesDir: `${thisDir}`,
       onStderr: (out) => {
-        if (this.#logOut(out)) {
-          return;
-        }
-        inLog.warn(out.message);
+        // if (this.#logOut(out)) {
+        //   return;
+        // }
+        console.log(out.message);
+        // inLog.warn(out.message);
       },
       onStdout: (out) => {
-        if (this.#logOut(out)) {
-          return;
-        }
-        inLog.info(out.message);
+        // if (this.#logOut(out)) {
+        //   return;
+        // }
+        console.log(out.message);
+        // inLog.info(out.message);
       },
       debug: true,
       args: [

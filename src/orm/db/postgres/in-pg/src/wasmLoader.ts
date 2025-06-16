@@ -295,25 +295,26 @@ export class WasmLoader {
     localScope: any,
     handle?: number,
   ) {
+    console.log("loadDynamicLibrary", libName, flags, handle);
     let dso = this.LDSO.loadedLibsByName[libName];
     if (dso) {
-      ni("already exists");
+      // ni("already exists");
       if (!flags.global) {
         if (localScope) {
           Object.assign(localScope, dso.exports);
         }
       } else if (!dso.global) {
         dso.global = true;
-        mergeLibSymbols(dso.exports, libName);
+        this.#mergeLibSymbols(dso.exports);
       }
       if (flags.nodelete && dso.refcount !== Infinity) {
         dso.refcount = Infinity;
       }
       dso.refcount++;
       if (handle) {
-        LDSO.loadedLibsByHandle[handle] = dso;
+        this.LDSO.loadedLibsByHandle[handle] = dso;
       }
-      return flags.loadAsync ? Promise.resolve(true) : true;
+      return true;
     }
     dso = this.LDSO.newDSO(libName, handle, "loading");
     dso.refcount = flags.nodelete ? Infinity : 1;
@@ -335,7 +336,7 @@ export class WasmLoader {
         handle,
       );
       if (dso.global) {
-        this.#mergeLibSymbols(exports, libName);
+        this.#mergeLibSymbols(exports);
       } else if (localScope) {
         Object.assign(localScope, exports);
       }

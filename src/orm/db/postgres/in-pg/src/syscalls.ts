@@ -223,15 +223,25 @@ export class SysCalls {
     this.add("__syscall_fstat64", "iip", (fd, buf) => {
       const pgFile = this.fm.getFile(fd);
 
-      const stat = Deno.statSync(pgFile.path);
+      let stat: Deno.FileInfo;
       let mode = 0;
-      const S_IFMT = 0o170000; // bitmask for the file type bitfields
-      const S_IFDIR = 0o040000;
-      const S_IFREG = 0o100000;
-      const S_IFLNK = 0o120000;
-      if (stat.isDirectory) mode |= S_IFDIR;
-      else if (stat.isSymlink) mode |= S_IFLNK;
-      else mode |= S_IFREG;
+      if ("statInfo" in pgFile.file) {
+        stat = pgFile.file.statInfo;
+        mode = stat.mode!;
+      } else {
+        if (!pgFile.file) {
+          return -ERRNO_CODES.EBADF;
+        }
+        stat = Deno.statSync(pgFile.path);
+
+        const S_IFMT = 0o170000; // bitmask for the file type bitfields
+        const S_IFDIR = 0o040000;
+        const S_IFREG = 0o100000;
+        const S_IFLNK = 0o120000;
+        if (stat.isDirectory) mode |= S_IFDIR;
+        else if (stat.isSymlink) mode |= S_IFLNK;
+        else mode |= S_IFREG;
+      }
       const now = new Date().getTime();
       this.pgMem.HEAP32[buf >> 2] = stat.dev;
       this.pgMem.HEAP32[(buf + 4) >> 2] = mode;
@@ -399,13 +409,22 @@ export class SysCalls {
     });
     this.add("__syscall_stat64", "ipp", (pathPointer: number, buf) => {
       let path = this.fm.getPtrPath(pathPointer);
-      console.log({ path });
+
       path = this.fm.parsePath(path);
-      console.log({ path });
-      if (!this.fm.exists(path)) {
-        return -ERRNO_CODES.ENOENT;
+      this.fm.debugLog(path);
+      let stat: Deno.FileInfo;
+      if (!this.fm.postgresFiles.has(path)) {
+        if (!this.fm.exists(path)) {
+          return -ERRNO_CODES.ENOENT;
+        }
+        stat = Deno.statSync(path);
+      } else {
+        const pgFile = this.fm.postgresFiles.get(path);
+        if (!pgFile) {
+          return -ERRNO_CODES.ENOENT;
+        }
+        stat = pgFile.statSync();
       }
-      const stat = Deno.statSync(path);
 
       const now = new Date().getTime();
       this.pgMem.HEAP32[buf >> 2] = stat.dev;

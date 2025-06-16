@@ -29,6 +29,8 @@ export function setupOther(inPg: InPG) {
 
   sys.add("_abort_js", "v", () => sys.inPg.abort(""));
   sys.add("_dlopen_js", "pp", (ptr) => {
+    // dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
+    // return 0;
     let path = fm.getPtrPath(ptr + 36);
     var flags = pgMem.HEAP32[(ptr + 4) >> 2];
     path = fm.parsePath(path);

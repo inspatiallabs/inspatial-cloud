@@ -1,8 +1,8 @@
 import { type InPG, ni } from "../in-pg.ts";
-import type { PGFile, PGFileMem } from "../types.ts";
+import type { DevType, PGFile, PGFileMem } from "../types.ts";
 import { ERRNO_CODES } from "./constants.ts";
 import { normalizePath } from "./convert.ts";
-import { MemFile } from "./memFile.ts";
+import { MemFile, PostgresFile } from "./memFile.ts";
 import type { PGMem } from "./pgMem.ts";
 
 export class FileManager {
@@ -18,21 +18,23 @@ export class FileManager {
   tmpMap: Map<string, string>;
   lastDebugMessage: string;
   messageCount: number = 0;
-  installDir: string;
+  pgFilesDir: string;
   tmDir!: string;
+  postgresFiles: Map<string, PostgresFile>;
   constructor(inPg: InPG, options: {
     debug?: boolean;
-    installDir: string;
+    pgFilesDir: string;
   }) {
     this.lastDebugMessage = "";
     this.dirReadOffsets = new Map();
     this.debug = options?.debug;
-    this.installDir = options.installDir;
+    this.pgFilesDir = options.pgFilesDir;
     this.#currFD = 100;
     this.inPg = inPg;
     this.mem = inPg.pgMem;
     this.openFiles = new Map();
     this.openTmpFDs = new Map();
+    this.postgresFiles = new Map();
     this.clearTmp();
     this.tmDir = Deno.makeTempDirSync({
       prefix: "inspatial_",
@@ -49,6 +51,7 @@ export class FileManager {
   }
 
   init() {
+    this.loadPostgresFiles();
     this.setupStdStreams();
   }
   clearTmp() {
@@ -157,6 +160,11 @@ export class FileManager {
     return new MemFile(this.mem, type, this.debug);
   }
   openTmpFile(path: string, options: Deno.OpenOptions) {
+    if (this.postgresFiles.has(path)) {
+      const pgFile = this.postgresFiles.get(path)!;
+      pgFile.position = 0;
+      return pgFile;
+    }
     let realPath = this.tmpMap.get(path);
     if (!realPath) {
       realPath = Deno.makeTempFileSync({
@@ -169,9 +177,6 @@ export class FileManager {
   openFile(path: string, options: Deno.OpenOptions) {
     path = this.parsePath(path);
     const devType = this.isDev(path);
-    if (!path.includes("pgdata")) {
-      console.log({ path });
-    }
 
     let file: Deno.FsFile | MemFile;
     let isMem = false;
@@ -317,7 +322,6 @@ export class FileManager {
         path = this.join(this.cwd, path);
         break;
     }
-    path = path.replace("/tmp/pglite", this.installDir);
     return path;
   }
   resolvePath(path: string) {
@@ -371,7 +375,7 @@ export class FileManager {
     fd: number,
   ): Array<{ stat: Deno.FileInfo; name: string; fullPath: string }> {
     const dir = this.getFile(fd);
-    if (!dir.info.isDirectory) {
+    if (!dir.info?.isDirectory) {
       this.raise(`${dir.path} is not a directory!`);
     }
     const results = [];
@@ -397,5 +401,29 @@ export class FileManager {
       return "tmp";
     }
     return null;
+  }
+  loadPostgresFiles() {
+    const data = Deno.readFileSync(`${this.pgFilesDir}/src/inpg.data`);
+    let offset = 0;
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+    while (offset + 8 <= data.length) {
+      const fileNameSize = view.getUint32(offset);
+      const fileDataSize = view.getUint32(offset + 4);
+
+      const nameStart = offset + 8;
+      const nameEnd = nameStart + fileNameSize;
+
+      const dataStart = nameEnd;
+      const dataEnd = dataStart + fileDataSize;
+
+      if (dataEnd > data.length) break;
+
+      const fileName = new TextDecoder().decode(data.slice(nameStart, nameEnd));
+      const fileData = data.slice(dataStart, dataEnd);
+      this.postgresFiles.set(fileName, new PostgresFile(fileData));
+
+      offset = dataEnd;
+    }
   }
 }

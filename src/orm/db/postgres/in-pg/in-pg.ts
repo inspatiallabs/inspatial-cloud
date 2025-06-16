@@ -92,7 +92,7 @@ export class InPG implements Deno.Conn {
     this.readEmAsmArgsArray = [];
     this.fileManager = new FileManager(this, {
       debug: options?.debug,
-      installDir: options.installDir,
+      pgFilesDir: options.pgFilesDir,
     });
     this.sysCalls = new SysCalls(this);
 
