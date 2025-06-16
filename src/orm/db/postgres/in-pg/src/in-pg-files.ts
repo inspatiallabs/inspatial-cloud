@@ -36,9 +36,7 @@ export class FileManager {
     this.openTmpFDs = new Map();
     this.postgresFiles = new Map();
     this.clearTmp();
-    this.tmDir = Deno.makeTempDirSync({
-      prefix: "inspatial_",
-    });
+
     this.tmpMap = new Map();
     if (this.debug) {
       this.debugFile = Deno.openSync(Deno.cwd() + "/debug.log", {
@@ -55,7 +53,11 @@ export class FileManager {
     this.setupStdStreams();
   }
   clearTmp() {
-    const path = Deno.makeTempFileSync();
+    let path = Deno.makeTempFileSync();
+    if (Deno.build.os === "windows") {
+      const driveLetter = path.match(/^[a-zA-Z]:/)?.[0] || "";
+      path = `${driveLetter}${normalizePath(path)}`;
+    }
     Deno.removeSync(path);
     const parts = path.split("/");
     parts.pop();
@@ -68,9 +70,21 @@ export class FileManager {
         });
       }
     }
+    let tmDir = Deno.makeTempDirSync({
+      prefix: "inspatial_",
+    });
+
+    if (Deno.build.os === "windows") {
+      const driveLetter = tmDir.match(/^[a-zA-Z]:/)?.[0] || "";
+      tmDir = `${driveLetter}${normalizePath(tmDir)}`;
+    }
+    this.tmDir = tmDir;
   }
   debugLog(message: string | object) {
-    if (!this.debug || !this.debugFile) {
+    if (!this.debug) {
+      return;
+    }
+    if (!this.debugFile) {
       return;
     }
     if (typeof message === "object") {
@@ -107,7 +121,6 @@ export class FileManager {
     const readableFD = this.nextFD();
 
     const writableFD = this.nextFD();
-    this.debugLog(JSON.stringify({ readableFD, writableFD }));
     return {
       writableFD,
       readableFD,
@@ -170,6 +183,10 @@ export class FileManager {
       realPath = Deno.makeTempFileSync({
         dir: this.tmDir,
       });
+      if (Deno.build.os === "windows") {
+        const driveLetter = realPath.match(/^[a-zA-Z]:/)?.[0] || "";
+        realPath = `${driveLetter}${normalizePath(realPath)}`;
+      }
       this.tmpMap.set(path, realPath);
     }
     return Deno.openSync(realPath, options);
@@ -202,8 +219,6 @@ export class FileManager {
     const fd = this.nextFD();
     if (devType == "shm") {
       this.openTmpFDs.set(path, fd);
-      this.debugLog(path);
-      this.debugLog(fd.toString());
     }
     this.openFiles.set(fd, {
       fd,

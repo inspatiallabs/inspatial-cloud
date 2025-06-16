@@ -43,7 +43,7 @@ export class InPGClient extends PostgresClient {
         console.log(out.message);
         // inLog.info(out.message);
       },
-      debug: true,
+      debug: false,
       args: [
         "--single",
         "postgres",

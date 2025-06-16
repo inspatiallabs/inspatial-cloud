@@ -89,12 +89,7 @@ export class SysCalls {
         case 4: {
           // ni();
           var arg = this.syscallGetVarargI();
-          this.fm.debugLog({
-            O_APPEND: 0x400,
-            O_NONBLOCK: 0x800,
-            O_SYNC: 0x101000,
-          });
-          this.fm.debugLog({ arg });
+
           return 0;
         }
         case 12: {
@@ -132,25 +127,29 @@ export class SysCalls {
         const O_CREAT = 0x40;
         const O_APPEND = 0x400;
         const O_TRUNC = 0x200;
+        const O_NOFOLLOW = 0x8000;
 
         const path = this.fm.getPtrPath(pathPointer);
         const accessMode = flags & O_ACCMODE;
         const mode = varargs ? this.pgMem.HEAP32[+varargs >> 2] : 0;
 
+        const willFsync = path.startsWith("./");
         const create = !!(flags & O_CREAT);
         const append = !!(flags & O_APPEND);
         const truncate = !!(flags & O_TRUNC);
 
+        const options: Deno.OpenOptions = {
+          mode,
+          create,
+          append,
+          truncate,
+          read: accessMode === 0 || accessMode === 2,
+          write: accessMode === 1 || accessMode === 2 || willFsync,
+        };
+
         try {
-          const file = this.fm.openFile(path, {
-            mode,
-            create,
-            append,
-            truncate,
-            read: accessMode === 0 || accessMode === 2,
-            write: accessMode === 1 || accessMode === 2,
-          });
-          this.fm.debugLog(file.fd.toString() + " " + path);
+          const file = this.fm.openFile(path, options);
+
           return file.fd;
         } catch (e) {
           if (e instanceof Deno.errors.NotFound) {
@@ -411,7 +410,6 @@ export class SysCalls {
       let path = this.fm.getPtrPath(pathPointer);
 
       path = this.fm.parsePath(path);
-      this.fm.debugLog(path);
       let stat: Deno.FileInfo;
       if (!this.fm.postgresFiles.has(path)) {
         if (!this.fm.exists(path)) {

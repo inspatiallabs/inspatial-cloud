@@ -295,7 +295,6 @@ export class WasmLoader {
     localScope: any,
     handle?: number,
   ) {
-    console.log("loadDynamicLibrary", libName, flags, handle);
     let dso = this.LDSO.loadedLibsByName[libName];
     if (dso) {
       // ni("already exists");

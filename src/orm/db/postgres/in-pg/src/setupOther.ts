@@ -34,7 +34,6 @@ export function setupOther(inPg: InPG) {
     let path = fm.getPtrPath(ptr + 36);
     var flags = pgMem.HEAP32[(ptr + 4) >> 2];
     path = fm.parsePath(path);
-    fm.debugLog(path);
     var global = Boolean(flags & 256);
     var localScope = global ? null : {};
     var combinedFlags = {
@@ -325,9 +324,13 @@ export function setupOther(inPg: InPG) {
     },
   );
   sys.add("fd_sync", "ii", (fd) => {
+    // return 0;
     const file = fm.getFile(fd);
     if (!file) {
       return -1;
+    }
+    if (file.info?.isDirectory) {
+      return 0;
     }
     file.file.syncSync();
     return 0;
