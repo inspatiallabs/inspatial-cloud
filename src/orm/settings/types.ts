@@ -44,6 +44,7 @@ export type SettingsHookDefinition<S extends SettingsBase = SettingsBase> = {
 export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
   key: string;
   description?: string;
+  private?: boolean;
   action(
     actionParams:
       & {

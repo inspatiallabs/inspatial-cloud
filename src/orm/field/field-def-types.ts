@@ -81,7 +81,7 @@ export interface TextField extends BaseField {
   defaultValue?: InValue<"TextField">;
 }
 
-export type IntFormat = "number" | "fileSize";
+export type IntFormat = "number" | "fileSize" | "withCommas" | "percent";
 export interface IntField extends BaseField {
   /**
    * `IntField` is a whole number.

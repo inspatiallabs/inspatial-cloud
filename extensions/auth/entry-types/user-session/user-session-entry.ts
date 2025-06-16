@@ -9,6 +9,7 @@ const userSessionEntry = new EntryType<UserSession>("userSession", {
   idMode: "ulid",
   fields: fields,
   actions: [],
+  defaultListFields: ["user"],
   hooks: {
     beforeCreate: [{
       name: "setSessionId",

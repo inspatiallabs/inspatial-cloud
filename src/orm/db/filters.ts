@@ -8,19 +8,21 @@ export function makeFilterQuery(dbFilter: DBFilter): Array<string> {
   if (Array.isArray(dbFilter)) {
     filters.push(...dbFilter);
   } else if (typeof dbFilter === "object") {
-    Object.entries(dbFilter).map(([key, value]) => {
-      if (value === null) {
+    filters.push(
+      ...Object.entries(dbFilter).map(([key, value]) => {
+        if (value === null) {
+          return {
+            field: key,
+            op: "isEmpty",
+          };
+        }
         return {
           field: key,
-          op: "isEmpty",
+          op: "=",
+          value,
         };
-      }
-      return {
-        field: key,
-        op: "=",
-        value,
-      };
-    }) as Array<InFilter>;
+      }) as Array<InFilter>,
+    );
   }
   for (const filter of filters) {
     let filterString = "";

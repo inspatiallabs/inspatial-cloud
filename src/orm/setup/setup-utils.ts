@@ -40,6 +40,9 @@ export function buildConnectionFields(
     field.connectionIdMode = connectionEntryType.config.idMode;
 
     entryOrSettingsOrChildType.connectionTitleFields.set(field.key, titleField);
+    if (!field.hidden) {
+      entryOrSettingsOrChildType.info.titleFields.push(titleField);
+    }
   }
   for (
     const titleField of entryOrSettingsOrChildType.connectionTitleFields
@@ -148,7 +151,7 @@ function buildConnectionTitleField(
 
   const titleField = {
     ...entryTitleField,
-    key: `${field.key}#`,
+    key: `${field.key}__title`,
     readOnly: true,
     required: false,
     unique: false,

@@ -4,6 +4,7 @@ import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
 } from "#/orm/migrate/types.ts";
+import type { EntryIndex } from "#/orm/entry/types.ts";
 
 export class EntryMigrationPlan {
   entryType: string;
@@ -27,6 +28,10 @@ export class EntryMigrationPlan {
       drop: Array<ForeignKeyConstraint>;
     };
   };
+  indexes: {
+    create: Array<EntryIndex<string> & { indexName: string }>;
+    drop: Array<string>;
+  };
   children: Array<EntryMigrationPlan>;
   constructor(entryType: string) {
     this.entryType = entryType;
@@ -48,5 +53,9 @@ export class EntryMigrationPlan {
       },
     };
     this.children = [];
+    this.indexes = {
+      create: [],
+      drop: [],
+    };
   }
 }

@@ -1,5 +1,4 @@
 import type { EntryBase } from "#/orm/entry/entry-base.ts";
-
 export interface UserSession extends EntryBase {
   _name: "userSession";
   /**
@@ -11,7 +10,6 @@ export interface UserSession extends EntryBase {
    * @required true
    */
   user: string;
-  _userTitle?: string;
   /**
    * **Session ID** (DataField)
    * @description Unique identifier for the session
@@ -45,4 +43,10 @@ export interface UserSession extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  user__title?: string;
 }
