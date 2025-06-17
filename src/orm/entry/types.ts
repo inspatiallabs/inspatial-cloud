@@ -51,37 +51,68 @@ export type EntryActionDefinition<
         [K in E["_name"] | "entry"]: E;
       }
       & {
-        data: Record<string, any>;
+        data: Record<string, unknown>;
       },
   ) => Promise<any> | any;
   params: Array<InField>;
+};
+export type EntryActionMethod<
+  E extends EntryBase = GenericEntry,
+  K extends PropertyKey = PropertyKey,
+  P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
+> = (
+  args:
+    & {
+      orm: InSpatialORM;
+      data: ExtractParams<K, P>;
+    }
+    & {
+      [K in E["_name"] | "entry"]: E;
+    },
+) => Promise<any> | any;
+
+export type EntryActionConfig<
+  E extends EntryBase = GenericEntry,
+  K extends PropertyKey = PropertyKey,
+  P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
+  R extends EntryActionMethod<E, K, P> = EntryActionMethod<E, K, P>,
+> = {
+  key: string;
+  label?: string;
+  description?: string;
+  /**
+   * Set to true to hide this action from the api.
+   * This means it can only be called from server side code.
+   */
+  private?: boolean;
+  action: R;
+  params: P;
 };
 
 /**
  * A typed map of parameters passed to an action handler.
  */
-export type ParamsMap<T> = RequiredParams<T> & OptionalParams<T>;
-
+export type ActionParam<P extends PropertyKey> = Omit<InField, "key"> & {
+  key: P;
+};
 /**
  * A typed map of required parameters passed to an action handler.
  */
 
-type RequiredParams<T> = T extends Array<InField> ? {
-    [K in T[number] as K["required"] extends true ? K["key"] : never]: InValue<
-      K["type"]
+export type ExtractParams<
+  K extends PropertyKey,
+  P extends Array<ActionParam<K>>,
+> =
+  & {
+    [S in P[number] as S["required"] extends true ? S["key"] : never]: InValue<
+      S["type"]
     >;
   }
-  : never;
-
-/**
- * A typed map of optional parameters passed to an action handler.
- */
-type OptionalParams<T> = T extends Array<InField> ? {
-    [K in T[number] as K["required"] extends true ? never : K["key"]]?:
-      | InValue<K["type"]>
-      | undefined;
-  }
-  : never;
+  & {
+    [S in P[number] as S["required"] extends true ? never : S["key"]]?: InValue<
+      S["type"]
+    >;
+  };
 
 export interface EntryTypeInfo extends BaseTypeInfo {
   config: EntryTypeConfig;
@@ -95,10 +126,16 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   idMode: IDMode;
   searchFields?: Array<any>;
   defaultListFields?: Array<string>;
+  index: Array<EntryIndex<string>>;
 }
 
 export type IDValue = string | number;
 
 export type ExtractFieldKeys<T> = keyof {
   [K in keyof T as K extends keyof EntryBase ? never : K]: K;
+};
+
+export type EntryIndex<FK extends PropertyKey = PropertyKey> = {
+  fields: Array<FK>;
+  unique?: boolean;
 };

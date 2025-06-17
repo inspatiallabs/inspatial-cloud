@@ -39,9 +39,11 @@ const userEntry = new EntryType<User>("user", {
       name: "deleteUserSessions",
       description: "Delete all user sessions",
       async handler({ orm, user }) {
-        await orm.db.deleteRows("entryUserSession", {
-          user: user.id,
-        });
+        await orm.db.deleteRows("entryUserSession", [{
+          field: "user",
+          op: "=",
+          value: user.id,
+        }]);
       },
     }],
   },

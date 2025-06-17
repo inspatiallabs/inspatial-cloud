@@ -7,7 +7,7 @@ const validatePassword: EntryActionDefinition<User> = {
   label: "Validate Password",
   description: "Validate the user's password",
   async action({ data, user }): Promise<boolean> {
-    const password = data.password;
+    const password = data.password as string;
     const existingPassword = user.password;
     if (!existingPassword) {
       return false;

@@ -13,6 +13,7 @@ export interface BaseTypeInfo {
   titleFields: Array<InField>;
   children?: Array<ChildEntryTypeInfo>;
   displayFields: Array<InField>;
+  fieldGroups: Array<FieldGroup>;
 }
 
 export interface BaseTypeConfig {
@@ -30,9 +31,25 @@ export interface BaseTypeConfig {
   };
 }
 
-export interface BaseConfig {
+export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   label?: string;
   description?: string;
   fields: Array<InField>;
+  fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;
+}
+
+export interface FieldGroupConfig<FK extends PropertyKey = PropertyKey> {
+  key: string;
+  label?: string;
+  description?: string;
+  fields: Array<FK>;
+}
+
+export interface FieldGroup {
+  key: string;
+  label: string;
+  description?: string;
+  fields: Array<InField>;
+  displayFields: Array<InField>;
 }

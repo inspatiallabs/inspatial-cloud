@@ -48,9 +48,11 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     this._modifiedValues.clear();
     this.#updatedAt.clear();
     const result = await this._db.getRows<SettingsRow>("inSettings", {
-      filter: {
-        settingsType: this._name,
-      },
+      filter: [{
+        field: "settingsType",
+        op: "=",
+        value: this._name,
+      }],
       columns: ["field", "value", "updatedAt"],
     });
     for (const row of result.rows) {

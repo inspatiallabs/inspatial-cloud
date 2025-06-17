@@ -45,6 +45,8 @@ export class BaseClass<N extends string = string> {
     if (!fieldDef) {
       raiseORMException(
         `Field with key ${fieldKey} does not exist in EntryType ${this._name}`,
+        "NotFound",
+        404,
       );
     }
     return fieldDef as unknown as InFieldMap[T];

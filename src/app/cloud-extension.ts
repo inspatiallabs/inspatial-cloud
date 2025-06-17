@@ -9,10 +9,11 @@ import type { RequestLifecycle } from "#/app/request-lifecycle.ts";
 import { convertString } from "#/utils/mod.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { CloudAPIGroup } from "#/app/cloud-action.ts";
+
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 export type CloudInstallFunction<R = any> = (
   app: InCloud,
 ) => R;

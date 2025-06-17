@@ -1,4 +1,4 @@
-import { InField } from "#/orm/field/field-def-types.ts";
+import type { InField } from "#/orm/field/field-def-types.ts";
 
 export default [{
   key: "firstName",

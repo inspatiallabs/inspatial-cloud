@@ -30,7 +30,7 @@ export interface DBConfig {
   connection: ClientConnectionType;
   appName?: string;
   idleTimeout?: number;
-  clientMode?: "pool" | "single";
+  clientMode?: "pool" | "single" | "dev";
   poolOptions?: PgPoolConfig["pool"];
 }
 
@@ -62,7 +62,13 @@ export interface PgColumnDefinition extends PgDataTypeDefinition {
   unique?: boolean;
   isIdentity?: boolean;
 }
-
+export interface TableIndex {
+  schemaname: string;
+  tablename: string;
+  indexname: string;
+  tablespace: string | null;
+  indexdef: string;
+}
 export interface TableConstraint {
   constraintSchema: string;
   constraintName: string;
@@ -113,50 +119,22 @@ export interface QueryResultFormatted<T = Record<string, any>> {
 
 export type ValueType<Join> = Join extends false ? Array<string>
   : string | number;
-export interface AdvancedFilter {
-  op:
-    | "contains"
-    | "notContains"
-    | "inList"
-    | "notInList"
-    | "between"
-    | "notBetween"
-    | "is"
-    | "isNot"
-    | "isEmpty"
-    | "isNotEmpty"
-    | "startsWith"
-    | "endsWith"
-    | "greaterThan"
-    | "lessThan"
-    | "greaterThanOrEqual"
-    | "lessThanOrEqual"
-    | "equal"
-    | ">"
-    | "<"
-    | ">="
-    | "<="
-    | "="
-    | "!=";
-  value: any;
-}
+
 type BaseKeys = "id" | "createdAt" | "updatedAt";
 export interface ListOptions<T extends EntryBase = EntryBase> {
   columns?: (ExtractFieldKeys<T> | BaseKeys)[];
-  filter?: DBFilter<T>;
-  orFilter?: DBFilter<T>;
+  filter?: DBFilter;
   limit?: number;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
 }
 
-export type DBFilter<T = Record<string, unknown>> = Partial<
-  Record<
-    (ExtractFieldKeys<T> | BaseKeys),
-    string | number | boolean | null | AdvancedFilter
+export type DBFilter =
+  | Array<
+    InFilter
   >
->;
+  | Record<string, string | number | null | boolean>;
 
 export interface DBListOptions {
   columns?:
@@ -192,3 +170,75 @@ type DBColumnType =
   | "TEXT"
   | "TIMESTAMP WITH TIME ZONE"
   | "TIMESTAMP WITHOUT TIME ZONE";
+
+// Filters
+
+type EqualsOp = "=" | "equal" | "!=" | "notEqual";
+type ComparisonOp =
+  | "<"
+  | "<="
+  | ">"
+  | ">="
+  | "lessThanOrEqual"
+  | "lessThan"
+  | "greaterTan"
+  | "greaterThanOrEqual";
+type BetweenOps = "between" | "notBetween";
+type EmptyOps = "isEmpty" | "isNotEmpty";
+type ListOps = "notInList" | "inList";
+type ContainsOps = "contains" | "notContains" | "startsWith" | "endsWith";
+export type FilterOps =
+  | EqualsOp
+  | ComparisonOp
+  | BetweenOps
+  | EmptyOps
+  | ListOps
+  | ContainsOps;
+
+type FilterInList = {
+  op: ListOps;
+  value: Array<string> | Array<number>;
+};
+
+type FilterEqual = {
+  op: EqualsOp;
+  value: string | number;
+};
+type FilterBetween = {
+  op: BetweenOps;
+  value: [string, string] | [number, number];
+};
+
+type FilterEmpty = {
+  op: EmptyOps;
+};
+type FilterCompare = {
+  op: ComparisonOp;
+  value: string | number;
+};
+
+type FilterContains = {
+  op: ContainsOps;
+  value: string;
+  caseSensitive?: boolean;
+};
+export type FilterAll =
+  | FilterInList
+  | FilterEqual
+  | FilterBetween
+  | FilterEmpty
+  | FilterCompare
+  | FilterContains;
+
+export type InFilter =
+  | FilterAll
+    & {
+      field: string;
+      or?: Array<FilterAll>;
+      and?: Array<FilterAll>;
+    }
+  | {
+    field: string;
+    or?: Array<FilterAll>;
+    and?: Array<FilterAll>;
+  };
