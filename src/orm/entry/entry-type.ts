@@ -1,7 +1,10 @@
 import type {
+  ActionParam,
+  EntryActionConfig,
   EntryActionDefinition,
   EntryConfig,
   EntryHookDefinition,
+  EntryIndex,
   EntryTypeConfig,
   ExtractFieldKeys,
 } from "#/orm/entry/types.ts";
@@ -29,7 +32,7 @@ export class EntryType<
   FK extends PropertyKey = ExtractFieldKeys<E>,
 > extends BaseType<N> {
   config: EntryTypeConfig;
-  defaultListFields: Set<string> = new Set(["id", "createdAt", "updatedAt"]);
+  defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
@@ -95,6 +98,7 @@ export class EntryType<
     this.config = {
       tableName: this.#generateTableName(),
       label: this.label,
+      index: config.index as Array<EntryIndex<string>> || [],
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
       searchFields: Array.from(searchFields),
@@ -115,16 +119,21 @@ export class EntryType<
         this.defaultListFields.add(fieldKey);
       }
     }
+    this.defaultListFields.add("updatedAt");
+    this.defaultListFields.add("createdAt");
     if (this.config.titleField) {
       this.defaultListFields.add(this.config.titleField);
     }
     this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
+    this.#validateIndexFields();
     this.#setupRoles(config.roles);
     this.info = {
       config: this.config,
-      actions: Array.from(this.actions.values()),
+      actions: Array.from(this.actions.values()).filter((action) =>
+        !action.private
+      ),
       displayFields: Array.from(this.displayFields.values()),
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
@@ -170,6 +179,36 @@ export class EntryType<
   #generateTableName(): string {
     const snakeName = convertString(this.name, "snake", true);
     return `entry_${snakeName}`;
+  }
+
+  #validateIndexFields(): void {
+    for (const index of this.config.index) {
+      index.fields.forEach((field) => {
+        if (!this.fields.has(field)) {
+          raiseORMException(
+            `field ${field} is not a valid field for and index on ${this.name}`,
+          );
+        }
+      });
+    }
+  }
+
+  addAction<
+    K extends PropertyKey = PropertyKey,
+    P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
+  >(action: EntryActionConfig<E, K, P>): void {
+    if (this.actions.has(action.key)) {
+      raiseORMException(
+        `Action with key ${action.key} already exists in EntryType ${this.name}`,
+      );
+    }
+    this.actions.set(action.key, action as any);
+    this.info = {
+      ...this.info,
+      actions: Array.from(this.actions.values()).filter((action) =>
+        !action.private
+      ),
+    };
   }
   #setupRoles(roles?: Array<EntryRole>) {
     this.roles.set("systemAdmin", {

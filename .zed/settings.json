@@ -33,6 +33,11 @@
     "TypeScript": {
       "language_servers": ["deno"],
       "formatter": "language_server"
+    },
+    "JavaScript": {
+      "language_servers": ["deno"],
+      "formatter": "language_server"
+      // "prettier": null
     }
   }
 }

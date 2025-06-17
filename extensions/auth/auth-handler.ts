@@ -73,9 +73,11 @@ export class AuthHandler {
       authToken,
     );
     if (!sessionData) {
-      const user = await this.#app.orm.findEntry<User>("user", {
-        apiToken: authToken,
-      });
+      const user = await this.#app.orm.findEntry<User>("user", [{
+        field: "apiToken",
+        op: "=",
+        value: authToken,
+      }]);
       if (user) {
         sessionData = {
           email: user.email,
@@ -100,9 +102,11 @@ export class AuthHandler {
     if (!sessionData) {
       const userSession = await this.#app.orm.findEntry<UserSession>(
         "userSession",
-        {
-          sessionId,
-        },
+        [{
+          field: "sessionId",
+          op: "=",
+          value: sessionId,
+        }],
       );
       if (userSession) {
         sessionData = userSession.sessionData as SessionData;

@@ -28,9 +28,11 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
         "Google auth: Email not verified",
       );
     }
-    const user = await app.orm.findEntry<User>("user", {
-      email,
-    });
+    const user = await app.orm.findEntry<User>("user", [{
+      field: "email",
+      op: "=",
+      value: email,
+    }]);
 
     if (!user) {
       raiseServerException(

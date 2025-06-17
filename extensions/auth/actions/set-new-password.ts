@@ -6,9 +6,11 @@ const setNewPassword = new CloudAPIAction("setNewPassword", {
   authRequired: false,
   async run({ app, params }) {
     const { token, password } = params;
-    const user = await app.orm.findEntry("user", {
-      resetPasswordToken: token,
-    });
+    const user = await app.orm.findEntry("user", [{
+      field: "resetPasswordToken",
+      op: "=",
+      value: token,
+    }]);
     if (!user) {
       raiseServerException(400, "Invalid token");
     }

@@ -11,9 +11,11 @@ const login = new CloudAPIAction("login", {
   async run({ app, inRequest, inResponse, params }) {
     const { email, password } = params;
     const { orm } = app;
-    const user = await orm.findEntry<User>("user", {
-      email,
-    });
+    const user = await orm.findEntry<User>("user", [{
+      field: "email",
+      op: "=",
+      value: email,
+    }]);
     if (!user) {
       raiseServerException(401, "unauthorized");
     }

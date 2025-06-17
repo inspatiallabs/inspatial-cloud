@@ -28,8 +28,9 @@ function camelToSnakeCase(inputString: string): string {
  */
 function toCamelCase(inputString: string): string {
   inputString = sanitizeString(inputString);
+  const words = splitWords(inputString);
   // split the string into words
-  const words = inputString.split("_");
+
   // if there is only one word, return the input string
   if (words.length === 1) {
     return inputString;
@@ -52,13 +53,19 @@ function toCamelCase(inputString: string): string {
 function toPascalCase(inputString: string): string {
   inputString = sanitizeString(inputString);
   // split the string into words
-  const words = inputString.split("_");
+  const words = splitWords(inputString);
   // capitalize the first letter of each word
   return words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(
     "",
   );
 }
-
+function splitWords(inputString: string): RegExpMatchArray {
+  const words = inputString.match(/([a-zA-Z0-9]+|_{2,}[a-zA-Z0-9]+)/g);
+  if (!words) {
+    return [inputString];
+  }
+  return words;
+}
 /**
  * Converts a string to snake case
  * e.g. "HelloWorld" -> "hello_world"
@@ -119,7 +126,7 @@ function sanitizeString(inputString: string): string {
   // replace hyphens with underscores
   inputString = inputString.replace("-", "_");
   // replace multiple underscores with a single underscore
-  inputString = inputString.replace(/_+/g, "_");
+  // inputString = inputString.replace(/_+/g, "_");
   // convert to lowercase
   inputString = inputString.toLowerCase();
   return inputString;

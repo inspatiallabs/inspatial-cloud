@@ -60,6 +60,9 @@ export class SettingsType<
     this.#setupRoles(config.roles);
     this.info = {
       config: this.config,
+      actions: Array.from(this.actions.values()).filter((action) =>
+        !action.private
+      ),
     };
   }
   #setChildrenParent() {

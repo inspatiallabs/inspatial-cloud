@@ -20,11 +20,12 @@ import {
 } from "#/orm/db/postgres/maps/maps.ts";
 import { AUTH } from "#/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "#/orm/db/postgres/scram.ts";
-import { toCamelCase } from "#/orm/db/utils.ts";
+import { convertString } from "#/utils/mod.ts";
+import { inLog } from "#/in-log/in-log.ts";
 
 export class PostgresClient {
-  private conn!: Deno.Conn;
-  private readonly connectionParams: PgClientConfig;
+  conn!: Deno.Conn;
+  readonly connectionParams: PgClientConfig;
   cancelInfo: {
     pid: number;
     secret: number;
@@ -32,10 +33,10 @@ export class PostgresClient {
   private readonly serverParams: Record<string, string>;
 
   private readonly writer: MessageWriter;
-  private reader!: MessageReader;
+  reader!: MessageReader;
   private decoder: TextDecoder = new TextDecoder();
   serverStatus: ServerStatus;
-  private status: "connected" | "notConnected" = "notConnected";
+  status: "connected" | "notConnected" = "notConnected";
 
   get connected(): boolean {
     return this.status === "connected";
@@ -71,10 +72,6 @@ export class PostgresClient {
       offset += chunkSize;
     }
     return message;
-  }
-  private async readResponseHeader(): Promise<void> {
-    const buffer = new Uint8Array(5);
-    await this.conn.read(buffer);
   }
 
   async connect(): Promise<void> {
@@ -311,7 +308,7 @@ export class PostgresClient {
       const format = this.reader.readInt16();
       const column: ColumnDescription = {
         name,
-        camelName: toCamelCase(name),
+        camelName: convertString(name, "camel"),
         tableID,
         columnID,
         dataTypeID,
@@ -332,7 +329,8 @@ export class PostgresClient {
     const writer = this.writer;
     writer.setMessageType("Q");
     writer.addCString(query);
-    await this.conn.write(writer.message);
+    const message = writer.message;
+    await this.conn.write(message);
     let status;
     const fields: ColumnDescription[] = [];
     const data: T[] = [];
@@ -447,9 +445,7 @@ export class PostgresClient {
       throw new PgError({ ...errors[0], query });
     }
     if (notices.length) {
-      console.debug(notices, "PostgresClient NOTICE", {
-        hideTrace: true,
-      });
+      inLog.debug(notices, "PostgresClient NOTICE");
     }
     return {
       rowCount: data.length,

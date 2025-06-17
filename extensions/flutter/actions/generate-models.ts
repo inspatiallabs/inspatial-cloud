@@ -112,10 +112,39 @@ function generateFlutterModel(
   lines.push(...constructorClass);
   lines.push("}");
 
+  if (type === "Entry") {
+    const listModelLines = generateListModel(entryOrChildType as EntryType);
+    lines.push(...listModelLines);
+  }
+  return lines;
+}
+
+function generateListModel(entryType: EntryType): Array<string> {
+  const listFields = new Map();
+  entryType.defaultListFields.forEach((fieldKey) => {
+    listFields.set(fieldKey, entryType.fields.get(fieldKey));
+  });
+  const listType = {
+    ...entryType,
+    name: entryType.name + "List",
+    fields: listFields,
+    children: undefined,
+  } as EntryType;
+  const className = convertString(listType.name, "pascal", true);
+  const lines: string[] = [
+    `final class ${className} extends Entry {`,
+  ];
+  const fields = generateFieldDefs(listType.fields);
+  lines.push(...fields);
+  const converting = generateJsonConverting(listType, "Entry");
+  lines.push(...converting);
+  const constructorClass = generateConstructor(listType, "Entry");
+  lines.push(...constructorClass);
+  lines.push("}");
   return lines;
 }
 function shouldIgnoreField(field: InField) {
-  return field.key.endsWith("#") || field.hidden ||
+  return field.key.endsWith("__title") || field.hidden ||
     ["id", "createdAt", "updatedAt", "parent"].includes(field.key);
 }
 
@@ -223,14 +252,14 @@ function generateJsonConverting(
             `    ${field.key}: json['${field.key}'] != null `,
             `        ? ${field.type}(`,
             `              json['${field.key}'] as String,`,
-            `              json['${field.key}#'] as String,`,
+            `              json['${field.key}__title'] as String,`,
             `         ) : null,`,
           );
           toJson.push(
             `    '${field.key}': ${field.key}${
               field.required ? "" : "?"
             }.value,`,
-            `    '${field.key}#': ${field.key}${
+            `    '${field.key}__title': ${field.key}${
               field.required ? "" : "?"
             }.label,`,
           );
@@ -239,12 +268,12 @@ function generateJsonConverting(
         fromJson.push(
           `    ${field.key}:${field.type}(`,
           `      json['${field.key}'] as String,`,
-          `      json['${field.key}#'] as String,`,
+          `      json['${field.key}__title'] as String,`,
           `    ),`,
         );
         toJson.push(
           `    '${field.key}': ${field.key}.value,`,
-          `    '${field.key}#': ${field.key}${
+          `    '${field.key}__title': ${field.key}${
             field.required ? "" : "?"
           }.label,`,
         );

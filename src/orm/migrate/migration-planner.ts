@@ -45,7 +45,7 @@ export class MigrationPlanner {
   }
 
   #logResult(message: string): void {
-    this.onOutput(message);
+    // this.onOutput(message);
     this.#results.push(message);
   }
 
@@ -99,6 +99,7 @@ export class MigrationPlanner {
     await this.#createMissingTables();
     await this.#updateTablesDescriptions();
     await this.#syncColumns();
+    await this.#syncIndexes();
   }
 
   async #migrateSettingsTypes(): Promise<void> {
@@ -180,6 +181,21 @@ export class MigrationPlanner {
       await syncColumns(plan);
       for (const child of plan.children) {
         await syncColumns(child);
+      }
+    }
+  }
+  async #syncIndexes() {
+    for (const plan of this.migrationPlan.entries) {
+      for (const indexName of plan.indexes.drop) {
+        await this.db.dropIndex(plan.table.tableName, indexName);
+      }
+      for (const index of plan.indexes.create) {
+        await this.db.createIndex({
+          tableName: plan.table.tableName,
+          indexName: index.indexName,
+          columns: index.fields,
+          unique: index.unique,
+        });
       }
     }
   }

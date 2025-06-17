@@ -7,10 +7,10 @@ import authCloudExtension from "#extensions/auth/mod.ts";
 import ormCloudExtension from "#extensions/orm/mod.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import {
+  generateCloudConfigFile,
   generateConfigSchema,
-  generateServeConfigFile,
-  loadServeConfigFile,
-} from "#/cloud-config/serve-config.ts";
+  loadCloudConfigFile,
+} from "#/cloud-config/cloud-config.ts";
 import {
   isServerException,
   raiseServerException,
@@ -34,6 +34,8 @@ import { initCloud } from "#/init.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
+import type { CloudAPIGroup } from "#/api/cloud-group.ts";
+export type RunMode = "denoServe" | "run";
 import { RoleManager } from "#/orm/roles/role.ts";
 import type { CloudAPIGroup } from "#/api/cloud-group.ts";
 
@@ -114,9 +116,10 @@ export class InCloud<
     config?: CloudConfig;
   }) {
     this.#appRoot = normalizePath(Deno.mainModule, { toDirname: true });
+    Deno.env.set("IN_ROOT", this.inRoot);
     this.inLog = inLog;
 
-    loadServeConfigFile();
+    loadCloudConfigFile();
     this.#extensionManager = new ExtensionManager();
     this.#extensionManager.registerExtension(baseExtension);
 
@@ -273,11 +276,11 @@ export class InCloud<
     });
   }
   /**
-   * Generates a serve-config_generated.json file in the current working directory based on the installed extensions.
+   * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
    */
   generateConfigFile(): void {
     generateConfigSchema(this);
-    generateServeConfigFile(this);
+    generateCloudConfigFile(this);
   }
 
   getExtensionConfig<T>(extensionKey: string): T {
@@ -369,7 +372,7 @@ export class InCloud<
         hostname: this.#config.hostname,
         port: this.#config.port,
         onListen: (localAddr) => {
-          const logo = makeLogo("upArrow", "brightMagenta");
+          const logo = makeLogo("downLeft", "brightMagenta");
 
           const url = `http://${localAddr.hostname}:${localAddr.port}`;
 

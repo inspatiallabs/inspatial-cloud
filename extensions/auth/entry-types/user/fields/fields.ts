@@ -1,5 +1,6 @@
 import type { InField } from "#/orm/field/field-def-types.ts";
-export const userFields: Array<InField> = [{
+
+export default [{
   key: "firstName",
   type: "DataField",
   label: "First Name",
