@@ -5,8 +5,8 @@ export const apiPathHandeler: PathHandler = {
   name: "api",
   description: "api",
   path: "/api",
-  handler: async (app, inRequest, inResponse) => {
-    const { api } = app;
+  handler: async (inCloud, inRequest, inResponse) => {
+    const { api } = inCloud;
     const groupParam = inRequest.group;
     const actionParam = inRequest.action;
     if (!groupParam) {
@@ -29,7 +29,7 @@ export const apiPathHandeler: PathHandler = {
         data = await inRequest.body;
     }
     return await action.run({
-      app,
+      inCloud,
       inRequest,
       inResponse,
       params: data,

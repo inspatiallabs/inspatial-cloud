@@ -1,4 +1,16 @@
-import type { ConfigDefinition } from "#types/serve-types.ts";
+import type {
+  ConfigDefinition,
+  ExceptionHandler,
+  ExtensionConfig,
+} from "#types/serve-types.ts";
+import type { CloudAPIGroup } from "../api/cloud-group.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
+import type { EntryType, SettingsType } from "../orm/mod.ts";
+import type { EntryHooks } from "../orm/orm-types.ts";
+import type { CloudBootFunction } from "./cloud-extension.ts";
+import type { Middleware } from "./middleware.ts";
+import type { PathHandler } from "./path-handler.ts";
+import type { RequestLifecycle } from "./request-lifecycle.ts";
 
 /**
  * Information about a {@link CloudExtension}
@@ -56,4 +68,34 @@ export interface DetailInfo {
    * A brief description of the detail.
    */
   description?: string;
+}
+
+export interface ExtensionOptions<
+  AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
+  E extends Array<EntryType<any>> = Array<EntryType<any>>,
+  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
+  C extends ConfigDefinition = ConfigDefinition,
+> {
+  name: string;
+  description?: string;
+  version?: string;
+  config?: C;
+  entryTypes?: E;
+  settingsTypes?: ST;
+  ormGlobalHooks?: Partial<EntryHooks>;
+  actionGroups?: AG;
+  install?(
+    inCloud: InCloud,
+    config: ExtensionConfig<C>,
+  ): Promise<object | void> | object | void;
+  boot?: CloudBootFunction;
+  /** The lifecycle handlers for the incoming requests. */
+  requestLifecycle?: Partial<RequestLifecycle<C>>;
+  /** Request middleware */
+  middleware?: Middleware[];
+
+  /** Path handlers */
+  pathHandlers?: PathHandler[];
+  /** Exception handlers */
+  exceptionHandlers?: ExceptionHandler[];
 }

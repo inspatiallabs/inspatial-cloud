@@ -5,10 +5,10 @@ import type { SettingsType } from "#/orm/mod.ts";
 const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
   label: "Get Settings Info",
   description: "Get the settings info for a given settings type",
-  run({ app, inRequest, params }): SettingsType["info"] {
+  run({ inCloud, inRequest, params }): SettingsType["info"] {
     const user = inRequest.context.get("user");
     const { settingsType } = params;
-    const settingsTypeDef = app.orm.getSettingsType(settingsType, user);
+    const settingsTypeDef = inCloud.orm.getSettingsType(settingsType, user);
     return settingsTypeDef.info;
   },
   params: [{
@@ -23,10 +23,10 @@ const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
 const getSettings = new CloudAPIAction("getSettings", {
   label: "Get Settings",
   description: "Get the settings for a given settings type",
-  async run({ app, inRequest, params }): Promise<any> {
+  async run({ inCloud, inRequest, params }): Promise<any> {
     const user = inRequest.context.get("user");
     const { settingsType, withModifiedTime } = params;
-    const settings = await app.orm.getSettings(settingsType, user);
+    const settings = await inCloud.orm.getSettings(settingsType, user);
     if (withModifiedTime) {
       return {
         data: settings.data,
@@ -53,10 +53,10 @@ const getSettings = new CloudAPIAction("getSettings", {
 const updateSettings = new CloudAPIAction("updateSettings", {
   label: "Update Settings",
   description: "Update the settings for a given settings type",
-  async run({ app, inRequest, params }): Promise<any> {
+  async run({ inCloud, inRequest, params }): Promise<any> {
     const user = inRequest.context.get("user");
     const { settingsType, data } = params;
-    const settings = await app.orm.updateSettings(settingsType, data, user);
+    const settings = await inCloud.orm.updateSettings(settingsType, data, user);
     return settings.data;
   },
   params: [{
@@ -77,9 +77,9 @@ const updateSettings = new CloudAPIAction("updateSettings", {
 const runSettingsAction = new CloudAPIAction("runSettingsAction", {
   label: "Run Settings Action",
   description: "Run a settings action for a given settings type",
-  async run({ app, inRequest, params }): Promise<any> {
+  async run({ inCloud, inRequest, params }): Promise<any> {
     const user = inRequest.context.get("user");
-    const settings = await app.orm.getSettings(params.settingsType, user);
+    const settings = await inCloud.orm.getSettings(params.settingsType, user);
     return await settings.runAction(params.action, params.data);
   },
   params: [{

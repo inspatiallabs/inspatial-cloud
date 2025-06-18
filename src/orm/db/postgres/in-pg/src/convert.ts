@@ -142,9 +142,8 @@ export function jstoi_q(str: string) {
   return parseInt(str);
 }
 
-export function normalizePath(path: string) {
-  // Convert backslashes to forward slashes for consistency
-  return path.replaceAll("\\", "/").replace(/^[a-zA-Z]:/g, "/").replaceAll(
+export function normalizeVirtualPath(path: string) {
+  return path.replaceAll("\\", "/").replace(/[a-zA-Z]:/g, "/").replaceAll(
     /\/+/g,
     "/",
   );

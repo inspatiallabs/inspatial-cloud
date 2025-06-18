@@ -7,9 +7,9 @@ import { raiseServerException } from "#/app/server-exception.ts";
 
 const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   authRequired: false,
-  async run({ app, inRequest, inResponse, params }) {
+  async run({ inCloud, inRequest, inResponse, params }) {
     const { accessToken } = params;
-    const authSettings = await app.orm.getSettings("authSettings");
+    const authSettings = await inCloud.orm.getSettings("authSettings");
     const googleAuth = new GoogleOAuth({
       clientId: authSettings.googleClientId,
       clientSecret: authSettings.googleClientSecret,
@@ -28,7 +28,7 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
         "Google auth: Email not verified",
       );
     }
-    const user = await app.orm.findEntry<User>("user", [{
+    const user = await inCloud.orm.findEntry<User>("user", [{
       field: "email",
       op: "=",
       value: email,
@@ -45,7 +45,7 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
     user.googleId = id;
     await user.save();
 
-    const authHandler = app.getExtension<AuthHandler>("auth");
+    const authHandler = inCloud.getExtension<AuthHandler>("auth");
     const sessionData = await authHandler.createUserSession(
       user,
       inRequest,

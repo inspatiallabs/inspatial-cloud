@@ -1,6 +1,6 @@
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 /**
  * Middleware for InSpatialServer.
@@ -21,7 +21,7 @@ export type Middleware = {
    * skipping any further middleware or request handling.
    */
   handler: (
-    app: InCloud,
+    inCloud: InCloud,
     inRequest: InRequest,
     inResponse: InResponse,
   ) => Promise<void | InResponse | Response> | void | InResponse | Response;

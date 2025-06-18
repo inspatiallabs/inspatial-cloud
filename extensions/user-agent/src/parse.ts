@@ -112,6 +112,9 @@
  * Handles all errors internally and returns default response instead of throwing
  */
 
+import type { ParsedUserAgentProp } from "./types.ts";
+import { UserAgent } from "./user-agent.ts";
+
 export function parseUserAgent(userAgent: string | null): ParsedUserAgentProp {
   // Default response for null/empty user agent
   const defaultResponse: ParsedUserAgentProp = {

@@ -1,13 +1,13 @@
 import { InRequest } from "#/app/in-request.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { PathHandler } from "#/app/path-handler.ts";
 import { InResponse } from "#/app/in-response.ts";
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
 import { handleException } from "#/app/exeption/handle-exception.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export async function requestHandler(
   request: Request,
-  app: InCloud,
+  inCloud: InCloud,
   extensionManager: ExtensionManager,
 ): Promise<Response> {
   const inRequest = new InRequest(
@@ -21,7 +21,7 @@ export async function requestHandler(
   try {
     for (const middleware of extensionManager.middlewares.values()) {
       const response = await middleware.handler(
-        app,
+        inCloud,
         inRequest,
         inResponse,
       );
@@ -58,7 +58,7 @@ export async function requestHandler(
 
     if (pathHandler) {
       const response = await pathHandler.handler(
-        app,
+        inCloud,
         inRequest,
         inResponse,
       );

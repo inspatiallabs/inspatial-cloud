@@ -33,7 +33,6 @@ const authCloudExtension: CloudExtension = new CloudExtension("auth", {
     allowAll: {
       type: "boolean",
       description: "Allow all users to access the app",
-      default: false,
       required: false,
     },
   },

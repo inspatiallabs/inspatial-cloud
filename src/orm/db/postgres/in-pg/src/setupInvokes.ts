@@ -10,7 +10,7 @@ export function setupInvokeImports(inPg: InPG) {
     "__syscall_rmdir",
     "__syscall_fallocate",
     "__syscall_poll",
-    "__syscall_getcwd",
+
     "__syscall_newfstatat",
     "__syscall_sendto",
     "__syscall_recvfrom",

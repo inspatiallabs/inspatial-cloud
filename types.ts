@@ -1,4 +1,5 @@
 import type { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
+export type { InCloud } from "#/cloud/cloud-common.ts";
 
 export type {
   EntryHookFunction,

@@ -1,4 +1,4 @@
-import { normalizePath } from "./src/convert.ts";
+import { normalizeVirtualPath } from "./src/convert.ts";
 import { FileManager } from "./src/fileManager/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
@@ -6,7 +6,7 @@ import { ExitStatus, getTempDirBase } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 import type { InPgOptions } from "./types.ts";
 
-export class InPG implements Deno.Conn {
+export class InPG {
   pgMem: PGMem;
   wasmLoader;
   runtimeInitialized;
@@ -233,7 +233,7 @@ export class InPG implements Deno.Conn {
     const entryFunction = sym as Function;
 
     if (!entryFunction) return;
-    args.unshift(normalizePath(Deno.mainModule));
+    args.unshift(normalizeVirtualPath(Deno.mainModule));
     const argc = args.length;
     const argv = this.pgMem.stackAlloc((argc + 1) * 4);
     let argv_ptr = argv;
