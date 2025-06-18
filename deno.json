@@ -25,11 +25,16 @@
   "imports": {
     "#/": "./src/",
     "#extensions/": "./extensions/",
-    "#types/": "./src/types/"
+    "#types/": "./src/types/",
+    "@inspatial/cloud": "./mod.ts",
+    "@inspatial/cloud/extensions": "./extensions/mod.ts",
+    "@inspatial/cloud/types": "./types.ts"
   },
   "tasks": {
     "check": "deno publish --dry-run",
-    "type-check": "deno check --all mod.ts"
+    "type-check": "deno check --all mod.ts",
+    "example:tasks": "cd examples/task-queue && deno run -A --unstable-broadcast-channel run.ts",
+    "example:tasks-queue": "cd examples/task-queue && deno run -A --unstable-broadcast-channel queue.ts"
   },
   "lint": {
     "rules": {

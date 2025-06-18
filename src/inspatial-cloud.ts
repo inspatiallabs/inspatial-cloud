@@ -35,6 +35,7 @@ import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import { normalizePath } from "./utils/path-utils.ts";
 import type { CloudAPIGroup } from "#/api/cloud-group.ts";
+import { InQueueClient } from "./in-queue/in-queue-client.ts";
 export type RunMode = "denoServe" | "run";
 export class InCloud<
   N extends string = any,
@@ -65,7 +66,7 @@ export class InCloud<
   #config: CloudConfig;
   orm!: InSpatialORM;
   api: CloudAPI;
-
+  inQueue: InQueueClient;
   inLive: InLiveHandler;
   inLog: InLog;
 
@@ -115,8 +116,8 @@ export class InCloud<
     this.#appRoot = normalizePath(Deno.mainModule, { toDirname: true });
     Deno.env.set("IN_ROOT", this.inRoot);
     this.inLog = inLog;
-
-    loadCloudConfigFile();
+    this.inQueue = new InQueueClient();
+    // loadCloudConfigFile();
     this.#extensionManager = new ExtensionManager();
     this.#extensionManager.registerExtension(baseExtension);
 
@@ -274,6 +275,7 @@ export class InCloud<
    * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
    */
   generateConfigFile(): void {
+    return;
     generateConfigSchema(this);
     generateCloudConfigFile(this);
   }
