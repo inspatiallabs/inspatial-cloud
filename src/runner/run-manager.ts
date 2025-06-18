@@ -7,7 +7,7 @@ import ColorMe from "../utils/color-me.ts";
 import convertString from "../utils/convert-string.ts";
 import { center } from "../utils/format-utils.ts";
 import { joinPath } from "../utils/path-utils.ts";
-import { clear } from "../utils/print-utils.ts";
+import { getCoreCount } from "./multicore.ts";
 import type { RunnerMode } from "./types.ts";
 
 export class RunManager {
@@ -21,6 +21,7 @@ export class RunManager {
   hostname?: string;
   appName: string;
   isReloading: boolean = false;
+  watch?: boolean;
   constructor(rootPath: string) {
     this.serveProcs = [];
     this.coreCount = 1;
@@ -99,6 +100,12 @@ export class RunManager {
   }
 
   async init(appName: string, config: CloudConfig): Promise<void> {
+    Deno.args.forEach((arg) => {
+      if (arg === "--watch") {
+        this.watch = true;
+      }
+    });
+    this.coreCount = await getCoreCount();
     inLog.warn(
       `Initializing InSpatial Cloud for ${appName}...`,
       convertString(appName, "title", true),
@@ -119,7 +126,7 @@ export class RunManager {
       this.spawnDB();
     }
     await inCloud.boot();
-
+    this.spawnBroker();
     this.spawnQueue();
     const procCount = this.spawnServers();
     this.printInfo(inCloud.inLog, [
@@ -128,7 +135,13 @@ export class RunManager {
       `InQueue: ${this.queueProc ? "Running" : "Not Running"}`,
       `EmbeddedDB: ${clientMode === "dev" ? "Running" : "Not Running"}`,
     ]);
-    this.setupWatcher();
+    if (this.watch) {
+      inLog.info(
+        "Watching for file changes. Press Ctrl+C to stop.",
+        convertString(this.appName, "title", true),
+      );
+      this.setupWatcher();
+    }
   }
   spawnServers(): number {
     if (this.serveProcs.length >= this.coreCount) {
