@@ -6,7 +6,7 @@ import { ExitStatus, getTempDirBase } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 import type { InPgOptions } from "./types.ts";
 
-export class InPG {
+export class InPG implements Deno.Conn {
   pgMem: PGMem;
   wasmLoader;
   runtimeInitialized;

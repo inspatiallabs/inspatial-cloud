@@ -9,6 +9,7 @@ import { raiseServerException } from "#/app/server-exception.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import { InLiveRoom } from "#/in-live/in-live-room.ts";
 import { inLog } from "#/in-log/in-log.ts";
+import { BrokerClient } from "./broker-client.ts";
 
 /**
  * Handles realtime websocket connections
@@ -16,7 +17,7 @@ import { inLog } from "#/in-log/in-log.ts";
 export class InLiveHandler {
   #clients: Map<string, InLiveClient>;
 
-  #channel: BroadcastChannel;
+  #channel: BrokerClient<InLiveBroadcastMessage>;
   #rooms: Map<string, InLiveRoom> = new Map();
 
   #handleError(...args: any) {
@@ -41,16 +42,12 @@ export class InLiveHandler {
   constructor() {
     this.#roomHandlers = new Map();
     this.#clients = new Map();
-    this.#channel = new BroadcastChannel("realtime");
-    this.#channel.addEventListener(
-      "message",
-      (
-        messageEvent: MessageEvent<InLiveBroadcastMessage>,
-      ) => {
-        const message = messageEvent.data;
-        this.#sendToRoom(message);
-      },
-    );
+    this.#channel = new BrokerClient<InLiveBroadcastMessage>("in-live");
+    this.#channel.onMessageReceived((message) => this.#sendToRoom(message));
+  }
+
+  async init() {
+    await this.#channel.connect();
   }
 
   /**
@@ -194,7 +191,7 @@ export class InLiveHandler {
     this.#sendToRoom(
       message,
     );
-    this.#channel.postMessage(message);
+    this.#channel.broadcast(message);
   }
 
   announce(message: string | Record<string, any>): void {

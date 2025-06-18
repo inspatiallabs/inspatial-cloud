@@ -3,18 +3,13 @@ import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigEnv } from "#types/serve-types.ts";
 import type { CloudExtensionInfo } from "#/app/types.ts";
 import ColorMe from "#/utils/color-me.ts";
-import { generateConfigSchema } from "#/cloud-config/cloud-config.ts";
 import { joinPath } from "#/utils/path-utils.ts";
 
 export function initCloud(app: InCloud): void {
   if (hasDirectory(app.inRoot)) {
     return;
   }
-  const filePath = joinPath(app.appRoot, "cloud-config.json");
-  app.inLog.warn(
-    "Cloud has not been initialized yet. Initializing now...",
-    "Cloud Init",
-  );
+  const filePath = joinPath(app.cloudRoot, "cloud-config.json");
   const masterConfig = new Map<string, Record<string, any>>();
   app.installedExtensions.forEach((extension) => {
     const configResult = promptForConfig(extension);
@@ -28,11 +23,6 @@ export function initCloud(app: InCloud): void {
 
   const file = JSON.stringify(config, null, 2);
   Deno.writeTextFileSync(filePath, file);
-  generateConfigSchema(app);
-  app.inLog.info(
-    "Cloud initialized successfully. Please restart the app",
-    "Cloud Init",
-  );
   Deno.exit(0);
 }
 

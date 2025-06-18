@@ -1,3 +1,5 @@
+import { BrokerClient } from "../../in-live/broker-client.ts";
+
 interface CacheMessageBase {
   type: "setValue" | "deleteValue" | "clearNamespace" | "clearAll";
 }
@@ -30,10 +32,10 @@ type CacheMessage =
 export class InCache {
   #cache: Map<string, Map<string, any>>;
 
-  channel: BroadcastChannel;
+  channel: BrokerClient<CacheMessage>;
   constructor() {
     this.#cache = new Map();
-    this.channel = new BroadcastChannel("inCache");
+    this.channel = new BrokerClient<CacheMessage>("inCache");
     this.#setupChannel();
   }
   getValue(namespace: string, key: string): any {
@@ -110,33 +112,32 @@ export class InCache {
     this.#cache.clear();
   }
   #broadcast(message: CacheMessage): void {
-    this.channel.postMessage(message);
+    this.channel.broadcast(message);
   }
 
   #setupChannel(): void {
-    this.channel.onmessage = (event: MessageEvent<CacheMessage>) => {
-      const { data } = event;
-      switch (data.type) {
+    this.channel.onMessageReceived((message) => {
+      switch (message.type) {
         case "setValue": {
           this.#setValue(
-            data.namespace,
-            data.key,
-            data.value,
+            message.namespace,
+            message.key,
+            message.value,
           );
           break;
         }
         case "deleteValue":
-          this.#deleteValue(data.namespace, data.key);
+          this.#deleteValue(message.namespace, message.key);
           break;
 
         case "clearNamespace":
-          this.#clear(data.namespace);
+          this.#clear(message.namespace);
           break;
 
         case "clearAll":
           this.#clearAll();
           break;
       }
-    };
+    });
   }
 }

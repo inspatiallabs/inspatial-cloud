@@ -1,4 +1,3 @@
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type {
   ConfigDefinition,
   ExceptionHandler,
@@ -14,10 +13,11 @@ import type { CloudExtensionInfo } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
 import type { CloudAPIGroup } from "#/api/cloud-group.ts";
+import type { InCloudCommon } from "../cloud/cloud-common.ts";
 export type CloudInstallFunction<R = any> = (
-  app: InCloud,
+  inCloud: InCloudCommon,
 ) => R;
-export type CloudBootFunction = (app: InCloud) => Promise<void> | void;
+export type CloudBootFunction = (app: InCloudCommon) => Promise<void> | void;
 
 export class CloudExtension<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
@@ -56,7 +56,7 @@ export class CloudExtension<
   ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
-    app: InCloud,
+    inCloud: InCloudCommon,
     config: ExtensionConfig<C>,
   ) => Promise<object | void> | object | void;
   boot: CloudBootFunction;
@@ -71,7 +71,7 @@ export class CloudExtension<
     ormGlobalHooks?: Partial<EntryHooks>;
     actionGroups?: AG;
     install?(
-      app: InCloud,
+      inCloud: InCloudCommon,
       config: ExtensionConfig<C>,
     ): Promise<object | void> | object | void;
     boot?: CloudBootFunction;

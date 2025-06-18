@@ -1,6 +1,7 @@
 import { joinPath, normalizePath } from "#/utils/path-utils.ts";
 import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigDefinition } from "#types/serve-types.ts";
+import type { InCloudCommon } from "../cloud/cloud-common.ts";
 function getPath() {
   return normalizePath(Deno.mainModule, {
     toDirname: true,
@@ -9,9 +10,11 @@ function getPath() {
 /**
  * Checks for a cloud-config.json file in the current working directory and loads it to the environment variables.
  */
-export function loadCloudConfigFile(): Record<string, any> | undefined {
+export function loadCloudConfigFile(
+  cloudRoot: string,
+): Record<string, any> | undefined {
   try {
-    const filePath = joinPath(getPath(), "cloud-config.json");
+    const filePath = joinPath(cloudRoot, "cloud-config.json");
     const file = Deno.readTextFileSync(filePath);
     const config = JSON.parse(file);
 
@@ -34,9 +37,9 @@ export function loadCloudConfigFile(): Record<string, any> | undefined {
  * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
  */
 export function generateCloudConfigFile(
-  app: InCloud,
+  inCloud: InCloud,
 ): void {
-  const filePath = joinPath(getPath(), "cloud-config.json");
+  const filePath = joinPath(inCloud.rootPath, "cloud-config.json");
   try {
     const existingFile = Deno.statSync(filePath);
     if (existingFile.isFile) {
@@ -70,7 +73,7 @@ export function generateCloudConfigFile(
     }
     return mappedConfig;
   };
-  app.installedExtensions.forEach((extension) => {
+  inCloud.installedExtensions.forEach((extension) => {
     const configDef = extension.config;
 
     const mappedConfig = mapConfig(configDef);
@@ -86,7 +89,7 @@ export function generateCloudConfigFile(
 }
 
 export function generateConfigSchema(
-  app: InCloud,
+  inCloud: InCloudCommon,
 ): void {
   const filePath = joinPath(
     getPath(),
@@ -100,7 +103,7 @@ export function generateConfigSchema(
     required: [],
   };
 
-  for (const extension of app.installedExtensions) {
+  for (const extension of inCloud.installedExtensions) {
     const configSchema = generateConfigSchemaForExtension(extension.config);
     if (configSchema) {
       schema.properties[extension.key] = {

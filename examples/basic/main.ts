@@ -8,6 +8,7 @@ const app = new InCloud("myApp", {
       description: "My awesome app",
       entryTypes: [
         new EntryType("something", {
+          defaultListFields: ["thing"],
           fields: [{
             key: "thing",
             label: "Thingd",
@@ -15,6 +16,10 @@ const app = new InCloud("myApp", {
           }, {
             key: "more",
             label: "More",
+            type: "DataField",
+          }, {
+            key: "moreTwo",
+            label: "More Two",
             type: "DataField",
           }],
         }),
