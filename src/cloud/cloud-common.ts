@@ -18,11 +18,17 @@ import {
   raiseServerException,
 } from "../app/server-exception.ts";
 import { ORMException } from "../orm/orm-exception.ts";
-import { CloudAPIGroup } from "../api/cloud-group.ts";
+import type { CloudAPIGroup } from "../api/cloud-group.ts";
 import { InLiveHandler } from "../in-live/in-live-handler.ts";
-import { CloudExtensionInfo } from "../app/types.ts";
+import type { CloudExtensionInfo } from "../app/types.ts";
+import { InRequest } from "../app/in-request.ts";
+import { InResponse } from "../app/in-response.ts";
+import {
+  generateCloudConfigFile,
+  generateConfigSchema,
+} from "../cloud-config/cloud-config.ts";
 
-export class InCloudCommon {
+export class InCloud {
   appName: string;
   mode: AppMode = "production";
   runMode: CloudRunnerMode;
@@ -38,8 +44,13 @@ export class InCloudCommon {
   inLog: InLog;
 
   inLive!: InLiveHandler;
-  // Paths
+  /**
+   * The absolute path to the cloud root directory.
+   */
   cloudRoot: string;
+  /**
+   * The absolute path to the `.inspatial` directory in the app root.
+   */
   inRoot: string;
   filesPath: string;
   #config: CloudConfig;
@@ -173,6 +184,68 @@ export class InCloudCommon {
       );
     }
     return this.extensionObjects.get(extensionKey) as T;
+  }
+  /**
+   * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.
+   */
+  generateConfigFile(): void {
+    generateConfigSchema(this);
+    generateCloudConfigFile(this);
+  }
+  /**
+   * Runs an action from the specified action group.
+   */
+  async runAction(
+    groupName: string,
+    actionName: string,
+    data?: Record<string, any>,
+  ): Promise<any> {
+    const gn = groupName as string;
+    const an = actionName as string;
+    const group = this.actionGroups.get(gn);
+    if (!group) {
+      throw new Error(`Action group ${gn} not found`);
+    }
+    data = data || {} as any;
+    const action = this.api.getAction(gn, an);
+
+    return await action.run({
+      inCloud: this,
+      params: data,
+      inRequest: new InRequest(new Request("http://localhost")),
+      inResponse: new InResponse(),
+    });
+  }
+  /**
+   * Adds a custom property to the server instance.
+   * @param prop The property to add.
+   */
+  addCustomProperty(prop: {
+    key: string;
+    description: string;
+    value: unknown;
+  }): void {
+    Object.defineProperty(this, prop.key, {
+      get: () => this.customProperties.get(prop.key),
+
+      enumerable: true,
+    });
+
+    this.customProperties.set(prop.key, prop.value);
+  }
+
+  /**
+   * Gets a custom property from the server instance that was added using `addCustomProperty`.
+   * @param key The key of the custom property to get.
+   */
+  getCustomProperty<T>(key: string): T {
+    if (!this.customProperties.has(key)) {
+      raiseServerException(
+        500,
+        `Custom property ${key} not found`,
+      );
+    }
+    return this.customProperties.get(key) as T;
   }
   get actionGroups(): Map<string, CloudAPIGroup> {
     return this.api.actionGroups;

@@ -9,15 +9,15 @@ import { convertString } from "#/utils/mod.ts";
 import type { EntryType } from "#/orm/entry/entry-type.ts";
 import type { SettingsType } from "#/orm/settings/settings-type.ts";
 
-import type { CloudExtensionInfo } from "#/app/types.ts";
+import type { CloudExtensionInfo, ExtensionOptions } from "#/app/types.ts";
 import type { Middleware } from "#/app/middleware.ts";
 import type { EntryHooks } from "#/orm/orm-types.ts";
 import type { CloudAPIGroup } from "#/api/cloud-group.ts";
-import type { InCloudCommon } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 export type CloudInstallFunction<R = any> = (
-  inCloud: InCloudCommon,
+  inCloud: InCloud,
 ) => R;
-export type CloudBootFunction = (app: InCloudCommon) => Promise<void> | void;
+export type CloudBootFunction = (app: InCloud) => Promise<void> | void;
 
 export class CloudExtension<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
@@ -56,38 +56,21 @@ export class CloudExtension<
   ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
-    inCloud: InCloudCommon,
+    inCloud: InCloud,
     config: ExtensionConfig<C>,
   ) => Promise<object | void> | object | void;
   boot: CloudBootFunction;
 
-  constructor(extensionName: N, options: {
-    label: string;
-    description: string;
-    version?: string;
-    config?: C;
-    entryTypes?: E;
-    settingsTypes?: ST;
-    ormGlobalHooks?: Partial<EntryHooks>;
-    actionGroups?: AG;
-    install?(
-      inCloud: InCloudCommon,
-      config: ExtensionConfig<C>,
-    ): Promise<object | void> | object | void;
-    boot?: CloudBootFunction;
-    /** The lifecycle handlers for the incoming requests. */
-    requestLifecycle?: Partial<RequestLifecycle<C>>;
-    /** Request middleware */
-    middleware?: Middleware[];
-
-    /** Path handlers */
-    pathHandlers?: PathHandler[];
-    /** Exception handlers */
-    exceptionHandlers?: ExceptionHandler[];
-  }) {
+  constructor(
+    extensionName: N,
+    options: Omit<ExtensionOptions<AG, E, ST, C>, "name"> & {
+      label: string;
+      description?: string;
+    },
+  ) {
     this.key = extensionName;
     this.label = options.label;
-    this.description = options.description;
+    this.description = options.description || "";
     this.version = options.version;
 
     const globalHooks = options.ormGlobalHooks;

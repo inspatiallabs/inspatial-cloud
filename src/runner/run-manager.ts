@@ -1,8 +1,12 @@
 import type { CloudConfig } from "#types/mod.ts";
-import { loadCloudConfigFile } from "../cloud-config/cloud-config.ts";
-import { InCloudCommon } from "../cloud/cloud-common.ts";
+import {
+  generateConfigSchema,
+  loadCloudConfigFile,
+} from "../cloud-config/cloud-config.ts";
+import { InCloud } from "../cloud/cloud-common.ts";
 import { type InLog, inLog } from "../in-log/in-log.ts";
 import { makeLogo } from "../in-log/logo.ts";
+import { initCloud } from "../init.ts";
 import ColorMe from "../utils/color-me.ts";
 import convertString from "../utils/convert-string.ts";
 import { center } from "../utils/format-utils.ts";
@@ -22,10 +26,13 @@ export class RunManager {
   appName: string;
   isReloading: boolean = false;
   watch?: boolean;
+  autoMigrate?: boolean;
+  autoTypes?: boolean;
   constructor(rootPath: string) {
     this.serveProcs = [];
     this.coreCount = 1;
     // Initialize the RunManager
+
     this.rootPath = rootPath;
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
@@ -112,29 +119,46 @@ export class RunManager {
     );
     this.appName = appName;
     // environment variables setup
-    loadCloudConfigFile(this.rootPath);
-    const inCloud = new InCloudCommon(appName, config, "manager");
+    const hasConfig = loadCloudConfigFile(this.rootPath);
+    const inCloud = new InCloud(appName, config, "manager");
 
     await inCloud.init();
-
-    const clientMode = inCloud.getExtensionConfigValue("orm", "dbClientMode");
+    if (!hasConfig) {
+      generateConfigSchema(inCloud);
+      initCloud(inCloud);
+    }
+    const embeddedDb = inCloud.getExtensionConfigValue("orm", "embeddedDb");
+    this.autoMigrate = inCloud.getExtensionConfigValue("orm", "autoMigrate");
+    this.autoTypes = inCloud.getExtensionConfigValue("orm", "autoTypes");
 
     this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
     this.port = inCloud.getExtensionConfigValue("cloud", "port");
 
-    if (clientMode === "dev") {
-      this.spawnDB();
+    if (embeddedDb) {
+      const embeddedDbPort = inCloud.getExtensionConfigValue<number>(
+        "orm",
+        "embeddedDbPort",
+      );
+      this.spawnDB(embeddedDbPort);
     }
     await inCloud.boot();
+    if (this.autoMigrate || this.autoTypes) {
+      await this.spawnMigrator();
+    }
     this.spawnBroker();
     this.spawnQueue();
     const procCount = this.spawnServers();
-    this.printInfo(inCloud.inLog, [
+    const rows: Array<string> = [
       `Server Processes: ${procCount} spawned`,
       `Message Broker: ${this.brokerProc ? "Running" : "Not Running"}`,
       `InQueue: ${this.queueProc ? "Running" : "Not Running"}`,
-      `EmbeddedDB: ${clientMode === "dev" ? "Running" : "Not Running"}`,
-    ]);
+    ];
+    if (embeddedDb) {
+      rows.push(
+        `Embedded Database: ${this.dbProc ? "Running" : "Not Running"}`,
+      );
+    }
+    this.printInfo(inCloud.inLog, rows);
     if (this.watch) {
       inLog.info(
         "Watching for file changes. Press Ctrl+C to stop.",
@@ -159,14 +183,15 @@ export class RunManager {
     }
     return totalCount;
   }
-  spawnDB() {
+  spawnDB(port: number) {
     const dataPath = joinPath(this.rootPath, ".inspatial", "db-data");
     this.dbProc = this.spawnProcess("db", [], {
       CLOUD_DB_DATA: dataPath,
+      EMBEDDED_DB_PORT: port.toString(),
     });
   }
   async spawnMigrator(): Promise<boolean> {
-    const proc = this.spawnProcess("migrator", [], {});
+    const proc = this.spawnProcess("migrator", []);
     const status = await proc.status;
     return status.success;
   }

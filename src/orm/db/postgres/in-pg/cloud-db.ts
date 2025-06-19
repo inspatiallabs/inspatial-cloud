@@ -1,4 +1,5 @@
-import { InPG } from "../orm/db/postgres/in-pg/in-pg.ts";
+import { inLog } from "../../../../in-log/in-log.ts";
+import { InPG } from "./in-pg.ts";
 
 export class CloudDB {
   inPg: InPG;
@@ -33,12 +34,20 @@ export class CloudDB {
     });
   }
 
-  async start() {
+  async start(port: number) {
+    inLog.warn(
+      `Starting embedded Postgres on port ${port}...`,
+      "CloudDB",
+    );
     await this.inPg.run();
     Deno.serve({
       hostname: "127.0.0.1",
-      port: 11257,
+      port,
       onListen: (addr) => {
+        inLog.info(
+          `Embedded Postgres is running on port ${addr.port}`,
+          "CloudDB",
+        );
       },
     }, async (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);

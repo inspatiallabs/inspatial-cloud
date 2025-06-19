@@ -19,9 +19,7 @@ class PostgresPoolClient {
       config = {
         ...config,
         connectionType: "dev",
-        host: "127.0.0.1",
-        port: 11257,
-      };
+      } as PgClientConfig;
     }
     this.config = config;
     this.client = new PostgresClient(config);

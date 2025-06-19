@@ -1,7 +1,6 @@
 import { joinPath, normalizePath } from "#/utils/path-utils.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { ConfigDefinition } from "#types/serve-types.ts";
-import type { InCloudCommon } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 function getPath() {
   return normalizePath(Deno.mainModule, {
     toDirname: true,
@@ -12,7 +11,7 @@ function getPath() {
  */
 export function loadCloudConfigFile(
   cloudRoot: string,
-): Record<string, any> | undefined {
+): boolean {
   try {
     const filePath = joinPath(cloudRoot, "cloud-config.json");
     const file = Deno.readTextFileSync(filePath);
@@ -27,10 +26,11 @@ export function loadCloudConfigFile(
     }
   } catch (e) {
     if (e instanceof Deno.errors.NotFound) {
-      return undefined;
+      return false;
     }
     throw e;
   }
+  return true;
 }
 
 /**
@@ -39,7 +39,7 @@ export function loadCloudConfigFile(
 export function generateCloudConfigFile(
   inCloud: InCloud,
 ): void {
-  const filePath = joinPath(inCloud.rootPath, "cloud-config.json");
+  const filePath = joinPath(inCloud.cloudRoot, "cloud-config.json");
   try {
     const existingFile = Deno.statSync(filePath);
     if (existingFile.isFile) {
@@ -89,7 +89,7 @@ export function generateCloudConfigFile(
 }
 
 export function generateConfigSchema(
-  inCloud: InCloudCommon,
+  inCloud: InCloud,
 ): void {
   const filePath = joinPath(
     getPath(),

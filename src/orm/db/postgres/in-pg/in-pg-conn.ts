@@ -4,7 +4,21 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
   #dataBuffer: Uint8Array = new Uint8Array(0);
   ready: Promise<void> = Promise.resolve();
   resolve: () => void = () => {};
-  constructor() {
+
+  localAddr: Deno.NetAddr = {
+    transport: "tcp",
+    hostname: "",
+    port: 0,
+  };
+  remoteAddr: Deno.NetAddr;
+  constructor(config: { hostname: string; port: number }) {
+    this.writable = new WritableStream();
+    this.readable = new ReadableStream();
+    this.remoteAddr = {
+      transport: "tcp",
+      hostname: config.hostname,
+      port: config.port,
+    };
   }
   get closed(): boolean {
     if (!this.#socket) {
@@ -43,7 +57,9 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
   }
   async #connect() {
     this.busy();
-    const socket = new WebSocket(`ws://127.0.0.1:11257/ws`);
+    const socket = new WebSocket(
+      `ws://${this.remoteAddr.hostname}:${this.remoteAddr.port}/ws`,
+    );
     return new Promise<void>((resolve, reject) => {
       this.#socket = socket;
       socket.onopen = () => {
@@ -102,8 +118,7 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
   close(): void {
     throw new Error("Method not implemented.");
   }
-  localAddr: Deno.NetAddr;
-  remoteAddr: Deno.NetAddr;
+
   closeWrite(): Promise<void> {
     throw new Error("Method not implemented.");
   }

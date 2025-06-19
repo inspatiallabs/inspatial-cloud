@@ -7,10 +7,10 @@ import type {
 } from "#/orm/orm-types.ts";
 
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
-import type { InCloudCommon } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export function setupOrm(args: {
-  inCloud: InCloudCommon;
+  inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
   const { inCloud: app, extensionManager } = args;
@@ -72,6 +72,7 @@ export function setupOrm(args: {
         database: "postgres",
       };
   }
+
   const dbConfig: DBConfig = {
     debug: config.ormDebugMode,
     connection: connectionConfig,
@@ -85,6 +86,15 @@ export function setupOrm(args: {
       lazy: true,
     },
   };
+
+  if (config.embeddedDb) {
+    dbConfig.clientMode = "dev";
+    dbConfig.connection.connectionType = "tcp";
+    dbConfig.connection = {
+      host: "127.0.0.1",
+      port: config.embeddedDbPort,
+    } as any;
+  }
   const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),

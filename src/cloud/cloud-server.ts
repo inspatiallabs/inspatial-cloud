@@ -1,9 +1,9 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { InCache } from "../app/cache/in-cache.ts";
 import { requestHandler } from "../app/request-handler.ts";
-import { InCloudCommon } from "./cloud-common.ts";
+import { InCloud } from "./cloud-common.ts";
 
-export class InCloudServer extends InCloudCommon {
+export class InCloudServer extends InCloud {
   inCache: InCache;
   instanceNumber: string;
   constructor(

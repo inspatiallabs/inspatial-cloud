@@ -22,7 +22,6 @@ export const cloudConfig: ConfigDefinition = {
     description:
       "Whether to include the file and line number in the log output for info, warning and debug logs",
     required: false,
-    default: false,
     type: "boolean",
     env: "LOG_TRACE",
   },
@@ -44,7 +43,6 @@ export const cloudConfig: ConfigDefinition = {
     description:
       "Whether to automatically generate the serve config schema when the server starts in development mode",
     required: false,
-    default: true,
     type: "boolean",
     env: "SERVE_AUTO_CONFIG",
   },

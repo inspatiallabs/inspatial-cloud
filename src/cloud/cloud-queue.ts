@@ -1,7 +1,7 @@
 import type { CloudConfig } from "#types/mod.ts";
-import { InCloudCommon } from "./cloud-common.ts";
+import { InCloud } from "./cloud-common.ts";
 
-export class InCloudQueue extends InCloudCommon {
+export class InCloudQueue extends InCloud {
   constructor(appName: string, config: CloudConfig) {
     super(appName, config, "queue");
   }

@@ -1,16 +1,16 @@
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 import type { InField } from "#/orm/field/field-def-types.ts";
 import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
 import type { CloudParam, ExtractParams } from "#/api/api-types.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export type ActionMethod<
   K extends PropertyKey = PropertyKey,
   P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
 > = (args: {
-  app: InCloud;
+  inCloud: InCloud;
   orm: InSpatialORM;
   params: ExtractParams<K, P>;
   inRequest: InRequest;
@@ -50,7 +50,7 @@ export class CloudAPIAction<
   requiredParams: string[] = [];
 
   #_run: (args: {
-    app: InCloud;
+    inCloud: InCloud;
     orm: InSpatialORM;
     params: any;
     inRequest: InRequest;
@@ -143,15 +143,15 @@ export class CloudAPIAction<
   }
 
   async run(args: {
-    app: InCloud;
+    inCloud: InCloud;
     params?: Record<string, any>;
     inRequest: InRequest;
     inResponse: InResponse;
   }): Promise<any> {
-    const validatedData = this.#validateParams(args.app.orm, args.params);
+    const validatedData = this.#validateParams(args.inCloud.orm, args.params);
     return await this.#_run({
-      app: args.app,
-      orm: args.app.orm,
+      inCloud: args.inCloud,
+      orm: args.inCloud.orm,
       params: validatedData as any,
       inRequest: args.inRequest,
       inResponse: args.inResponse,

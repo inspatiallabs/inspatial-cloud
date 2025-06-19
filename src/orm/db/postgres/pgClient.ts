@@ -82,7 +82,15 @@ export class PostgresClient {
       return;
     }
     if (this.devMode) {
-      const conn = new InPgConn();
+      if (this.connectionParams.connectionType !== "dev") {
+        throw new PgError({
+          message: "Dev mode only supports TCP connection type",
+        });
+      }
+      const conn = new InPgConn({
+        hostname: this.connectionParams.host,
+        port: this.connectionParams.port,
+      });
       await conn.connect();
       this.conn = conn;
       this.reader = new MessageReader(this.conn);
