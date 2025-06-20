@@ -9,7 +9,9 @@ export async function handleException(
   exceptionHandlers: Map<string, ExceptionHandler>,
 ): Promise<Response> {
   inResponse = inResponse || new InResponse();
-  inResponse;
+  if (err instanceof Response) {
+    return err;
+  }
   const clientMessages: Array<Record<string, any> | string> = [];
   let handled = false;
   for (const handler of exceptionHandlers.values()) {
