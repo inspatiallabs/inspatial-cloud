@@ -1,4 +1,4 @@
-// import { ServerExtension } from "#/extension/server-extension.ts";
+// import { ServerExtension } from "/extension/server-extension.ts";
 // import { StaticFileHandler } from "#static/staticFileHandler.ts";
 // const fileServerExtension = ServerExtension.create("fileServer", {
 //   description: "Serve static files",

@@ -1,9 +1,9 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import convertString from "#/utils/convert-string.ts";
-import { EntryType } from "#/orm/entry/entry-type.ts";
-import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
-import { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { InField, InFieldType } from "#/orm/field/field-def-types.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import convertString from "/utils/convert-string.ts";
+import { EntryType } from "/orm/entry/entry-type.ts";
+import { ChildEntryType } from "/orm/child-entry/child-entry.ts";
+import { SettingsType } from "/orm/settings/settings-type.ts";
+import type { InField, InFieldType } from "/orm/field/field-def-types.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",

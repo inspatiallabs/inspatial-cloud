@@ -1,18 +1,18 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { InSpatialDB } from "#/orm/db/inspatial-db.ts";
-import type { ORMFieldConfig } from "#/orm/field/orm-field.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import type { SettingsActionDefinition } from "#/orm/settings/types.ts";
-import type { EntryActionDefinition } from "#/orm/entry/types.ts";
-import type { ChildEntryList } from "#/orm/child-entry/child-entry.ts";
-import { PgError } from "#/orm/db/postgres/pgError.ts";
-import { PGErrorCode } from "#/orm/db/postgres/maps/errorMap.ts";
-import convertString from "#/utils/convert-string.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { InSpatialDB } from "/orm/db/inspatial-db.ts";
+import type { ORMFieldConfig } from "/orm/field/orm-field.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import type { SettingsActionDefinition } from "/orm/settings/types.ts";
+import type { EntryActionDefinition } from "/orm/entry/types.ts";
+import type { ChildEntryList } from "/orm/child-entry/child-entry.ts";
+import { PgError } from "/orm/db/postgres/pgError.ts";
+import { PGErrorCode } from "/orm/db/postgres/maps/errorMap.ts";
+import convertString from "/utils/convert-string.ts";
 import type {
   InField,
   InFieldMap,
   InFieldType,
-} from "#/orm/field/field-def-types.ts";
+} from "/orm/field/field-def-types.ts";
 import InCloud from "@inspatial/cloud";
 
 export class BaseClass<N extends string = string> {

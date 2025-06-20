@@ -1,4 +1,4 @@
-import { ORMFieldConfig } from "#/orm/field/orm-field.ts";
+import { ORMFieldConfig } from "/orm/field/orm-field.ts";
 
 export default new ORMFieldConfig("FileField", {
   dbColumn: (fieldDef) => {

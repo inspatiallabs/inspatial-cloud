@@ -1,4 +1,4 @@
-import type { Entry } from "#/orm/entry/entry.ts";
+import type { Entry } from "/orm/entry/entry.ts";
 
 export interface EntryBase extends Entry<any> {
   _name: string;

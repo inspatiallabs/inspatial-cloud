@@ -1,4 +1,4 @@
-import type { EntryBase } from "#/orm/entry/entry-base.ts";
+import type { EntryBase } from "/orm/entry/entry-base.ts";
 export interface UserSession extends EntryBase {
   _name: "userSession";
   /**

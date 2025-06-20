@@ -5,14 +5,11 @@ import type {
   LogOptions,
   LogType,
   StackFrame,
-} from "#/in-log/types.ts";
-import {
-  formatStackFrame,
-  parseStackFrame,
-} from "#/in-log/stack-formatting.ts";
-import type { BasicFgColor } from "#/utils/color-me.ts";
-import printUtils from "#/utils/print-utils.ts";
-import formatUtils from "#/utils/format-utils.ts";
+} from "/in-log/types.ts";
+import { formatStackFrame, parseStackFrame } from "/in-log/stack-formatting.ts";
+import type { BasicFgColor } from "/utils/color-me.ts";
+import printUtils from "/utils/print-utils.ts";
+import formatUtils from "/utils/format-utils.ts";
 
 const colorMap: Record<LogType, BasicFgColor> = {
   info: "brightGreen",

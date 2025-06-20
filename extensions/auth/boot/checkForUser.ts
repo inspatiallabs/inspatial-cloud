@@ -1,4 +1,4 @@
-import { InCloud } from "#/cloud/cloud-common.ts";
+import { InCloud } from "/cloud/cloud-common.ts";
 
 async function checkForUser(inCloud: InCloud) {
   const { orm } = inCloud;

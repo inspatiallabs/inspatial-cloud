@@ -1,9 +1,9 @@
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import { ChildEntry, ChildEntryList } from "#/orm/child-entry/child-entry.ts";
-import { makeFields } from "#/orm/build/make-fields.ts";
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { InField } from "#/orm/field/field-def-types.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import { ChildEntry, ChildEntryList } from "/orm/child-entry/child-entry.ts";
+import { makeFields } from "/orm/build/make-fields.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { InField } from "/orm/field/field-def-types.ts";
 
 export function buildChildren(
   entryOrSettingsType: EntryType | SettingsType,

@@ -1,4 +1,4 @@
-import type { SettingsBase } from "#/orm/settings/settings-base.ts";
+import type { SettingsBase } from "/orm/settings/settings-base.ts";
 
 export interface AuthSettings extends SettingsBase {
   _name: "authSettings";

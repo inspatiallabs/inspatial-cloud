@@ -1,8 +1,8 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
-import type { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
-import type { SettingsTypeInfo } from "#/orm/settings/types.ts";
-import type { EntryTypeInfo } from "#/orm/entry/types.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import { CloudAPIGroup } from "/api/cloud-group.ts";
+import type { MigrationPlan } from "/orm/migrate/migration-plan.ts";
+import type { SettingsTypeInfo } from "/orm/settings/types.ts";
+import type { EntryTypeInfo } from "/orm/entry/types.ts";
 
 const migrateAction = new CloudAPIAction("migrate", {
   label: "Migrate Database",

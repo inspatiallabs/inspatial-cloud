@@ -1,5 +1,5 @@
-import type { InField } from "#/orm/field/field-def-types.ts";
-import type { InValue } from "#/orm/field/types.ts";
+import type { InField } from "/orm/field/field-def-types.ts";
+import type { InValue } from "/orm/field/types.ts";
 
 /**
  * The full documentation for an ActionsAPI instance in JSON format.

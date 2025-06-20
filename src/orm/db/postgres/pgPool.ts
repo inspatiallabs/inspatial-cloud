@@ -1,10 +1,10 @@
-import { PostgresClient } from "#/orm/db/postgres/pgClient.ts";
+import { PostgresClient } from "/orm/db/postgres/pgClient.ts";
 import type {
   PgClientConfig,
   PgPoolConfig,
   QueryResponse,
-} from "#/orm/db/postgres/pgTypes.ts";
-import { PgError } from "#/orm/db/postgres/pgError.ts";
+} from "/orm/db/postgres/pgTypes.ts";
+import { PgError } from "/orm/db/postgres/pgError.ts";
 
 class PostgresPoolClient {
   locked: boolean;

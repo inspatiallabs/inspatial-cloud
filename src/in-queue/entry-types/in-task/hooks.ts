@@ -1,8 +1,8 @@
-import type { EntryHookDefinition } from "#/orm/entry/types.ts";
-import type { InTask } from "#/in-queue/generated-types/in-task.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
+import type { EntryHookDefinition } from "/orm/entry/types.ts";
+import type { InTask } from "/in-queue/generated-types/in-task.ts";
+import type { InCloud } from "/inspatial-cloud.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
 
 export const validateTask: EntryHookDefinition<InTask> = {
   name: "validate entry or settings",

@@ -1,4 +1,4 @@
-import type { Choice, IDMode, InValue } from "#/orm/field/types.ts";
+import type { Choice, IDMode, InValue } from "/orm/field/types.ts";
 import type {
   FileTypes,
   ImageFileType,

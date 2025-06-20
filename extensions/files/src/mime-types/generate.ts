@@ -1,4 +1,4 @@
-import { convertString } from "#/utils/mod.ts";
+import { convertString } from "/utils/mod.ts";
 import mimetypes from "./mimetypes.json" with { type: "json" };
 
 async function generateTypes() {

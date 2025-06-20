@@ -1,5 +1,5 @@
-import type { HandlerResponse, PathHandler } from "#/app/path-handler.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+import type { HandlerResponse, PathHandler } from "/app/path-handler.ts";
+import { raiseServerException } from "/app/server-exception.ts";
 
 export const apiPathHandeler: PathHandler = {
   name: "api",

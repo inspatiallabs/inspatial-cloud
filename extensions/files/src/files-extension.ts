@@ -1,4 +1,4 @@
-import { CloudExtension } from "#/app/cloud-extension.ts";
+import { CloudExtension } from "/app/cloud-extension.ts";
 import filesGroup from "#extensions/files/src/actions/filesGroup.ts";
 import fileEntry from "#extensions/files/src/entry-types/file-entry.ts";
 

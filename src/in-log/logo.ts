@@ -1,6 +1,6 @@
-import ColorMe, { type BasicFgColor } from "#/utils/color-me.ts";
-import { symbols } from "#/utils/print-utils.ts";
-import { center } from "#/utils/format-utils.ts";
+import ColorMe, { type BasicFgColor } from "/utils/color-me.ts";
+import { symbols } from "/utils/print-utils.ts";
+import { center } from "/utils/format-utils.ts";
 
 const content = [
   [27, 10, 27],

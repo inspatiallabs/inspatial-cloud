@@ -2,7 +2,7 @@ import ColorMe, {
   type BasicBgColor,
   type BasicFgColor,
   type StyleOptions,
-} from "#/utils/color-me.ts";
+} from "/utils/color-me.ts";
 
 const encoder = new TextEncoder();
 

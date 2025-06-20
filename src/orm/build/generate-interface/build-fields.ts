@@ -1,7 +1,7 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import { fieldTypeMap } from "#/orm/build/generate-interface/field-type-map.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import type { InField } from "#/orm/field/field-def-types.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import { fieldTypeMap } from "/orm/build/generate-interface/field-type-map.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import type { InField } from "/orm/field/field-def-types.ts";
 
 export function buildFields(
   _orm: InSpatialORM,

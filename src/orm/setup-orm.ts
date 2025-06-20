@@ -1,12 +1,12 @@
-import { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { ClientConnectionType, DBConfig } from "#/orm/db/db-types.ts";
+import { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { ClientConnectionType, DBConfig } from "/orm/db/db-types.ts";
 import type {
   EntryHooks,
   GlobalEntryHooks,
   GlobalHookFunction,
-} from "#/orm/orm-types.ts";
+} from "/orm/orm-types.ts";
 
-import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
+import type { ExtensionManager } from "/extension-manager/extension-manager.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 
 export function setupOrm(args: {

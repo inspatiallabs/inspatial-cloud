@@ -1,5 +1,5 @@
-import type { HandlerResponse } from "#/app/path-handler.ts";
-import { inLog } from "#/in-log/in-log.ts";
+import type { HandlerResponse } from "/app/path-handler.ts";
+import { inLog } from "/in-log/in-log.ts";
 import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
 import type { FileType } from "#extensions/files/src/mime-types/file-types.ts";
 

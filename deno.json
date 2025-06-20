@@ -7,6 +7,7 @@
     "./extensions": "./extensions/mod.ts",
     "./types": "./types.ts"
   },
+
   "publish": {
     "include": [
       "src/",
@@ -21,14 +22,13 @@
     ],
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
-
   "imports": {
-    "#/": "./src/",
+    "/": "./src/",
+    "./": "./",
+    "#orm/": "./src/orm/",
+    "#queue/": "./src/in-queue/",
     "#extensions/": "./extensions/",
-    "#types/": "./src/types/",
-    "@inspatial/cloud": "./mod.ts",
-    "@inspatial/cloud/extensions": "./extensions/mod.ts",
-    "@inspatial/cloud/types": "./types.ts"
+    "#types/": "./src/types/"
   },
   "tasks": {
     "check": "deno publish --dry-run",
@@ -36,9 +36,9 @@
     "example:tasks": "cd examples/task-queue && deno run -A --unstable-broadcast-channel run.ts",
     "example:tasks-queue": "cd examples/task-queue && deno run -A --unstable-broadcast-channel queue.ts"
   },
+  "scopes": {},
   "lint": {
     "rules": {
-      "tags": [],
       "include": ["verbatim-module-syntax"],
       "exclude": ["no-explicit-any"]
     }

@@ -1,10 +1,10 @@
-import type { ForeignKeyConstraint } from "#/orm/db/db-types.ts";
-import type { IDMode } from "#/orm/field/types.ts";
+import type { ForeignKeyConstraint } from "/orm/db/db-types.ts";
+import type { IDMode } from "/orm/field/types.ts";
 import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
-} from "#/orm/migrate/types.ts";
-import type { EntryIndex } from "#/orm/entry/types.ts";
+} from "/orm/migrate/types.ts";
+import type { EntryIndex } from "/orm/entry/types.ts";
 
 export class EntryMigrationPlan {
   entryType: string;

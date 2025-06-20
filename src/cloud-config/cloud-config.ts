@@ -1,4 +1,4 @@
-import { joinPath, normalizePath } from "#/utils/path-utils.ts";
+import { joinPath, normalizePath } from "/utils/path-utils.ts";
 import type { ConfigDefinition } from "#types/serve-types.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 function getPath() {
