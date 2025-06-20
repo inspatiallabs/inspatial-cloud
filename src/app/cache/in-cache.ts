@@ -38,6 +38,9 @@ export class InCache {
     this.channel = new BrokerClient<CacheMessage>("inCache");
     this.#setupChannel();
   }
+  init(brokerPort: number): void {
+    this.channel.connect(brokerPort);
+  }
   getValue(namespace: string, key: string): any {
     const cache = this.#cache.get(namespace);
     if (!cache) {

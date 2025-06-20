@@ -46,8 +46,8 @@ export class InLiveHandler {
     this.#channel.onMessageReceived((message) => this.#sendToRoom(message));
   }
 
-  async init() {
-    await this.#channel.connect();
+  init(brokerPort: number) {
+    this.#channel.connect(brokerPort);
   }
 
   /**

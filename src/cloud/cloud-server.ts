@@ -4,7 +4,6 @@ import { requestHandler } from "../app/request-handler.ts";
 import { InCloud } from "./cloud-common.ts";
 
 export class InCloudServer extends InCloud {
-  inCache: InCache;
   instanceNumber: string;
   constructor(
     appName: string,
@@ -13,7 +12,6 @@ export class InCloudServer extends InCloud {
   ) {
     super(appName, config, "server");
     this.instanceNumber = instanceNumber || "_";
-    this.inCache = new InCache();
   }
 
   override async run() {

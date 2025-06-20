@@ -25,6 +25,12 @@ export const cloudConfig: ConfigDefinition = {
     type: "boolean",
     env: "LOG_TRACE",
   },
+  brokerPort: {
+    description: "The port the message broker is listening on",
+    type: "number",
+    default: 11254,
+    required: false,
+  },
   hostName: {
     description: "The hostname for the server",
     required: false,

@@ -3,14 +3,14 @@ import type {
   ExceptionHandler,
   ExtensionConfig,
 } from "#types/serve-types.ts";
-import { CloudAPIGroup } from "../api/cloud-group.ts";
-import { InCloud } from "../cloud/cloud-common.ts";
-import { EntryType, SettingsType } from "../orm/mod.ts";
-import { EntryHooks } from "../orm/orm-types.ts";
-import { CloudBootFunction } from "./cloud-extension.ts";
-import { Middleware } from "./middleware.ts";
-import { PathHandler } from "./path-handler.ts";
-import { RequestLifecycle } from "./request-lifecycle.ts";
+import type { CloudAPIGroup } from "../api/cloud-group.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
+import type { EntryType, SettingsType } from "../orm/mod.ts";
+import type { EntryHooks } from "../orm/orm-types.ts";
+import type { CloudBootFunction } from "./cloud-extension.ts";
+import type { Middleware } from "./middleware.ts";
+import type { PathHandler } from "./path-handler.ts";
+import type { RequestLifecycle } from "./request-lifecycle.ts";
 
 /**
  * Information about a {@link CloudExtension}

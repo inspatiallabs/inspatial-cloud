@@ -27,6 +27,7 @@ import {
   generateCloudConfigFile,
   generateConfigSchema,
 } from "../cloud-config/cloud-config.ts";
+import { InCache } from "../app/cache/in-cache.ts";
 
 export class InCloud {
   appName: string;
@@ -43,7 +44,8 @@ export class InCloud {
 
   inLog: InLog;
 
-  inLive!: InLiveHandler;
+  inLive: InLiveHandler;
+  inCache: InCache;
   /**
    * The absolute path to the cloud root directory.
    */
@@ -62,6 +64,9 @@ export class InCloud {
     this.appName = appName;
     this.inLog = inLog;
     this.#config = config;
+    this.inLive = new InLiveHandler();
+    this.inCache = new InCache();
+    this.api = new CloudAPI();
   }
   async init() {
     // Extension manager initialization
@@ -73,12 +78,11 @@ export class InCloud {
       logLevel?: LogLevel;
       logTrace?: boolean;
     }>("cloud");
+
     this.inLog.setConfig({
       logLevel: config.logLevel,
       logTrace: config.logTrace,
     });
-    this.inLive = new InLiveHandler();
-    this.api = new CloudAPI();
 
     this.#initExtensions();
     this.#setupOrm();
@@ -128,7 +132,12 @@ export class InCloud {
   async run(): Promise<void> {
     await this.init();
     await this.boot();
-    await this.inLive.init();
+    const brokerPort = this.getExtensionConfigValue<number>(
+      "cloud",
+      "brokerPort",
+    );
+    this.inLive.init(brokerPort);
+    this.inCache.init(brokerPort);
   }
   #initExtensions() {
     const appExtensions: Array<CloudExtension> = [

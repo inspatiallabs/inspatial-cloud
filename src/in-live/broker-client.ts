@@ -7,9 +7,8 @@ export class BrokerClient<T> {
   };
   port: number = 11254;
 
-  constructor(channel: string, port: number = 11254) {
+  constructor(channel: string) {
     this.channel = channel;
-    this.port = port;
   }
   get closed(): boolean {
     if (!this.#socket) {
@@ -44,7 +43,8 @@ export class BrokerClient<T> {
         return "UNKNOWN";
     }
   }
-  connect() {
+  connect(brokerPort: number) {
+    this.port = brokerPort;
     this.#reconnect();
   }
   stop() {

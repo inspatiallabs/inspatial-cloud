@@ -5,9 +5,9 @@ import { raiseServerException } from "#/app/server-exception.ts";
 const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
-  async run({ app, inRequest, params }) {
+  async run({ inCloud, inRequest, params }) {
     const { email } = params;
-    const user = await app.orm.findEntry("user", [{
+    const user = await inCloud.orm.findEntry("user", [{
       field: "email",
       op: "=",
       value: email,
@@ -29,7 +29,7 @@ const resetPassword = new CloudAPIAction("resetPassword", {
       <a href="${resetLink}" target="_blank">${resetLink}</a>
       <p>If you didn't request a password reset, you can ignore this email.</p>
       <p>Thanks!</p>
-      <p>${app.appName}</p>
+      <p>${inCloud.appName}</p>
       `;
     // try {
     //   await app.runAction("email", "sendEmail", {

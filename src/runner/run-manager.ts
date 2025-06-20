@@ -101,7 +101,7 @@ export class RunManager {
         return;
       }
       this.spawnServers();
-      this.spawnQueue();
+      // this.spawnQueue();
       this.isReloading = false;
     });
   }
@@ -146,16 +146,16 @@ export class RunManager {
       await this.spawnMigrator();
     }
     this.spawnBroker();
-    this.spawnQueue();
+    // this.spawnQueue();
     const procCount = this.spawnServers();
     const rows: Array<string> = [
       `Server Processes: ${procCount} spawned`,
-      `Message Broker: ${this.brokerProc ? "Running" : "Not Running"}`,
-      `InQueue: ${this.queueProc ? "Running" : "Not Running"}`,
+      `Message Broker: ${this.brokerProc?.pid ? "Running" : "Not Running"}`,
+      // `InQueue: ${this.queueProc?.pid ? "Running" : "Not Running"}`,
     ];
     if (embeddedDb) {
       rows.push(
-        `Embedded Database: ${this.dbProc ? "Running" : "Not Running"}`,
+        `Embedded Database: ${this.dbProc?.pid ? "Running" : "Not Running"}`,
       );
     }
     this.printInfo(inCloud.inLog, rows);

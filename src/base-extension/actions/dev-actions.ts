@@ -9,7 +9,7 @@ export const cloudActions = new CloudAPIGroup("dev", {
 cloudActions.addAction("generateConfig", {
   description: "Generate the cloud-config.json along with the schema",
   params: [],
-  async run({ app }) {
-    app.generateConfigFile();
+  async run({ inCloud }) {
+    inCloud.generateConfigFile();
   },
 });

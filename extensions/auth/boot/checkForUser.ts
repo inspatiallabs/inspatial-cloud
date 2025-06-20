@@ -1,11 +1,11 @@
-import type { InCloud } from "#/inspatial-cloud.ts";
+import { InCloud } from "#/cloud/cloud-common.ts";
 
-async function checkForUser(app: InCloud) {
-  const { orm } = app;
+async function checkForUser(inCloud: InCloud) {
+  const { orm } = inCloud;
   const userCount = await orm.count("user");
   const subject = "System Admin User";
   if (userCount === 0) {
-    app.inLog.warn(
+    inCloud.inLog.warn(
       "No users found in the database. Creating an admin user...",
       subject,
     );
@@ -22,7 +22,7 @@ async function checkForUser(app: InCloud) {
     user.systemAdmin = true;
     await user.save();
     await user.runAction("setPassword", { password });
-    app.inLog.info("Admin user created successfully.");
+    inCloud.inLog.info("Admin user created successfully.");
     // prompt("Press any key to continue...");
   }
 }

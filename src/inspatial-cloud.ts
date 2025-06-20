@@ -201,7 +201,7 @@ export function createInCloud(
     extensions: extensions || [],
   };
   if (typeof cloudNameOrConfigOrExt === "string") {
-    appName = cloudNameOrConfigOrExt;
+    appName = convertString(cloudNameOrConfigOrExt, "camel");
   } else if (Array.isArray(cloudNameOrConfigOrExt)) {
     config.extensions = cloudNameOrConfigOrExt;
   } else if (
