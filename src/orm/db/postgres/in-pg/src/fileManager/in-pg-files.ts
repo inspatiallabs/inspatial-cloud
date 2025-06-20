@@ -1,7 +1,7 @@
 import { type InPG, ni } from "../../in-pg.ts";
 import type { DevType, PGFile, PGFileMem } from "../../types.ts";
 import { ERRNO_CODES } from "../constants.ts";
-import { normalizePath } from "../convert.ts";
+import { normalizeVirtualPath } from "../convert.ts";
 import type { PGMem } from "../pgMem.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
 const dataURL =
@@ -53,7 +53,7 @@ export class FileManager {
     let path = Deno.makeTempFileSync();
     if (Deno.build.os === "windows") {
       const driveLetter = path.match(/^[a-zA-Z]:/)?.[0] || "";
-      path = `${driveLetter}${normalizePath(path)}`;
+      path = `${driveLetter}${normalizeVirtualPath(path)}`;
     }
     Deno.removeSync(path);
     const parts = path.split("/");
@@ -73,7 +73,7 @@ export class FileManager {
 
     if (Deno.build.os === "windows") {
       const driveLetter = tmDir.match(/^[a-zA-Z]:/)?.[0] || "";
-      tmDir = `${driveLetter}${normalizePath(tmDir)}`;
+      tmDir = `${driveLetter}${normalizeVirtualPath(tmDir)}`;
     }
     this.tmDir = tmDir;
   }
@@ -182,7 +182,7 @@ export class FileManager {
       });
       if (Deno.build.os === "windows") {
         const driveLetter = realPath.match(/^[a-zA-Z]:/)?.[0] || "";
-        realPath = `${driveLetter}${normalizePath(realPath)}`;
+        realPath = `${driveLetter}${normalizeVirtualPath(realPath)}`;
       }
       this.tmpMap.set(path, realPath);
     }
@@ -320,7 +320,7 @@ export class FileManager {
     // Deno.renameSync()
   }
   parsePath(path: string) {
-    path = normalizePath(path);
+    path = normalizeVirtualPath(path);
     switch (path) {
       case "":
         path = this.cwd;

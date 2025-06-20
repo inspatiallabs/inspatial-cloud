@@ -9,10 +9,15 @@ export type ConfigEnv<
   env?: string;
   description: string;
   required?: boolean;
-  dependsOn?: {
-    key: string;
-    value: ConfigEnvTypeMap[T];
-  };
+  dependsOn?:
+    | {
+      key: string;
+      value: ConfigEnvTypeMap[T];
+    }
+    | Array<{
+      key: string;
+      value: ConfigEnvTypeMap[T];
+    }>;
   default?: ConfigEnvTypeMap[T];
   enum?: ConfigEnvTypeMap[T][];
   type: T;

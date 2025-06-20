@@ -99,8 +99,8 @@ export class CloudAPI {
       label: "Get Docs",
       description: "Get API documentation",
       params: [],
-      run({ app }) {
-        return app.api.docs;
+      run({ inCloud }) {
+        return inCloud.api.docs;
       },
     });
     const pingAction = new CloudAPIAction("ping", {
@@ -108,11 +108,11 @@ export class CloudAPI {
       description: "Ping the server",
       authRequired: false,
       params: [],
-      run({ app }) {
+      run({ inCloud }) {
         return {
           message: "pong",
           timestamp: Date.now(),
-          app: app.appName,
+          app: inCloud.appName,
         };
       },
     });

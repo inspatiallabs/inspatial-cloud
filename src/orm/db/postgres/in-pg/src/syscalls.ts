@@ -157,7 +157,14 @@ export class SysCalls {
     this.add("__syscall_fadvise64", "iijji", () => {
       return 0;
     });
-
+    this.add("__syscall_getcwd", "iij", (buf, size) => {
+      if (size === 0) return -28;
+      const cwd = this.fm.cwd;
+      const cwdLengthInBytes = lengthBytesUTF8(cwd) + 1;
+      if (size < cwdLengthInBytes) return -68;
+      this.pgMem.stringToUTF8(cwd, buf, size);
+      return cwdLengthInBytes;
+    });
     this.add("__syscall_dup", "ii", (fd) => {
       return this.fm.dupe(fd);
     });
@@ -370,6 +377,7 @@ export class SysCalls {
       let path = this.fm.getPtrPath(pathPointer);
 
       path = this.fm.parsePath(path);
+      this.fm.debugLog(`stat64: ${path}`);
       let stat: Deno.FileInfo;
       if (!this.fm.postgresFiles.has(path)) {
         if (!this.fm.exists(path)) {

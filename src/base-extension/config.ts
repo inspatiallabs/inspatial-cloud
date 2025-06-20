@@ -22,9 +22,14 @@ export const cloudConfig: ConfigDefinition = {
     description:
       "Whether to include the file and line number in the log output for info, warning and debug logs",
     required: false,
-    default: false,
     type: "boolean",
     env: "LOG_TRACE",
+  },
+  brokerPort: {
+    description: "The port the message broker is listening on",
+    type: "number",
+    default: 11254,
+    required: false,
   },
   hostName: {
     description: "The hostname for the server",
@@ -44,7 +49,6 @@ export const cloudConfig: ConfigDefinition = {
     description:
       "Whether to automatically generate the serve config schema when the server starts in development mode",
     required: false,
-    default: true,
     type: "boolean",
     env: "SERVE_AUTO_CONFIG",
   },

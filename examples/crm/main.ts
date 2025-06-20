@@ -1,7 +1,9 @@
-import { InCloud } from "@inspatial/cloud";
-import crmExtension from "./crmExtension.ts";
+import { createInCloud } from "@inspatial/cloud";
+import customerAccount from "./entryTypes/customerAccount.ts";
 
-const app = new InCloud("myCRM", {
-  extensions: [crmExtension],
+createInCloud({
+  name: "CRM",
+  description: "Customer Relationship Management",
+  version: "1.0.0",
+  entryTypes: [customerAccount],
 });
-app.run();

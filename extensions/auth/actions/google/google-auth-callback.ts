@@ -4,7 +4,6 @@ import {
   GoogleOAuth,
 } from "#extensions/auth/providers/google/accessToken.ts";
 import type { AuthSettings } from "#extensions/auth/generated-interfaces/settings/auth-settings.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import { CloudAPIAction } from "#/api/cloud-action.ts";
@@ -12,13 +11,14 @@ import { CloudAPIAction } from "#/api/cloud-action.ts";
 import { raiseServerException } from "#/app/server-exception.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
+import type { InCloud } from "#/cloud/cloud-common.ts";
 
 const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,
   description: "Google OAuth2 callback",
-  async run({ app, inRequest, inResponse, params }) {
+  async run({ inCloud, orm, inRequest, inResponse, params }) {
     const { code, state } = params;
-    const authSettings = await app.orm.getSettings<AuthSettings>(
+    const authSettings = await orm.getSettings<AuthSettings>(
       "authSettings",
     );
     if (!authSettings.googleClientId || !authSettings.googleClientSecret) {
@@ -56,7 +56,7 @@ const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
             redirectTo,
             inRequest,
             inResponse,
-            app,
+            inCloud,
           });
         default:
           raiseServerException(400, "Invalid type");
@@ -111,22 +111,22 @@ async function handleGoogleLogin(args: {
   redirectTo: string;
   inRequest: InRequest;
   inResponse: InResponse;
-  app: InCloud;
+  inCloud: InCloud;
 }) {
   const { email, emailVerified } = args.idToken;
   const {
     accessToken,
     idToken,
     redirectTo,
-    app,
+    inCloud,
     inRequest,
     inResponse,
   } = args;
-  const authHandler = app.getExtension<AuthHandler>("auth");
+  const authHandler = inCloud.getExtension<AuthHandler>("auth");
   if (!email || !emailVerified) {
     raiseServerException(401, "Google auth: Email not verified");
   }
-  const user = await app.orm.findEntry<User>("user", [{
+  const user = await inCloud.orm.findEntry<User>("user", [{
     field: "email",
     op: "=",
     value: email,

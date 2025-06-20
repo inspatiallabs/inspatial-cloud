@@ -6,14 +6,14 @@ import { generateId } from "#/utils/mod.ts";
 const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
   authRequired: false,
   description: "Redirect to Google OAuth2 login page",
-  async run({ app, inRequest, params }) {
+  async run({ inCloud, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,
       csrfToken,
       type: "login",
     });
-    const authSettings = await app.orm.getSettings<AuthSettings>(
+    const authSettings = await inCloud.orm.getSettings<AuthSettings>(
       "authSettings",
     );
     const clientId = authSettings.googleClientId;

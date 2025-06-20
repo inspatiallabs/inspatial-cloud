@@ -22,9 +22,11 @@ import { AUTH } from "#/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "#/orm/db/postgres/scram.ts";
 import { convertString } from "#/utils/mod.ts";
 import { inLog } from "#/in-log/in-log.ts";
+import { InPgConn } from "./in-pg/in-pg-conn.ts";
 
 export class PostgresClient {
   conn!: Deno.Conn;
+  devMode: boolean = false;
   readonly connectionParams: PgClientConfig;
   cancelInfo: {
     pid: number;
@@ -50,6 +52,7 @@ export class PostgresClient {
       options.options.client_encoding = "UTF8";
     }
     this.connectionParams = options;
+    this.devMode = options.connectionType === "dev";
 
     this.writer = new MessageWriter();
     this.serverParams = {};
@@ -78,7 +81,21 @@ export class PostgresClient {
     if (this.connected) {
       return;
     }
-
+    if (this.devMode) {
+      if (this.connectionParams.connectionType !== "dev") {
+        throw new PgError({
+          message: "Dev mode only supports TCP connection type",
+        });
+      }
+      const conn = new InPgConn({
+        hostname: this.connectionParams.host,
+        port: this.connectionParams.port,
+      });
+      await conn.connect();
+      this.conn = conn;
+      this.reader = new MessageReader(this.conn);
+      return;
+    }
     switch (this.connectionParams.connectionType) {
       case "tcp": {
         this.conn = await Deno.connect({
