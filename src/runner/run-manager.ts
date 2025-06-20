@@ -88,8 +88,8 @@ export class RunManager {
       }
     });
     this.serveProcs = [];
-    if (this.brokerProc && this.brokerProc.pid) {
-      this.brokerProc.kill("SIGTERM");
+    if (this.queueProc && this.queueProc.pid) {
+      this.queueProc.kill("SIGTERM");
     }
     this.queueProc = undefined;
     this.spawnMigrator().then((success) => {
@@ -101,7 +101,7 @@ export class RunManager {
         return;
       }
       this.spawnServers();
-      // this.spawnQueue();
+      this.spawnQueue();
       this.isReloading = false;
     });
   }
@@ -137,6 +137,10 @@ export class RunManager {
       "cloud",
       "brokerPort",
     );
+    const queuePort = inCloud.getExtensionConfigValue<number>(
+      "cloud",
+      "queuePort",
+    );
 
     if (embeddedDb) {
       const embeddedDbPort = inCloud.getExtensionConfigValue<number>(
@@ -150,21 +154,31 @@ export class RunManager {
       await this.spawnMigrator();
     }
     this.spawnBroker(brokerPort);
-    // this.spawnQueue();
+    this.spawnQueue();
     const procCount = this.spawnServers();
     const rows: Array<string> = [
       `Server Processes: ${procCount} spawned`,
-      `Message Broker: ${
-        this.brokerProc?.pid ? `Running on port ${brokerPort}` : "Not Running"
-      }`,
-      // `InQueue: ${this.queueProc?.pid ? "Running" : "Not Running"}`,
+      makeRunning(
+        "Message Broker",
+        this.brokerProc?.pid !== undefined,
+        brokerPort,
+      ),
+      makeRunning(
+        "InQueue",
+        this.queueProc?.pid !== undefined,
+        queuePort,
+      ),
     ];
     if (embeddedDb) {
       rows.push(
-        `Embedded Database: ${this.dbProc?.pid ? "Running" : "Not Running"}`,
+        makeRunning(
+          "Embedded DB",
+          this.dbProc?.pid !== undefined,
+          inCloud.getExtensionConfigValue<number>("orm", "embeddedDbPort") || 0,
+        ),
       );
     }
-    this.printInfo(inCloud.inLog, rows);
+    this.printInfo(inCloud.inLog, [rows.map((row) => center(row)).join("\n")]);
     if (this.watch) {
       inLog.info(
         "Watching for file changes. Press Ctrl+C to stop.",
@@ -280,4 +294,21 @@ export class RunManager {
       convertString(this.appName, "title", true),
     );
   }
+}
+
+function makeRunning(
+  serviceName: string,
+  isRunning: boolean,
+  port: number,
+): string {
+  const output = ColorMe.standard().content(`${serviceName}: `).color(
+    "brightBlue",
+  );
+  if (isRunning) {
+    return output.content("Running").color("brightGreen").content(" on port ")
+      .color(
+        "white",
+      ).content(port.toString()).color("brightYellow").end();
+  }
+  return output.content("Not running").color("brightRed").end();
 }

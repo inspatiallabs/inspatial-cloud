@@ -4,13 +4,13 @@ import { RunManager } from "/runner/run-manager.ts";
 import type { CloudRunnerMode } from "/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
 import { InCloudServer } from "/cloud/cloud-server.ts";
-import { InCloudQueue } from "/cloud/cloud-queue.ts";
 
 import { InCloud } from "/cloud/cloud-common.ts";
 
 import type { ExtensionOptions } from "/app/types.ts";
 import convertString from "#utils/convert-string.ts";
 import { CloudDB } from "#orm/db/postgres/in-pg/cloud-db.ts";
+import { InQueue } from "#queue/in-queue.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
@@ -145,7 +145,8 @@ class InCloudRunner {
     Deno.exit(0);
   }
   #initQueue() {
-    const inCloud = new InCloudQueue(this.#appName, this.#config);
+    const inCloud = new InQueue(this.#appName, this.#config);
+    inCloud.run();
   }
   /**
    * Determines the mode of the CloudRunner based on the environment variable `CLOUD_RUNNER_MODE`.

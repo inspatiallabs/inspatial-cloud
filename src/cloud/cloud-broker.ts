@@ -14,7 +14,7 @@ export class InCloudBroker {
       hostname: "127.0.0.1",
       onListen: (addr) => {
       },
-    }, async (request) => {
+    }, (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);
       this.addClient(socket);
       return response;

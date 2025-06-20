@@ -7,13 +7,14 @@ import type { EntryActionDefinition } from "/orm/entry/types.ts";
 import type { ChildEntryList } from "/orm/child-entry/child-entry.ts";
 import { PgError } from "/orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "/orm/db/postgres/maps/errorMap.ts";
-import convertString from "/utils/convert-string.ts";
+import convertString from "#utils/convert-string.ts";
 import type {
   InField,
   InFieldMap,
   InFieldType,
 } from "/orm/field/field-def-types.ts";
-import InCloud from "@inspatial/cloud";
+import type { InCloud } from "/cloud/cloud-common.ts";
+import { InTask } from "#queue/generated-types/in-task.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -82,6 +83,24 @@ export class BaseClass<N extends string = string> {
       [this._name]: this as any,
       [this._type]: this as any,
     });
+  }
+  async enqueueAction(
+    actionKey: string,
+    data?: Record<string, any>,
+  ): Promise<Record<string, any>> {
+    this.#getAndValidateAction(actionKey, data);
+    data = data || {};
+    const fields: Record<string, any> = {
+      taskType: this._type,
+      typeKey: this._name,
+      actionName: actionKey,
+      taskData: data,
+    };
+    if (this._type === "entry") {
+      fields.entryId = this._data.get("id");
+    }
+    const task = await this._orm.createEntry<InTask>("inTask", fields);
+    return task.data;
   }
   _setupChildren(): void {
     this._childrenData.clear();

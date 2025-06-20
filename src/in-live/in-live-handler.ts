@@ -195,14 +195,20 @@ export class InLiveHandler {
   }
 
   announce(message: string | Record<string, any>): void {
+    const broadcastMessage: InLiveBroadcastMessage = {
+      roomName: "everyone",
+      event: "announce",
+      data: typeof message === "string" ? { message } : message,
+    };
+    this.#channel.broadcast(broadcastMessage);
+    this.#sendToAll(broadcastMessage);
+  }
+  #sendToAll(message: InLiveBroadcastMessage) {
     this.#clients.forEach((client) => {
       if (client.socket.readyState !== WebSocket.OPEN) {
         return;
       }
-      client.socket.send(JSON.stringify({
-        event: "announce",
-        data: message,
-      }));
+      client.socket.send(JSON.stringify(message));
     });
   }
   #validateRoom(room: string) {
@@ -239,6 +245,10 @@ export class InLiveHandler {
   #sendToRoom(
     message: InLiveBroadcastMessage,
   ) {
+    if (message.roomName === "everyone") {
+      this.#sendToAll(message);
+      return;
+    }
     this.#validateRoom(message.roomName);
     const room = this.#getRoom(message.roomName);
 

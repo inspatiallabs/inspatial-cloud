@@ -1,77 +1,81 @@
-import type InCloud from "@inspatial/cloud";
+import type { CloudConfig } from "#types/mod.ts";
+import { generateId } from "#utils/misc.ts";
 import type { InTask } from "./generated-types/in-task.ts";
+import { InCloud } from "/cloud/cloud-common.ts";
 
-Deno.env.set("AUTO_MIGRATE", "false");
-Deno.env.set("AUTO_TYPES", "false");
-Deno.env.set("ORM_DEBUG_MODE", "false");
-Deno.env.set("SERVE_AUTO_CONFIG", "false");
-export class InQueue {
-  static schedule: Deno.CronSchedule = {
-    minute: {
-      every: 1,
-    },
-  };
+export class InQueue extends InCloud {
+  clients: Map<string, WebSocket> = new Map();
+  isRunning: boolean = false;
+  constructor(appName: string, config: CloudConfig) {
+    super(appName, config, "queue");
+  }
+  override async run() {
+    await super.run();
+    const port = this.getExtensionConfigValue<number>("cloud", "queuePort");
+    if (port === undefined) {
+      throw new Error("Queue port is not defined in the configuration.");
+    }
 
-  static clients: Map<string, WebSocket> = new Map();
-  static announce(message: Record<string, any>): void {
-    for (const client of InQueue.clients.values()) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(message));
-      } else {
-        console.warn("WebSocket client not open, skipping send.");
+    this.#start(port);
+  }
+  broadcast(message: Record<string, any>): void {
+    for (const client of this.clients.values()) {
+      if (client.readyState !== WebSocket.OPEN) {
+        return;
       }
+      client.send(JSON.stringify(message));
     }
   }
-  static async run(inCloud: InCloud): Promise<void> {
-    await inCloud.ready;
+
+  async checkAndRunTasks() {
+    this.isRunning = true;
+    const taskResults = await this.orm.getEntryList<InTask>("inTask", {
+      filter: {
+        status: "queued",
+      },
+      columns: ["id"],
+    });
+    for (const { id } of taskResults.rows) {
+      const task = await this.orm.getEntry<InTask>("inTask", id);
+      await task.runAction("runTask");
+    }
+    this.isRunning = false;
+    setTimeout(() => {
+      this.checkAndRunTasks();
+    }, 10000);
+  }
+  startScheduler() {
+    this.checkAndRunTasks();
+  }
+  #start(port: number) {
     Deno.serve({
+      port: port,
       hostname: "127.0.0.1",
-      port: 8080,
-    }, async (request) => {
+      onListen: (addr) => {
+        this.startScheduler();
+      },
+    }, (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);
-      const clientId = crypto.randomUUID();
-      socket.onopen = () => {
-        InQueue.clients.set(clientId, socket);
-      };
-      socket.onclose = () => {
-        InQueue.clients.delete(clientId);
-      };
-      socket.onerror = (event) => {
-        console.error("WebSocket error:", event);
-      };
-      socket.onmessage = async (event) => {
-        console.log("Received message:", event.data);
-        // const message = JSON.parse(event.data);
-        // if (message.type === "task") {
-        //   const task = await inCloud.orm.createEntry<InTask>("inTask", {
-        //     ...message.data,
-        //     status: "queued",
-        //   });
-        //   await task.save();
-        //   console.log("Task queued:", task.id);
-        // } else {
-        //   console.warn("Unknown message type:", message.type);
-        // }
-      };
+      this.addClient(socket);
       return response;
     });
-    await processTasks(inCloud);
   }
-}
-
-async function processTasks(inCloud: InCloud): Promise<void> {
-  console.log("processing tasks");
-  const orm = inCloud.orm;
-  const taskResults = await orm.getEntryList<InTask>("inTask", {
-    filter: {
-      status: "queued",
-    },
-    columns: ["id"],
-  });
-
-  for (const { id } of taskResults.rows) {
-    const task = await orm.getEntry<InTask>("inTask", id);
-    await task.runAction("runTask");
+  addClient(socket: WebSocket) {
+    const clientId = generateId();
+    socket.addEventListener("open", () => {
+      this.clients.set(clientId, socket);
+    });
+    socket.addEventListener("message", (event) => {
+      this.handleMessage(clientId, event.data);
+    });
+    socket.addEventListener("close", () => {
+      this.clients.delete(clientId);
+    });
+    socket.addEventListener("error", (error) => {
+      this.clients.delete(clientId);
+    });
   }
-  setTimeout(() => processTasks(inCloud), 10000);
+  handleMessage(clientId: string, data: string) {
+    // Handle the message as needed
+  }
 }
