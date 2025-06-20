@@ -1,15 +1,15 @@
-import type { InCloud } from "#/inspatial-cloud.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { UserSession } from "#extensions/auth/entry-types/generated-types/user-session.ts";
 import type { InRequest } from "#/app/in-request.ts";
 import type { InResponse } from "#/app/in-response.ts";
+import type { InCloud } from "#/cloud/cloud-common.ts";
 
 export class AuthHandler {
-  #app: InCloud;
+  #inCloud: InCloud;
 
-  constructor(app: InCloud) {
-    this.#app = app;
+  constructor(inCloud: InCloud) {
+    this.#inCloud = inCloud;
   }
 
   #allowedPaths: Set<string> = new Set();
@@ -68,12 +68,12 @@ export class AuthHandler {
     if (!authToken) {
       return null;
     }
-    let sessionData: SessionData = this.#app.inCache.getValue(
+    let sessionData: SessionData = this.#inCloud.inCache.getValue(
       "authToken",
       authToken,
     );
     if (!sessionData) {
-      const user = await this.#app.orm.findEntry<User>("user", [{
+      const user = await this.#inCloud.orm.findEntry<User>("user", [{
         field: "apiToken",
         op: "=",
         value: authToken,
@@ -86,7 +86,7 @@ export class AuthHandler {
           systemAdmin: user.systemAdmin ?? false,
           userId: user.id as string,
         };
-        this.#app.inCache.setValue("authToken", authToken, sessionData);
+        this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
     }
     return sessionData || null;
@@ -97,9 +97,9 @@ export class AuthHandler {
     if (!sessionId) {
       return null;
     }
-    let sessionData = this.#app.inCache.getValue("userSession", sessionId);
+    let sessionData = this.#inCloud.inCache.getValue("userSession", sessionId);
     if (!sessionData) {
-      const userSession = await this.#app.orm.findEntry<UserSession>(
+      const userSession = await this.#inCloud.orm.findEntry<UserSession>(
         "userSession",
         [{
           field: "sessionId",
@@ -109,7 +109,7 @@ export class AuthHandler {
       );
       if (userSession) {
         sessionData = userSession.sessionData as SessionData;
-        this.#app.inCache.setValue("userSession", sessionId, sessionData);
+        this.#inCloud.inCache.setValue("userSession", sessionId, sessionData);
       }
     }
     return sessionData
@@ -135,7 +135,7 @@ export class AuthHandler {
       lastName: user.lastName,
       systemAdmin: user.systemAdmin ?? false,
     };
-    const session = await this.#app.orm.createEntry<UserSession>(
+    const session = await this.#inCloud.orm.createEntry<UserSession>(
       "userSession",
       {
         user: user.id,
@@ -149,7 +149,7 @@ export class AuthHandler {
       sessionId: session.sessionId,
     });
     inRequest.context.update("userSession", session.sessionId);
-    this.#app.inCache.setValue(
+    this.#inCloud.inCache.setValue(
       "userSession",
       session.sessionId,
       {

@@ -16,15 +16,15 @@ const generateModels = new CloudAPIAction(
       required: false,
       label: "Path",
     }],
-    async run({ app, params }) {
+    async run({ inCloud, params }) {
       const modelsPath = params.path ||
-        `${app.orm.generatedRoot}/flutter/models`;
+        `${inCloud.orm.generatedRoot}/flutter/models`;
       await Deno.mkdir(`${modelsPath}/settings`, { recursive: true });
       await Deno.mkdir(`${modelsPath}/entries`, { recursive: true });
       const models: string[] = [];
       const helpers = getHelperClasses();
       await writeModelFile(`${modelsPath}/helpers.dart`, helpers.join("\n"));
-      const { entryTypes, settingsTypes } = app.orm;
+      const { entryTypes, settingsTypes } = inCloud.orm;
       const defs = [
         ...Array.from(entryTypes.values()),
         ...Array.from(settingsTypes.values()),

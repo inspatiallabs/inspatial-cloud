@@ -1,6 +1,6 @@
-import { SettingsType } from "@inspatial/cloud";
+import { SettingsType } from "#/orm/settings/settings-type.ts";
 
-const systemSettings = new SettingsType("systemSettings", {
+export const systemSettings = new SettingsType("systemSettings", {
   fields: [{
     key: "onboarded",
     type: "BooleanField",
@@ -9,5 +9,3 @@ const systemSettings = new SettingsType("systemSettings", {
     readOnly: true,
   }],
 });
-
-export default systemSettings;

@@ -5,14 +5,15 @@ import type {
   GlobalEntryHooks,
   GlobalHookFunction,
 } from "#/orm/orm-types.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
+
 import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export function setupOrm(args: {
-  app: InCloud;
+  inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
-  const { app, extensionManager } = args;
+  const { inCloud: app, extensionManager } = args;
   const config = extensionManager.getExtensionConfig("orm");
   const globalHooks: GlobalEntryHooks = {
     afterCreate: [],
@@ -71,6 +72,7 @@ export function setupOrm(args: {
         database: "postgres",
       };
   }
+
   const dbConfig: DBConfig = {
     debug: config.ormDebugMode,
     connection: connectionConfig,
@@ -84,7 +86,16 @@ export function setupOrm(args: {
       lazy: true,
     },
   };
-  const orm = new InSpatialORM(app, {
+
+  if (config.embeddedDb) {
+    dbConfig.clientMode = "dev";
+    dbConfig.connection.connectionType = "tcp";
+    dbConfig.connection = {
+      host: "127.0.0.1",
+      port: config.embeddedDbPort,
+    } as any;
+  }
+  const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,

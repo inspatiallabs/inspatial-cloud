@@ -3,10 +3,10 @@ import { CloudAPIAction } from "#/api/cloud-action.ts";
 const logout = new CloudAPIAction("logout", {
   label: "Logout",
   description: "Logout user",
-  async run({ app, inRequest, inResponse }) {
+  async run({ inCloud, inRequest, inResponse }) {
     const sessionId = inRequest.context.get<string>("userSession");
     if (sessionId) {
-      const userSession = await app.orm.findEntry("userSession", [{
+      const userSession = await inCloud.orm.findEntry("userSession", [{
         field: "sessionId",
         op: "=",
         value: sessionId,
@@ -14,7 +14,7 @@ const logout = new CloudAPIAction("logout", {
       if (userSession) {
         await userSession.delete();
       }
-      app.inCache.deleteValue("userSession", sessionId);
+      inCloud.inCache.deleteValue("userSession", sessionId);
     }
     inRequest.context.update("user", null);
     inRequest.context.update("userSession", null);

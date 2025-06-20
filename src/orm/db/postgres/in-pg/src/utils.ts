@@ -1,4 +1,4 @@
-import { normalizePath } from "./convert.ts";
+import { normalizeVirtualPath } from "./convert.ts";
 import type { PGMem } from "./pgMem.ts";
 
 export class ExitStatus {
@@ -63,7 +63,7 @@ export function getTempDirBase() {
   let path = Deno.makeTempFileSync();
   if (Deno.build.os === "windows") {
     const driveLetter = path.match(/^[a-zA-Z]:/)?.[0] || "";
-    path = `${driveLetter}${normalizePath(path)}`;
+    path = `${driveLetter}${normalizeVirtualPath(path)}`;
   }
   Deno.removeSync(path);
   const parts = path.split("/");

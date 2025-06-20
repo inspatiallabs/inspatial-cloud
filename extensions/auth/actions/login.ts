@@ -8,9 +8,9 @@ const login = new CloudAPIAction("login", {
   label: "Login",
   description: "Login to the system",
   authRequired: false,
-  async run({ app, inRequest, inResponse, params }) {
+  async run({ inCloud, inRequest, inResponse, params }) {
     const { email, password } = params;
-    const { orm } = app;
+    const { orm } = inCloud;
     const user = await orm.findEntry<User>("user", [{
       field: "email",
       op: "=",
@@ -25,7 +25,7 @@ const login = new CloudAPIAction("login", {
     if (!isValid) {
       raiseServerException(401, "unauthorized");
     }
-    const authHandler = app.getExtension<AuthHandler>("auth");
+    const authHandler = inCloud.getExtension<AuthHandler>("auth");
     return await authHandler.createUserSession(user, inRequest, inResponse);
   },
   params: [{

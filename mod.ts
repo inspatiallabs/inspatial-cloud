@@ -1,5 +1,3 @@
-import { InCloud } from "#/inspatial-cloud.ts";
-export { InQueue } from "#/in-queue/in-queue.ts";
 export {
   ChildEntry,
   ChildEntryList,
@@ -10,7 +8,6 @@ export { CloudAPIAction } from "#/api/cloud-action.ts";
 export { CloudAPIGroup } from "#/api/cloud-group.ts";
 export { CloudExtension } from "#/app/cloud-extension.ts";
 
-export { InCloud } from "#/inspatial-cloud.ts";
-export default InCloud;
+export { createInCloud } from "#/inspatial-cloud.ts";
 
 export * from "#/orm/mod.ts";

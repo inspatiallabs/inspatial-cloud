@@ -6,9 +6,6 @@ import { uleb128Encode, UTF8ArrayToString } from "./convert.ts";
 
 import type { PGMem } from "./pgMem.ts";
 import { setupInvokeImports } from "./setupInvokes.ts";
-import { getTempDirBase } from "./utils.ts";
-const wasmURL =
-  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.wasm";
 class LDSO {
   loadedLibsByName: Record<string, DSO>;
   loadedLibsByHandle: Record<string, DSO>;

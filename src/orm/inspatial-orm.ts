@@ -172,7 +172,15 @@ export class InSpatialORM {
     this.#setupSettingsTypes();
     this.#build();
   }
+  async init(): Promise<void> {
+    await this.db.init();
 
+    // Check if the first run migration is needed
+    const settings = await this.db.tableExists("inSettings");
+    if (!settings) {
+      await this.migrate();
+    }
+  }
   #build(): void {
     for (const entryType of this.entryTypes.values()) {
       const entryClass = buildEntry(entryType);
