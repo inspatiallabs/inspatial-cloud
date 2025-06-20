@@ -1,16 +1,16 @@
 import { CloudExtension } from "@inspatial/cloud";
-import { InCloudBroker } from "./cloud/cloud-broker.ts";
-import { RunManager } from "./runner/run-manager.ts";
-import type { CloudRunnerMode } from "./runner/types.ts";
+import { InCloudBroker } from "/cloud/cloud-broker.ts";
+import { RunManager } from "/runner/run-manager.ts";
+import type { CloudRunnerMode } from "/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
-import { InCloudServer } from "./cloud/cloud-server.ts";
-import { InCloudQueue } from "./cloud/cloud-queue.ts";
+import { InCloudServer } from "/cloud/cloud-server.ts";
+import { InCloudQueue } from "/cloud/cloud-queue.ts";
 
-import { InCloud } from "./cloud/cloud-common.ts";
+import { InCloud } from "/cloud/cloud-common.ts";
 
-import type { ExtensionOptions } from "./app/types.ts";
-import convertString from "./utils/convert-string.ts";
-import { CloudDB } from "./orm/db/postgres/in-pg/cloud-db.ts";
+import type { ExtensionOptions } from "/app/types.ts";
+import convertString from "#utils/convert-string.ts";
+import { CloudDB } from "#orm/db/postgres/in-pg/cloud-db.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
@@ -72,7 +72,11 @@ class InCloudRunner {
   }
 
   #initBroker() {
-    const broker = new InCloudBroker(this.#appName);
+    const port = Deno.env.get("BROKER_PORT");
+    if (!port) {
+      throw new Error("BROKER_PORT environment variable is not set.");
+    }
+    const broker = new InCloudBroker(parseInt(port));
 
     broker.run();
   }

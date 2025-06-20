@@ -26,6 +26,7 @@
     "/": "./src/",
     "./": "./",
     "#orm/": "./src/orm/",
+    "#utils/": "./src/utils/",
     "#queue/": "./src/in-queue/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/"

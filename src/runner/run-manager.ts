@@ -133,6 +133,10 @@ export class RunManager {
 
     this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
     this.port = inCloud.getExtensionConfigValue("cloud", "port");
+    const brokerPort = inCloud.getExtensionConfigValue<number>(
+      "cloud",
+      "brokerPort",
+    );
 
     if (embeddedDb) {
       const embeddedDbPort = inCloud.getExtensionConfigValue<number>(
@@ -145,12 +149,14 @@ export class RunManager {
     if (this.autoMigrate || this.autoTypes) {
       await this.spawnMigrator();
     }
-    this.spawnBroker();
+    this.spawnBroker(brokerPort);
     // this.spawnQueue();
     const procCount = this.spawnServers();
     const rows: Array<string> = [
       `Server Processes: ${procCount} spawned`,
-      `Message Broker: ${this.brokerProc?.pid ? "Running" : "Not Running"}`,
+      `Message Broker: ${
+        this.brokerProc?.pid ? `Running on port ${brokerPort}` : "Not Running"
+      }`,
       // `InQueue: ${this.queueProc?.pid ? "Running" : "Not Running"}`,
     ];
     if (embeddedDb) {
@@ -205,12 +211,15 @@ export class RunManager {
     });
     this.serveProcs.push(proc);
   }
-  spawnBroker(): void {
+  spawnBroker(port: number): void {
     if (this.brokerProc) {
       console.log("Broker is already running.");
       return;
     }
-    this.brokerProc = this.spawnProcess("broker");
+    this.brokerProc = this.spawnProcess("broker", [], {
+      BROKER_PORT: port.toString(),
+      APP_NAME: this.appName,
+    });
   }
   spawnQueue(): void {
     if (this.queueProc) {
