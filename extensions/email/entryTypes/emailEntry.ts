@@ -1,11 +1,12 @@
-import type { Email } from "../../../examples/basic/.inspatial/_generated/entries/email.ts";
 import { dateUtils } from "/utils/date-utils.ts";
 import { EntryType } from "/orm/entry/entry-type.ts";
 import { raiseServerException } from "/app/server-exception.ts";
 import type { SMTPOptions } from "../smtp/smtpTypes.ts";
 import { inLog } from "/in-log/in-log.ts";
 import { SMTPClient } from "../smtp/smtpClient.ts";
-import type { EmailSettings } from "../../../examples/basic/.inspatial/_generated/settings/email-settings.ts";
+
+import type { Email } from "../_generated/email.ts";
+import type { EmailSettings } from "../_generated/email-settings.ts";
 
 export const emailEntry = new EntryType<Email>("email", {
   label: "Email",
@@ -13,42 +14,29 @@ export const emailEntry = new EntryType<Email>("email", {
   fieldGroups: [],
   defaultListFields: [
     "emailAccount",
-    "senderEmail",
-    "recipientName",
+    "status",
     "recipientEmail",
     "subject",
     "contentType",
     "sendDate",
-    "status",
   ],
   fields: [{
     key: "emailAccount",
     type: "ConnectionField",
     entryType: "emailAccount",
-    label: "Email Account",
+    label: "From",
     required: false,
-  }, {
-    key: "senderEmail",
-    type: "EmailField",
-    label: "Sender's Email",
-    description: "The email address of the sender",
-    readOnly: true,
   }, {
     key: "senderName",
     type: "DataField",
     label: "Sender's Name",
     description: "The name of the sender",
-  }, {
-    key: "recipientName",
-    type: "DataField",
-    label: "Recipient's Name",
-    description: "The name of the recipient",
-    hidden: true,
+    readOnly: true,
   }, {
     key: "recipientEmail",
     type: "EmailField",
-    label: "Recipient's Emails",
-    description: "A list of email addresses of the recipients",
+    label: "To",
+    description: "The email address of the recipient",
     required: true,
   }, {
     key: "subject",
@@ -77,13 +65,21 @@ export const emailEntry = new EntryType<Email>("email", {
     label: "Body",
     description: "The body of the email",
   }, {
+    key: "htmlBody",
+    type: "RichTextField",
+    label: "HTML Body",
+    description: "The HTML body of the email",
+    readOnly: true,
+  }, {
     key: "linkEntry",
     type: "DataField",
     label: "Link Entry",
+    hidden: true,
   }, {
     key: "linkId",
     type: "DataField",
     label: "Link Id",
+    hidden: true,
   }, {
     key: "status",
     type: "ChoicesField",
@@ -120,11 +116,14 @@ export const emailEntry = new EntryType<Email>("email", {
           }
           email.emailAccount = accountId;
         }
+        if (email.contentType === "html") {
+          email.htmlBody = email.body;
+        }
       },
     }],
   },
 });
-const attachementFields = [{
+const _attachementFields = [{
   key: "hasAttachment",
   type: "BooleanField",
   label: "Has Attachment",
@@ -238,7 +237,7 @@ emailEntry.addAction({
       password = emailAccount.accessToken as string;
     }
     const settings = await orm.getSettings("emailSettings");
-    email.senderEmail = settings.emailAccount as string;
+
     const config: SMTPOptions = {
       port: settings.smtpPort as number || 587,
       smtpServer: emailAccount.smtpHost as string,
@@ -261,7 +260,8 @@ emailEntry.addAction({
       smtpClient.onError = (code, message) => {
         addError(`Email Error ${code}: ${message}`);
       };
-      smtpClient.onStateChange = (state, message) => {
+      smtpClient.onStateChange = (_state, _message) => {
+        inLog.debug(`Email State Change: ${_state} - ${_message}`);
       };
       const sendDate = new Date();
       // const attachments = [];
@@ -278,7 +278,7 @@ emailEntry.addAction({
       //   }
       // }
 
-      const result = await smtpClient.sendEmail({
+      await smtpClient.sendEmail({
         body,
         header: {
           from: {

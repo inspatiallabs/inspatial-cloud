@@ -6,7 +6,7 @@ import type { HookName } from "/orm/orm-types.ts";
 import dateUtils from "/utils/date-utils.ts";
 import type { InField } from "/orm/field/field-def-types.ts";
 import type { InValue } from "/orm/field/types.ts";
-import type { InCloud } from "/inspatial-cloud.ts";
+import type { InCloud } from "../../cloud/cloud-common.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;

@@ -2,10 +2,12 @@ import { CloudAPIAction } from "/api/cloud-action.ts";
 
 import { raiseServerException } from "/app/server-exception.ts";
 
-const resetPassword = new CloudAPIAction("resetPassword", {
+export const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
+  label: "Reset Password",
   async run({ inCloud, inRequest, params }) {
+    console.log("Reset password action called with params:", params);
     const { email } = params;
     const user = await inCloud.orm.findEntry("user", [{
       field: "email",
@@ -20,9 +22,9 @@ const resetPassword = new CloudAPIAction("resetPassword", {
     }
     await user.runAction("generateResetToken");
     const token = user.resetPasswordToken as string;
-    const resetLink = `${inRequest.origin}/reset-password?token=${token}`;
+    const resetLink = `${inRequest.origin}/#/reset-password?token=${token}`;
 
-    const _emailContent = `
+    const emailContent = `
       <p>Hi ${user.firstName},</p>
       <p>We received a request to reset your password.</p>
       <p><b>Click the link below to reset your password:<b></p>
@@ -31,22 +33,20 @@ const resetPassword = new CloudAPIAction("resetPassword", {
       <p>Thanks!</p>
       <p>${inCloud.appName}</p>
       `;
-    // try {
-    //   await app.runAction("email", "sendEmail", {
-    //     data: {
-    //       recipientEmail: email,
-    //       recipientName: user.fullName,
-    //       subject: "Reset your password",
-    //       body: emailContent,
-    //     },
-
-    //     request,
-    //     response,
-    //   });
-    //   return { message: "Password reset link has been sent to your email" };
-    // } catch (e) {
-    //   raiseEasyException("Failed to send email", 500);
-    // }
+    try {
+      await inCloud.runAction("email", "sendEmail", {
+        recipientEmail: email,
+        subject: "Reset your password",
+        body: emailContent,
+      });
+      return { message: "Password reset link has been sent to your email" };
+    } catch (_e) {
+      console.error("Failed to send reset password email:", _e);
+      raiseServerException(
+        500,
+        "Failed to send email",
+      );
+    }
   },
   params: [
     {
@@ -58,5 +58,3 @@ const resetPassword = new CloudAPIAction("resetPassword", {
     },
   ],
 });
-
-export default resetPassword;

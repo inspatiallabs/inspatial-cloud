@@ -1,20 +1,13 @@
-import type { ChildList, EntryBase } from "@inspatial/cloud/types";
+import type { EntryBase } from "/orm/entry/entry-base.ts";
 export interface Email extends EntryBase {
   _name: "email";
   /**
-   * **Email Account** (ConnectionField)
+   * **From** (ConnectionField)
    *
    * **EntryType** `emailAccount`
    * @type {string}
-   * @required true
    */
-  emailAccount: string;
-  /**
-   * **Sender's Email** (EmailField)
-   * @description The email address of the sender
-   * @type {string}
-   */
-  senderEmail?: string;
+  emailAccount?: string;
   /**
    * **Sender's Name** (DataField)
    * @description The name of the sender
@@ -22,18 +15,12 @@ export interface Email extends EntryBase {
    */
   senderName?: string;
   /**
-   * **Recipient's Name** (DataField)
-   * @description The name of the recipient
+   * **To** (EmailField)
+   * @description The email address of the recipient
    * @type {string}
-   */
-  recipientName?: string;
-  /**
-   * **Recipient's Emails** (ListField)
-   * @description A list of email addresses of the recipients
-   * @type {Array<string>}
    * @required true
    */
-  recipientEmails: Array<string>;
+  recipientEmail: string;
   /**
    * **Subject** (TextField)
    * @description The subject of the email
@@ -59,6 +46,12 @@ export interface Email extends EntryBase {
    */
   body?: string;
   /**
+   * **HTML Body** (RichTextField)
+   * @description The HTML body of the email
+   * @type {string}
+   */
+  htmlBody?: string;
+  /**
    * **Link Entry** (DataField)
    * @type {string}
    */
@@ -71,36 +64,9 @@ export interface Email extends EntryBase {
   /**
    * **Status** (ChoicesField)
    * @description The status of the email
-   * @type {'pending' | 'sent' | 'failed'}
+   * @type {'pending' | 'queued' | 'sent' | 'failed'}
    */
-  status?: "pending" | "sent" | "failed";
-  /**
-   * **Has Attachment** (BooleanField)
-   * @description Whether the email has an attachment
-   * @type {boolean}
-   */
-  hasAttachment?: boolean;
-  /**
-   * **File Name** (TextField)
-   * @description The name of the file
-   * @type {string}
-   * @required true
-   */
-  attachmentFileName: string;
-  /**
-   * **Content** (TextField)
-   * @description The content of the file
-   * @type {string}
-   * @required true
-   */
-  attachmentContent: string;
-  /**
-   * **Content Type** (ChoicesField)
-   * @description The content type of the file
-   * @type {'text' | 'csv' | 'pdf'}
-   * @required true
-   */
-  attachmentsContentType: "text" | "csv" | "pdf";
+  status?: "pending" | "queued" | "sent" | "failed";
   /**
    * **Email** (IDField)
    * @type {string}
@@ -122,7 +88,7 @@ export interface Email extends EntryBase {
    */
   updatedAt: number;
   /**
-   * **Email Account Title** (EmailField)
+   * **From Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */

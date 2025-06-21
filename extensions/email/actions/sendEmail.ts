@@ -32,6 +32,7 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
   ],
   async run({ inCloud, inRequest, orm, inResponse, params }) {
     const { body, recipientEmail, subject, recipientName } = params;
+    console.log({ params });
     const email = await orm.createEntry("email", {
       senderName: inCloud.appName,
       recipientEmail,
@@ -39,6 +40,6 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       subject,
       body,
     });
-    // await email.enqueueAction("send");
+    await email.runAction("enqueueEmail");
   },
 });

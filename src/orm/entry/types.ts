@@ -3,7 +3,8 @@ import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
 import type { IDMode, InValue } from "/orm/field/types.ts";
 import type { BaseTypeConfig, BaseTypeInfo } from "/orm/shared/shared-types.ts";
 import type { InField } from "/orm/field/field-def-types.ts";
-import type { InCloud } from "/inspatial-cloud.ts";
+import type { InCloud } from "../../cloud/cloud-common.ts";
+
 /* Hooks */
 type EntryHookFunction<
   E extends EntryBase = EntryBase,

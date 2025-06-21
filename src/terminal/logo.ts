@@ -89,12 +89,12 @@ export function makeLogo(options: {
   const char = symbols[symbol];
   const outlineChar = symbols[symbol];
   const fillerChar = symbols[fillSymbol];
-  const blankChar = symbols[blankSymbol];
+  const blankChar = " "; // symbols[blankSymbol];
   let currentRow = 0;
   const formattedRows = [];
   for (const row of content) {
     currentRow++;
-    const colored = ColorMe.chain().bgColor(bgColor);
+    const colored = ColorMe.standard();
     row.forEach((count, index) => {
       if (index % 2 === 1) {
         colored.content(outlineChar.repeat(count)).color(outlineColor);

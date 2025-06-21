@@ -36,6 +36,7 @@ import { ConnectionRegistry } from "/orm/registry/connection-registry.ts";
 import type { InValue } from "/orm/field/types.ts";
 import { registerFetchFields } from "/orm/setup/setup-utils.ts";
 import type { IDValue } from "./entry/types.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -45,6 +46,7 @@ export class InSpatialORM {
   settingsTypes: Map<string, SettingsType>;
   #settingsClasses: Map<string, typeof Settings>;
   registry: ConnectionRegistry;
+  #inCloud: InCloud;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
@@ -138,12 +140,13 @@ export class InSpatialORM {
 
       globalEntryHooks?: GlobalEntryHooks;
       dbConfig: DBConfig;
+      inCloud: InCloud;
     },
   ) {
     this.#rootPath = options.rootPath || Deno.cwd();
     this.#rootPath = `${this.#rootPath}/.inspatial`;
     this.registry = new ConnectionRegistry();
-
+    this.#inCloud = options.inCloud;
     this.fieldTypes = new Map();
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
@@ -250,7 +253,7 @@ export class InSpatialORM {
         `EntryType ${entryType} is not a valid entry type.`,
       );
     }
-    return new entryClass(this, entryType, user);
+    return new entryClass(this, this.#inCloud, entryType, user);
   }
 
   #getSettingsInstance(settingsType: string, user?: any): Settings {
@@ -260,7 +263,7 @@ export class InSpatialORM {
         `SettingsType ${settingsType} is not a valid settings type.`,
       );
     }
-    return new settingsClass(this, settingsType, user);
+    return new settingsClass(this, this.#inCloud, settingsType, user);
   }
 
   // Single Entry Operations

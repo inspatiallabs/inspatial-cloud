@@ -1,13 +1,14 @@
-import { raiseServerException, Redirect } from "/app/server-exception.ts";
+import { raiseServerException } from "/app/server-exception.ts";
 import type { EmailAccount } from "../_generated/email-account.ts";
 import { EntryType } from "/orm/entry/entry-type.ts";
 import { dateUtils } from "/utils/date-utils.ts";
+import type { AuthSettings } from "../../auth/generated-interfaces/settings/auth-settings.ts";
 
 export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
   label: "Email Account",
   description: "An email account that can be used to send and receive emails",
   titleField: "emailAccount",
-
+  defaultListFields: ["senderName", "useGmailOauth", "authStatus"],
   fieldGroups: [
     {
       key: "info",
@@ -16,7 +17,6 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       fields: [
         "emailAccount",
         "senderName",
-        "useGmailOauth",
         "sendEmails",
         "receiveEmails",
       ],
@@ -27,6 +27,7 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       description:
         "Settings for sending emails using this account such as SMTP settings",
       fields: [
+        "useGmailOauth",
         "smtpHost",
         "smtpPort",
         "smtpUser",
@@ -37,8 +38,12 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       key: "oauth",
       label: "OAuth",
       fields: [
+        "authUrl",
         "authStatus",
         "accessToken",
+        "tokenType",
+        "expireTime",
+        "acquiredTime",
       ],
       description: "OAuth settings for Gmail",
       // dependsOn: "useGmailOauth",
@@ -68,21 +73,24 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
     {
       key: "authUrl",
       type: "URLField",
-      label: "Authorization URL",
+      label: "Authorize Gmail",
       description: "The URL to authorize this email account with Gmail",
       readOnly: true,
+      urlType: "button",
     },
     {
       key: "sendEmails",
       type: "BooleanField",
       label: "Send Emails",
       description: "Whether this email account can send emails",
+      hidden: true,
     },
     {
       key: "receiveEmails",
       type: "BooleanField",
       label: "Receive Emails",
       description: "Whether this email account can receive emails",
+      hidden: true,
     },
 
     {
@@ -147,6 +155,7 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       label: "Expire Time",
       type: "TimeStampField",
       showTime: true,
+      hidden: true,
       readOnly: true,
     },
     {
@@ -154,6 +163,7 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       label: "Acquired Time",
       type: "TimeStampField",
       showTime: true,
+      hidden: true,
       readOnly: true,
     },
     {
@@ -167,41 +177,46 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       key: "tokenType",
       label: "Token Type",
       type: "DataField",
-      hidden: false,
+      hidden: true,
       readOnly: true,
     },
   ],
-});
+  hooks: {
+    beforeUpdate: [
+      {
+        name: "generateAuthUrl",
+        description: "Generate the authorization URL for Gmail OAuth",
+        async handler({ orm, emailAccount }) {
+          if (!emailAccount.useGmailOauth) {
+            return;
+          }
+          const oauthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+          const authSettings = await orm.getSettings<AuthSettings>(
+            "authSettings",
+          );
 
-emailAccountEntry.addAction({
-  key: "authorizeGmail",
-  label: "Authorize Gmail",
-  params: [],
-  description: "Authorize this email account to send emails using Gmail",
-  async action({ orm, emailAccount }) {
-    const oauthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-
-    const emailSettings = await orm.getSettings("emailSettings");
-    const redirectHost = emailSettings.redirectHost;
-    const clientId = emailSettings.clientId;
-    const url = new URL(oauthEndpoint);
-    url.searchParams.append("client_id", clientId);
-    url.searchParams.append(
-      "redirect_uri",
-      `${redirectHost}/api?group=email&action=redirect`,
-    );
-    url.searchParams.append("response_type", "code");
-    url.searchParams.append("include_granted_scopes", "true");
-    url.searchParams.append("scope", "https://mail.google.com/");
-    url.searchParams.append("access_type", "offline");
-    url.searchParams.append("prompt", "consent");
-    url.searchParams.append("state", emailAccount.id);
-    emailAccount.authUrl = url.toString();
-    await emailAccount.save();
-    return {
-      type: "redirect",
-      url: emailAccount.authUrl,
-    };
+          if (!authSettings.googleClientId) {
+            raiseServerException(
+              400,
+              "Google auth: Client ID not set in settings",
+            );
+          }
+          const url = new URL(oauthEndpoint);
+          url.searchParams.append("client_id", authSettings.googleClientId);
+          url.searchParams.append(
+            "redirect_uri",
+            `${authSettings.hostname}/api?group=email&action=redirect`,
+          );
+          url.searchParams.append("response_type", "code");
+          url.searchParams.append("include_granted_scopes", "true");
+          url.searchParams.append("scope", "https://mail.google.com/");
+          url.searchParams.append("access_type", "offline");
+          url.searchParams.append("prompt", "consent");
+          url.searchParams.append("state", emailAccount.id);
+          emailAccount.authUrl = url.toString();
+        },
+      },
+    ],
   },
 });
 

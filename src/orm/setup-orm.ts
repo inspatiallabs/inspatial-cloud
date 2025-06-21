@@ -13,7 +13,7 @@ export function setupOrm(args: {
   inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
-  const { inCloud: app, extensionManager } = args;
+  const { inCloud, extensionManager } = args;
   const config = extensionManager.getExtensionConfig("orm");
   const globalHooks: GlobalEntryHooks = {
     afterCreate: [],
@@ -31,7 +31,7 @@ export function setupOrm(args: {
       const newHook: GlobalHookFunction = async (
         { entry, entryType, orm },
       ) => {
-        return await hook(app, { entry, entryType, orm });
+        return await hook(inCloud, { entry, entryType, orm });
       };
       globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
     }
@@ -100,6 +100,7 @@ export function setupOrm(args: {
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,
     dbConfig,
+    inCloud,
   });
   return orm;
 }

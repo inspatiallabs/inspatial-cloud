@@ -3,7 +3,7 @@ import type {
   BasicFgColor,
   Color256,
   ColorRGB,
-} from "#utils/color-me.ts";
+} from "#terminal/color-me.ts";
 
 export type LineStyle =
   | "standard"

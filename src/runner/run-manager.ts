@@ -38,7 +38,7 @@ const terminalMessages = {
   },
   db: {
     row: 41,
-    title: "Embedded DB",
+    title: "Database",
   },
   server: {
     row: 42,
@@ -47,6 +47,9 @@ const terminalMessages = {
 };
 const STARTING = ColorMe.standard().content("Starting").color("brightYellow")
   .end();
+const CONNECTING = ColorMe.standard().content("Connecting").color(
+  "brightYellow",
+).end();
 export class RunManager {
   rootPath: string;
   coreCount: number;
@@ -81,7 +84,7 @@ export class RunManager {
       makeLogo({
         symbol: "alt2DownLeft",
         fillSymbol: "alt2UpRight",
-        blankSymbol: "blockSolid",
+        blankSymbol: "alt2DownRight",
         bgColor: "bgBlack",
         blankColor: "black",
         fillColor: "brightMagenta",
@@ -125,6 +128,7 @@ export class RunManager {
     const embeddedDb = inCloud.getExtensionConfigValue("orm", "embeddedDb");
     this.autoMigrate = inCloud.getExtensionConfigValue("orm", "autoMigrate");
     this.autoTypes = inCloud.getExtensionConfigValue("orm", "autoTypes");
+    const ormConfig = inCloud.getExtensionConfig("orm");
 
     this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
     this.port = inCloud.getExtensionConfigValue("cloud", "port");
@@ -139,15 +143,18 @@ export class RunManager {
     let stopDbSpin: () => void = () => {};
     let embeddedDbPort: number | undefined = undefined;
     if (!embeddedDb) {
-      this.updateStatus("db", {
-        message: ColorMe.standard().content("disabled").color("brightRed")
-          .end(),
+      stopDbSpin = spin((content) => {
+        this.updateStatus("db", {
+          message: `${CONNECTING} ${
+            makeDBConnectionString(ormConfig)
+          } ${content}`,
+        });
       });
     }
     if (embeddedDb) {
       stopDbSpin = spin((content) => {
         this.updateStatus("db", {
-          message: `${STARTING} ${content}`,
+          message: `${STARTING} Embedded DB ${content}`,
         });
       });
       embeddedDbPort = inCloud.getExtensionConfigValue<number>(
@@ -175,10 +182,21 @@ export class RunManager {
     this.updateStatus("server", {
       message: `${makeRunning(true, this.port!)} (${procCount} instances)`,
     });
+    stopDbSpin();
+    if (!embeddedDb) {
+      this.view.setRowContent(
+        terminalMessages.db.row,
+        ColorMe.standard().content(" ".repeat(6) + terminalMessages.db.title)
+          .color(
+            "brightBlue",
+          ).end(),
+      );
 
+      this.updateStatus("db", {
+        message: makeDBConnectionString(ormConfig, true),
+      });
+    }
     if (embeddedDb) {
-      stopDbSpin();
-
       this.updateStatus("db", {
         message: makeRunning(true, embeddedDbPort!),
       });
@@ -191,11 +209,12 @@ export class RunManager {
     // this.printInfo(inCloud.inLog, [rows.map((row) => center(row)).join("\n")]);
 
     await asyncPause(100);
+
     const url = `http://${this.hostname}:${this.port}`;
     Terminal.goTo(44, 0);
     inLog.info(
       center(
-        ColorMe.chain("basic").content(
+        ColorMe.standard("basic").content(
           "InSpatial Cloud",
         ).color("brightMagenta")
           .content(" running at ")
@@ -246,11 +265,12 @@ export class RunManager {
     message: string;
   }) {
     const { row, title } = terminalMessages[type];
+    const message = options.message;
     Terminal.goTo(row, OFFSET);
-    Terminal.write(options.message);
+    Terminal.write(message);
   }
   setupMessages() {
-    Object.entries(terminalMessages).forEach(([key, value]) => {
+    Object.entries(terminalMessages).forEach(([_key, value]) => {
       const content = ColorMe.standard().content(" ".repeat(6) + value.title)
         .color(
           "brightBlue",
@@ -265,10 +285,10 @@ export class RunManager {
           return;
         }
         this.isReloading = true;
-        // inLog.warn(
-        //   `File change detected, reloading...`,
-        //   convertString(this.appName, "title", true),
-        // );
+        inLog.warn(
+          `File change detected, reloading...`,
+          convertString(this.appName, "title", true),
+        );
         this.reload();
         return;
         // Here you can add logic to handle the file change, like restarting servers
@@ -372,11 +392,12 @@ export class RunManager {
 
     process.status.then((status) => {
       const { success, code } = status;
-      console.log({
-        mode,
-        success,
-        code,
-      });
+      if (!success) {
+        inLog.error(
+          `Process ${mode} exited with code ${code}.`,
+          convertString(this.appName, "title", true),
+        );
+      }
     });
     return process;
   }
@@ -407,10 +428,44 @@ export class RunManager {
   //   );
   // }
 }
+function makeDBConnectionString(dbConfig: any, connected?: boolean): string {
+  const { dbConnectionType, dbHost, dbPort, dbName, dbUser } = dbConfig;
+  if (connected) {
+    const outConn = ColorMe.standard().content("Connected ").color(
+      "brightGreen",
+    ).content(
+      "db: ",
+    ).color("white").content(
+      dbName,
+    ).color("brightCyan");
+    if (dbConnectionType === "socket") {
+      outConn.content(" via ").color("white").content(
+        dbConnectionType,
+      ).color("brightCyan");
+      return outConn.end();
+    }
+    return outConn.content(" at ").color("white").content(
+      `${dbHost}:${dbPort}`,
+    ).color("brightCyan").end();
+  }
+  const out = ColorMe.standard().content("via ").color("white").content(
+    dbConnectionType,
+  ).color("brightCyan").content(" db:").color("white").content(
+    dbName,
+  ).color("brightCyan").content(" user:").color("white").content(
+    dbUser,
+  ).color("brightCyan");
 
+  if (dbConnectionType === "socket") {
+    return out.end();
+  }
+  return out.content(" at ").color("white").content(
+    `${dbHost}:${dbPort}`,
+  ).color("brightCyan").end();
+}
 function makeRunning(
   isRunning: boolean,
-  port: number,
+  port: number | string = "unknown",
 ): string {
   const output = ColorMe.standard();
   if (isRunning) {

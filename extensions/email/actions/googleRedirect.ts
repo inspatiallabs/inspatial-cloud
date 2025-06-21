@@ -1,32 +1,45 @@
 import { CloudAPIAction } from "/api/cloud-action.ts";
-import { getAccessToken } from "../entryTypes/emailAccountEntry.ts";
-import { Redirect } from "/app/server-exception.ts";
+
+import { raiseServerException, Redirect } from "/app/server-exception.ts";
+import { GoogleOAuth } from "../../auth/providers/google/accessToken.ts";
+import type { EmailSettings } from "../../../examples/basic/.inspatial/_generated/settings/email-settings.ts";
 
 export const redirectAction = new CloudAPIAction("redirect", {
   description: "Redirect from Google OAuth",
 
-  async run({ inCloud, inRequest, inResponse, params, orm }) {
-    const emailSettings = await orm.getSettings("emailSettings");
-    const redirectHost = emailSettings.redirectHost;
+  async run({ inRequest, params, orm }) {
+    const emailSettings = await orm.getSettings<EmailSettings>("emailSettings");
+    const authSettings = await orm.getSettings("authSettings");
 
-    const { code, scope, state: accountEntryId } = params;
-    const token = await getAccessToken({
-      code,
-      clientId: emailSettings.clientId,
-      clientSecret: emailSettings.clientSecret,
-      redirectUri: `${redirectHost}/api?group=email&action=redirect`,
+    const { code, state: accountEntryId } = params;
+    const googleAuth = new GoogleOAuth({
+      clientId: authSettings.googleClientId,
+      clientSecret: authSettings.googleClientSecret,
     });
+    const tokenResult = await googleAuth.getAccessToken({
+      code,
+      redirectUri: `${
+        authSettings.hostname || inRequest.fullHost
+      }/api?group=email&action=redirect`,
+    });
+    if (!tokenResult || !tokenResult.accessToken) {
+      raiseServerException(
+        400,
+        "Google auth: Failed to get access token",
+      );
+    }
     const emailAccount = await orm.getEntry("emailAccount", accountEntryId);
-    emailAccount.accessToken = token.access_token;
+    emailAccount.accessToken = tokenResult?.accessToken;
     emailAccount.acquiredTime = new Date().getTime();
     emailAccount.expireTime = emailAccount.acquiredTime +
-      token.expires_in * 1000;
-    emailAccount.tokenType = token.token_type;
-    emailAccount.refreshToken = token.refresh_token;
-    emailAccount.scope = token.scope;
+      tokenResult.expiresIn * 1000;
+    emailAccount.tokenType = tokenResult.tokenType;
+    emailAccount.refreshToken = tokenResult.refreshToken;
+    emailAccount.scope = tokenResult.scope;
     emailAccount.authStatus = "authorized";
     await emailAccount.save();
-    const redirectFinal = emailSettings.redirectFinal;
+    const redirectFinal = emailSettings.redirectFinal ||
+      `${inRequest.origin}/#/entry/emailAccount/${emailAccount.id}`;
     return new Redirect(redirectFinal);
   },
   params: [

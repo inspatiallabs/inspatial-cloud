@@ -4,8 +4,7 @@ import type { InField } from "/orm/field/field-def-types.ts";
 import { makeFields } from "/orm/build/make-fields.ts";
 import type { SettingsActionDefinition } from "/orm/settings/types.ts";
 import { buildChildren } from "/orm/child-entry/build-children.ts";
-import { initCloud } from "../../init.ts";
-import { InCloud } from "../../inspatial-cloud.ts";
+import type { InCloud } from "../../cloud/cloud-common.ts";
 
 export function buildSettings(
   settingsType: SettingsType,

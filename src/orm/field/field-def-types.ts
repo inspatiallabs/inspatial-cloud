@@ -201,6 +201,7 @@ export interface RichTextField extends BaseField {
 export interface URLField extends BaseField {
   type: "URLField";
   defaultValue?: InValue<"URLField">;
+  urlType?: "button" | "link" | "text";
 }
 
 export interface ListField extends BaseField {

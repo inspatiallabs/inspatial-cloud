@@ -1,8 +1,9 @@
-import type { EntryActionDefinition } from "/orm/entry/types.ts";
+import type { EntryActionDefinition } from "#orm/entry/types.ts";
 import type { InTask } from "/in-queue/generated-types/in-task.ts";
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type InCloud from "@inspatial/cloud";
-import { dateUtils } from "/utils/date-utils.ts";
+import type { InSpatialORM } from "#orm/inspatial-orm.ts";
+
+import { dateUtils } from "#utils/date-utils.ts";
+import type { InCloud } from "../../../cloud/cloud-common.ts";
 
 export const runTask: EntryActionDefinition<InTask> = {
   key: "runTask",

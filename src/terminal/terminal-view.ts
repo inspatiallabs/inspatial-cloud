@@ -49,7 +49,8 @@ export class TerminalView {
     const height = this.height;
     for (let i = 0; i < height; i++) {
       Terminal.goTo(i, 0);
-      this.print(this.padChar.repeat(columns));
+      Terminal.clearCurrentLine();
+      // this.print(this.padChar.repeat(columns));
     }
   }
   drawBox(options: {
@@ -101,9 +102,10 @@ export class TerminalView {
     offset: number = 0,
   ) {
     Terminal.goTo(row, offset);
-    const { columns } = this.consoleSize;
-    const paddedContent = content.padEnd(columns, this.padChar);
-    this.print(paddedContent);
+    Terminal.clearCurrentLine();
+    // const { columns } = this.consoleSize;
+    // const paddedContent = content.padEnd(columns, this.padChar);
+    Terminal.write(content);
   }
   setTitle(title: string) {
     Terminal.goToTop();

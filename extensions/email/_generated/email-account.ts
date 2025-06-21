@@ -22,7 +22,7 @@ export interface EmailAccount extends EntryBase {
    */
   useGmailOauth?: boolean;
   /**
-   * **Authorization URL** (URLField)
+   * **Authorize Gmail** (URLField)
    * @description The URL to authorize this email account with Gmail
    * @type {string}
    */
@@ -41,25 +41,25 @@ export interface EmailAccount extends EntryBase {
   receiveEmails?: boolean;
   /**
    * **SMTP Host** (TextField)
-   * @description The host of the SMTP server
+   * @description The host of the SMTP server. smtp.gmail.com for Gmail
    * @type {string}
    */
   smtpHost?: string;
   /**
    * **SMTP Port** (IntField)
-   * @description The port of the SMTP server
+   * @description The port of the SMTP server. 587 for Gmail
    * @type {number}
    */
   smtpPort?: number;
   /**
    * **SMTP User** (DataField)
-   * @description The user to authenticate with the SMTP server
+   * @description The user to authenticate with the SMTP server. This is usually the email address
    * @type {string}
    */
   smtpUser?: string;
   /**
    * **SMTP Password** (PasswordField)
-   * @description The password to authenticate with the SMTP server
+   * @description The password to authenticate with the SMTP server. Not required if using Gmail OAuth
    * @type {string}
    */
   smtpPassword?: string;
