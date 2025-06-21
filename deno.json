@@ -27,6 +27,7 @@
     "./": "./",
     "#orm/": "./src/orm/",
     "#utils/": "./src/utils/",
+    "#terminal/": "./src/terminal/",
     "#queue/": "./src/in-queue/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/"

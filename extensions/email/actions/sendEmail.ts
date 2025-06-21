@@ -1,4 +1,4 @@
-import { CloudAPIAction, CloudAPIGroup } from "@inspatial/cloud";
+import { CloudAPIAction } from "@inspatial/cloud";
 
 export const sendEmail = new CloudAPIAction("sendEmail", {
   label: "Send Email",
@@ -39,6 +39,6 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       subject,
       body,
     });
-    await email.enqueueAction("send");
+    // await email.enqueueAction("send");
   },
 });

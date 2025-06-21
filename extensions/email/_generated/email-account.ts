@@ -1,4 +1,5 @@
-import type { ChildList, EntryBase } from "@inspatial/cloud/types";
+import type { EntryBase } from "/orm/entry/entry-base.ts";
+
 export interface EmailAccount extends EntryBase {
   _name: "emailAccount";
   /**
@@ -20,6 +21,12 @@ export interface EmailAccount extends EntryBase {
    * @type {boolean}
    */
   useGmailOauth?: boolean;
+  /**
+   * **Authorization URL** (URLField)
+   * @description The URL to authorize this email account with Gmail
+   * @type {string}
+   */
+  authUrl?: string;
   /**
    * **Send Emails** (BooleanField)
    * @description Whether this email account can send emails

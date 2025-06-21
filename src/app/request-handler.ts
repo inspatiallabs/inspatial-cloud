@@ -4,6 +4,7 @@ import { InResponse } from "/app/in-response.ts";
 import type { ExtensionManager } from "/extension-manager/extension-manager.ts";
 import { handleException } from "/app/exeption/handle-exception.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
+import { Redirect } from "./server-exception.ts";
 
 export async function requestHandler(
   request: Request,

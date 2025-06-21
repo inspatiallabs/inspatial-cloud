@@ -1,6 +1,6 @@
 import type { ConfigEnv } from "#types/serve-types.ts";
 import type { CloudExtensionInfo } from "/app/types.ts";
-import ColorMe from "#utils/color-me.ts";
+import ColorMe from "#terminal/color-me.ts";
 import { joinPath } from "#utils/path-utils.ts";
 import type { InCloud } from "./cloud/cloud-common.ts";
 

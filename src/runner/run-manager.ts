@@ -4,16 +4,49 @@ import {
   loadCloudConfigFile,
 } from "../cloud-config/cloud-config.ts";
 import { InCloud } from "../cloud/cloud-common.ts";
-import { type InLog, inLog } from "../in-log/in-log.ts";
-import { makeLogo } from "../in-log/logo.ts";
+import { makeLogo } from "#terminal/logo.ts";
 import { initCloud } from "../init.ts";
-import ColorMe from "../utils/color-me.ts";
-import convertString from "../utils/convert-string.ts";
-import { center } from "../utils/format-utils.ts";
-import { joinPath } from "../utils/path-utils.ts";
+import ColorMe from "#terminal/color-me.ts";
+import convertString from "#utils/convert-string.ts";
+import { center } from "#terminal/format-utils.ts";
+import { joinPath } from "#utils/path-utils.ts";
 import { getCoreCount } from "./multicore.ts";
 import type { RunnerMode } from "./types.ts";
+import { TerminalView } from "#terminal/terminal-view.ts";
+import { Terminal } from "#terminal/terminal.ts";
+import { inLog } from "../in-log/in-log.ts";
+import { asyncPause } from "#utils/misc.ts";
+function spin(callback: (content: string) => void) {
+  const spinnerChars = ["|", "/", "-", "\\", "|", "/", "-", "\\"];
+  let index = 0;
+  const interval = setInterval(() => {
+    callback(spinnerChars[index]);
+    index = (index + 1) % spinnerChars.length;
+  }, 100);
+  return () => clearInterval(interval);
+}
+const OFFSET = 26;
+const terminalMessages = {
+  broker: {
+    row: 39,
 
+    title: "Message Broker",
+  },
+  queue: {
+    row: 40,
+    title: "InQueue",
+  },
+  db: {
+    row: 41,
+    title: "Embedded DB",
+  },
+  server: {
+    row: 42,
+    title: "Server Processes",
+  },
+};
+const STARTING = ColorMe.standard().content("Starting").color("brightYellow")
+  .end();
 export class RunManager {
   rootPath: string;
   coreCount: number;
@@ -28,15 +61,160 @@ export class RunManager {
   watch?: boolean;
   autoMigrate?: boolean;
   autoTypes?: boolean;
+  view: TerminalView;
+
   constructor(rootPath: string) {
     this.serveProcs = [];
     this.coreCount = 1;
     // Initialize the RunManager
-
+    this.view = new TerminalView({
+      title: "InSpatial Cloud",
+    });
     this.rootPath = rootPath;
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
+  async init(appName: string, config: CloudConfig): Promise<void> {
+    Terminal.hideCursor();
+    this.view.start();
+    Terminal.goTo(3, 0);
+    this.view.printRaw(
+      makeLogo({
+        symbol: "alt2DownLeft",
+        fillSymbol: "alt2UpRight",
+        blankSymbol: "blockSolid",
+        bgColor: "bgBlack",
+        blankColor: "black",
+        fillColor: "brightMagenta",
+        outlineColor: "white",
+      }),
+    );
+    this.setupMessages();
 
+    Deno.args.forEach((arg) => {
+      if (arg === "--watch") {
+        this.watch = true;
+      }
+    });
+    const stopBrokerSpin = spin((content) => {
+      this.updateStatus("broker", {
+        message: `${STARTING} ${content}`,
+      });
+    });
+    const stopQueueSpin = spin((content) => {
+      this.updateStatus("queue", {
+        message: `${STARTING} ${content}`,
+      });
+    });
+    const stopServerSpin = spin((content) => {
+      this.updateStatus("server", {
+        message: `${STARTING} ${content}`,
+      });
+    });
+
+    this.coreCount = await getCoreCount();
+    this.appName = appName;
+    // environment variables setup
+    const hasConfig = loadCloudConfigFile(this.rootPath);
+    const inCloud = new InCloud(appName, config, "manager");
+
+    inCloud.init();
+    if (!hasConfig) {
+      generateConfigSchema(inCloud);
+      initCloud(inCloud);
+    }
+    const embeddedDb = inCloud.getExtensionConfigValue("orm", "embeddedDb");
+    this.autoMigrate = inCloud.getExtensionConfigValue("orm", "autoMigrate");
+    this.autoTypes = inCloud.getExtensionConfigValue("orm", "autoTypes");
+
+    this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
+    this.port = inCloud.getExtensionConfigValue("cloud", "port");
+    const brokerPort = inCloud.getExtensionConfigValue<number>(
+      "cloud",
+      "brokerPort",
+    );
+    const queuePort = inCloud.getExtensionConfigValue<number>(
+      "cloud",
+      "queuePort",
+    );
+    let stopDbSpin: () => void = () => {};
+    let embeddedDbPort: number | undefined = undefined;
+    if (!embeddedDb) {
+      this.updateStatus("db", {
+        message: ColorMe.standard().content("disabled").color("brightRed")
+          .end(),
+      });
+    }
+    if (embeddedDb) {
+      stopDbSpin = spin((content) => {
+        this.updateStatus("db", {
+          message: `${STARTING} ${content}`,
+        });
+      });
+      embeddedDbPort = inCloud.getExtensionConfigValue<number>(
+        "orm",
+        "embeddedDbPort",
+      );
+      this.spawnDB(embeddedDbPort);
+    }
+    this.spawnBroker(brokerPort);
+    stopBrokerSpin();
+    this.updateStatus(
+      "broker",
+      {
+        message: makeRunning(true, brokerPort),
+      },
+    );
+    await inCloud.boot();
+    if (this.autoMigrate || this.autoTypes) {
+      await this.spawnMigrator();
+    }
+    this.spawnQueue();
+
+    const procCount = this.spawnServers();
+    stopServerSpin();
+    this.updateStatus("server", {
+      message: `${makeRunning(true, this.port!)} (${procCount} instances)`,
+    });
+
+    if (embeddedDb) {
+      stopDbSpin();
+
+      this.updateStatus("db", {
+        message: makeRunning(true, embeddedDbPort!),
+      });
+    }
+
+    stopQueueSpin();
+    this.updateStatus("queue", {
+      message: makeRunning(true, queuePort),
+    });
+    // this.printInfo(inCloud.inLog, [rows.map((row) => center(row)).join("\n")]);
+
+    await asyncPause(100);
+    const url = `http://${this.hostname}:${this.port}`;
+    Terminal.goTo(44, 0);
+    inLog.info(
+      center(
+        ColorMe.chain("basic").content(
+          "InSpatial Cloud",
+        ).color("brightMagenta")
+          .content(" running at ")
+          .color("brightWhite")
+          .content(url)
+          .color("brightCyan")
+          .end(),
+      ),
+      convertString(this.appName, "title", true),
+    );
+    if (this.watch) {
+      inLog.info(
+        "Watching for file changes. Press Ctrl+C to stop.",
+        convertString(this.appName, "title", true),
+      );
+      this.setupWatcher();
+    }
+    Terminal.showCursor();
+  }
   async setupWatcher() {
     const dirs = Deno.readDirSync(this.rootPath);
     const paths = [];
@@ -64,6 +242,22 @@ export class RunManager {
       }
     }
   }
+  updateStatus(type: "broker" | "queue" | "db" | "server", options: {
+    message: string;
+  }) {
+    const { row, title } = terminalMessages[type];
+    Terminal.goTo(row, OFFSET);
+    Terminal.write(options.message);
+  }
+  setupMessages() {
+    Object.entries(terminalMessages).forEach(([key, value]) => {
+      const content = ColorMe.standard().content(" ".repeat(6) + value.title)
+        .color(
+          "brightBlue",
+        ).end();
+      this.view.setRowContent(value.row, content);
+    });
+  }
   handleWatchEvent(event: Deno.FsEvent) {
     for (const path of event.paths) {
       if (path.endsWith(".ts")) {
@@ -71,10 +265,10 @@ export class RunManager {
           return;
         }
         this.isReloading = true;
-        inLog.warn(
-          `File change detected, reloading...`,
-          convertString(this.appName, "title", true),
-        );
+        // inLog.warn(
+        //   `File change detected, reloading...`,
+        //   convertString(this.appName, "title", true),
+        // );
         this.reload();
         return;
         // Here you can add logic to handle the file change, like restarting servers
@@ -94,10 +288,10 @@ export class RunManager {
     this.queueProc = undefined;
     this.spawnMigrator().then((success) => {
       if (!success) {
-        inLog.error(
-          "Migration failed. Please check the logs for details.",
-          convertString(this.appName, "title", true),
-        );
+        // inLog.error(
+        //   "Migration failed. Please check the logs for details.",
+        //   convertString(this.appName, "title", true),
+        // );
         return;
       }
       this.spawnServers();
@@ -106,87 +300,6 @@ export class RunManager {
     });
   }
 
-  async init(appName: string, config: CloudConfig): Promise<void> {
-    Deno.args.forEach((arg) => {
-      if (arg === "--watch") {
-        this.watch = true;
-      }
-    });
-    this.coreCount = await getCoreCount();
-    inLog.warn(
-      `Initializing InSpatial Cloud for ${appName}...`,
-      convertString(appName, "title", true),
-    );
-    this.appName = appName;
-    // environment variables setup
-    const hasConfig = loadCloudConfigFile(this.rootPath);
-    const inCloud = new InCloud(appName, config, "manager");
-
-    await inCloud.init();
-    if (!hasConfig) {
-      generateConfigSchema(inCloud);
-      initCloud(inCloud);
-    }
-    const embeddedDb = inCloud.getExtensionConfigValue("orm", "embeddedDb");
-    this.autoMigrate = inCloud.getExtensionConfigValue("orm", "autoMigrate");
-    this.autoTypes = inCloud.getExtensionConfigValue("orm", "autoTypes");
-
-    this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
-    this.port = inCloud.getExtensionConfigValue("cloud", "port");
-    const brokerPort = inCloud.getExtensionConfigValue<number>(
-      "cloud",
-      "brokerPort",
-    );
-    const queuePort = inCloud.getExtensionConfigValue<number>(
-      "cloud",
-      "queuePort",
-    );
-
-    if (embeddedDb) {
-      const embeddedDbPort = inCloud.getExtensionConfigValue<number>(
-        "orm",
-        "embeddedDbPort",
-      );
-      this.spawnDB(embeddedDbPort);
-    }
-    await inCloud.boot();
-    if (this.autoMigrate || this.autoTypes) {
-      await this.spawnMigrator();
-    }
-    this.spawnBroker(brokerPort);
-    this.spawnQueue();
-    const procCount = this.spawnServers();
-    const rows: Array<string> = [
-      `Server Processes: ${procCount} spawned`,
-      makeRunning(
-        "Message Broker",
-        this.brokerProc?.pid !== undefined,
-        brokerPort,
-      ),
-      makeRunning(
-        "InQueue",
-        this.queueProc?.pid !== undefined,
-        queuePort,
-      ),
-    ];
-    if (embeddedDb) {
-      rows.push(
-        makeRunning(
-          "Embedded DB",
-          this.dbProc?.pid !== undefined,
-          inCloud.getExtensionConfigValue<number>("orm", "embeddedDbPort") || 0,
-        ),
-      );
-    }
-    this.printInfo(inCloud.inLog, [rows.map((row) => center(row)).join("\n")]);
-    if (this.watch) {
-      inLog.info(
-        "Watching for file changes. Press Ctrl+C to stop.",
-        convertString(this.appName, "title", true),
-      );
-      this.setupWatcher();
-    }
-  }
   spawnServers(): number {
     if (this.serveProcs.length >= this.coreCount) {
       throw new Error(
@@ -256,54 +369,50 @@ export class RunManager {
       },
     });
     const process = cmd.spawn();
+
+    process.status.then((status) => {
+      const { success, code } = status;
+      console.log({
+        mode,
+        success,
+        code,
+      });
+    });
     return process;
   }
 
-  printInfo(inLog: InLog, rows: Array<string> = []) {
-    const logo = makeLogo("downLeft", "brightMagenta");
+  // printInfo(inLog: InLog, rows: Array<string> = []) {
 
-    const url = `http://${this.hostname}:${this.port}`;
+  //   const url = `http://${this.hostname}:${this.port}`;
 
-    const output = [
-      logo,
-      center(
-        ColorMe.chain("basic").content(
-          "InSpatial Cloud",
-        ).color("brightMagenta")
-          .content(" running at ")
-          .color("brightWhite")
-          .content(url)
-          .color("brightCyan")
-          .end(),
-      ),
-      ...rows.map((row) => center(row)),
-      center(
-        "You can ping the server:",
-      ),
-      ColorMe.fromOptions(
-        center(
-          `http://${this.hostname}:${this.port}/api?group=api&action=ping`,
-        ),
-        {
-          color: "brightYellow",
-        },
-      ),
-    ];
-    inLog.info(
-      output.join("\n\n"),
-      convertString(this.appName, "title", true),
-    );
-  }
+  //   const output = [
+  //     logo,
+
+  //     ...rows.map((row) => center(row)),
+  //     center(
+  //       "You can ping the server:",
+  //     ),
+  //     ColorMe.fromOptions(
+  //       center(
+  //         `http://${this.hostname}:${this.port}/api?group=api&action=ping`,
+  //       ),
+  //       {
+  //         color: "brightYellow",
+  //       },
+  //     ),
+  //   ];
+  //   inLog.info(
+  //     output.join("\n\n"),
+  //     convertString(this.appName, "title", true),
+  //   );
+  // }
 }
 
 function makeRunning(
-  serviceName: string,
   isRunning: boolean,
   port: number,
 ): string {
-  const output = ColorMe.standard().content(`${serviceName}: `).color(
-    "brightBlue",
-  );
+  const output = ColorMe.standard();
   if (isRunning) {
     return output.content("Running").color("brightGreen").content(" on port ")
       .color(

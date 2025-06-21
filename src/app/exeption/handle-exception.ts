@@ -9,9 +9,6 @@ export async function handleException(
   exceptionHandlers: Map<string, ExceptionHandler>,
 ): Promise<Response> {
   inResponse = inResponse || new InResponse();
-  if (err instanceof Response) {
-    return err;
-  }
   const clientMessages: Array<Record<string, any> | string> = [];
   let handled = false;
   for (const handler of exceptionHandlers.values()) {
@@ -81,7 +78,6 @@ export async function handleException(
     inResponse.errorStatusText = "Internal Server Error";
     handled = true;
   }
-
   if (!handled) {
     inLog.error("An unknown error occurred", {
       subject: "Unknown Error",

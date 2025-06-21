@@ -112,7 +112,7 @@ export class Entry<
       default:
         await this.#beforeUpdate();
     }
-
+    await this.refreshFetchedFields();
     const data: Record<string, any> = {};
     for (const [key, value] of this._modifiedValues.entries()) {
       const fieldDef = this._getFieldDef(key);

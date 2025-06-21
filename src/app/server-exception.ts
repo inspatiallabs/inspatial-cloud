@@ -1,3 +1,12 @@
+export class Redirect {
+  url: string;
+  status: number;
+  constructor(url: string, status: number = 302) {
+    this.url = url;
+    this.status = status;
+  }
+}
+
 /**
  * Custom exception class for InSpatialServer server exceptions
  */

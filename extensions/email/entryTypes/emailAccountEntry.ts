@@ -1,4 +1,4 @@
-import { raiseServerException } from "/app/server-exception.ts";
+import { raiseServerException, Redirect } from "/app/server-exception.ts";
 import type { EmailAccount } from "../_generated/email-account.ts";
 import { EntryType } from "/orm/entry/entry-type.ts";
 import { dateUtils } from "/utils/date-utils.ts";
@@ -66,6 +66,13 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       description: "Use OAuth to authenticate with Gmail",
     },
     {
+      key: "authUrl",
+      type: "URLField",
+      label: "Authorization URL",
+      description: "The URL to authorize this email account with Gmail",
+      readOnly: true,
+    },
+    {
       key: "sendEmails",
       type: "BooleanField",
       label: "Send Emails",
@@ -82,26 +89,28 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       key: "smtpHost",
       type: "TextField",
       label: "SMTP Host",
-      description: "The host of the SMTP server",
+      description: "The host of the SMTP server. smtp.gmail.com for Gmail",
     },
     {
       key: "smtpPort",
       type: "IntField",
       label: "SMTP Port",
-      description: "The port of the SMTP server",
+      description: "The port of the SMTP server. 587 for Gmail",
     },
     {
       key: "smtpUser",
       type: "DataField",
       label: "SMTP User",
-      description: "The user to authenticate with the SMTP server",
+      description:
+        "The user to authenticate with the SMTP server. This is usually the email address",
     },
 
     {
       key: "smtpPassword",
       type: "PasswordField",
       label: "SMTP Password",
-      description: "The password to authenticate with the SMTP server",
+      description:
+        "The password to authenticate with the SMTP server. Not required if using Gmail OAuth",
       dependsOn: {
         field: "useGmailOauth",
         value: false,
@@ -187,16 +196,12 @@ emailAccountEntry.addAction({
     url.searchParams.append("access_type", "offline");
     url.searchParams.append("prompt", "consent");
     url.searchParams.append("state", emailAccount.id);
-
-    throw new Response(
-      "Redirecting to Google OAuth",
-      {
-        status: 302,
-        headers: {
-          Location: url.toString(),
-        },
-      },
-    );
+    emailAccount.authUrl = url.toString();
+    await emailAccount.save();
+    return {
+      type: "redirect",
+      url: emailAccount.authUrl,
+    };
   },
 });
 
@@ -216,7 +221,7 @@ emailAccountEntry.addAction({
         "Refresh token is missing",
       );
     }
-    const { access_token, expires_in, token_type, refresh_token, scope } =
+    const { access_token, expires_in, token_type, refresh_token } =
       await refreshAccessToken({
         clientId: emailSettings.clientId,
         clientSecret: emailSettings.clientSecret,

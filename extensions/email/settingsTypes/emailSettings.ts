@@ -28,10 +28,11 @@ export const emailSettings = new SettingsType("emailSettings", {
       description: "The final url to redirect to after Google OAuth completes",
     },
     {
-      key: "emailAccount",
-      type: "EmailField",
-      label: "Email Account",
-      description: "The email account to send emails from",
+      key: "defaultSendAccount",
+      label: "Default Send Account",
+      type: "ConnectionField",
+      entryType: "emailAccount",
+      description: "The default email account to use for sending emails",
     },
     {
       key: "smtpHost",
@@ -76,7 +77,7 @@ export const emailSettings = new SettingsType("emailSettings", {
       label: "SMTP Settings",
       description: "Settings for SMTP server",
       fields: [
-        "emailAccount",
+        "defaultSendAccount",
         "smtpHost",
         "smtpPort",
         "smtpUser",

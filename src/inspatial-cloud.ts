@@ -109,7 +109,7 @@ class InCloudRunner {
       this.#config,
       "migrator",
     );
-    await inCloud.init();
+    inCloud.init();
 
     const autoTypes = inCloud.getExtensionConfigValue<boolean>(
       "orm",
@@ -128,17 +128,17 @@ class InCloudRunner {
 
     await inCloud.boot();
     if (autoMigrate) {
-      inCloud.inLog.info(
-        "Running ORM migrations...",
-        "ORM",
-      );
+      // inCloud.inLog.info(
+      //   "Running ORM migrations...",
+      //   "ORM",
+      // );
       await inCloud.orm.migrate();
     }
     if (autoTypes) {
-      inCloud.inLog.info(
-        "Generating ORM type interfaces...",
-        "ORM",
-      );
+      // inCloud.inLog.info(
+      //   "Generating ORM type interfaces...",
+      //   "ORM",
+      // );
       await inCloud.orm.generateInterfaces();
     }
 

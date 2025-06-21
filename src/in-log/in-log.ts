@@ -7,9 +7,9 @@ import type {
   StackFrame,
 } from "/in-log/types.ts";
 import { formatStackFrame, parseStackFrame } from "/in-log/stack-formatting.ts";
-import type { BasicFgColor } from "/utils/color-me.ts";
-import printUtils from "/utils/print-utils.ts";
-import formatUtils from "/utils/format-utils.ts";
+import type { BasicFgColor } from "#terminal/color-me.ts";
+import printUtils from "#terminal/print-utils.ts";
+import formatUtils from "#terminal/format-utils.ts";
 
 const colorMap: Record<LogType, BasicFgColor> = {
   info: "brightGreen",
