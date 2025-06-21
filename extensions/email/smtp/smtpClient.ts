@@ -42,7 +42,7 @@ export class SMTPClient {
     disconnect: false,
   };
 
-  onStateChange(state: State, message: string) {
+  onStateChange(_state: State, message: string) {
     console.log(message);
   }
   onError = (code: number, message: string) => {
@@ -151,7 +151,7 @@ export class SMTPClient {
   handle4Error(code: number, message: string) {
     this.onError(code, message);
   }
-  handle235(message: string) {
+  handle235(_message: string) {
     this.states.authenticated = true;
   }
   handle334(message: string) {
@@ -163,7 +163,7 @@ export class SMTPClient {
       this.states.authPassword = true;
     }
   }
-  handle220(message: string) {
+  handle220(_message: string) {
     if (!this.states.connected) {
       this.states.connected = true;
       return;

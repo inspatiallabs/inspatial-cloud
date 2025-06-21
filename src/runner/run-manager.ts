@@ -264,7 +264,7 @@ export class RunManager {
   updateStatus(type: "broker" | "queue" | "db" | "server", options: {
     message: string;
   }) {
-    const { row, title } = terminalMessages[type];
+    const { row } = terminalMessages[type];
     const message = options.message;
     Terminal.goTo(row, OFFSET);
     Terminal.write(message);

@@ -4,8 +4,7 @@ import { ERRNO_CODES } from "../constants.ts";
 import { normalizeVirtualPath } from "../convert.ts";
 import type { PGMem } from "../pgMem.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
-const dataURL =
-  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.data";
+
 export class FileManager {
   openFiles: Map<number, PGFile | PGFileMem>;
   openTmpFDs: Map<string, number>;
@@ -93,9 +92,9 @@ export class FileManager {
         seek = -1;
       }
       this.messageCount += 1;
-      const offset = this.debugFile.seekSync(seek, Deno.SeekMode.Current);
+      const _offset = this.debugFile.seekSync(seek, Deno.SeekMode.Current);
       const out = this.messageCount.toString().padStart(4, "0");
-      const written = this.debugFile.writeSync(
+      const _written = this.debugFile.writeSync(
         new TextEncoder().encode(" (" + out + ")\n"),
       );
     } else {
@@ -266,7 +265,7 @@ export class FileManager {
       path = this.join(this.cwd, path);
     }
     try {
-      const result = Deno.statSync(path);
+      Deno.statSync(path);
     } catch (e) {
       if (e instanceof Deno.errors.NotFound) {
         return -ERRNO_CODES.ENOENT;
@@ -277,7 +276,7 @@ export class FileManager {
     return 0;
   }
   getPtrPath(pointer: number) {
-    let path = this.mem.getStr(pointer);
+    const path = this.mem.getStr(pointer);
 
     return path;
   }
