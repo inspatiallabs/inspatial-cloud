@@ -63,13 +63,22 @@ export class PGMem {
     return Math.ceil(size / alignment) * alignment;
   }
   growMemory(size: number) {
-    let buffer = this.wasmMemory.buffer;
+    const buffer = this.wasmMemory.buffer;
     const pages = ((size - buffer.byteLength + 65535) / 65536) | 0;
     try {
       this.wasmMemory.grow(pages);
       this.updateMemoryViews();
       return 1;
-    } catch (e) {}
+    } catch (e) {
+      if (e instanceof RangeError) {
+        console.error(
+          "Memory grow failed. Requested size: " + size + ", current size: " +
+            buffer.byteLength,
+        );
+        return 0;
+      }
+      throw e; // rethrow if it's not a RangeError
+    }
   }
 
   stackAlloc(sz: number) {
@@ -89,8 +98,8 @@ export class PGMem {
     return ptr;
   }
   stringToUTF8OnStack(str: string) {
-    var size = lengthBytesUTF8(str) + 1;
-    var ret = this.stackAlloc(size);
+    const size = lengthBytesUTF8(str) + 1;
+    const ret = this.stackAlloc(size);
     this.stringToUTF8(str, ret, size);
     return ret;
   }
@@ -101,7 +110,7 @@ export class PGMem {
     return UTF8ArrayToString(this.HEAPU8, ptr, maxBytesToRead);
   }
   stringToAscii(str: string, bufPtr: number) {
-    for (var i = 0; i < str.length; ++i) {
+    for (let i = 0; i < str.length; ++i) {
       this.HEAP8[bufPtr++] = str.charCodeAt(i);
     }
     this.HEAP8[bufPtr] = 0;

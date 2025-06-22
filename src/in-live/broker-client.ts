@@ -60,9 +60,9 @@ export class BrokerClient<T> {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
-  async #connect() {
+  #connect() {
     this.#socket = new WebSocket(`ws://127.0.0.1:${this.port}/ws`);
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
       }, 2000);

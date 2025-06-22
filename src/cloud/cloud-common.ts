@@ -29,6 +29,7 @@ import {
 } from "../cloud-config/cloud-config.ts";
 import { InCache } from "../app/cache/in-cache.ts";
 import { emailExtension } from "#extensions/email/mod.ts";
+import type { ConfigKey, ExtractConfig } from "../cloud-config/config-types.ts";
 
 export class InCloud {
   appName: string;
@@ -75,13 +76,10 @@ export class InCloud {
     this.extensionManager.registerExtension(baseExtension);
 
     // InLog initialization
-    const config = this.getExtensionConfig<{
-      logLevel?: LogLevel;
-      logTrace?: boolean;
-    }>("cloud");
+    const config = this.getExtensionConfig("cloud");
 
     this.inLog.setConfig({
-      logLevel: config.logLevel,
+      logLevel: config.logLevel as LogLevel,
       logTrace: config.logTrace,
     });
 
@@ -180,8 +178,8 @@ export class InCloud {
       extensionManager: this.extensionManager,
     });
   }
-  getExtensionConfig<T>(extensionKey: string): T {
-    return this.extensionManager.getExtensionConfig<T>(extensionKey);
+  getExtensionConfig<K extends ConfigKey>(extensionKey: K): ExtractConfig<K> {
+    return this.extensionManager.getExtensionConfig(extensionKey);
   }
 
   getExtensionConfigValue<T>(extension: string, key: string): T {

@@ -1,6 +1,9 @@
-import type { ConfigDefinition } from "#types/serve-types.ts";
+import type {
+  ConfigDefinition,
+  ExtensionConfig,
+} from "/cloud-config/config-types.ts";
 
-export const cloudConfig: ConfigDefinition = {
+export const cloudConfig = {
   mode: {
     description:
       "Specify if the server is running in development or production mode",
@@ -64,4 +67,6 @@ export const cloudConfig: ConfigDefinition = {
     default: ["*"],
     type: "string[]",
   },
-};
+} satisfies ConfigDefinition;
+
+export type CloudConfig = ExtensionConfig<typeof cloudConfig>;

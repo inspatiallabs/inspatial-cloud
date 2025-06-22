@@ -4,10 +4,11 @@ import type { LifecycleHandlerRunner } from "/app/request-lifecycle.ts";
 import type { CloudExtension } from "/app/cloud-extension.ts";
 import { raiseServerException } from "/app/server-exception.ts";
 import type { InRequest } from "/app/in-request.ts";
-import type { EntryType } from "/orm/entry/entry-type.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
+import type { EntryType } from "#orm/entry/entry-type.ts";
+import type { SettingsType } from "#orm/settings/settings-type.ts";
 import type { Middleware } from "/app/middleware.ts";
-import type { EntryHooks } from "/orm/orm-types.ts";
+import type { EntryHooks } from "#orm/orm-types.ts";
+import type { ConfigKey, ExtractConfig } from "../cloud-config/config-types.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();
@@ -127,12 +128,12 @@ export class ExtensionManager {
    *
    * @param extension {string} The name of the extension
    */
-  getExtensionConfig<T = Record<string, any>>(extension: string): T {
+  getExtensionConfig<K extends ConfigKey>(extension: K): ExtractConfig<K> {
     const config = this.extensionsConfig.get(extension);
     if (config === undefined) {
       throw new Error(`Extension ${extension} not found`);
     }
-    return Object.fromEntries(config) as T;
+    return Object.fromEntries(config) as ExtractConfig<K>;
   }
 
   /**

@@ -12,7 +12,8 @@ export class InCloudBroker {
     Deno.serve({
       port: this.port,
       hostname: "127.0.0.1",
-      onListen: (addr) => {
+      onListen: (_addr) => {
+        // hide stdout message
       },
     }, (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);
@@ -32,7 +33,7 @@ export class InCloudBroker {
     socket.addEventListener("close", () => {
       this.clients.delete(clientId);
     });
-    socket.addEventListener("error", (error) => {
+    socket.addEventListener("error", (_error) => {
       this.clients.delete(clientId);
     });
   }

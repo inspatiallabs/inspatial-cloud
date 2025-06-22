@@ -30,7 +30,7 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       required: true,
     },
   ],
-  async run({ inCloud, inRequest, orm, inResponse, params }) {
+  async run({ inCloud, orm, params }) {
     const { body, recipientEmail, subject, recipientName } = params;
     console.log({ params });
     const email = await orm.createEntry("email", {

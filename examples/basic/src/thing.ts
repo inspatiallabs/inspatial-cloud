@@ -1,1 +1,0 @@
-const thing = "stsusff";

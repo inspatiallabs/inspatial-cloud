@@ -96,18 +96,18 @@ export function setupInvokeImports(inPg: InPG) {
   for (const item of invokesList) {
     const func = (index: number, ...params: any[]) => {
       const getCurrentStack = wasmLoader
-        .wasmExports["emscripten_stack_get_current"] as Function;
+        .wasmExports["emscripten_stack_get_current"] as () => number;
       const sp = getCurrentStack();
       try {
         const entry = wasmLoader.getWasmTableEntry(index);
         return entry(...params);
       } catch (e: any) {
         const stackRestore = wasmLoader
-          .wasmExports["_emscripten_stack_restore"] as Function;
+          .wasmExports["_emscripten_stack_restore"] as (sp: number) => void;
         stackRestore(sp);
         if (e !== e + 0) throw e;
         const setThrew = wasmLoader
-          .wasmExports["setThrew"] as Function;
+          .wasmExports["setThrew"] as (threw: number, value: number) => void;
         setThrew(1, 0);
       }
     };

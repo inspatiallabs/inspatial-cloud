@@ -55,12 +55,12 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
-  async #connect() {
+  #connect() {
     this.busy();
     const socket = new WebSocket(
       `ws://${this.remoteAddr.hostname}:${this.remoteAddr.port}/ws`,
     );
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       this.#socket = socket;
       socket.onopen = () => {
         this.done();
@@ -76,7 +76,7 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
         this.#socket = undefined;
         resolve();
       };
-      socket.onerror = (error) => {
+      socket.onerror = (_error) => {
         this.#socket = undefined;
         resolve();
       };

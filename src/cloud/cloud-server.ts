@@ -20,12 +20,15 @@ export class InCloudServer extends InCloud {
 
   #serve(): Deno.HttpServer<Deno.NetAddr> {
     const reusePort = Deno.env.get("REUSE_PORT") === "true";
+    const config = this.getExtensionConfig("cloud");
+
     return Deno.serve(
       {
-        // hostname: this.#config.hostname,
-        // port: this.#config.port,
+        hostname: config.hostName,
+        port: config.port,
         reusePort,
-        onListen: (localAddr) => {
+        onListen: (_addr) => {
+          // Hide stdout message
         },
       },
       this.#requestHandler.bind(this),

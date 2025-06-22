@@ -111,7 +111,7 @@ const runEntryAction = new CloudAPIAction("runEntryAction", {
 
     const entry = await inCloud.orm.getEntry(entryType, id, user);
     if (enqueue) {
-      const inTask = await entry.enqueueAction(action, data);
+      await entry.enqueueAction(action, data);
       return {
         message: `Action ${action} enqueued for ${entryType}: ${id}`,
       };

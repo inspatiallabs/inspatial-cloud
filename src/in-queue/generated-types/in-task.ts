@@ -1,4 +1,4 @@
-import type { ChildList, EntryBase } from "@inspatial/cloud/types";
+import type { EntryBase } from "@inspatial/cloud/types";
 export interface InTask extends EntryBase {
   _name: "inTask";
   /**

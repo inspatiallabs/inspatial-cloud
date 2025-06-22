@@ -37,12 +37,12 @@ export interface OutputMore {
 
 export type WasmImports = Record<
   string,
-  | Function
+  | ((...args: any[]) => any)
   | WebAssembly.Global
   | WebAssembly.Memory
   | WebAssembly.Table
   | number
-  | Function & { stub?: boolean }
+  | ((...args: any[]) => any) & { stub?: boolean }
 >;
 export interface DLMetaData {
   neededDynlibs: Array<any>;

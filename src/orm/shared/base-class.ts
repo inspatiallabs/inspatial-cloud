@@ -14,7 +14,7 @@ import type {
   InFieldType,
 } from "/orm/field/field-def-types.ts";
 import type { InCloud } from "/cloud/cloud-common.ts";
-import { InTask } from "#queue/generated-types/in-task.ts";
+import type { InTask } from "#queue/generated-types/in-task.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";

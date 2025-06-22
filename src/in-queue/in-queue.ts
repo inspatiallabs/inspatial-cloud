@@ -51,7 +51,7 @@ export class InQueue extends InCloud {
     Deno.serve({
       port: port,
       hostname: "127.0.0.1",
-      onListen: (addr) => {
+      onListen: (_addr) => {
         this.startScheduler();
       },
     }, (request) => {
@@ -71,11 +71,11 @@ export class InQueue extends InCloud {
     socket.addEventListener("close", () => {
       this.clients.delete(clientId);
     });
-    socket.addEventListener("error", (error) => {
+    socket.addEventListener("error", (_error) => {
       this.clients.delete(clientId);
     });
   }
-  handleMessage(clientId: string, data: string) {
+  handleMessage(_clientId: string, _data: string) {
     // Handle the message as needed
   }
 }

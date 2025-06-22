@@ -30,7 +30,8 @@
     "#terminal/": "./src/terminal/",
     "#queue/": "./src/in-queue/",
     "#extensions/": "./extensions/",
-    "#types/": "./src/types/"
+    "#types/": "./src/types/",
+    "#inLog": "./src/in-log/in-log.ts"
   },
   "tasks": {
     "check": "deno publish --dry-run",

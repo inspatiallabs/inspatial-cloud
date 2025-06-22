@@ -1,7 +1,4 @@
-import ColorMe, {
-  type BasicBgColor,
-  type BasicFgColor,
-} from "#terminal/color-me.ts";
+import ColorMe, { type BasicFgColor } from "#terminal/color-me.ts";
 import { symbols } from "#terminal/print-utils.ts";
 import { center } from "#terminal/format-utils.ts";
 
@@ -70,23 +67,18 @@ const thirdBlack = [7, 8, 9, 10];
 export function makeLogo(options: {
   symbol: Symbol;
   fillSymbol: Symbol;
-  blankSymbol: Symbol;
-  bgColor: BasicBgColor;
   fillColor: BasicFgColor;
   blankColor: BasicFgColor;
   outlineColor: BasicFgColor;
 }): string {
   const content = big;
   const {
-    bgColor,
     fillColor,
     outlineColor,
     blankColor,
-    blankSymbol,
     symbol,
     fillSymbol,
   } = options;
-  const char = symbols[symbol];
   const outlineChar = symbols[symbol];
   const fillerChar = symbols[fillSymbol];
   const blankChar = " "; // symbols[blankSymbol];

@@ -45,12 +45,10 @@ export class TerminalView {
   clearView(): void {
     Terminal.clear();
     Terminal.goToTop();
-    const { columns } = this.consoleSize;
     const height = this.height;
     for (let i = 0; i < height; i++) {
       Terminal.goTo(i, 0);
       Terminal.clearCurrentLine();
-      // this.print(this.padChar.repeat(columns));
     }
   }
   drawBox(options: {

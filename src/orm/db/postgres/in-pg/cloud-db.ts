@@ -1,4 +1,3 @@
-import { inLog } from "../../../../in-log/in-log.ts";
 import { InPG } from "./in-pg.ts";
 
 export class CloudDB {
@@ -45,12 +44,12 @@ export class CloudDB {
     Deno.serve({
       hostname: "127.0.0.1",
       port,
-      onListen: (addr) => {
+      onListen: (_addr) => {
         if (statusCallback) {
           statusCallback("running");
         }
       },
-    }, async (request) => {
+    }, (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);
       socket.addEventListener("open", () => {
       });
@@ -62,8 +61,10 @@ export class CloudDB {
         },
       );
       socket.addEventListener("close", () => {
+        // no-op
       });
-      socket.addEventListener("error", (error) => {
+      socket.addEventListener("error", (_error) => {
+        // should add error handling here?
       });
       return response;
     });

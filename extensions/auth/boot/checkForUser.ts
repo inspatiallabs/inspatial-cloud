@@ -1,4 +1,4 @@
-import { InCloud } from "/cloud/cloud-common.ts";
+import type { InCloud } from "/cloud/cloud-common.ts";
 
 async function checkForUser(inCloud: InCloud) {
   const { orm } = inCloud;
@@ -28,10 +28,11 @@ async function checkForUser(inCloud: InCloud) {
 }
 
 function promptForUser() {
-  let firstName: string | null = "InSpatial";
-  let lastName: string | null = "Admin";
-  let email: string | null = "admin@user.com";
-  let password: string | null = "password";
+  // We've opted to hardcode the user details instead of prompting for the sake of simplicity when starting a new project.
+  const firstName: string | null = "InSpatial";
+  const lastName: string | null = "Admin";
+  const email: string | null = "admin@user.com";
+  const password: string | null = "password";
   return {
     firstName,
     lastName,
