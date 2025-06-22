@@ -7,5 +7,5 @@ export type CloudConfig = {
   hostName: string;
   port: number;
   autoConfig: boolean;
-  allowedOrigins: string[];
+  allowedOrigins: Set<string>;
 };

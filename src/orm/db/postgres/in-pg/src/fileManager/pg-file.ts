@@ -1,6 +1,10 @@
 import { ni } from "../../in-pg.ts";
 import type { PGMem } from "../pgMem.ts";
 class FileBase {
+  pos: number;
+  constructor() {
+    this.pos = 0;
+  }
   stat(): Promise<Deno.FileInfo> {
     throw new Error("Method not implemented.");
   }
@@ -41,7 +45,7 @@ class FileBase {
     throw new Error("Method not implemented.");
   }
   close(): void {
-    throw new Error("Method not implemented.");
+    this.pos = 0;
   }
   truncate(_len?: number): Promise<void> {
     throw new Error("Method not implemented.");
@@ -61,7 +65,7 @@ export class MemFile extends FileBase implements Deno.FsFile {
   #pgMem: PGMem;
   #content?: Int8Array;
   #data: Uint8Array;
-  pos: number;
+
   length?: number;
   type?: string;
   statInfo = {
@@ -82,7 +86,6 @@ export class MemFile extends FileBase implements Deno.FsFile {
     this.debug = debug || false;
     this.type = type;
     this.#pgMem = pgMem;
-    this.pos = 0;
     this.#data = new Uint8Array(0);
     this.statInfo.birthtime = new Date();
     this.statInfo.mtime = new Date();

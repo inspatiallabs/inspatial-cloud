@@ -9,7 +9,7 @@ export const corsMiddleware: Middleware = {
       "allowedOrigins",
     );
 
-    if (origins?.includes(inRequest.origin) || origins?.includes("*")) {
+    if (origins?.has(inRequest.origin) || origins?.has("*")) {
       inResponse.setAllowOrigin(inRequest.origin);
     }
   },
