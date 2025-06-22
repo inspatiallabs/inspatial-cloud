@@ -27,7 +27,7 @@ export class RunManager {
   brokerProc?: Deno.ChildProcess;
   queueProc?: Deno.ChildProcess;
   dbProc?: Deno.ChildProcess;
-  serveProcs: Array<Deno.ChildProcess>;
+  serveProcs: Map<number, Deno.ChildProcess>;
   port?: number;
   hostname?: string;
   appName: string;
@@ -37,7 +37,9 @@ export class RunManager {
   autoTypes?: boolean;
 
   constructor(rootPath: string) {
-    this.serveProcs = [];
+    this.serveProcs = new Map();
+    this.brokerProc = undefined;
+    this.queueProc = undefined;
     this.coreCount = 1;
     this.rootPath = rootPath;
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
@@ -61,11 +63,13 @@ export class RunManager {
       initCloud(inCloud);
     }
 
-    const { hostName, port, brokerPort, queuePort } = inCloud
+    const { hostName, port, brokerPort, queuePort, mode } = inCloud
       .getExtensionConfig(
         "cloud",
       );
-
+    if (mode == "development") {
+      this.watch = true;
+    }
     const { embeddedDb, embeddedDbPort, autoTypes, autoMigrate } = inCloud
       .getExtensionConfig(
         "orm",
@@ -108,7 +112,7 @@ export class RunManager {
       dbConnectionString,
       makeRunning(
         "Server",
-        this.serveProcs.length > 0,
+        this.serveProcs.size > 0,
         `${this.port} (${procCount} instances)`,
       ),
     ];
@@ -169,12 +173,13 @@ export class RunManager {
     }
   }
   reload() {
+    this.isReloading = true;
     this.serveProcs.forEach((proc) => {
       if (proc.pid) {
         proc.kill("SIGTERM");
       }
     });
-    this.serveProcs = [];
+
     if (this.queueProc && this.queueProc.pid) {
       this.queueProc.kill("SIGTERM");
     }
@@ -194,7 +199,7 @@ export class RunManager {
   }
 
   spawnServers(): number {
-    if (this.serveProcs.length >= this.coreCount) {
+    if (this.serveProcs.size >= this.coreCount) {
       throw new Error(
         `Cannot spawn more servers than the core count (${this.coreCount}).`,
       );
@@ -233,7 +238,11 @@ export class RunManager {
       REUSE_PORT: config?.reusePort ? "true" : "false",
       SERVE_PROC_NUM: config?.instanceNumber || "_",
     });
-    this.serveProcs.push(proc);
+    let pid = proc.pid;
+    proc.status.then((status) => {
+      this.serveProcs.delete(pid);
+    });
+    this.serveProcs.set(proc.pid, proc);
   }
   spawnBroker(port: number): void {
     if (this.brokerProc) {
@@ -267,15 +276,6 @@ export class RunManager {
     });
     const process = cmd.spawn();
 
-    process.status.then((status) => {
-      const { success, code } = status;
-      if (!success) {
-        inLog.error(
-          `Process ${mode} exited with code ${code}.`,
-          convertString(this.appName, "title", true),
-        );
-      }
-    });
     return process;
   }
 

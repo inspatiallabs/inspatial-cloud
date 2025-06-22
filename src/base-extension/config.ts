@@ -1,6 +1,6 @@
 export type CloudConfig = {
-  mode: string;
-  logLevel: string;
+  mode: "production" | "development";
+  logLevel: "info" | "debug" | "error" | "warn";
   logTrace: boolean;
   brokerPort: number;
   queuePort: number;
