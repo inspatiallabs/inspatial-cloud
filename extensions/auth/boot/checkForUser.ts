@@ -1,3 +1,4 @@
+import { center } from "/utils/mod.ts";
 import type { InCloud } from "/cloud/cloud-common.ts";
 
 async function checkForUser(inCloud: InCloud) {
@@ -5,12 +6,19 @@ async function checkForUser(inCloud: InCloud) {
   const userCount = await orm.count("user");
   const subject = "System Admin User";
   if (userCount === 0) {
+    const userInfo = promptForUser();
+    const { firstName, lastName, email, password } = userInfo;
+    const info = [
+      `Creating a new admin user with the following details:`,
+      `First Name: ${firstName}`,
+      `Last Name: ${lastName}`,
+      `Email: ${email}`,
+      `Password: ${password}`,
+    ];
     inCloud.inLog.warn(
-      "No users found in the database. Creating an admin user...",
+      info.map((line) => center(line)).join("\n"),
       subject,
     );
-
-    const { firstName, lastName, email, password } = promptForUser();
 
     const user = orm.getNewEntry("user");
     user.update({

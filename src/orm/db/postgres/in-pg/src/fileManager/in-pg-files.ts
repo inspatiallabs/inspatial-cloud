@@ -163,7 +163,7 @@ export class FileManager {
     const memFile = this.openFiles.get(fd) as PGFileMem;
 
     if (memFile) {
-      memFile.file.pos = 0;
+      memFile.file.position = 0;
       return memFile.file as MemFile;
     }
     return new MemFile(this.mem, type, this.debug);

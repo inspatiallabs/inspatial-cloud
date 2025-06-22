@@ -69,15 +69,8 @@ export class PGMem {
       this.wasmMemory.grow(pages);
       this.updateMemoryViews();
       return 1;
-    } catch (e) {
-      if (e instanceof RangeError) {
-        console.error(
-          "Memory grow failed. Requested size: " + size + ", current size: " +
-            buffer.byteLength,
-        );
-        return 0;
-      }
-      throw e; // rethrow if it's not a RangeError
+    } catch (_e) {
+      // no-op
     }
   }
 
