@@ -23,7 +23,7 @@ class InCloudRunner {
   constructor(appName: string, config?: {
     extensions?: Array<CloudExtension>;
   }) {
-    this.#appName = appName;
+    this.#appName = convertString(appName, "camel", true);
     this.#config = {
       extensions: config?.extensions || [],
     };
@@ -206,14 +206,14 @@ export function createInCloud(
     extensions: extensions || [],
   };
   if (typeof cloudNameOrConfigOrExt === "string") {
-    appName = convertString(cloudNameOrConfigOrExt, "camel");
+    appName = convertString(cloudNameOrConfigOrExt, "camel", true);
   } else if (Array.isArray(cloudNameOrConfigOrExt)) {
     config.extensions = cloudNameOrConfigOrExt;
   } else if (
     typeof cloudNameOrConfigOrExt === "object" &&
     "name" in cloudNameOrConfigOrExt
   ) {
-    const extKey = convertString(cloudNameOrConfigOrExt.name, "camel");
+    const extKey = convertString(cloudNameOrConfigOrExt.name, "camel", true);
     appName = extKey;
     const extLabel = convertString(
       cloudNameOrConfigOrExt.name,

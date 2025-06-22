@@ -1,71 +1,71 @@
 import { ni } from "../../in-pg.ts";
 import type { PGMem } from "../pgMem.ts";
-class FileBase {
-  pos: number;
-  constructor() {
-    this.pos = 0;
+class BaseFile {
+  position: number = 0;
+  data: Uint8Array;
+  constructor(data?: Uint8Array) {
+    this.data = data ?? new Uint8Array(0);
   }
-  stat(): Promise<Deno.FileInfo> {
-    throw new Error("Method not implemented.");
+
+  seek(): Promise<number> {
+    ni();
+  }
+  read(): Promise<number | null> {
+    ni();
   }
   sync(): Promise<void> {
-    throw new Error("Method not implemented.");
+    ni();
   }
-  syncSync(): void {
-    throw new Error("Method not implemented.");
+  utime(): Promise<void> {
+    ni();
   }
-  syncData(): Promise<void> {
-    throw new Error("Method not implemented.");
+  lock(): Promise<void> {
+    ni();
   }
-  syncDataSync(): void {
-    throw new Error("Method not implemented.");
+  stat(): Promise<Deno.FileInfo> {
+    ni();
   }
-  utime(_atime: number | Date, _mtime: number | Date): Promise<void> {
-    throw new Error("Method not implemented.");
+  write(): Promise<number> {
+    ni();
   }
-  utimeSync(_atime: number | Date, _mtime: number | Date): void {
-    throw new Error("Method not implemented.");
+
+  truncate(): Promise<void> {
+    ni();
   }
-  isTerminal(): boolean {
-    throw new Error("Method not implemented.");
+
+  setRaw(): void {
+    ni();
   }
-  setRaw(_mode: boolean, _options?: Deno.SetRawOptions): void {
-    throw new Error("Method not implemented.");
-  }
-  lock(_exclusive?: boolean): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  lockSync(_exclusive?: boolean): void {
-    throw new Error("Method not implemented.");
+  lockSync(): void {
+    ni();
   }
   unlock(): Promise<void> {
-    throw new Error("Method not implemented.");
+    ni();
   }
   unlockSync(): void {
-    throw new Error("Method not implemented.");
+    ni();
   }
-  close(): void {
-    this.pos = 0;
+
+  syncSync(): void {
+    ni();
   }
-  truncate(_len?: number): Promise<void> {
-    throw new Error("Method not implemented.");
+  syncData(): Promise<void> {
+    ni();
   }
-  read(_p: Uint8Array): Promise<number | null> {
-    throw new Error("Method not implemented.");
+  syncDataSync(): void {
+    ni();
   }
-  seek(_offset: number | bigint, _whence: Deno.SeekMode): Promise<number> {
-    throw new Error("Method not implemented.");
+
+  isTerminal(): boolean {
+    ni();
   }
-  write(_p: Uint8Array): Promise<number> {
-    throw new Error("Method not implemented.");
+  utimeSync(): void {
+    ni();
   }
 }
-
-export class MemFile extends FileBase implements Deno.FsFile {
+export class MemFile extends BaseFile implements Deno.FsFile {
   #pgMem: PGMem;
   #content?: Int8Array;
-  #data: Uint8Array;
-
   length?: number;
   type?: string;
   statInfo = {
@@ -77,7 +77,7 @@ export class MemFile extends FileBase implements Deno.FsFile {
   readable: ReadableStream<Uint8Array<ArrayBuffer>>;
   writable: WritableStream<Uint8Array<ArrayBufferLike>>;
   get dataText(): string {
-    return new TextDecoder().decode(this.#data);
+    return new TextDecoder().decode(this.data);
   }
   constructor(pgMem: PGMem, type?: string, debug?: boolean) {
     super();
@@ -86,30 +86,21 @@ export class MemFile extends FileBase implements Deno.FsFile {
     this.debug = debug || false;
     this.type = type;
     this.#pgMem = pgMem;
-    this.#data = new Uint8Array(0);
+    this.position = 0;
+    this.data = new Uint8Array(0);
     this.statInfo.birthtime = new Date();
     this.statInfo.mtime = new Date();
     this.statInfo.atime = new Date();
     this.statInfo.ctime = new Date();
   }
 
-  seekSync(offset: number, whence: Deno.SeekMode): number {
-    switch (whence) {
-      case Deno.SeekMode.Start:
-        this.pos = offset;
-        break;
-      case Deno.SeekMode.Current:
-        this.pos += offset;
-        break;
-      case Deno.SeekMode.End:
-        this.pos = this.#data.length + offset;
-    }
-    return this.pos;
+  close(): void {
+    throw new Error("Method not implemented.");
   }
-
   [Symbol.dispose](): void {
     throw new Error("Method not implemented.");
   }
+
   mmap(length: number, offset: number) {
     let ptr: number;
     let allocated: boolean = false;
@@ -130,11 +121,11 @@ export class MemFile extends FileBase implements Deno.FsFile {
     };
   }
   writeSync(bytes: Uint8Array): number {
-    this.#data = new Uint8Array(bytes);
+    this.data = new Uint8Array(bytes);
     this.statInfo.size = bytes.length;
     if (this.type === "tty" && this.debug) {
       console.log(
-        new TextDecoder().decode(this.#data),
+        new TextDecoder().decode(this.data),
       );
     }
     return bytes.length;
@@ -171,7 +162,9 @@ export class MemFile extends FileBase implements Deno.FsFile {
 
     throw new Error("Method not implemented.");
   }
-
+  seekSync(): number {
+    ni();
+  }
   readSync(p: Uint8Array): number | null {
     switch (this.type) {
       case "urandom":
@@ -182,18 +175,18 @@ export class MemFile extends FileBase implements Deno.FsFile {
       default:
         throw new Error("Method not implemented.");
     }
-    this.pos;
-    const offset = this.pos + p.length;
-    if (this.pos >= this.#data.length) {
+    this.position;
+    const offset = this.position + p.length;
+    if (this.position >= this.data.length) {
       return null;
     }
-    if (offset <= this.#data.length) {
-      p.set([...this.#data.slice(this.pos, offset)]);
-      this.pos += p.length;
+    if (offset <= this.data.length) {
+      p.set([...this.data.slice(this.position, offset)]);
+      this.position += p.length;
     }
-    if (offset > this.#data.length) {
-      const data = this.#data.slice(this.pos);
-      this.pos += data.length;
+    if (offset > this.data.length) {
+      const data = this.data.slice(this.position);
+      this.position += data.length;
       p.set([...data]);
       return data.length;
     }
@@ -204,11 +197,9 @@ export class MemFile extends FileBase implements Deno.FsFile {
     return this.statInfo;
   }
 }
-export class PostgresFile extends FileBase implements Deno.FsFile {
+export class PostgresFile extends BaseFile implements Deno.FsFile {
   readable!: ReadableStream<Uint8Array<ArrayBuffer>>;
   writable!: WritableStream<Uint8Array<ArrayBufferLike>>;
-  #data: Uint8Array;
-  position: number = 0;
   statInfo = {
     isFile: true,
     isDirectory: false,
@@ -230,7 +221,7 @@ export class PostgresFile extends FileBase implements Deno.FsFile {
   } as Deno.FileInfo;
   constructor(data: Uint8Array) {
     super();
-    this.#data = data;
+    this.data = data;
     this.statInfo.birthtime = new Date();
     this.statInfo.mtime = new Date();
     this.statInfo.atime = new Date();
@@ -238,19 +229,22 @@ export class PostgresFile extends FileBase implements Deno.FsFile {
     this.statInfo.size = data.length;
     this.statInfo.blocks = Math.ceil(data.length / 4096);
   }
-
+  seekSync(offset: number, _whence: Deno.SeekMode): number {
+    this.position = this.data.length + offset;
+    return this.position;
+  }
   readSync(p: Uint8Array): number | null {
     const offset = this.position + p.length;
-    if (this.position >= this.#data.length) {
+    if (this.position >= this.data.length) {
       return null;
     }
-    if (offset <= this.#data.length) {
-      p.set([...this.#data.slice(this.position, offset)]);
+    if (offset <= this.data.length) {
+      p.set([...this.data.slice(this.position, offset)]);
       this.position += p.length;
       return p.length;
     }
-    if (offset > this.#data.length) {
-      const data = this.#data.slice(this.position);
+    if (offset > this.data.length) {
+      const data = this.data.slice(this.position);
       this.position += data.length;
       p.set([...data]);
       return data.length;
@@ -260,31 +254,20 @@ export class PostgresFile extends FileBase implements Deno.FsFile {
     return null;
   }
 
-  seekSync(offset: number, whence: Deno.SeekMode): number {
-    switch (whence) {
-      case Deno.SeekMode.Start:
-        this.position = offset;
-        break;
-      case Deno.SeekMode.Current:
-        this.position += offset;
-        break;
-      case Deno.SeekMode.End:
-        this.position = this.#data.length + offset;
-    }
-    return this.position;
-  }
   statSync(): Deno.FileInfo {
     return this.statInfo;
   }
 
-  writeSync(_p: Uint8Array): number {
-    throw new Error("Method not implemented.");
-  }
-
-  truncateSync(_len?: number): void {
-    throw new Error("Method not implemented.");
+  close(): void {
+    this.position = 0;
   }
   [Symbol.dispose](): void {
     throw new Error("Method not implemented.");
+  }
+  writeSync(): number {
+    ni();
+  }
+  truncateSync(): void {
+    ni();
   }
 }
