@@ -1,4 +1,5 @@
 import type { ORMConfig } from "#extensions/orm/config.ts";
+import type { AuthConfig } from "#extensions/auth/config.ts";
 import type { CloudConfig } from "../base-extension/config.ts";
 
 /**
@@ -46,7 +47,7 @@ export interface ConfigEnvTypeMap {
   /**
    * An array of 'string' type.
    */
-  "string[]": string[];
+  "string[]": Array<string>;
 }
 
 /**
@@ -65,15 +66,14 @@ export type ExtensionConfig<C extends ConfigDefinition> = C extends
   }
   : never;
 
-export type ExtractConfig<K extends ConfigKey> = K extends keyof ConfigMap
-  ? ConfigMap[K]
-  : Record<string, any>;
+export type ExtractConfig<K extends ConfigKey> = ConfigMap[K];
 
-export type ConfigKey = keyof ConfigMap | string;
+export type ConfigKey = keyof ConfigMap;
 
-interface ConfigMap {
+export interface ConfigMap {
   cloud: CloudConfig;
   orm: ORMConfig;
+  auth: AuthConfig;
 }
 
 /**

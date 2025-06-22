@@ -4,7 +4,7 @@ import { emailEntry } from "./entryTypes/emailEntry.ts";
 import { emailSettings } from "./settingsTypes/emailSettings.ts";
 import { CloudExtension } from "/app/cloud-extension.ts";
 
-export const emailExtension = new CloudExtension("email", {
+export const emailExtension: CloudExtension = new CloudExtension("email", {
   label: "Email",
   description: "Extension for sending and managing emails",
   actionGroups: [

@@ -8,7 +8,11 @@ import type { EntryType } from "#orm/entry/entry-type.ts";
 import type { SettingsType } from "#orm/settings/settings-type.ts";
 import type { Middleware } from "/app/middleware.ts";
 import type { EntryHooks } from "#orm/orm-types.ts";
-import type { ConfigKey, ExtractConfig } from "../cloud-config/config-types.ts";
+import type {
+  ConfigKey,
+  ConfigMap,
+  ExtensionConfig,
+} from "../cloud-config/config-types.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();
@@ -51,7 +55,7 @@ export class ExtensionManager {
         this.requestLifecycle.setup.push({
           ...setup,
           handler: (inRequest: InRequest) => {
-            return setup.handler(inRequest, config);
+            return setup.handler(inRequest, config as ExtensionConfig<any>);
           },
         });
       }
@@ -59,9 +63,10 @@ export class ExtensionManager {
         this.requestLifecycle.cleanup.push({
           ...cleanup,
           handler: (inRequest: InRequest) => {
+            const config = this.getExtensionConfig(extension.key);
             return cleanup.handler(
               inRequest,
-              this.getExtensionConfig(extension.key),
+              config as ExtensionConfig<any>,
             );
           },
         });
@@ -128,12 +133,16 @@ export class ExtensionManager {
    *
    * @param extension {string} The name of the extension
    */
-  getExtensionConfig<K extends ConfigKey>(extension: K): ExtractConfig<K> {
+  getExtensionConfig<K extends ConfigKey>(extension: K): ConfigMap[K];
+  getExtensionConfig<K extends string>(
+    extension: K,
+  ): Record<string, unknown>;
+  getExtensionConfig(extension: string): Record<string, unknown> {
     const config = this.extensionsConfig.get(extension);
     if (config === undefined) {
       throw new Error(`Extension ${extension} not found`);
     }
-    return Object.fromEntries(config) as ExtractConfig<K>;
+    return Object.fromEntries(config);
   }
 
   /**
@@ -164,15 +173,26 @@ export class ExtensionManager {
    * @param extension {string} The name of the extension
    * @param key {string} The key of the configuration value
    */
-  getExtensionConfigValue<T = any>(
+  getExtensionConfigValue<
+    C extends ConfigKey,
+    K extends keyof ConfigMap[C],
+  >(
+    extension: C,
+    key: K,
+  ): ConfigMap[C][K];
+  getExtensionConfigValue<S extends string>(
     extension: string,
     key: string,
-  ): T {
+  ): unknown;
+  getExtensionConfigValue(
+    extension: string,
+    key: string,
+  ): unknown {
     const config = this.extensionsConfig.get(extension);
     if (!config) {
       throw new Error(`Extension ${extension} not found`);
     }
-    const value = config.get(key);
+    const value = config.get(key as string);
 
     return value;
   }

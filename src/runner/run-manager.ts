@@ -14,7 +14,7 @@ import { getCoreCount } from "./multicore.ts";
 import type { RunnerMode } from "./types.ts";
 import { TerminalView } from "#terminal/terminal-view.ts";
 import { Terminal } from "#terminal/terminal.ts";
-import { inLog } from "../in-log/in-log.ts";
+import { inLog } from "#inLog";
 import { asyncPause } from "#utils/misc.ts";
 function spin(callback: (content: string) => void) {
   const spinnerChars = ["|", "/", "-", "\\", "|", "/", "-", "\\"];
@@ -57,7 +57,7 @@ export class RunManager {
   queueProc?: Deno.ChildProcess;
   dbProc?: Deno.ChildProcess;
   serveProcs: Array<Deno.ChildProcess>;
-  port?: string;
+  port?: number;
   hostname?: string;
   appName: string;
   isReloading: boolean = false;
@@ -84,8 +84,6 @@ export class RunManager {
       makeLogo({
         symbol: "alt2DownLeft",
         fillSymbol: "alt2UpRight",
-        blankSymbol: "alt2DownRight",
-        bgColor: "bgBlack",
         blankColor: "black",
         fillColor: "brightMagenta",
         outlineColor: "white",
@@ -132,11 +130,11 @@ export class RunManager {
 
     this.hostname = inCloud.getExtensionConfigValue("cloud", "hostName");
     this.port = inCloud.getExtensionConfigValue("cloud", "port");
-    const brokerPort = inCloud.getExtensionConfigValue<number>(
+    const brokerPort = inCloud.getExtensionConfigValue(
       "cloud",
       "brokerPort",
     );
-    const queuePort = inCloud.getExtensionConfigValue<number>(
+    const queuePort = inCloud.getExtensionConfigValue(
       "cloud",
       "queuePort",
     );
@@ -157,7 +155,7 @@ export class RunManager {
           message: `${STARTING} Embedded DB ${content}`,
         });
       });
-      embeddedDbPort = inCloud.getExtensionConfigValue<number>(
+      embeddedDbPort = inCloud.getExtensionConfigValue(
         "orm",
         "embeddedDbPort",
       );

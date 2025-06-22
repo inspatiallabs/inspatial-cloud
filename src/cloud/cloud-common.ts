@@ -29,7 +29,12 @@ import {
 } from "../cloud-config/cloud-config.ts";
 import { InCache } from "../app/cache/in-cache.ts";
 import { emailExtension } from "#extensions/email/mod.ts";
-import type { ConfigKey, ExtractConfig } from "../cloud-config/config-types.ts";
+import type {
+  ConfigKey,
+  ConfigMap,
+  ExtensionConfig,
+  ExtractConfig,
+} from "../cloud-config/config-types.ts";
 
 export class InCloud {
   appName: string;
@@ -131,7 +136,7 @@ export class InCloud {
   async run(): Promise<void> {
     this.init();
     await this.boot();
-    const brokerPort = this.getExtensionConfigValue<number>(
+    const brokerPort = this.getExtensionConfigValue(
       "cloud",
       "brokerPort",
     );
@@ -166,7 +171,10 @@ export class InCloud {
     for (const actionGroup of actionGroups) {
       this.api.addGroup(actionGroup);
     }
-    const extensionObject = appExtension.install(this, config);
+    const extensionObject = appExtension.install(
+      this,
+      config as ExtensionConfig<any>,
+    );
     if (extensionObject) {
       this.extensionObjects.set(appExtension.key, extensionObject);
     }
@@ -182,8 +190,16 @@ export class InCloud {
     return this.extensionManager.getExtensionConfig(extensionKey);
   }
 
-  getExtensionConfigValue<T>(extension: string, key: string): T {
-    return this.extensionManager.getExtensionConfigValue<T>(extension, key);
+  getExtensionConfigValue<
+    C extends ConfigKey,
+    K extends keyof ConfigMap[C],
+  >(
+    extension: C,
+    key: K,
+  ): ConfigMap[C][K];
+  getExtensionConfigValue(extension: string, key: string): unknown;
+  getExtensionConfigValue(extension: string, key: string) {
+    return this.extensionManager.getExtensionConfigValue(extension, key);
   }
   getExtension<T = unknown>(extensionKey: string): T {
     if (!this.extensionObjects.has(extensionKey)) {

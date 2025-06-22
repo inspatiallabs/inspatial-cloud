@@ -111,11 +111,11 @@ class InCloudRunner {
     );
     inCloud.init();
 
-    const autoTypes = inCloud.getExtensionConfigValue<boolean>(
+    const autoTypes = inCloud.getExtensionConfigValue(
       "orm",
       "autoTypes",
     );
-    const autoMigrate = inCloud.getExtensionConfigValue<boolean>(
+    const autoMigrate = inCloud.getExtensionConfigValue(
       "orm",
       "autoMigrate",
     );

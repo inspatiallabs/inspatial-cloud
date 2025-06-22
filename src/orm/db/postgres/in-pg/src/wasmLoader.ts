@@ -78,8 +78,8 @@ export class WasmLoader {
     const wasmImports = this.wasmImports;
 
     const info: WebAssembly.Imports = {
-      env: this.wasmImports,
-      wasi_snapshot_preview1: wasmImports,
+      env: this.wasmImports as WebAssembly.ModuleImports,
+      wasi_snapshot_preview1: wasmImports as WebAssembly.ModuleImports,
       "GOT.mem": new Proxy(
         wasmImports,
         GOTHandler,

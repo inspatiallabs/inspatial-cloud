@@ -1,8 +1,8 @@
-import type { ConfigEnv } from "#types/serve-types.ts";
 import type { CloudExtensionInfo } from "/app/types.ts";
 import ColorMe from "#terminal/color-me.ts";
 import { joinPath } from "#utils/path-utils.ts";
 import type { InCloud } from "./cloud/cloud-common.ts";
+import type { ConfigEnv } from "./cloud-config/config-types.ts";
 
 export function initCloud(inCloud: InCloud): void {
   const filePath = joinPath(inCloud.cloudRoot, "cloud-config.json");

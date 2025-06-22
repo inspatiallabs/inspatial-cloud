@@ -1,6 +1,6 @@
-import { joinPath, normalizePath } from "/utils/path-utils.ts";
-import type { ConfigDefinition } from "#types/serve-types.ts";
+import { joinPath, normalizePath } from "#utils/path-utils.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
+import type { ConfigDefinition } from "./config-types.ts";
 function getPath() {
   return normalizePath(Deno.mainModule, {
     toDirname: true,
@@ -173,4 +173,12 @@ function generateConfigSchemaForExtension(
   };
 
   return schema;
+}
+
+export function createExtensionConfig<
+  C extends ConfigDefinition,
+>(
+  options: C,
+): C extends ConfigDefinition<infer K> ? C : never {
+  return options as C extends ConfigDefinition<infer K> ? C : never;
 }

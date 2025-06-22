@@ -4,12 +4,12 @@ export const corsMiddleware: Middleware = {
   name: "CORS Middleware",
   description: "CORS Middleware for InSpatialServer",
   handler(app, inRequest, inResponse) {
-    const origins = app.getExtensionConfigValue<Set<string>>(
+    const origins = app.getExtensionConfigValue(
       "cloud",
       "allowedOrigins",
     );
 
-    if (origins?.has(inRequest.origin) || origins?.has("*")) {
+    if (origins?.includes(inRequest.origin) || origins?.includes("*")) {
       inResponse.setAllowOrigin(inRequest.origin);
     }
   },

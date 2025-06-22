@@ -11,7 +11,7 @@ export class InQueue extends InCloud {
   }
   override async run() {
     await super.run();
-    const port = this.getExtensionConfigValue<number>("cloud", "queuePort");
+    const port = this.getExtensionConfigValue("cloud", "queuePort");
     if (port === undefined) {
       throw new Error("Queue port is not defined in the configuration.");
     }

@@ -2,7 +2,7 @@ import { CloudAPIAction } from "/api/cloud-action.ts";
 
 import { raiseServerException, Redirect } from "/app/server-exception.ts";
 import { GoogleOAuth } from "../../auth/providers/google/accessToken.ts";
-import type { EmailSettings } from "../../../examples/basic/.inspatial/_generated/settings/email-settings.ts";
+import type { EmailSettings } from "../_generated/email-settings.ts";
 
 export const redirectAction = new CloudAPIAction("redirect", {
   description: "Redirect from Google OAuth",

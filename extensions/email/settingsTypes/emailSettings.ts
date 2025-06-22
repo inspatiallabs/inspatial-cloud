@@ -1,7 +1,9 @@
 import type { EmailSettings } from "../_generated/email-settings.ts";
 import { SettingsType } from "/orm/settings/settings-type.ts";
 
-export const emailSettings = new SettingsType<EmailSettings>("emailSettings", {
+export const emailSettings: SettingsType<EmailSettings> = new SettingsType<
+  EmailSettings
+>("emailSettings", {
   label: "Email Settings",
   description: "Settings for sending emails",
   fields: [
