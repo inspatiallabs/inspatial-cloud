@@ -1,18 +1,19 @@
-import { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { ClientConnectionType, DBConfig } from "#/orm/db/db-types.ts";
+import { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { ClientConnectionType, DBConfig } from "/orm/db/db-types.ts";
 import type {
   EntryHooks,
   GlobalEntryHooks,
   GlobalHookFunction,
-} from "#/orm/orm-types.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
-import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
+} from "/orm/orm-types.ts";
+
+import type { ExtensionManager } from "/extension-manager/extension-manager.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export function setupOrm(args: {
-  app: InCloud;
+  inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
-  const { app, extensionManager } = args;
+  const { inCloud, extensionManager } = args;
   const config = extensionManager.getExtensionConfig("orm");
   const globalHooks: GlobalEntryHooks = {
     afterCreate: [],
@@ -30,7 +31,7 @@ export function setupOrm(args: {
       const newHook: GlobalHookFunction = async (
         { entry, entryType, orm },
       ) => {
-        return await hook(app, { entry, entryType, orm });
+        return await hook(inCloud, { entry, entryType, orm });
       };
       globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
     }
@@ -71,6 +72,7 @@ export function setupOrm(args: {
         database: "postgres",
       };
   }
+
   const dbConfig: DBConfig = {
     debug: config.ormDebugMode,
     connection: connectionConfig,
@@ -84,11 +86,21 @@ export function setupOrm(args: {
       lazy: true,
     },
   };
+
+  if (config.embeddedDb) {
+    dbConfig.clientMode = "dev";
+    dbConfig.connection.connectionType = "tcp";
+    dbConfig.connection = {
+      host: "127.0.0.1",
+      port: config.embeddedDbPort,
+    } as any;
+  }
   const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,
     dbConfig,
+    inCloud,
   });
   return orm;
 }

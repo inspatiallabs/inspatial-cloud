@@ -13,7 +13,7 @@ export class SysCalls {
   loader: WasmLoader;
   fm: FileManager;
   varargs?: number;
-  methods: Map<string, Function>;
+  methods: Map<string, (...args: any) => any>;
 
   constructor(inPg: InPG) {
     this.DEFAULT_POLLMASK = 5;
@@ -34,7 +34,7 @@ export class SysCalls {
 
     const debugLog = (message: any) => this.fm.debugLog(message);
     const func = (...params: any) => {
-      let message = name + ": " + params;
+      const message = name + ": " + params;
 
       debugLog(message);
 
@@ -77,7 +77,7 @@ export class SysCalls {
       return this.fm.chdirPtr(pathPointer);
     });
 
-    this.add("__syscall_fcntl64", "iiip", (fd: number, cmd, varargs) => {
+    this.add("__syscall_fcntl64", "iiip", (_fd: number, cmd, varargs) => {
       this.varargs = varargs;
       // const file = this.fm.getFile(fd);
       switch (cmd) {
@@ -90,15 +90,16 @@ export class SysCalls {
           return 0;
         case 3:
           ni();
+          return 0;
         case 4: {
           // ni();
-          var arg = this.syscallGetVarargI();
+          const _arg = this.syscallGetVarargI();
 
           return 0;
         }
         case 12: {
-          var arg = this.syscallGetVarargP();
-          var offset = 0;
+          const arg = this.syscallGetVarargP();
+          const offset = 0;
           this.pgMem.HEAP16[(arg + offset) >> 1] = 2;
           return 0;
         }
@@ -112,12 +113,12 @@ export class SysCalls {
     this.add(
       "__syscall_openat",
       "iipip",
-      (dirfd, pathPointer, flags, varargs) => {
+      (_dirfd, pathPointer, flags, varargs) => {
         const O_ACCMODE = 0b11;
         const O_CREAT = 0x40;
         const O_APPEND = 0x400;
         const O_TRUNC = 0x200;
-        const O_NOFOLLOW = 0x8000;
+        const _O_NOFOLLOW = 0x8000;
 
         const path = this.fm.getPtrPath(pathPointer);
         const accessMode = flags & O_ACCMODE;
@@ -157,11 +158,18 @@ export class SysCalls {
     this.add("__syscall_fadvise64", "iijji", () => {
       return 0;
     });
-
+    this.add("__syscall_getcwd", "iij", (buf, size) => {
+      if (size === 0) return -28;
+      const cwd = this.fm.cwd;
+      const cwdLengthInBytes = lengthBytesUTF8(cwd) + 1;
+      if (size < cwdLengthInBytes) return -68;
+      this.pgMem.stringToUTF8(cwd, buf, size);
+      return cwdLengthInBytes;
+    });
     this.add("__syscall_dup", "ii", (fd) => {
       return this.fm.dupe(fd);
     });
-    this.add("__syscall_dup3", "iiii", (fd, newfd, flags) => {
+    this.add("__syscall_dup3", "iiii", (fd, newfd, _flags) => {
       if (fd === newfd) {
         return -ERRNO_CODES.EINVAL;
       }
@@ -170,7 +178,7 @@ export class SysCalls {
     this.add(
       "__syscall_faccessat",
       "iipii",
-      (dirfd, pathPointer, amode, flags) => {
+      (_dirfd, pathPointer, _amode, _flags) => {
         const path = this.fm.getPtrPath(pathPointer);
 
         // if (amode & ~7) {
@@ -203,7 +211,7 @@ export class SysCalls {
         }
         stat = Deno.statSync(pgFile.path);
 
-        const S_IFMT = 0o170000; // bitmask for the file type bitfields
+        const _S_IFMT = 0o170000; // bitmask for the file type bitfields
         const S_IFDIR = 0o040000;
         const S_IFREG = 0o100000;
         const S_IFLNK = 0o120000;
@@ -235,7 +243,6 @@ export class SysCalls {
       return 0; // success
     });
     this.add("__syscall_ftruncate64", "iij", (fd, length) => {
-      // return 0;
       length = bigintToI53Checked(length);
       const pgFile = this.fm.getFile(fd);
       pgFile.file.truncateSync(length);
@@ -244,20 +251,20 @@ export class SysCalls {
 
     this.add("__syscall_getdents64", "iipp", (fd, dirp, count) => {
       const entries = this.fm.listDirFD(fd);
-      var struct_size = 280;
-      var pos = 0;
-      var off = this.fm.dirReadOffsets.get(fd) || 0;
-      var startIdx = Math.floor(off / struct_size);
-      var endIdx = Math.min(
+      const struct_size = 280;
+      let pos = 0;
+      const off = this.fm.dirReadOffsets.get(fd) || 0;
+      const startIdx = Math.floor(off / struct_size);
+      const endIdx = Math.min(
         entries.length,
         startIdx + Math.floor(count / struct_size),
       );
-      for (var idx = startIdx; idx < endIdx; idx++) {
-        var type;
-        let entry = entries[idx];
-        var name = entry.name;
-        var id = entry.stat.ino || 1;
-        type = entry.stat.isCharDevice
+      let idx = startIdx;
+      for (idx = startIdx; idx < endIdx; idx++) {
+        const entry = entries[idx];
+        const name = entry.name;
+        const id = entry.stat.ino || 1;
+        const type = entry.stat.isCharDevice
           ? 2
           : entry.stat.isDirectory
           ? 4
@@ -277,7 +284,7 @@ export class SysCalls {
       this.fm.dirReadOffsets.set(fd, idx * struct_size);
       return pos;
     });
-    this.add("__syscall_ioctl", "iiip", (fd, op, varargs) => {
+    this.add("__syscall_ioctl", "iiip", (_fd, op, _varargs) => {
       switch (op) {
         case IOCTL.TIOCGWINSZ:
           return -ERRNO_CODES.ENOTTY;
@@ -320,7 +327,7 @@ export class SysCalls {
     this.add(
       "__syscall_mkdirat",
       "iipi",
-      (dirfd, pathPointer, mode) => {
+      (_dirfd, pathPointer, _mode) => {
         const path = this.fm.getPtrPath(pathPointer);
 
         return this.fm.mkdir(path);
@@ -341,14 +348,14 @@ export class SysCalls {
     this.add(
       "__syscall_readlinkat",
       "iippp",
-      (dirfd, pathPointer, buf, bufsize) => {
+      (_dirfd, pathPointer, buf, bufsize) => {
         const path = this.fm.getPtrPath(pathPointer);
         const parsed = this.fm.parsePath(path);
         if (bufsize <= 0) return -28;
 
-        var ret = parsed;
-        var len = Math.min(bufsize, lengthBytesUTF8(ret));
-        var endChar = this.pgMem.HEAP8[buf + len];
+        const ret = parsed;
+        const len = Math.min(bufsize, lengthBytesUTF8(ret));
+        const endChar = this.pgMem.HEAP8[buf + len];
         this.pgMem.stringToUTF8(ret, buf, bufsize + 1);
         this.pgMem.HEAP8[buf + len] = endChar;
         return len;
@@ -370,6 +377,7 @@ export class SysCalls {
       let path = this.fm.getPtrPath(pathPointer);
 
       path = this.fm.parsePath(path);
+      this.fm.debugLog(`stat64: ${path}`);
       let stat: Deno.FileInfo;
       if (!this.fm.postgresFiles.has(path)) {
         if (!this.fm.exists(path)) {
@@ -407,7 +415,7 @@ export class SysCalls {
 
       return 0; // success
     });
-    this.add("getaddrinfo", "ipppp", (node, service, hint, out) => {
+    this.add("getaddrinfo", "ipppp", (_node, _service, _hint, _out) => {
       return -1;
     });
     this.add("proc_exit", "vi", (code) => {
@@ -420,11 +428,11 @@ export class SysCalls {
       // dlSetError(`Could not load dynamic lib: ${filename}\n${e}`);
       // return 0;
       let path = this.fm.getPtrPath(ptr + 36);
-      var flags = this.pgMem.HEAP32[(ptr + 4) >> 2];
+      const flags = this.pgMem.HEAP32[(ptr + 4) >> 2];
       path = this.fm.parsePath(path);
-      var global = Boolean(flags & 256);
-      var localScope = global ? null : {};
-      var combinedFlags = {
+      const global = Boolean(flags & 256);
+      const localScope = global ? null : {};
+      const combinedFlags = {
         global,
         nodelete: Boolean(flags & 4096),
         loadAsync: false,
@@ -444,16 +452,18 @@ export class SysCalls {
     });
     this.add("_dlsym_js", "pppp", (handle, symbol, symbolIndex) => {
       symbol = this.pgMem.UTF8ToString(symbol);
-      var result;
-      var newSymIndex;
-      var lib = this.loader.LDSO.loadedLibsByHandle[handle];
-      if (!lib.exports.hasOwnProperty(symbol) || lib.exports[symbol].stub) {
+      let result;
+      const lib = this.loader.LDSO.loadedLibsByHandle[handle];
+      if (
+        !Object.prototype.hasOwnProperty.call(lib.exports, symbol) ||
+        lib.exports[symbol].stub
+      ) {
         return 0;
       }
-      newSymIndex = Object.keys(lib.exports).indexOf(symbol);
+      const newSymIndex = Object.keys(lib.exports).indexOf(symbol);
       result = lib.exports[symbol];
       if (typeof result == "function") {
-        var addr = this.loader.getFunctionAddress(result);
+        const addr = this.loader.getFunctionAddress(result);
         if (addr) {
           result = addr;
         } else {
@@ -481,7 +491,7 @@ export class SysCalls {
     this.add(
       "_mmap_js",
       "ipiiijpp",
-      (len, prot, flags, fd, offset, allocatedPtr, addr) => {
+      (len, _prot, _flags, fd, offset, allocatedPtr, addr) => {
         offset = bigintToI53Checked(offset);
         if (isNaN(offset)) return 61;
         const file = this.fm.getFile(fd);
@@ -522,26 +532,26 @@ export class SysCalls {
     });
 
     this.add("emscripten_resize_heap", "ip", (requestedSize) => {
-      var oldSize = this.pgMem.HEAPU8.length;
+      const oldSize = this.pgMem.HEAPU8.length;
       requestedSize >>>= 0;
-      var maxHeapSize = this.pgMem.getHeapMax();
+      const maxHeapSize = this.pgMem.getHeapMax();
       if (requestedSize > maxHeapSize) {
         return false;
       }
-      for (var cutDown = 1; cutDown <= 4; cutDown *= 2) {
-        var overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
+      for (let cutDown = 1; cutDown <= 4; cutDown *= 2) {
+        let overGrownHeapSize = oldSize * (1 + 0.2 / cutDown);
         overGrownHeapSize = Math.min(
           overGrownHeapSize,
           requestedSize + 100663296,
         );
-        var newSize = Math.min(
+        const newSize = Math.min(
           maxHeapSize,
           this.pgMem.alignMemory(
             Math.max(requestedSize, overGrownHeapSize),
             65536,
           ),
         );
-        var replacement = this.pgMem.growMemory(newSize);
+        const replacement = this.pgMem.growMemory(newSize);
         if (replacement) {
           return true;
         }

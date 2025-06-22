@@ -1,6 +1,6 @@
-import type { PgPoolConfig } from "#/orm/db/postgres/pgTypes.ts";
-import type { EntryBase } from "#/orm/entry/entry-base.ts";
-import type { ExtractFieldKeys } from "#/orm/entry/types.ts";
+import type { PgPoolConfig } from "/orm/db/postgres/pgTypes.ts";
+import type { EntryBase } from "/orm/entry/entry-base.ts";
+import type { ExtractFieldKeys } from "/orm/entry/types.ts";
 
 interface DBConnectionConfig {
   user: string;
@@ -16,6 +16,12 @@ export interface DBConnectionConfigTCP extends DBConnectionConfig {
   port: number;
 }
 
+export interface DBConnectionConfigDev extends DBConnectionConfig {
+  connectionType: "dev";
+  host: string;
+  port: number;
+}
+
 export interface DBConnectionConfigSocket extends DBConnectionConfig {
   connectionType: "socket";
   socketPath: string;
@@ -23,7 +29,8 @@ export interface DBConnectionConfigSocket extends DBConnectionConfig {
 
 export type ClientConnectionType =
   | DBConnectionConfigTCP
-  | DBConnectionConfigSocket;
+  | DBConnectionConfigSocket
+  | DBConnectionConfigDev;
 
 export interface DBConfig {
   debug?: boolean;

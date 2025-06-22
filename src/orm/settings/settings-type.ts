@@ -1,13 +1,13 @@
-import { BaseType } from "#/orm/shared/base-type-class.ts";
+import { BaseType } from "/orm/shared/base-type-class.ts";
 import type {
   SettingsActionDefinition,
   SettingsHookDefinition,
   SettingsTypeConfig,
-} from "#/orm/settings/types.ts";
-import type { HookName } from "#/orm/orm-types.ts";
-import type { GenericSettings } from "#/orm/settings/settings-base.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import type { BaseConfig } from "#/orm/shared/shared-types.ts";
+} from "/orm/settings/types.ts";
+import type { HookName } from "/orm/orm-types.ts";
+import type { GenericSettings } from "/orm/settings/settings-base.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import type { BaseConfig } from "/orm/shared/shared-types.ts";
 
 /**
  * Defines a settings type for the ORM.

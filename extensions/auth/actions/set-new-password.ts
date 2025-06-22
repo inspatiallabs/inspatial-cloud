@@ -1,12 +1,12 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import { raiseServerException } from "/app/server-exception.ts";
 
-const setNewPassword = new CloudAPIAction("setNewPassword", {
+export const setNewPassword = new CloudAPIAction("setNewPassword", {
   description: "Reset user password",
   authRequired: false,
-  async run({ app, params }) {
+  async run({ inCloud, params }) {
     const { token, password } = params;
-    const user = await app.orm.findEntry("user", [{
+    const user = await inCloud.orm.findEntry("user", [{
       field: "resetPasswordToken",
       op: "=",
       value: token,
@@ -33,5 +33,3 @@ const setNewPassword = new CloudAPIAction("setNewPassword", {
     required: true,
   }],
 });
-
-export default setNewPassword;

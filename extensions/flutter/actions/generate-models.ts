@@ -1,9 +1,9 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import convertString from "#/utils/convert-string.ts";
-import { EntryType } from "#/orm/entry/entry-type.ts";
-import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
-import { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { InField, InFieldType } from "#/orm/field/field-def-types.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import convertString from "/utils/convert-string.ts";
+import { EntryType } from "/orm/entry/entry-type.ts";
+import { ChildEntryType } from "/orm/child-entry/child-entry.ts";
+import { SettingsType } from "/orm/settings/settings-type.ts";
+import type { InField, InFieldType } from "/orm/field/field-def-types.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",
@@ -16,15 +16,15 @@ const generateModels = new CloudAPIAction(
       required: false,
       label: "Path",
     }],
-    async run({ app, params }) {
+    async run({ inCloud, params }) {
       const modelsPath = params.path ||
-        `${app.orm.generatedRoot}/flutter/models`;
+        `${inCloud.orm.generatedRoot}/flutter/models`;
       await Deno.mkdir(`${modelsPath}/settings`, { recursive: true });
       await Deno.mkdir(`${modelsPath}/entries`, { recursive: true });
       const models: string[] = [];
       const helpers = getHelperClasses();
       await writeModelFile(`${modelsPath}/helpers.dart`, helpers.join("\n"));
-      const { entryTypes, settingsTypes } = app.orm;
+      const { entryTypes, settingsTypes } = inCloud.orm;
       const defs = [
         ...Array.from(entryTypes.values()),
         ...Array.from(settingsTypes.values()),

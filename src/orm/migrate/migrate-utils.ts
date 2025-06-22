@@ -2,7 +2,7 @@ import type {
   PgColumnDefinition,
   PgDataTypeDefinition,
   PostgresColumn,
-} from "#/orm/db/db-types.ts";
+} from "/orm/db/db-types.ts";
 export function compareDataTypes(
   existing: PostgresColumn,
   newColumn: PgColumnDefinition,

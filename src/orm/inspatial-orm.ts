@@ -1,41 +1,42 @@
-import { InSpatialDB } from "#/orm/db/inspatial-db.ts";
-import type { InFieldType } from "#/orm/field/field-def-types.ts";
-import type { ORMFieldConfig } from "#/orm/field/orm-field.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { Settings } from "#/orm/settings/settings.ts";
-import type { GetListResponse, GlobalEntryHooks } from "#/orm/orm-types.ts";
-import type { Entry } from "#/orm/entry/entry.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import { buildEntry } from "#/orm/entry/build-entry.ts";
-import { buildSettings } from "#/orm/settings/build-settings.ts";
-import { buildEntryType } from "#/orm/setup/entry-type/build-entry-types.ts";
-import { validateEntryType } from "#/orm/setup/entry-type/validate-entry-type.ts";
-import { buildSettingsType } from "#/orm/setup/settings-type/build-settings-types.ts";
-import type { EntryBase, GenericEntry } from "#/orm/entry/entry-base.ts";
+import { InSpatialDB } from "/orm/db/inspatial-db.ts";
+import type { InFieldType } from "/orm/field/field-def-types.ts";
+import type { ORMFieldConfig } from "/orm/field/orm-field.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import type { Settings } from "/orm/settings/settings.ts";
+import type { GetListResponse, GlobalEntryHooks } from "/orm/orm-types.ts";
+import type { Entry } from "/orm/entry/entry.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import { buildEntry } from "/orm/entry/build-entry.ts";
+import { buildSettings } from "/orm/settings/build-settings.ts";
+import { buildEntryType } from "/orm/setup/entry-type/build-entry-types.ts";
+import { validateEntryType } from "/orm/setup/entry-type/validate-entry-type.ts";
+import { buildSettingsType } from "/orm/setup/settings-type/build-settings-types.ts";
+import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
 import type {
   DBConfig,
   DBFilter,
   DBListOptions,
   ListOptions,
-} from "#/orm/db/db-types.ts";
+} from "/orm/db/db-types.ts";
 import type {
   GenericSettings,
   SettingsBase,
-} from "#/orm/settings/settings-base.ts";
-import { MigrationPlanner } from "#/orm/migrate/migration-planner.ts";
-import type { MigrationPlan } from "#/orm/migrate/migration-plan.ts";
+} from "/orm/settings/settings-base.ts";
+import { MigrationPlanner } from "/orm/migrate/migration-planner.ts";
+import type { MigrationPlan } from "/orm/migrate/migration-plan.ts";
 import {
   generateEntryInterface,
   generateSettingsInterfaces,
-} from "#/orm/build/generate-interface/generate-interface.ts";
-import { ormFields } from "#/orm/field/fields.ts";
+} from "/orm/build/generate-interface/generate-interface.ts";
+import { ormFields } from "/orm/field/fields.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
-import { inLog } from "#/in-log/in-log.ts";
-import { ConnectionRegistry } from "#/orm/registry/connection-registry.ts";
-import type { InValue } from "#/orm/field/types.ts";
-import { registerFetchFields } from "#/orm/setup/setup-utils.ts";
+import { inLog } from "/in-log/in-log.ts";
+import { ConnectionRegistry } from "/orm/registry/connection-registry.ts";
+import type { InValue } from "/orm/field/types.ts";
+import { registerFetchFields } from "/orm/setup/setup-utils.ts";
 import type { IDValue } from "./entry/types.ts";
+import type { InCloud } from "../cloud/cloud-common.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -45,6 +46,7 @@ export class InSpatialORM {
   settingsTypes: Map<string, SettingsType>;
   #settingsClasses: Map<string, typeof Settings>;
   registry: ConnectionRegistry;
+  #inCloud: InCloud;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
@@ -138,12 +140,13 @@ export class InSpatialORM {
 
       globalEntryHooks?: GlobalEntryHooks;
       dbConfig: DBConfig;
+      inCloud: InCloud;
     },
   ) {
     this.#rootPath = options.rootPath || Deno.cwd();
     this.#rootPath = `${this.#rootPath}/.inspatial`;
     this.registry = new ConnectionRegistry();
-
+    this.#inCloud = options.inCloud;
     this.fieldTypes = new Map();
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
@@ -168,7 +171,15 @@ export class InSpatialORM {
     this.#setupSettingsTypes();
     this.#build();
   }
+  async init(): Promise<void> {
+    await this.db.init();
 
+    // Check if the first run migration is needed
+    const settings = await this.db.tableExists("inSettings");
+    if (!settings) {
+      await this.migrate();
+    }
+  }
   #build(): void {
     for (const entryType of this.entryTypes.values()) {
       const entryClass = buildEntry(entryType);
@@ -242,7 +253,7 @@ export class InSpatialORM {
         `EntryType ${entryType} is not a valid entry type.`,
       );
     }
-    return new entryClass(this, entryType, user);
+    return new entryClass(this, this.#inCloud, entryType, user);
   }
 
   #getSettingsInstance(settingsType: string, user?: any): Settings {
@@ -252,7 +263,7 @@ export class InSpatialORM {
         `SettingsType ${settingsType} is not a valid settings type.`,
       );
     }
-    return new settingsClass(this, settingsType, user);
+    return new settingsClass(this, this.#inCloud, settingsType, user);
   }
 
   // Single Entry Operations

@@ -1,23 +1,17 @@
-import { hasDirectory } from "#/utils/file-handling.ts";
-import type { InCloud } from "#/inspatial-cloud.ts";
-import type { ConfigEnv } from "#types/serve-types.ts";
-import type { CloudExtensionInfo } from "#/app/types.ts";
-import ColorMe from "#/utils/color-me.ts";
-import { generateConfigSchema } from "#/cloud-config/cloud-config.ts";
-import { joinPath } from "#/utils/path-utils.ts";
+import type { CloudExtensionInfo } from "/app/types.ts";
+import ColorMe from "#terminal/color-me.ts";
+import { joinPath } from "#utils/path-utils.ts";
+import type { InCloud } from "./cloud/cloud-common.ts";
+import type { ConfigEnv } from "./cloud-config/config-types.ts";
 
-export function initCloud(app: InCloud): void {
-  if (hasDirectory(app.inRoot)) {
-    return;
-  }
-  const filePath = joinPath(app.appRoot, "cloud-config.json");
-  app.inLog.warn(
-    "Cloud has not been initialized yet. Initializing now...",
-    "Cloud Init",
-  );
+export function initCloud(inCloud: InCloud): void {
+  const filePath = joinPath(inCloud.cloudRoot, "cloud-config.json");
   const masterConfig = new Map<string, Record<string, any>>();
-  app.installedExtensions.forEach((extension) => {
+  inCloud.installedExtensions.forEach((extension) => {
     const configResult = promptForConfig(extension);
+    if (Object.keys(configResult).length == 0) {
+      return;
+    }
     masterConfig.set(extension.key, configResult);
   });
 
@@ -28,12 +22,6 @@ export function initCloud(app: InCloud): void {
 
   const file = JSON.stringify(config, null, 2);
   Deno.writeTextFileSync(filePath, file);
-  generateConfigSchema(app);
-  app.inLog.info(
-    "Cloud initialized successfully. Please restart the app",
-    "Cloud Init",
-  );
-  Deno.exit(0);
 }
 
 function promptForConfig(extension: CloudExtensionInfo) {
@@ -46,21 +34,36 @@ function promptForConfig(extension: CloudExtensionInfo) {
       continue;
     }
     const output = promptConfigValue(key, env);
-    configResults.set(env.env!, output);
+    if (output !== undefined) {
+      configResults.set(env.env!, output);
+    }
   }
   for (const [key, env] of dependencies) {
-    const dependencyKey = extension.config[env.dependsOn!.key]?.env;
-    if (!dependencyKey) {
-      throw new Error(
-        `Dependency key ${env.dependsOn!.key} not found in config`,
-      );
+    const dependsOn: Array<{ key: string; value: any }> = [];
+    if (Array.isArray(env.dependsOn)) {
+      dependsOn.push(...env.dependsOn);
+    } else {
+      dependsOn.push(env.dependsOn as any);
     }
-    const dependencyValue = configResults.get(dependencyKey);
-    if (dependencyValue !== env.dependsOn!.value) {
-      continue;
+    let isDependencySatisfied = true;
+    for (const item of dependsOn) {
+      const dependencyKey = extension.config[item.key]?.env;
+      if (!dependencyKey) {
+        throw new Error(
+          `Dependency key ${item.key} not found in config`,
+        );
+      }
+      const dependencyValue = configResults.get(dependencyKey);
+      if (dependencyValue !== item.value) {
+        isDependencySatisfied = false;
+      }
     }
-    const output = promptConfigValue(key, env);
-    configResults.set(env.env!, output);
+    if (isDependencySatisfied) {
+      const output = promptConfigValue(key, env);
+      if (output !== undefined) {
+        configResults.set(env.env!, output);
+      }
+    }
   }
 
   const results = Object.fromEntries(configResults);
@@ -69,6 +72,11 @@ function promptForConfig(extension: CloudExtensionInfo) {
 }
 
 function promptConfigValue(key: string, env: ConfigEnv) {
+  if (env.type === "boolean") {
+    if (env.default === null || env.default === undefined) {
+      return undefined;
+    }
+  }
   if (env.default !== undefined && env.default !== null) {
     return env.default;
   }

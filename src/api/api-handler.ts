@@ -1,12 +1,12 @@
-import type { HandlerResponse, PathHandler } from "#/app/path-handler.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+import type { HandlerResponse, PathHandler } from "/app/path-handler.ts";
+import { raiseServerException, Redirect } from "/app/server-exception.ts";
 
 export const apiPathHandeler: PathHandler = {
   name: "api",
   description: "api",
   path: "/api",
-  handler: async (app, inRequest, inResponse) => {
-    const { api } = app;
+  handler: async (inCloud, inRequest, inResponse) => {
+    const { api } = inCloud;
     const groupParam = inRequest.group;
     const actionParam = inRequest.action;
     if (!groupParam) {
@@ -28,11 +28,15 @@ export const apiPathHandeler: PathHandler = {
       default:
         data = await inRequest.body;
     }
-    return await action.run({
-      app,
+    const result = await action.run({
+      inCloud,
       inRequest,
       inResponse,
       params: data,
     });
+    if (result instanceof Redirect) {
+      return inResponse.redirect(result.url);
+    }
+    return result;
   },
 };

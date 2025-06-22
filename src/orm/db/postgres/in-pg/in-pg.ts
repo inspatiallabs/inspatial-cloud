@@ -1,4 +1,4 @@
-import { normalizePath } from "./src/convert.ts";
+import { normalizeVirtualPath } from "./src/convert.ts";
 import { FileManager } from "./src/fileManager/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
 import { SysCalls } from "./src/syscalls.ts";
@@ -6,7 +6,7 @@ import { ExitStatus, getTempDirBase } from "./src/utils.ts";
 import { WasmLoader } from "./src/wasmLoader.ts";
 import type { InPgOptions } from "./types.ts";
 
-export class InPG implements Deno.Conn {
+export class InPG {
   pgMem: PGMem;
   wasmLoader;
   runtimeInitialized;
@@ -31,7 +31,7 @@ export class InPG implements Deno.Conn {
   FD_BUFFER_MAX?: number;
   is_worker: boolean = false;
   sysCalls: SysCalls;
-  asmCodes: Record<number, Function>;
+  asmCodes: Record<number, (...args: any[]) => any>;
   fileManager: FileManager;
   debug?: boolean;
   #onStdErr: (message: any) => void;
@@ -104,7 +104,7 @@ export class InPG implements Deno.Conn {
     this.sysCalls = new SysCalls(this);
 
     this.asmCodes = {
-      14963148: ($0: any) => {
+      14963148: () => {
       },
       14963320: () => {
       },
@@ -127,7 +127,7 @@ export class InPG implements Deno.Conn {
     this.pgMem.HEAPU8.set(message, 1);
     this.wasmLoader.callExportFunction("interactive_one");
 
-    const channel = this.wasmLoader.callExportFunction("get_channel");
+    const _channel = this.wasmLoader.callExportFunction("get_channel");
 
     const msg_start = msg_len + 2;
     const msg_end = msg_start +
@@ -135,7 +135,7 @@ export class InPG implements Deno.Conn {
     const data = this.pgMem.HEAPU8.subarray(msg_start, msg_end);
     return data;
   }
-  async initRuntime() {
+  initRuntime() {
     this.runtimeInitialized = true;
     this.wasmLoader.callExportFunction("__wasm_apply_data_relocs");
 
@@ -145,15 +145,15 @@ export class InPG implements Deno.Conn {
     what = "Aborted(" + what + ")";
     console.error(what);
     what += ". Build with -sASSERTIONS for more info.";
-    var e = new WebAssembly.RuntimeError(what);
-    throw e;
+    const error = new WebAssembly.RuntimeError(what);
+    throw error;
   }
 
   async run() {
     await this.loadRemoteFiles();
     this.fileManager.init();
     await this.#setup();
-    await this.initRuntime();
+    this.initRuntime();
     this.#callMain(this.args);
     const idb = this.initDB();
     if (!idb) {
@@ -229,11 +229,13 @@ export class InPG implements Deno.Conn {
     return result;
   }
   #callMain(args: Array<string> = []) {
-    const { sym, name } = this.wasmLoader.resolveGlobalSymbol("main");
-    const entryFunction = sym as Function;
+    const { sym } = this.wasmLoader.resolveGlobalSymbol("main");
+    const entryFunction = sym as
+      | ((argc: number, argv: number) => number)
+      | null;
 
     if (!entryFunction) return;
-    args.unshift(normalizePath(Deno.mainModule));
+    args.unshift(normalizeVirtualPath(Deno.mainModule));
     const argc = args.length;
     const argv = this.pgMem.stackAlloc((argc + 1) * 4);
     let argv_ptr = argv;
@@ -259,7 +261,7 @@ export class InPG implements Deno.Conn {
     this.wasmLoader.GOT["__heap_base"].value = end;
     return ret;
   }
-  exitJS(code: number, implicit?: boolean) {
+  exitJS(code: number, _implicit?: boolean) {
     this.EXITSTATUS = code;
 
     throw new ExitStatus(code);
@@ -295,7 +297,7 @@ export class InPG implements Deno.Conn {
     return this.readEmAsmArgsArray;
   }
   write(message: Uint8Array): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
+    return new Promise<number>((resolve, _reject) => {
       const msg_len = message.length;
       const data = this.sendQuery(message);
 
@@ -305,7 +307,7 @@ export class InPG implements Deno.Conn {
     });
   }
   read(p: Uint8Array): Promise<number | null> {
-    return new Promise<number | null>((resolve, reject) => {
+    return new Promise<number | null>((resolve, _reject) => {
       if (this.#bufferData.length === 0) {
         resolve(null);
       }

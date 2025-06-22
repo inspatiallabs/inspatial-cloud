@@ -80,8 +80,11 @@ universal and spatial (AR/MR/VR) applications.
 Some of the key features include:
 
 - **InSpatialORM**: An easy-to-use advanced ORM for PostgreSQL
+- **InDB**: An embedded database for local development (no need to install
+  PostgreSQL locally!)
 - **Authentication**: Built-in authentication and authorization out of the box
 - **InLive**: Real-time data streaming and synchronization over WebSockets
+- **InQueue**: A task queue system for background processing
 - **CloudAPI**: A powerful API that is easy to use and extend. Includes built in
   request validation and authentication
 - **InCache**: A powerful caching layer for your data
@@ -120,19 +123,12 @@ InSpatial Cloud is released under the Apache 2.0 License. See the
 ### Pre-requisites
 
 - Deno
-- PostgreSQL
-
-> Note: You'll need to create a Postgres database first:
-
-```bash
-createdb mydb
-```
 
 ### Installation
 
 Add the InSpatial Cloud module to your Deno project using the following command:
 
-```bash
+```shell
 deno add jsr:@inspatial/cloud
 ```
 
@@ -141,31 +137,17 @@ deno add jsr:@inspatial/cloud
 ### Basic Usage
 
 ```ts
-import { InCloud } from "@inspatial/cloud";
+import { createInCloud } from "@inspatial/cloud";
 
-const app = new InCloud("myApp");
-
-if (import.meta.main) {
-  app.run();
-}
+createInCloud();
 ```
 
-Now you can run the app:
+That's it! Now you can run the app:
 
-```bash
+```shell
 deno run -A main.ts
 ```
 
 You can verify the app is running by pinging the API endpoint in you browser:
 
 [http://localhost:8000/api?group=api&action=ping](http://localhost:8000/api?group=api&action=ping)
-
-You should see the following response:
-
-```json
-{
-  "message": "pong",
-  "timestamp": 1745065012205,
-  "app": "myApp"
-}
-```

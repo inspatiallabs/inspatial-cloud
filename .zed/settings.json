@@ -4,6 +4,21 @@
       "settings": {
         "deno": {
           "enable": true,
+          "suggest": {
+            "completeFunctionCalls": true,
+            "names": {
+              "enabled": true
+            },
+            "paths": {
+              "enabled": true
+            },
+            "autoImports": {
+              "enabled": true
+            },
+            "imports": {
+              "autoDiscover": true
+            }
+          },
           "inlayHints": {
             "parameterNames": {
               "enabled": "all"
@@ -28,7 +43,6 @@
       }
     }
   },
-
   "languages": {
     "TypeScript": {
       "language_servers": ["deno"],

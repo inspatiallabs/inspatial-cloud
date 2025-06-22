@@ -1,11 +1,10 @@
-import { PostgresClient } from "#/orm/db/postgres/pgClient.ts";
+import { PostgresClient } from "/orm/db/postgres/pgClient.ts";
 import type {
   PgClientConfig,
   PgPoolConfig,
   QueryResponse,
-} from "#/orm/db/postgres/pgTypes.ts";
-import { PgError } from "#/orm/db/postgres/pgError.ts";
-import { InPGClient } from "./in-pg/in-pg-client.ts";
+} from "/orm/db/postgres/pgTypes.ts";
+import { PgError } from "/orm/db/postgres/pgError.ts";
 
 class PostgresPoolClient {
   locked: boolean;
@@ -14,12 +13,15 @@ class PostgresPoolClient {
   config: PgClientConfig;
   constructor(config: PgClientConfig, isDev?: boolean) {
     this.close = false;
-    this.config = config;
+
     this.locked = false;
     if (isDev) {
-      this.client = new InPGClient(config);
-      return;
+      config = {
+        ...config,
+        connectionType: "dev",
+      } as PgClientConfig;
     }
+    this.config = config;
     this.client = new PostgresClient(config);
   }
   async connect(): Promise<void> {
@@ -89,9 +91,6 @@ export class PostgresPool {
   }
 
   async initialized(): Promise<void> {
-    if (this.lazy) {
-      return;
-    }
     for (const client of this.clients) {
       await client.connect();
     }
@@ -112,7 +111,7 @@ export class PostgresPool {
       }
     }
     client.locked = true;
-    await client.connect();
+    // await client.connect();
     return client;
   }
 

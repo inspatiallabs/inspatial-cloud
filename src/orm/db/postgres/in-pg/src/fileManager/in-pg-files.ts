@@ -1,11 +1,10 @@
 import { type InPG, ni } from "../../in-pg.ts";
 import type { DevType, PGFile, PGFileMem } from "../../types.ts";
 import { ERRNO_CODES } from "../constants.ts";
-import { normalizePath } from "../convert.ts";
+import { normalizeVirtualPath } from "../convert.ts";
 import type { PGMem } from "../pgMem.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
-const dataURL =
-  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.data";
+
 export class FileManager {
   openFiles: Map<number, PGFile | PGFileMem>;
   openTmpFDs: Map<string, number>;
@@ -53,7 +52,7 @@ export class FileManager {
     let path = Deno.makeTempFileSync();
     if (Deno.build.os === "windows") {
       const driveLetter = path.match(/^[a-zA-Z]:/)?.[0] || "";
-      path = `${driveLetter}${normalizePath(path)}`;
+      path = `${driveLetter}${normalizeVirtualPath(path)}`;
     }
     Deno.removeSync(path);
     const parts = path.split("/");
@@ -73,7 +72,7 @@ export class FileManager {
 
     if (Deno.build.os === "windows") {
       const driveLetter = tmDir.match(/^[a-zA-Z]:/)?.[0] || "";
-      tmDir = `${driveLetter}${normalizePath(tmDir)}`;
+      tmDir = `${driveLetter}${normalizeVirtualPath(tmDir)}`;
     }
     this.tmDir = tmDir;
   }
@@ -93,9 +92,9 @@ export class FileManager {
         seek = -1;
       }
       this.messageCount += 1;
-      const offset = this.debugFile.seekSync(seek, Deno.SeekMode.Current);
+      const _offset = this.debugFile.seekSync(seek, Deno.SeekMode.Current);
       const out = this.messageCount.toString().padStart(4, "0");
-      const written = this.debugFile.writeSync(
+      const _written = this.debugFile.writeSync(
         new TextEncoder().encode(" (" + out + ")\n"),
       );
     } else {
@@ -164,7 +163,7 @@ export class FileManager {
     const memFile = this.openFiles.get(fd) as PGFileMem;
 
     if (memFile) {
-      memFile.file.pos = 0;
+      memFile.file.position = 0;
       return memFile.file as MemFile;
     }
     return new MemFile(this.mem, type, this.debug);
@@ -182,7 +181,7 @@ export class FileManager {
       });
       if (Deno.build.os === "windows") {
         const driveLetter = realPath.match(/^[a-zA-Z]:/)?.[0] || "";
-        realPath = `${driveLetter}${normalizePath(realPath)}`;
+        realPath = `${driveLetter}${normalizeVirtualPath(realPath)}`;
       }
       this.tmpMap.set(path, realPath);
     }
@@ -266,7 +265,7 @@ export class FileManager {
       path = this.join(this.cwd, path);
     }
     try {
-      const result = Deno.statSync(path);
+      Deno.statSync(path);
     } catch (e) {
       if (e instanceof Deno.errors.NotFound) {
         return -ERRNO_CODES.ENOENT;
@@ -277,7 +276,7 @@ export class FileManager {
     return 0;
   }
   getPtrPath(pointer: number) {
-    let path = this.mem.getStr(pointer);
+    const path = this.mem.getStr(pointer);
 
     return path;
   }
@@ -320,7 +319,7 @@ export class FileManager {
     // Deno.renameSync()
   }
   parsePath(path: string) {
-    path = normalizePath(path);
+    path = normalizeVirtualPath(path);
     switch (path) {
       case "":
         path = this.cwd;

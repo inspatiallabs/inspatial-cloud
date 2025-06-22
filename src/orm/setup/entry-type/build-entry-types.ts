@@ -1,6 +1,6 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import { buildConnectionFields } from "#/orm/setup/setup-utils.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
+import { buildConnectionFields } from "/orm/setup/setup-utils.ts";
 
 export function buildEntryType(
   orm: InSpatialORM,

@@ -1,11 +1,11 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
 
 const registerUser = new CloudAPIAction("registerUser", {
   description: "Register a new user",
   hideFromApi: true,
-  async run({ app, params }) {
+  async run({ inCloud, params }) {
     const { firstName, lastName, email, password } = params;
-    const user = await app.orm.createEntry("user", {
+    const user = await inCloud.orm.createEntry("user", {
       firstName,
       lastName,
       email,

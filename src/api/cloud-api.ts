@@ -1,9 +1,9 @@
-import type { CloudAPIDocs, CloudAPIGroupDocs } from "#/api/api-types.ts";
+import type { CloudAPIDocs, CloudAPIGroupDocs } from "/api/api-types.ts";
 
-import { raiseServerException } from "#/app/server-exception.ts";
-import type { InField } from "#/orm/field/field-def-types.ts";
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
+import { raiseServerException } from "/app/server-exception.ts";
+import type { InField } from "/orm/field/field-def-types.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import { CloudAPIGroup } from "/api/cloud-group.ts";
 
 /**
  * CloudAPI is a class that provides the main interface for InSpatial Cloud
@@ -99,8 +99,8 @@ export class CloudAPI {
       label: "Get Docs",
       description: "Get API documentation",
       params: [],
-      run({ app }) {
-        return app.api.docs;
+      run({ inCloud }) {
+        return inCloud.api.docs;
       },
     });
     const pingAction = new CloudAPIAction("ping", {
@@ -108,11 +108,11 @@ export class CloudAPI {
       description: "Ping the server",
       authRequired: false,
       params: [],
-      run({ app }) {
+      run({ inCloud }) {
         return {
           message: "pong",
           timestamp: Date.now(),
-          app: app.appName,
+          app: inCloud.appName,
         };
       },
     });

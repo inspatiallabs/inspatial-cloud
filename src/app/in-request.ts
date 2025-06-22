@@ -1,4 +1,4 @@
-import { InContext } from "#/app/in-context.ts";
+import { InContext } from "/app/in-context.ts";
 import type { RequestMethod } from "#types/serve-types.ts";
 import { inLog } from "../in-log/in-log.ts";
 

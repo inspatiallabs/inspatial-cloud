@@ -1,4 +1,4 @@
-import { CloudExtension } from "#/app/cloud-extension.ts";
+import { CloudExtension } from "/app/cloud-extension.ts";
 import userEntry from "#extensions/auth/entry-types/user/user-entry.ts";
 import userSessionEntry from "#extensions/auth/entry-types/user-session/user-session-entry.ts";
 import authSettings from "#extensions/auth/settings-types/auth-settings/auth-settings.ts";
@@ -33,7 +33,6 @@ const authCloudExtension: CloudExtension = new CloudExtension("auth", {
     allowAll: {
       type: "boolean",
       description: "Allow all users to access the app",
-      default: false,
       required: false,
     },
   },

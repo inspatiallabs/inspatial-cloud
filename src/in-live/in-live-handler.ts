@@ -4,11 +4,12 @@ import type {
   InLiveClientMessage,
   InLiveMessage,
   InLiveRoomDef,
-} from "#/in-live/types.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
-import type { InRequest } from "#/app/in-request.ts";
-import { InLiveRoom } from "#/in-live/in-live-room.ts";
-import { inLog } from "#/in-log/in-log.ts";
+} from "/in-live/types.ts";
+import { raiseServerException } from "/app/server-exception.ts";
+import type { InRequest } from "/app/in-request.ts";
+import { InLiveRoom } from "/in-live/in-live-room.ts";
+import { inLog } from "/in-log/in-log.ts";
+import { BrokerClient } from "./broker-client.ts";
 
 /**
  * Handles realtime websocket connections
@@ -16,7 +17,7 @@ import { inLog } from "#/in-log/in-log.ts";
 export class InLiveHandler {
   #clients: Map<string, InLiveClient>;
 
-  #channel: BroadcastChannel;
+  #channel: BrokerClient<InLiveBroadcastMessage>;
   #rooms: Map<string, InLiveRoom> = new Map();
 
   #handleError(...args: any) {
@@ -41,16 +42,12 @@ export class InLiveHandler {
   constructor() {
     this.#roomHandlers = new Map();
     this.#clients = new Map();
-    this.#channel = new BroadcastChannel("realtime");
-    this.#channel.addEventListener(
-      "message",
-      (
-        messageEvent: MessageEvent<InLiveBroadcastMessage>,
-      ) => {
-        const message = messageEvent.data;
-        this.#sendToRoom(message);
-      },
-    );
+    this.#channel = new BrokerClient<InLiveBroadcastMessage>("in-live");
+    this.#channel.onMessageReceived((message) => this.#sendToRoom(message));
+  }
+
+  init(brokerPort: number) {
+    this.#channel.connect(brokerPort);
   }
 
   /**
@@ -194,18 +191,24 @@ export class InLiveHandler {
     this.#sendToRoom(
       message,
     );
-    this.#channel.postMessage(message);
+    this.#channel.broadcast(message);
   }
 
   announce(message: string | Record<string, any>): void {
+    const broadcastMessage: InLiveBroadcastMessage = {
+      roomName: "everyone",
+      event: "announce",
+      data: typeof message === "string" ? { message } : message,
+    };
+    this.#channel.broadcast(broadcastMessage);
+    this.#sendToAll(broadcastMessage);
+  }
+  #sendToAll(message: InLiveBroadcastMessage) {
     this.#clients.forEach((client) => {
       if (client.socket.readyState !== WebSocket.OPEN) {
         return;
       }
-      client.socket.send(JSON.stringify({
-        event: "announce",
-        data: message,
-      }));
+      client.socket.send(JSON.stringify(message));
     });
   }
   #validateRoom(room: string) {
@@ -242,6 +245,10 @@ export class InLiveHandler {
   #sendToRoom(
     message: InLiveBroadcastMessage,
   ) {
+    if (message.roomName === "everyone") {
+      this.#sendToAll(message);
+      return;
+    }
     this.#validateRoom(message.roomName);
     const room = this.#getRoom(message.roomName);
 

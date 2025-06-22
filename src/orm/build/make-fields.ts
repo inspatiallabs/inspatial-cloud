@@ -1,12 +1,12 @@
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import type { Entry } from "#/orm/entry/entry.ts";
-import type { Settings } from "#/orm/settings/settings.ts";
-import { raiseORMException } from "#/orm/orm-exception.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
+import type { Entry } from "/orm/entry/entry.ts";
+import type { Settings } from "/orm/settings/settings.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
 import type {
   ChildEntry,
   ChildEntryType,
-} from "#/orm/child-entry/child-entry.ts";
+} from "/orm/child-entry/child-entry.ts";
 
 export function makeFields(
   forType: "entry" | "settings" | "child",

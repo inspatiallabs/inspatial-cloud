@@ -1,7 +1,7 @@
-import { InResponse } from "#/app/in-response.ts";
+import { InResponse } from "/app/in-response.ts";
 import type { ExceptionHandler } from "#types/serve-types.ts";
-import { isServerException } from "#/app/server-exception.ts";
-import { inLog } from "#/in-log/in-log.ts";
+import { isServerException } from "/app/server-exception.ts";
+import { inLog } from "/in-log/in-log.ts";
 
 export async function handleException(
   err: unknown,
@@ -9,7 +9,6 @@ export async function handleException(
   exceptionHandlers: Map<string, ExceptionHandler>,
 ): Promise<Response> {
   inResponse = inResponse || new InResponse();
-  inResponse;
   const clientMessages: Array<Record<string, any> | string> = [];
   let handled = false;
   for (const handler of exceptionHandlers.values()) {
@@ -79,7 +78,6 @@ export async function handleException(
     inResponse.errorStatusText = "Internal Server Error";
     handled = true;
   }
-
   if (!handled) {
     inLog.error("An unknown error occurred", {
       subject: "Unknown Error",

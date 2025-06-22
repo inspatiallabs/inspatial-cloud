@@ -1,8 +1,8 @@
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import { SettingsMigrationPlan } from "#/orm/migrate/settings-type/settings-migration-plan.ts";
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { SettingsRow } from "#/orm/settings/types.ts";
-import { BaseMigrator } from "#/orm/migrate/shared/base-migrator.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import { SettingsMigrationPlan } from "/orm/migrate/settings-type/settings-migration-plan.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { SettingsRow } from "/orm/settings/types.ts";
+import { BaseMigrator } from "/orm/migrate/shared/base-migrator.ts";
 
 export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
   get settingsType(): SettingsType {

@@ -20,7 +20,6 @@ export type DevType = "shm" | "tty" | "tmp" | "urandom";
 export interface InPgOptions {
   env: Record<string, any>;
   args: Array<string>;
-  pgFilesDir: string;
   debug?: boolean;
   onStderr?: (out: Output | OutputMore) => void;
   onStdout?: (out: Output | OutputMore) => void;
@@ -38,12 +37,7 @@ export interface OutputMore {
 
 export type WasmImports = Record<
   string,
-  | Function
-  | WebAssembly.Global
-  | WebAssembly.Memory
-  | WebAssembly.Table
-  | number
-  | Function & { stub?: boolean }
+  unknown
 >;
 export interface DLMetaData {
   neededDynlibs: Array<any>;

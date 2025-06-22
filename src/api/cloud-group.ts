@@ -2,9 +2,9 @@ import {
   type ActionConfig,
   type ActionMethod,
   CloudAPIAction,
-} from "#/api/cloud-action.ts";
-import type { CloudParam } from "#/api/api-types.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+} from "/api/cloud-action.ts";
+import type { CloudParam } from "/api/api-types.ts";
+import { raiseServerException } from "/app/server-exception.ts";
 
 export class CloudAPIGroup<
   G extends string = string,

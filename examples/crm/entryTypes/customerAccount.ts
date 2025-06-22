@@ -1,5 +1,5 @@
 import { EntryType } from "@inspatial/cloud";
-import { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import { ChildEntryType } from "/orm/child-entry/child-entry.ts";
 
 export const customerAccount = new EntryType("customerAccount", {
   label: "Customer Account",

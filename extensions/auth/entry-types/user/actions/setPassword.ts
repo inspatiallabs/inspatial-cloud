@@ -1,6 +1,6 @@
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import { generateSalt, hashPassword } from "#extensions/auth/security.ts";
-import type { EntryActionDefinition } from "#/orm/entry/types.ts";
+import type { EntryActionDefinition } from "/orm/entry/types.ts";
 
 const setPassword: EntryActionDefinition<User> = {
   key: "setPassword",

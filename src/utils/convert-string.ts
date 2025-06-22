@@ -8,7 +8,7 @@
  */
 function camelToSnakeCase(inputString: string): string {
   // strip leading and trailing whitespace and delimiters
-  inputString = inputString.trim().replace(/[^a-zA-Z0-9_#]/g, "_");
+  inputString = inputString.trim().replace(/[^a-zA-Z0-9_]+/g, "_");
   // substitute capital letters with underscore and lowercase
   inputString = inputString.replace(/(?<!^)(?=[A-Z])/g, "_").toLowerCase();
 
@@ -85,7 +85,7 @@ function toSnakeCase(inputString: string): string {
  */
 function toTitleCase(inputString: string): string {
   inputString = sanitizeString(inputString);
-  inputString = inputString.replace("_", " ");
+  inputString = inputString.replace(/_+/g, " ");
   return inputString.split(" ").map((word) =>
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(" ");

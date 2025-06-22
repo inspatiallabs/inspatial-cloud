@@ -6,9 +6,6 @@ import { uleb128Encode, UTF8ArrayToString } from "./convert.ts";
 
 import type { PGMem } from "./pgMem.ts";
 import { setupInvokeImports } from "./setupInvokes.ts";
-import { getTempDirBase } from "./utils.ts";
-const wasmURL =
-  "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.wasm";
 class LDSO {
   loadedLibsByName: Record<string, DSO>;
   loadedLibsByHandle: Record<string, DSO>;
@@ -58,8 +55,8 @@ export class WasmLoader {
     const GOT = this.GOT;
     const currentModuleWeakSymbols = this.currentModuleWeakSymbols;
     this.GOTHandler = {
-      get(obj: object, symName: string) {
-        var rtn = GOT[symName];
+      get(_obj: object, symName: string) {
+        let rtn = GOT[symName];
         if (!rtn) {
           rtn = GOT[symName] = new WebAssembly.Global({
             value: "i32",
@@ -81,8 +78,8 @@ export class WasmLoader {
     const wasmImports = this.wasmImports;
 
     const info: WebAssembly.Imports = {
-      env: this.wasmImports,
-      wasi_snapshot_preview1: wasmImports,
+      env: this.wasmImports as WebAssembly.ModuleImports,
+      wasi_snapshot_preview1: wasmImports as WebAssembly.ModuleImports,
       "GOT.mem": new Proxy(
         wasmImports,
         GOTHandler,
@@ -96,7 +93,7 @@ export class WasmLoader {
     const result = await WebAssembly.instantiate(this.inPg.wasmData, info);
     this.wasmExports = result.instance.exports;
 
-    for (var [sym, exp] of Object.entries(result.instance.exports)) {
+    for (const [sym, exp] of Object.entries(result.instance.exports)) {
       const setImport = (target: string) => {
         if (!this.#isSymbolDefined(target)) {
           this.wasmImports[target] = exp;
@@ -142,7 +139,7 @@ export class WasmLoader {
     // const invokes = setupInvokeImports();
   }
   callExportFunction(functionName: string, ...args: any) {
-    const func = this.wasmExports[functionName] as Function;
+    const func = this.wasmExports[functionName] as (...args: any) => any;
     if (!func) {
       ni(functionName);
     }
@@ -150,9 +147,9 @@ export class WasmLoader {
     return func(...args);
   }
   reportUndefinedSymbols() {
-    for (var [symName, entry] of Object.entries(this.GOT)) {
+    for (const [symName, entry] of Object.entries(this.GOT)) {
       if (entry.value == 0) {
-        var value = this.resolveGlobalSymbol(symName, true).sym as any;
+        const value = this.resolveGlobalSymbol(symName, true).sym as any;
         if (!value && !entry.required) {
           continue;
         }
@@ -167,40 +164,40 @@ export class WasmLoader {
       }
     }
   }
-  addFunction(func: Function, sig?: any) {
-    var rtn = this.getFunctionAddress(func);
+  addFunction(func: (...args: any) => any, sig?: any) {
+    const rtn = this.getFunctionAddress(func);
     if (rtn) {
       return rtn;
     }
-    var ret = this.getEmptyTableSlot();
+    const ret = this.getEmptyTableSlot();
     try {
       this.setWasmTableEntry(ret, func);
     } catch (err) {
       if (!(err instanceof TypeError)) {
         throw err;
       }
-      var wrapped = this.convertJsFunctionToWasm(func, sig);
+      const wrapped = this.convertJsFunctionToWasm(func, sig);
       this.setWasmTableEntry(ret, wrapped);
     }
     this.functionsInTableMap.set(func, ret);
     return ret;
   }
-  convertJsFunctionToWasm(func: Function, sig: string) {
-    var typeSectionBody = [1];
+  convertJsFunctionToWasm(func: (...args: any[]) => any, sig: string) {
+    const typeSectionBody = [1];
     this.generateFuncType(sig, typeSectionBody);
-    var bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
+    const bytes = [0, 97, 115, 109, 1, 0, 0, 0, 1];
     uleb128Encode(typeSectionBody.length, bytes);
     bytes.push(...typeSectionBody);
     bytes.push(2, 7, 1, 1, 101, 1, 102, 0, 0, 7, 5, 1, 1, 102, 0, 0);
-    var module = new WebAssembly.Module(new Uint8Array(bytes));
-    var instance = new WebAssembly.Instance(module, { e: { f: func } });
-    var wrappedFunc = instance.exports["f"] as Function;
+    const module = new WebAssembly.Module(new Uint8Array(bytes));
+    const instance = new WebAssembly.Instance(module, { e: { f: func } });
+    const wrappedFunc = instance.exports["f"] as (...args: any[]) => any;
     return wrappedFunc;
   }
   generateFuncType(sig: string, target: Array<number>) {
-    var sigRet = sig.slice(0, 1);
-    var sigParam = sig.slice(1);
-    var typeCodes: Record<string, number> = {
+    const sigRet = sig.slice(0, 1);
+    const sigParam = sig.slice(1);
+    const typeCodes: Record<string, number> = {
       i: 127,
       p: 127,
       j: 126,
@@ -210,7 +207,7 @@ export class WasmLoader {
     };
     target.push(96);
     uleb128Encode(sigParam.length, target);
-    for (var i = 0; i < sigParam.length; ++i) {
+    for (let i = 0; i < sigParam.length; ++i) {
       target.push(typeCodes[sigParam[i]]);
     }
     if (sigRet == "v") {
@@ -219,8 +216,8 @@ export class WasmLoader {
       target.push(1, typeCodes[sigRet]);
     }
   }
-  resolveGlobalSymbol(symName: string, direct = false) {
-    var sym;
+  resolveGlobalSymbol(symName: string, _direct = false) {
+    let sym;
     if (this.#isSymbolDefined(symName)) {
       sym = this.wasmImports[symName];
     } else if (symName.startsWith("invoke_")) {
@@ -233,14 +230,14 @@ export class WasmLoader {
   createInvokeFunction(sig: any) {
     return (ptr: number, ...args: any) => {
       const getCurrentStack = this
-        .wasmExports["emscripten_stack_get_current"] as Function;
+        .wasmExports["emscripten_stack_get_current"] as () => number;
       const sp = getCurrentStack();
       try {
         const func = this.getWasmTableEntry(ptr);
         return func?.(...args);
       } catch (e: any) {
         const stackRestore = this
-          .wasmExports["_emscripten_stack_restore"] as Function;
+          .wasmExports["_emscripten_stack_restore"] as (sp: number) => void;
         stackRestore(sp);
         if (e !== e + 0) throw e;
         this.callExportFunction("setThrew", 1, 0);
@@ -268,15 +265,18 @@ export class WasmLoader {
   }
 
   #isSymbolDefined(symName: string) {
-    const existing =
-      this.wasmImports[symName] as Function & { stub?: boolean } || undefined;
+    const existing = this.wasmImports[symName] as
+      & ((
+        ...args: any[]
+      ) => any)
+      & { stub?: boolean } || undefined;
     if (!existing || existing.stub) {
       return false;
     }
     return true;
   }
 
-  getFunctionAddress(func: Function) {
+  getFunctionAddress(func: (...args: any) => any): number {
     if (!this.functionsInTableMap) {
       this.functionsInTableMap = new WeakMap();
       this.updateTableMap(0, this.wasmTable.length);
@@ -316,8 +316,8 @@ export class WasmLoader {
       ni("no handle");
     }
     // load data
-    var data = this.pgMem.HEAPU32[(handle + 28) >> 2];
-    var dataSize = this.pgMem.HEAPU32[(handle + 32) >> 2];
+    const data = this.pgMem.HEAPU32[(handle + 28) >> 2];
+    const dataSize = this.pgMem.HEAPU32[(handle + 32) >> 2];
 
     if (data && dataSize) {
       const libData = this.pgMem.HEAP8.slice(data, data + dataSize);
@@ -339,29 +339,29 @@ export class WasmLoader {
   }
   updateTableMap(offset: number, count: number) {
     if (this.functionsInTableMap) {
-      for (var i = offset; i < offset + count; i++) {
-        var item = this.getWasmTableEntry(i);
+      for (let i = offset; i < offset + count; i++) {
+        const item = this.getWasmTableEntry(i);
         if (item) {
           this.functionsInTableMap.set(item, i);
         }
       }
     }
   }
-  getWasmTableEntry(funcPtr: number): Function {
+  getWasmTableEntry(funcPtr: number): (...args: any[]) => any {
     try {
-      const ent = this.wasmTable.get(funcPtr);
+      const ent = this.wasmTable.get(funcPtr) as (...args: any[]) => any;
       if (!ent) {
         throw new Error("no fucntion");
       }
       return ent;
-    } catch (e) {
+    } catch (_e) {
       this.inPg.fileManager.debugLog({
         funcPtr,
       });
       ni("gette");
     }
   }
-  setWasmTableEntry(idx: number, func: Function) {
+  setWasmTableEntry(idx: number, func: (...args: any[]) => any) {
     this.wasmTable.set(idx, func);
   }
   getEmptyTableSlot(): number {
@@ -381,7 +381,7 @@ export class WasmLoader {
   loadWebAssemblyModule(
     binary: Int8Array,
     flags: any,
-    libName: any,
+    _libName: any,
     localScope: any,
     handle?: number,
   ) {
@@ -392,16 +392,18 @@ export class WasmLoader {
     metadata.neededDynlibs.forEach((needed) =>
       this.loadDynamicLibrary(needed, flags, localScope)
     );
-    var firstLoad = !handle || !this.pgMem.HEAP8[handle + 8];
+    const firstLoad = !handle || !this.pgMem.HEAP8[handle + 8];
+    let memoryBase = 0;
+    let tableBase = 0;
     if (firstLoad) {
-      var memAlign = Math.pow(2, metadata.memoryAlign);
-      var memoryBase = metadata.memorySize
+      const memAlign = Math.pow(2, metadata.memoryAlign);
+      memoryBase = metadata.memorySize
         ? this.pgMem.alignMemory(
           this.inPg.getMemory(metadata.memorySize + memAlign),
           memAlign,
         )
         : 0;
-      var tableBase = metadata.tableSize ? this.wasmTable.length : 0;
+      const tableBase = metadata.tableSize ? this.wasmTable.length : 0;
       if (handle) {
         this.pgMem.HEAP8[handle + 8] = 1;
         this.pgMem.HEAPU32[(handle + 12) >> 2] = memoryBase;
@@ -414,14 +416,14 @@ export class WasmLoader {
       tableBase = this.pgMem.HEAPU32[(handle! + 20) >> 2];
     }
 
-    var tableGrowthNeeded = tableBase + metadata.tableSize -
+    const tableGrowthNeeded = tableBase + metadata.tableSize -
       this.wasmTable.length;
     if (tableGrowthNeeded > 0) {
       this.wasmTable.grow(tableGrowthNeeded);
     }
     let moduleExports: Record<string, any> = {};
     const resolveSymbol = (sym: string) => {
-      var resolved = this.resolveGlobalSymbol(sym).sym;
+      let resolved = this.resolveGlobalSymbol(sym).sym;
       if (!resolved && localScope) {
         resolved = localScope[sym];
       }
@@ -431,7 +433,7 @@ export class WasmLoader {
       return resolved;
     };
     const wasmImports = this.wasmImports;
-    var proxyHandler = {
+    const proxyHandler = {
       get(stubs: Record<string, any>, prop: string) {
         switch (prop) {
           case "__memory_base":
@@ -443,7 +445,7 @@ export class WasmLoader {
           return wasmImports[prop];
         }
         if (!(prop in stubs)) {
-          var resolved;
+          let resolved;
           stubs[prop] = (...args: any) => {
             resolved ||= resolveSymbol(prop);
             if (!resolved) {
@@ -461,49 +463,50 @@ export class WasmLoader {
         return stubs[prop];
       },
     };
-    var proxy = new Proxy({}, proxyHandler);
+    const proxy = new Proxy({}, proxyHandler);
     const GOTHandler = this.GOTHandler;
-    var info = {
+    const info = {
       "GOT.mem": new Proxy({}, GOTHandler),
       "GOT.func": new Proxy({}, GOTHandler),
       env: proxy,
       wasi_snapshot_preview1: proxy,
     };
-    const postInstantiation = (module: any, instance: any) => {
+    const postInstantiation = (_module: any, instance: any) => {
       this.updateTableMap(tableBase, metadata.tableSize);
       moduleExports = this.relocateExports(instance.exports, memoryBase);
       if (!flags.allowUndefined) {
         // this.reportUndefinedSymbols();
       }
 
-      var applyRelocs = moduleExports["__wasm_apply_data_relocs"];
+      const applyRelocs = moduleExports["__wasm_apply_data_relocs"];
       if (applyRelocs) {
         applyRelocs();
       }
-      var init = moduleExports["__wasm_call_ctors"];
+      const init = moduleExports["__wasm_call_ctors"];
       if (init) {
         init();
       }
       return moduleExports;
     };
 
-    var module = binary instanceof WebAssembly.Module
+    const module = binary instanceof WebAssembly.Module
       ? binary
       : new WebAssembly.Module(binary);
-    var instance = new WebAssembly.Instance(module, info);
+    const instance = new WebAssembly.Instance(module, info);
     return postInstantiation(module, instance);
   }
   getDylinkMetadata(binary: Int8Array | Uint8Array): DLMetaData {
     let offset = 0;
     let end = 0;
+    let libname = "";
     function getU8() {
       return binary[offset++];
     }
     function getLEB() {
-      var ret = 0;
-      var mul = 1;
+      let ret = 0;
+      let mul = 1;
       while (1) {
-        var byte = binary[offset++];
+        const byte = binary[offset++];
         ret += (byte & 127) * mul;
         mul *= 128;
         if (!(byte & 128)) break;
@@ -511,16 +514,16 @@ export class WasmLoader {
       return ret;
     }
     function getString() {
-      var len = getLEB();
+      const len = getLEB();
       offset += len;
       return UTF8ArrayToString(binary, offset - len, len);
     }
     function failIf(condition: boolean, message?: string) {
       if (condition) throw new Error(message);
     }
-    var name = "dylink.0";
+    let name = "dylink.0";
     if (binary instanceof WebAssembly.Module) {
-      var dylinkSection = WebAssembly.Module.customSections(binary, name);
+      let dylinkSection = WebAssembly.Module.customSections(binary, name);
       if (dylinkSection.length === 0) {
         name = "dylink";
         dylinkSection = WebAssembly.Module.customSections(binary, name);
@@ -529,14 +532,14 @@ export class WasmLoader {
       binary = new Uint8Array(dylinkSection[0]);
       end = binary.length;
     } else {
-      var int32View = new Uint32Array(
+      const int32View = new Uint32Array(
         new Uint8Array(binary.subarray(0, 24)).buffer,
       );
-      var magicNumberFound = int32View[0] == 1836278016;
+      const magicNumberFound = int32View[0] == 1836278016;
       failIf(!magicNumberFound, "need to see wasm magic number");
       failIf(binary[8] !== 0, "need the dylink section to be first");
       offset = 9;
-      var section_size = getLEB();
+      const section_size = getLEB();
       end = offset + section_size;
       name = getString();
     }
@@ -554,49 +557,50 @@ export class WasmLoader {
       customSection.memoryAlign = getLEB();
       customSection.tableSize = getLEB();
       customSection.tableAlign = getLEB();
-      var neededDynlibsCount = getLEB();
-      for (var i = 0; i < neededDynlibsCount; ++i) {
-        var libname = getString();
+      const neededDynlibsCount = getLEB();
+
+      for (let i = 0; i < neededDynlibsCount; ++i) {
+        const libname = getString();
         customSection.neededDynlibs.push(libname);
       }
     } else {
       failIf(name !== "dylink.0");
-      var WASM_DYLINK_MEM_INFO = 1;
-      var WASM_DYLINK_NEEDED = 2;
-      var WASM_DYLINK_EXPORT_INFO = 3;
-      var WASM_DYLINK_IMPORT_INFO = 4;
-      var WASM_SYMBOL_TLS = 256;
-      var WASM_SYMBOL_BINDING_MASK = 3;
-      var WASM_SYMBOL_BINDING_WEAK = 1;
+      const WASM_DYLINK_MEM_INFO = 1;
+      const WASM_DYLINK_NEEDED = 2;
+      const WASM_DYLINK_EXPORT_INFO = 3;
+      const WASM_DYLINK_IMPORT_INFO = 4;
+      const WASM_SYMBOL_TLS = 256;
+      const WASM_SYMBOL_BINDING_MASK = 3;
+      const WASM_SYMBOL_BINDING_WEAK = 1;
       while (offset < end) {
-        var subsectionType = getU8();
-        var subsectionSize = getLEB();
+        const subsectionType = getU8();
+        const subsectionSize = getLEB();
         if (subsectionType === WASM_DYLINK_MEM_INFO) {
           customSection.memorySize = getLEB();
           customSection.memoryAlign = getLEB();
           customSection.tableSize = getLEB();
           customSection.tableAlign = getLEB();
         } else if (subsectionType === WASM_DYLINK_NEEDED) {
-          var neededDynlibsCount = getLEB();
-          for (var i = 0; i < neededDynlibsCount; ++i) {
+          const neededDynlibsCount = getLEB();
+          for (let i = 0; i < neededDynlibsCount; ++i) {
             libname = getString();
             customSection.neededDynlibs.push(libname);
           }
         } else if (subsectionType === WASM_DYLINK_EXPORT_INFO) {
-          var count = getLEB();
+          let count = getLEB();
           while (count--) {
-            var symname = getString();
-            var flags = getLEB();
+            const symname = getString();
+            const flags = getLEB();
             if (flags & WASM_SYMBOL_TLS) {
               customSection.tlsExports.add(symname);
             }
           }
         } else if (subsectionType === WASM_DYLINK_IMPORT_INFO) {
-          var count = getLEB();
+          let count = getLEB();
           while (count--) {
-            var modname = getString();
-            var symname = getString();
-            var flags = getLEB();
+            const _modname = getString();
+            const symname = getString();
+            const flags = getLEB();
             if (
               (flags & WASM_SYMBOL_BINDING_MASK) ==
                 WASM_SYMBOL_BINDING_WEAK
@@ -612,9 +616,9 @@ export class WasmLoader {
     return customSection;
   }
   relocateExports(exports: any, memoryBase: number, replace?: any) {
-    var relocated: Record<string, any> = {};
-    for (var e in exports) {
-      var value = exports[e];
+    const relocated: Record<string, any> = {};
+    for (const e in exports) {
+      let value = exports[e];
       if (typeof value == "object") {
         value = value.value;
       }
@@ -627,11 +631,11 @@ export class WasmLoader {
     return relocated;
   }
   updateGOT(exports: Record<string, any>, replace: boolean) {
-    for (var symName in exports) {
+    for (const symName in exports) {
       if (this.isInternalSym(symName)) {
         continue;
       }
-      var value = exports[symName];
+      const value = exports[symName];
       this.GOT[symName] ||= new WebAssembly.Global({
         value: "i32",
         mutable: true,
