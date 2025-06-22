@@ -1,6 +1,6 @@
-import type { PgPoolConfig } from "#/orm/db/postgres/pgTypes.ts";
-import type { EntryBase } from "#/orm/entry/entry-base.ts";
-import type { ExtractFieldKeys } from "#/orm/entry/types.ts";
+import type { PgPoolConfig } from "/orm/db/postgres/pgTypes.ts";
+import type { EntryBase } from "/orm/entry/entry-base.ts";
+import type { ExtractFieldKeys } from "/orm/entry/types.ts";
 
 interface DBConnectionConfig {
   user: string;

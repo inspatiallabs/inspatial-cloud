@@ -1,18 +1,20 @@
-import { generateId } from "../utils/misc.ts";
+import { generateId } from "#utils/misc.ts";
 
 export class InCloudBroker {
   clients: Map<string, WebSocket>;
-  constructor(appName: string) {
+  port: number;
+  constructor(port: number) {
+    this.port = port;
     this.clients = new Map();
   }
 
   run() {
     Deno.serve({
-      port: 11254,
+      port: this.port,
       hostname: "127.0.0.1",
       onListen: (addr) => {
       },
-    }, async (request) => {
+    }, (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);
       this.addClient(socket);
       return response;

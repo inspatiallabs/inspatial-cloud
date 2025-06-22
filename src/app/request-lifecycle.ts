@@ -1,5 +1,5 @@
 import type { ConfigDefinition, ExtensionConfig } from "#types/serve-types.ts";
-import type { InRequest } from "#/app/in-request.ts";
+import type { InRequest } from "/app/in-request.ts";
 
 /**
  * The lifecycle handlers for the incoming requests.

@@ -1,4 +1,4 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
 
 const registerUser = new CloudAPIAction("registerUser", {
   description: "Register a new user",

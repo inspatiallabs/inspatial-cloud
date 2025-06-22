@@ -1,16 +1,16 @@
 import { CloudExtension } from "@inspatial/cloud";
-import { InCloudBroker } from "./cloud/cloud-broker.ts";
-import { RunManager } from "./runner/run-manager.ts";
-import type { CloudRunnerMode } from "./runner/types.ts";
+import { InCloudBroker } from "/cloud/cloud-broker.ts";
+import { RunManager } from "/runner/run-manager.ts";
+import type { CloudRunnerMode } from "/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
-import { InCloudServer } from "./cloud/cloud-server.ts";
-import { InCloudQueue } from "./cloud/cloud-queue.ts";
+import { InCloudServer } from "/cloud/cloud-server.ts";
 
-import { InCloud } from "./cloud/cloud-common.ts";
+import { InCloud } from "/cloud/cloud-common.ts";
 
-import type { ExtensionOptions } from "./app/types.ts";
-import convertString from "./utils/convert-string.ts";
-import { CloudDB } from "./orm/db/postgres/in-pg/cloud-db.ts";
+import type { ExtensionOptions } from "/app/types.ts";
+import convertString from "#utils/convert-string.ts";
+import { CloudDB } from "#orm/db/postgres/in-pg/cloud-db.ts";
+import { InQueue } from "#queue/in-queue.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
@@ -72,7 +72,11 @@ class InCloudRunner {
   }
 
   #initBroker() {
-    const broker = new InCloudBroker(this.#appName);
+    const port = Deno.env.get("BROKER_PORT");
+    if (!port) {
+      throw new Error("BROKER_PORT environment variable is not set.");
+    }
+    const broker = new InCloudBroker(parseInt(port));
 
     broker.run();
   }
@@ -105,7 +109,7 @@ class InCloudRunner {
       this.#config,
       "migrator",
     );
-    await inCloud.init();
+    inCloud.init();
 
     const autoTypes = inCloud.getExtensionConfigValue<boolean>(
       "orm",
@@ -124,24 +128,25 @@ class InCloudRunner {
 
     await inCloud.boot();
     if (autoMigrate) {
-      inCloud.inLog.info(
-        "Running ORM migrations...",
-        "ORM",
-      );
+      // inCloud.inLog.info(
+      //   "Running ORM migrations...",
+      //   "ORM",
+      // );
       await inCloud.orm.migrate();
     }
     if (autoTypes) {
-      inCloud.inLog.info(
-        "Generating ORM type interfaces...",
-        "ORM",
-      );
+      // inCloud.inLog.info(
+      //   "Generating ORM type interfaces...",
+      //   "ORM",
+      // );
       await inCloud.orm.generateInterfaces();
     }
 
     Deno.exit(0);
   }
   #initQueue() {
-    const inCloud = new InCloudQueue(this.#appName, this.#config);
+    const inCloud = new InQueue(this.#appName, this.#config);
+    inCloud.run();
   }
   /**
    * Determines the mode of the CloudRunner based on the environment variable `CLOUD_RUNNER_MODE`.

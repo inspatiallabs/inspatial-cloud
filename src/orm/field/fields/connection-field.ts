@@ -1,5 +1,5 @@
-import { ORMFieldConfig } from "#/orm/field/orm-field.ts";
-import type { PgColumnDefinition } from "#/orm/db/db-types.ts";
+import { ORMFieldConfig } from "/orm/field/orm-field.ts";
+import type { PgColumnDefinition } from "/orm/db/db-types.ts";
 
 export default new ORMFieldConfig("ConnectionField", {
   dbColumn: (fieldDef) => {

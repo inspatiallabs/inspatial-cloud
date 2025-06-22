@@ -1,4 +1,4 @@
-import { SettingsType } from "#/orm/settings/settings-type.ts";
+import { SettingsType } from "/orm/settings/settings-type.ts";
 import { googleFields } from "#extensions/auth/settings-types/auth-settings/field-groups/google-fields.ts";
 
 const authSettings = new SettingsType("authSettings", {

@@ -1,4 +1,4 @@
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
+import { CloudAPIGroup } from "/api/cloud-group.ts";
 import getFileAction from "#extensions/files/src/actions/getFile.ts";
 import uploadFileAction from "#extensions/files/src/actions/uploadFile.ts";
 

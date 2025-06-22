@@ -1,7 +1,63 @@
 import { ni } from "../../in-pg.ts";
 import type { PGMem } from "../pgMem.ts";
+class FileBase {
+  stat(): Promise<Deno.FileInfo> {
+    throw new Error("Method not implemented.");
+  }
+  sync(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  syncSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  syncData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  syncDataSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  utime(_atime: number | Date, _mtime: number | Date): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  utimeSync(_atime: number | Date, _mtime: number | Date): void {
+    throw new Error("Method not implemented.");
+  }
+  isTerminal(): boolean {
+    throw new Error("Method not implemented.");
+  }
+  setRaw(_mode: boolean, _options?: Deno.SetRawOptions): void {
+    throw new Error("Method not implemented.");
+  }
+  lock(_exclusive?: boolean): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  lockSync(_exclusive?: boolean): void {
+    throw new Error("Method not implemented.");
+  }
+  unlock(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  unlockSync(): void {
+    throw new Error("Method not implemented.");
+  }
+  close(): void {
+    throw new Error("Method not implemented.");
+  }
+  truncate(_len?: number): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  read(_p: Uint8Array): Promise<number | null> {
+    throw new Error("Method not implemented.");
+  }
+  seek(_offset: number | bigint, _whence: Deno.SeekMode): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  write(_p: Uint8Array): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+}
 
-export class MemFile implements Deno.FsFile {
+export class MemFile extends FileBase implements Deno.FsFile {
   #pgMem: PGMem;
   #content?: Int8Array;
   #data: Uint8Array;
@@ -20,6 +76,7 @@ export class MemFile implements Deno.FsFile {
     return new TextDecoder().decode(this.#data);
   }
   constructor(pgMem: PGMem, type?: string, debug?: boolean) {
+    super();
     this.readable = new ReadableStream();
     this.writable = new WritableStream();
     this.debug = debug || false;
@@ -33,71 +90,20 @@ export class MemFile implements Deno.FsFile {
     this.statInfo.ctime = new Date();
   }
 
-  write(p: Uint8Array): Promise<number> {
-    throw new Error("Method not implemented.");
-  }
-  truncate(len?: number): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  read(p: Uint8Array): Promise<number | null> {
-    throw new Error("Method not implemented.");
-  }
-  seek(offset: number | bigint, whence: Deno.SeekMode): Promise<number> {
-    throw new Error("Method not implemented.");
-  }
   seekSync(offset: number, whence: Deno.SeekMode): number {
     switch (whence) {
       case Deno.SeekMode.Start:
         this.pos = offset;
+        break;
       case Deno.SeekMode.Current:
         this.pos += offset;
+        break;
       case Deno.SeekMode.End:
         this.pos = this.#data.length + offset;
     }
     return this.pos;
   }
-  stat(): Promise<Deno.FileInfo> {
-    throw new Error("Method not implemented.");
-  }
-  sync(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  syncSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  syncData(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  syncDataSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  utime(atime: number | Date, mtime: number | Date): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  utimeSync(atime: number | Date, mtime: number | Date): void {
-    throw new Error("Method not implemented.");
-  }
-  isTerminal(): boolean {
-    throw new Error("Method not implemented.");
-  }
-  setRaw(mode: boolean, options?: Deno.SetRawOptions): void {
-    throw new Error("Method not implemented.");
-  }
-  lock(exclusive?: boolean): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  lockSync(exclusive?: boolean): void {
-    throw new Error("Method not implemented.");
-  }
-  unlock(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  unlockSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  close(): void {
-    throw new Error("Method not implemented.");
-  }
+
   [Symbol.dispose](): void {
     throw new Error("Method not implemented.");
   }
@@ -195,7 +201,7 @@ export class MemFile implements Deno.FsFile {
     return this.statInfo;
   }
 }
-export class PostgresFile implements Deno.FsFile {
+export class PostgresFile extends FileBase implements Deno.FsFile {
   readable!: ReadableStream<Uint8Array<ArrayBuffer>>;
   writable!: WritableStream<Uint8Array<ArrayBufferLike>>;
   #data: Uint8Array;
@@ -220,6 +226,7 @@ export class PostgresFile implements Deno.FsFile {
     isSocket: false,
   } as Deno.FileInfo;
   constructor(data: Uint8Array) {
+    super();
     this.#data = data;
     this.statInfo.birthtime = new Date();
     this.statInfo.mtime = new Date();
@@ -254,8 +261,10 @@ export class PostgresFile implements Deno.FsFile {
     switch (whence) {
       case Deno.SeekMode.Start:
         this.position = offset;
+        break;
       case Deno.SeekMode.Current:
         this.position += offset;
+        break;
       case Deno.SeekMode.End:
         this.position = this.#data.length + offset;
     }
@@ -264,65 +273,13 @@ export class PostgresFile implements Deno.FsFile {
   statSync(): Deno.FileInfo {
     return this.statInfo;
   }
-  seek(offset: number | bigint, whence: Deno.SeekMode): Promise<number> {
+
+  writeSync(_p: Uint8Array): number {
     throw new Error("Method not implemented.");
   }
-  stat(): Promise<Deno.FileInfo> {
+
+  truncateSync(_len?: number): void {
     throw new Error("Method not implemented.");
-  }
-  write(p: Uint8Array): Promise<number> {
-    throw new Error("Method not implemented.");
-  }
-  writeSync(p: Uint8Array): number {
-    throw new Error("Method not implemented.");
-  }
-  truncate(len?: number): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  truncateSync(len?: number): void {
-    throw new Error("Method not implemented.");
-  }
-  read(p: Uint8Array): Promise<number | null> {
-    throw new Error("Method not implemented.");
-  }
-  sync(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  syncSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  syncData(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  syncDataSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  utime(atime: number | Date, mtime: number | Date): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  utimeSync(atime: number | Date, mtime: number | Date): void {
-    throw new Error("Method not implemented.");
-  }
-  isTerminal(): boolean {
-    throw new Error("Method not implemented.");
-  }
-  setRaw(mode: boolean, options?: Deno.SetRawOptions): void {
-    throw new Error("Method not implemented.");
-  }
-  lock(exclusive?: boolean): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  lockSync(exclusive?: boolean): void {
-    throw new Error("Method not implemented.");
-  }
-  unlock(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  unlockSync(): void {
-    throw new Error("Method not implemented.");
-  }
-  close(): void {
-    this.position = 0;
   }
   [Symbol.dispose](): void {
     throw new Error("Method not implemented.");

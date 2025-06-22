@@ -31,6 +31,12 @@ export const cloudConfig: ConfigDefinition = {
     default: 11254,
     required: false,
   },
+  queuePort: {
+    description: "The port the task queue service is listening on",
+    type: "number",
+    default: 11354,
+    required: false,
+  },
   hostName: {
     description: "The hostname for the server",
     required: false,

@@ -1,12 +1,12 @@
-import { raiseORMException } from "#/orm/orm-exception.ts";
-import convertString from "#/utils/convert-string.ts";
-import type { ChildEntryType } from "#/orm/child-entry/child-entry.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
+import convertString from "/utils/convert-string.ts";
+import type { ChildEntryType } from "/orm/child-entry/child-entry.ts";
 import type {
   BaseTypeInfo,
   FieldGroup,
   FieldGroupConfig,
-} from "#/orm/shared/shared-types.ts";
-import type { InField } from "#/orm/field/field-def-types.ts";
+} from "/orm/shared/shared-types.ts";
+import type { InField } from "/orm/field/field-def-types.ts";
 
 export class BaseType<N extends string = string> {
   name: N;

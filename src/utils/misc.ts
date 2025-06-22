@@ -7,3 +7,7 @@ export function generateId(length?: number): string {
 export function isEmpty(value: unknown): boolean {
   return value === null || value === undefined || value === "";
 }
+
+export function asyncPause(duration = 100) {
+  return new Promise((resolve) => setTimeout(resolve, duration));
+}

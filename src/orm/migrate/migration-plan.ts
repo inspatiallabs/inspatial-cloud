@@ -1,5 +1,5 @@
-import type { EntryMigrationPlan } from "#/orm/migrate/entry-type/entry-migration-plan.ts";
-import type { SettingsMigrationPlan } from "#/orm/migrate/settings-type/settings-migration-plan.ts";
+import type { EntryMigrationPlan } from "/orm/migrate/entry-type/entry-migration-plan.ts";
+import type { SettingsMigrationPlan } from "/orm/migrate/settings-type/settings-migration-plan.ts";
 
 export class MigrationPlan {
   summary: {

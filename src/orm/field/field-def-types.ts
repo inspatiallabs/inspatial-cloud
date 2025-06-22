@@ -1,4 +1,4 @@
-import type { Choice, IDMode, InValue } from "#/orm/field/types.ts";
+import type { Choice, IDMode, InValue } from "/orm/field/types.ts";
 import type {
   FileTypes,
   ImageFileType,
@@ -46,7 +46,17 @@ export interface FetchOptions {
    */
   fetchField: string;
 }
-type BaseField = {
+type DependsOn<FK extends PropertyKey = PropertyKey> =
+  | FK
+  | {
+    field: FK;
+    value: InValue | Array<InValue>;
+  }
+  | Array<{
+    field: FK;
+    value: InValue | Array<InValue>;
+  }>;
+type BaseField<FK extends PropertyKey = PropertyKey> = {
   key: string;
   label: string;
   description?: string;
@@ -59,6 +69,8 @@ type BaseField = {
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */
   fetchField?: FetchOptions;
+
+  dependsOn?: DependsOn<FK>;
 };
 export interface IDField extends BaseField {
   type: "IDField";
@@ -115,6 +127,7 @@ export interface DateField extends BaseField {
 export interface TimeStampField extends BaseField {
   type: "TimeStampField";
   defaultValue?: InValue<"TimeStampField">;
+  showTime?: boolean;
 }
 
 export interface BooleanField extends BaseField {
@@ -188,6 +201,7 @@ export interface RichTextField extends BaseField {
 export interface URLField extends BaseField {
   type: "URLField";
   defaultValue?: InValue<"URLField">;
+  urlType?: "button" | "link" | "text";
 }
 
 export interface ListField extends BaseField {

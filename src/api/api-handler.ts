@@ -1,5 +1,5 @@
-import type { HandlerResponse, PathHandler } from "#/app/path-handler.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+import type { HandlerResponse, PathHandler } from "/app/path-handler.ts";
+import { raiseServerException, Redirect } from "/app/server-exception.ts";
 
 export const apiPathHandeler: PathHandler = {
   name: "api",
@@ -28,11 +28,15 @@ export const apiPathHandeler: PathHandler = {
       default:
         data = await inRequest.body;
     }
-    return await action.run({
+    const result = await action.run({
       inCloud,
       inRequest,
       inResponse,
       params: data,
     });
+    if (result instanceof Redirect) {
+      return inResponse.redirect(result.url);
+    }
+    return result;
   },
 };

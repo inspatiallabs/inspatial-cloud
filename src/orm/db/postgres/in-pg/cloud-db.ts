@@ -34,20 +34,21 @@ export class CloudDB {
     });
   }
 
-  async start(port: number) {
-    inLog.warn(
-      `Starting embedded Postgres on port ${port}...`,
-      "CloudDB",
-    );
+  async start(
+    port: number,
+    statusCallback?: (status: "starting" | "running") => void,
+  ) {
+    if (statusCallback) {
+      statusCallback("starting");
+    }
     await this.inPg.run();
     Deno.serve({
       hostname: "127.0.0.1",
       port,
       onListen: (addr) => {
-        inLog.info(
-          `Embedded Postgres is running on port ${addr.port}`,
-          "CloudDB",
-        );
+        if (statusCallback) {
+          statusCallback("running");
+        }
       },
     }, async (request) => {
       const { response, socket } = Deno.upgradeWebSocket(request);

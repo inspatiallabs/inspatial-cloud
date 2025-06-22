@@ -6,12 +6,12 @@ import {
 import type { AuthSettings } from "#extensions/auth/generated-interfaces/settings/auth-settings.ts";
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
-import { CloudAPIAction } from "#/api/cloud-action.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
 
-import { raiseServerException } from "#/app/server-exception.ts";
-import type { InRequest } from "#/app/in-request.ts";
-import type { InResponse } from "#/app/in-response.ts";
-import type { InCloud } from "#/cloud/cloud-common.ts";
+import { raiseServerException } from "/app/server-exception.ts";
+import type { InRequest } from "/app/in-request.ts";
+import type { InResponse } from "/app/in-response.ts";
+import type { InCloud } from "/cloud/cloud-common.ts";
 
 const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,

@@ -1,6 +1,6 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import { CloudAPIGroup } from "#/api/cloud-group.ts";
-import type { EntryTypeInfo } from "#/orm/entry/types.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import { CloudAPIGroup } from "/api/cloud-group.ts";
+import type { EntryTypeInfo } from "/orm/entry/types.ts";
 
 const getEntryAction = new CloudAPIAction("getEntry", {
   label: "Get Entry",
@@ -107,9 +107,15 @@ const runEntryAction = new CloudAPIAction("runEntryAction", {
   description: "Run an action on an entry",
   async run({ inCloud, inRequest, params }) {
     const user = inRequest.context.get("user");
-    const { entryType, id, action, data } = params;
+    const { entryType, id, action, data, enqueue } = params;
 
     const entry = await inCloud.orm.getEntry(entryType, id, user);
+    if (enqueue) {
+      const inTask = await entry.enqueueAction(action, data);
+      return {
+        message: `Action ${action} enqueued for ${entryType}: ${id}`,
+      };
+    }
     return await entry.runAction(action, data);
   },
   params: [{
@@ -135,6 +141,13 @@ const runEntryAction = new CloudAPIAction("runEntryAction", {
     type: "JSONField",
     label: "Data",
     description: "The data to run the action with",
+    required: false,
+  }, {
+    key: "enqueue",
+    type: "BooleanField",
+    label: "Enqueue",
+    description:
+      "Whether to send the action to the queue instead of running it immediately",
     required: false,
   }],
 });

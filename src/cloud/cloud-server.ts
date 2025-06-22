@@ -1,5 +1,4 @@
 import type { CloudConfig } from "#types/mod.ts";
-import { InCache } from "../app/cache/in-cache.ts";
 import { requestHandler } from "../app/request-handler.ts";
 import { InCloud } from "./cloud-common.ts";
 

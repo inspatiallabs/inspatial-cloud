@@ -3,16 +3,16 @@ import type {
   ExceptionHandler,
   ExtensionConfig,
 } from "#types/serve-types.ts";
-import type { PathHandler } from "#/app/path-handler.ts";
-import type { RequestLifecycle } from "#/app/request-lifecycle.ts";
-import { convertString } from "#/utils/mod.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
+import type { PathHandler } from "/app/path-handler.ts";
+import type { RequestLifecycle } from "/app/request-lifecycle.ts";
+import { convertString } from "/utils/mod.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
 
-import type { CloudExtensionInfo, ExtensionOptions } from "#/app/types.ts";
-import type { Middleware } from "#/app/middleware.ts";
-import type { EntryHooks } from "#/orm/orm-types.ts";
-import type { CloudAPIGroup } from "#/api/cloud-group.ts";
+import type { CloudExtensionInfo, ExtensionOptions } from "/app/types.ts";
+import type { Middleware } from "/app/middleware.ts";
+import type { EntryHooks } from "/orm/orm-types.ts";
+import type { CloudAPIGroup } from "/api/cloud-group.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 export type CloudInstallFunction<R = any> = (
   inCloud: InCloud,

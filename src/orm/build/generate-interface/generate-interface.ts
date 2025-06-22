@@ -1,12 +1,12 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
 import {
   formatInterfaceFile,
   writeInterfaceFile,
-} from "#/orm/build/generate-interface/files-handling.ts";
-import { buildFields } from "#/orm/build/generate-interface/build-fields.ts";
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import convertString from "#/utils/convert-string.ts";
+} from "/orm/build/generate-interface/files-handling.ts";
+import { buildFields } from "/orm/build/generate-interface/build-fields.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import convertString from "/utils/convert-string.ts";
 
 export async function generateEntryInterface(
   orm: InSpatialORM,

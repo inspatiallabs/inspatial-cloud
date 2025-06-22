@@ -2,7 +2,7 @@ import ColorMe, {
   type BasicBgColor,
   type BasicFgColor,
   type StyleOptions,
-} from "#/utils/color-me.ts";
+} from "#terminal/color-me.ts";
 
 const encoder = new TextEncoder();
 
@@ -191,10 +191,20 @@ export const symbols = {
   alt2Down: "⇩",
   alt2Left: "⇦",
   alt2Right: "⇨",
+  alt2DownLeft: "⇙",
+  alt2DownRight: "⇘",
+  alt2UpLeft: "⇖",
+  alt2UpRight: "⇗",
   alt3Up: "⬆",
   alt3Down: "⬇",
   alt3Left: "⬅",
   alt3Right: "➡",
+  alt3DownLeft: "⬋",
+  alt3DownRight: "⬊",
+  alt3UpLeft: "⬈",
+  alt3UpRight: "⬉",
+  circleArrow: "⭮",
+  circleArrowAlt: "⭯",
   newMoon: "🌑",
   waxingCrescent: "🌒",
   firstQuarter: "🌓",

@@ -1,4 +1,4 @@
-import type { LogType } from "#/in-log/types.ts";
+import type { LogType } from "/in-log/types.ts";
 
 /**
  * The configuration for an environment variable.

@@ -1,12 +1,12 @@
-import type { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { InSpatialDB } from "#/orm/db/inspatial-db.ts";
-import type { SettingsType } from "#/orm/settings/settings-type.ts";
-import type { EntryType } from "#/orm/entry/entry-type.ts";
+import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { InSpatialDB } from "/orm/db/inspatial-db.ts";
+import type { SettingsType } from "/orm/settings/settings-type.ts";
+import type { EntryType } from "/orm/entry/entry-type.ts";
 import type { ChildEntryType } from "@inspatial/cloud";
-import type { EntryMigrationPlan } from "#/orm/migrate/entry-type/entry-migration-plan.ts";
-import { EntryTypeMigrator } from "#/orm/migrate/entry-type/entry-type-migrator.ts";
-import type { SettingsMigrationPlan } from "#/orm/migrate/settings-type/settings-migration-plan.ts";
-import convertString from "#/utils/convert-string.ts";
+import type { EntryMigrationPlan } from "/orm/migrate/entry-type/entry-migration-plan.ts";
+import { EntryTypeMigrator } from "/orm/migrate/entry-type/entry-type-migrator.ts";
+import type { SettingsMigrationPlan } from "/orm/migrate/settings-type/settings-migration-plan.ts";
+import convertString from "/utils/convert-string.ts";
 
 export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
   orm: InSpatialORM;

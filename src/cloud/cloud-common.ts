@@ -6,18 +6,18 @@ import { baseExtension } from "../base-extension/base-extension.ts";
 import { ExtensionManager } from "../extension-manager/extension-manager.ts";
 import { type InLog, inLog } from "../in-log/in-log.ts";
 import type { LogLevel } from "../in-log/types.ts";
-import type { InSpatialORM } from "../orm/mod.ts";
-import type { CloudRunnerMode, RunnerMode } from "../runner/types.ts";
-import { joinPath, normalizePath } from "../utils/path-utils.ts";
+import type { InSpatialORM } from "#orm/mod.ts";
+import type { CloudRunnerMode } from "../runner/types.ts";
+import { joinPath, normalizePath } from "#utils/path-utils.ts";
 import authCloudExtension from "#extensions/auth/mod.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
-import { setupOrm } from "../orm/setup-orm.ts";
+import { setupOrm } from "#orm/setup-orm.ts";
 import {
   isServerException,
   raiseServerException,
 } from "../app/server-exception.ts";
-import { ORMException } from "../orm/orm-exception.ts";
+import { ORMException } from "#orm/orm-exception.ts";
 import type { CloudAPIGroup } from "../api/cloud-group.ts";
 import { InLiveHandler } from "../in-live/in-live-handler.ts";
 import type { CloudExtensionInfo } from "../app/types.ts";
@@ -28,6 +28,7 @@ import {
   generateConfigSchema,
 } from "../cloud-config/cloud-config.ts";
 import { InCache } from "../app/cache/in-cache.ts";
+import { emailExtension } from "#extensions/email/mod.ts";
 
 export class InCloud {
   appName: string;
@@ -68,7 +69,7 @@ export class InCloud {
     this.inCache = new InCache();
     this.api = new CloudAPI();
   }
-  async init() {
+  init() {
     // Extension manager initialization
     this.extensionManager = new ExtensionManager();
     this.extensionManager.registerExtension(baseExtension);
@@ -130,7 +131,7 @@ export class InCloud {
     }
   }
   async run(): Promise<void> {
-    await this.init();
+    this.init();
     await this.boot();
     const brokerPort = this.getExtensionConfigValue<number>(
       "cloud",
@@ -143,6 +144,7 @@ export class InCloud {
     const appExtensions: Array<CloudExtension> = [
       ormCloudExtension,
       authCloudExtension,
+      emailExtension,
       filesExtension,
     ];
 

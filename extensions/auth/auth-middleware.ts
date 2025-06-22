@@ -1,5 +1,5 @@
 import type { AuthHandler } from "#extensions/auth/auth-handler.ts";
-import type { Middleware } from "#/app/middleware.ts";
+import type { Middleware } from "/app/middleware.ts";
 
 export const authMiddleware: Middleware = {
   name: "auth",

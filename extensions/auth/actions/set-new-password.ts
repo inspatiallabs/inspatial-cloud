@@ -1,7 +1,7 @@
-import { CloudAPIAction } from "#/api/cloud-action.ts";
-import { raiseServerException } from "#/app/server-exception.ts";
+import { CloudAPIAction } from "/api/cloud-action.ts";
+import { raiseServerException } from "/app/server-exception.ts";
 
-const setNewPassword = new CloudAPIAction("setNewPassword", {
+export const setNewPassword = new CloudAPIAction("setNewPassword", {
   description: "Reset user password",
   authRequired: false,
   async run({ inCloud, params }) {
@@ -33,5 +33,3 @@ const setNewPassword = new CloudAPIAction("setNewPassword", {
     required: true,
   }],
 });
-
-export default setNewPassword;

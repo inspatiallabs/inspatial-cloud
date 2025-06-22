@@ -1,19 +1,19 @@
-import { InSpatialORM } from "#/orm/inspatial-orm.ts";
-import type { ClientConnectionType, DBConfig } from "#/orm/db/db-types.ts";
+import { InSpatialORM } from "/orm/inspatial-orm.ts";
+import type { ClientConnectionType, DBConfig } from "/orm/db/db-types.ts";
 import type {
   EntryHooks,
   GlobalEntryHooks,
   GlobalHookFunction,
-} from "#/orm/orm-types.ts";
+} from "/orm/orm-types.ts";
 
-import type { ExtensionManager } from "#/extension-manager/extension-manager.ts";
+import type { ExtensionManager } from "/extension-manager/extension-manager.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 
 export function setupOrm(args: {
   inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
-  const { inCloud: app, extensionManager } = args;
+  const { inCloud, extensionManager } = args;
   const config = extensionManager.getExtensionConfig("orm");
   const globalHooks: GlobalEntryHooks = {
     afterCreate: [],
@@ -31,7 +31,7 @@ export function setupOrm(args: {
       const newHook: GlobalHookFunction = async (
         { entry, entryType, orm },
       ) => {
-        return await hook(app, { entry, entryType, orm });
+        return await hook(inCloud, { entry, entryType, orm });
       };
       globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
     }
@@ -100,6 +100,7 @@ export function setupOrm(args: {
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks: globalHooks,
     dbConfig,
+    inCloud,
   });
   return orm;
 }

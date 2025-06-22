@@ -1,4 +1,4 @@
-import { SettingsType } from "#/orm/settings/settings-type.ts";
+import { SettingsType } from "/orm/settings/settings-type.ts";
 
 export const systemSettings = new SettingsType("systemSettings", {
   fields: [{
