@@ -74,15 +74,6 @@ const fileEntry = new EntryType<CloudFile>("cloudFile", {
       },
     }],
   },
-  roles: [{
-    roleName: "basic",
-    permission: {
-      view: true,
-      modify: false,
-      create: false,
-      delete: false,
-    },
-  }],
 });
 
 export default fileEntry;

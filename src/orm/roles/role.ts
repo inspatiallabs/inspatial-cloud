@@ -283,7 +283,15 @@ function buildEntryTypeForRole(
 
   setFieldPermissions(config, permission);
   const roleEntryType = new EntryType(entryType.name, config);
-  roleEntryType.permission = permission;
+  roleEntryType.permission = { ...permission };
+  roleEntryType.info = {
+    ...roleEntryType.info,
+    permission: {
+      modify: permission.modify,
+      create: permission.create,
+      delete: permission.delete,
+    },
+  };
   roleEntryType.config.extension = entryType.config.extension;
   return roleEntryType;
 }
@@ -300,6 +308,12 @@ function buildSettingsTypeForRole(
   const roleSettingsType = new SettingsType(settingsType.name, config);
   roleSettingsType.config.extension = settingsType.config.extension;
   roleSettingsType.permission = permission;
+  roleSettingsType.info = {
+    ...roleSettingsType.info,
+    permission: {
+      modify: permission.modify,
+    },
+  };
   return roleSettingsType;
 }
 
@@ -316,6 +330,7 @@ function setFieldPermissions(
       field.readOnly = true;
     }
   }
+  const removeFromGroup = new Set<string>();
   if (permission.fields) {
     for (
       const [fieldKey, fieldPermission] of Object.entries(permission.fields)
@@ -325,9 +340,32 @@ function setFieldPermissions(
         raiseCloudException(`field ${fieldKey} doesn't exist!`);
       }
       if (fieldPermission?.view === false) {
-        field.hidden = true;
+        fields.delete(fieldKey);
+        removeFromGroup.add(fieldKey);
       }
     }
   }
   config.fields = Array.from(fields.values());
+
+  if (config.fieldGroups) {
+    for (const group of config.fieldGroups) {
+      group.fields = group.fields.filter(
+        (fieldKey) => !removeFromGroup.has(fieldKey as string),
+      );
+    }
+  }
+  if (isEntryConfig(config)) {
+    config.defaultListFields = config.defaultListFields?.filter(
+      (fieldKey) => !removeFromGroup.has(fieldKey as string),
+    );
+    config.searchFields = config.searchFields?.filter((fieldKey) =>
+      !removeFromGroup.has(fieldKey as string)
+    );
+  }
+}
+
+function isEntryConfig(
+  config: EntryConfig | SettingsConfig,
+): config is EntryConfig {
+  return "defaultListFields" in config;
 }

@@ -26,6 +26,7 @@ export function buildSettings(
     override _fieldIds: Map<string, string> = fieldIds;
     override _actions: Map<string, SettingsActionDefinition> =
       settingsType.actions;
+    override readonly _settingsType = settingsType;
     override _childrenClasses = childrenClasses;
     constructor(orm: any, inCloud: InCloud) {
       super(orm, inCloud, settingsType.name);

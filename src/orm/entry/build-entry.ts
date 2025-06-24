@@ -26,6 +26,7 @@ export function buildEntry(entryType: EntryType): typeof Entry {
       entryType.connectionTitleFields;
     override _actions: Map<string, EntryActionDefinition> = entryType.actions;
     override _childrenClasses = childrenClasses;
+    override readonly _entryType = entryType;
 
     constructor(orm: InSpatialORM, inCloud: InCloud) {
       super(orm, inCloud, entryType.name);

@@ -25,7 +25,7 @@ export function buildConnectionFields(
       connectionEntryType = role.getEntryType(field.entryType);
     } catch (_e) {
       raiseORMException(
-        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist`,
+        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist for role '${role.label}'`,
         "Invalid Connection",
       );
     }

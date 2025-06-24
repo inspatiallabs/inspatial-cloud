@@ -39,4 +39,17 @@ export const emailSettings: SettingsType<EmailSettings> = new SettingsType<
       ],
     },
   ],
+  roles: [{
+    roleName: "basic",
+    permission: {
+      view: true,
+      modify: true,
+      fields: {
+        defaultSendAccount: {
+          view: false,
+          modify: false,
+        },
+      },
+    },
+  }],
 });

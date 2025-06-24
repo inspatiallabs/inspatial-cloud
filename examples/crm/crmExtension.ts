@@ -1,9 +1,9 @@
-import { createInCloud } from "@inspatial/cloud";
+import { CloudExtension } from "@inspatial/cloud";
 import customerAccount from "./entryTypes/customerAccount.ts";
 import { product } from "./entryTypes/product.ts";
 
-createInCloud({
-  name: "CRM",
+const crmExtension = new CloudExtension("crm", {
+  label: "CRM",
   description: "Customer Relationship Management",
   version: "1.0.0",
   entryTypes: [customerAccount, product],
@@ -17,3 +17,5 @@ createInCloud({
     label: "Manager",
   }],
 });
+
+export default crmExtension;

@@ -16,7 +16,7 @@ import convertString from "#utils/convert-string.ts";
 import type {
   EntryPermission,
   EntryRole,
-} from "#/orm/roles/entry-permissions.ts";
+} from "/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -126,11 +126,13 @@ export class EntryType<
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
     this.#validateIndexFields();
+    this.#setupRoles(config.roles);
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()).filter((action) =>
         !action.private
       ),
+      permission: this.permission,
       displayFields: Array.from(this.displayFields.values()),
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!

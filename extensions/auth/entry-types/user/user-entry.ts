@@ -25,21 +25,7 @@ const userEntry = new EntryType<User>("user", {
     generateApiToken,
     generateResetToken,
   ],
-  roles: [{
-    roleName: "basic",
-    permission: {
-      view: true,
-      modify: false,
-      create: false,
-      delete: false,
-      fields: {
-        systemAdmin: {
-          view: false,
-          modify: false,
-        },
-      },
-    },
-  }],
+
   hooks: {
     beforeUpdate: [{
       name: "setFullName",

@@ -3,11 +3,11 @@ import type { EntryHookDefinition, IDValue } from "/orm/entry/types.ts";
 import type { EntryHookName } from "/orm/orm-types.ts";
 import type { EntryType } from "/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import { ORMException, raiseORMException } from "/orm/orm-exception.ts";
+import { raiseORMException } from "/orm/orm-exception.ts";
 import ulid from "/orm/utils/ulid.ts";
 
-import { inLog } from "#inLog";
 import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { EntryPermission } from "../roles/entry-permissions.ts";
 
 export class Entry<
   N extends string = string,
@@ -20,7 +20,7 @@ export class Entry<
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
   }
-
+  readonly _entryType!: EntryType;
   _hooks: {
     [key in EntryHookName]?: Array<EntryHookDefinition>;
   } = {
@@ -33,10 +33,12 @@ export class Entry<
     beforeDelete: [],
     afterDelete: [],
   };
-  get _entryType(): EntryType {
-    return this._orm.getEntryType(this._name);
+  get permission(): EntryPermission {
+    return this._entryType.permission;
   }
+
   get data(): Record<string, any> {
+    this.assertViewPermission();
     const data = Object.fromEntries(this._data.entries());
     const childData: Record<string, any> = {};
     for (const [key, value] of this._childrenData.entries()) {
@@ -56,6 +58,7 @@ export class Entry<
    * Note: This does not save the entry to the database. You must call the save method to do that.
    */
   create(): void {
+    this.assertCreatePermission();
     this._data.clear();
     for (const field of this._fields.values()) {
       if (
@@ -71,6 +74,7 @@ export class Entry<
   }
 
   async load(id: IDValue): Promise<void> {
+    this.assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
     // Load the main table row
@@ -83,25 +87,22 @@ export class Entry<
       );
     }
     for (const [key, value] of Object.entries(dbRow)) {
-      try {
-        const fieldDef = this._getFieldDef(key);
-        const fieldType = this._getFieldType(fieldDef.type);
-        this._data.set(key, fieldType.parseDbValue(value, fieldDef));
-      } catch (e) {
-        if (e instanceof ORMException && e.responseCode === 404) {
-          inLog.warn(`${e.message} but was loaded from the database`, {
-            subject: e.subject,
-          });
-          continue;
-        }
-        throw e;
+      if (!this._fields.has(key)) {
+        continue;
       }
+      const fieldDef = this._getFieldDef(key);
+      const fieldType = this._getFieldType(fieldDef.type);
+      this._data.set(key, fieldType.parseDbValue(value, fieldDef));
     }
 
     await this.loadChildren(this.id as string);
   }
 
   async save(): Promise<void> {
+    if (this.#isNew) {
+      this.assertCreatePermission();
+    }
+    this.assertModifyPermission();
     await this.refreshFetchedFields();
     this["updatedAt" as keyof this] = Date.now() as any;
     switch (this.#isNew) {
@@ -141,6 +142,7 @@ export class Entry<
    * Deletes the entry from the database
    */
   async delete(): Promise<boolean> {
+    this.assertDeletePermission();
     await this.#beforeDelete();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
     await this.#afterDelete();
@@ -153,6 +155,7 @@ export class Entry<
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
   update(data: Record<string, any>): void {
+    this.assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
         const childList = this._childrenData.get(key);
@@ -297,6 +300,54 @@ export class Entry<
           }],
         );
       }
+    }
+  }
+  get canCreate(): boolean {
+    return this._entryType.permission.create;
+  }
+  get canModify(): boolean {
+    return this._entryType.permission.modify;
+  }
+  get canView(): boolean {
+    return this._entryType.permission.view;
+  }
+  get canDelete(): boolean {
+    return this._entryType.permission.delete;
+  }
+  assertCreatePermission(): void {
+    if (!this.canCreate) {
+      raiseORMException(
+        `You do not have permission to create a new ${this._entryType.config.label}`,
+        "PermissionDenied",
+        403,
+      );
+    }
+  }
+  assertModifyPermission(): void {
+    if (!this.canModify) {
+      raiseORMException(
+        `You do not have permission to modify ${this._entryType.config.label} Entries`,
+        "PermissionDenied",
+        403,
+      );
+    }
+  }
+  assertViewPermission(): void {
+    if (!this.canView) {
+      raiseORMException(
+        `You do not have permission to view ${this._entryType.config.label} Entries`,
+        "PermissionDenied",
+        403,
+      );
+    }
+  }
+  assertDeletePermission(): void {
+    if (!this.canDelete) {
+      raiseORMException(
+        `You do not have permission to delete ${this._entryType.config.label} Entries`,
+        "PermissionDenied",
+        403,
+      );
     }
   }
 }
