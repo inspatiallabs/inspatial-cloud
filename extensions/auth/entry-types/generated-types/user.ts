@@ -119,4 +119,6 @@ export interface User extends EntryBase {
    * @type {string}
    */
   profilePicture__title?: string;
+
+  role: string;
 }

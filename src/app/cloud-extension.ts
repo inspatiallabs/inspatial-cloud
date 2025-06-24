@@ -14,6 +14,7 @@ import type {
   ConfigDefinition,
   ExtensionConfig,
 } from "../cloud-config/config-types.ts";
+import type { RoleConfig } from "#orm/roles/role.ts";
 export type CloudInstallFunction<R = any> = (
   inCloud: InCloud,
 ) => R;
@@ -53,6 +54,7 @@ export class CloudExtension<
 
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
+  roles: RoleConfig[];
   ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
@@ -72,7 +74,7 @@ export class CloudExtension<
     this.label = options.label;
     this.description = options.description || "";
     this.version = options.version;
-
+    this.roles = options.roles || [];
     const globalHooks = options.ormGlobalHooks;
     this.ormGlobalHooks = {
       beforeValidate: globalHooks?.beforeValidate || [],

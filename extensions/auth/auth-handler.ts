@@ -85,6 +85,7 @@ export class AuthHandler {
           lastName: user.lastName,
           systemAdmin: user.systemAdmin ?? false,
           userId: user.id as string,
+          role: user.systemAdmin ? "systemAdmin" : user.role,
         };
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
@@ -134,6 +135,7 @@ export class AuthHandler {
       firstName: user.firstName,
       lastName: user.lastName,
       systemAdmin: user.systemAdmin ?? false,
+      role: user.systemAdmin ? "systemAdmin" : user.role,
     };
     const session = await this.#inCloud.orm.createEntry<UserSession>(
       "userSession",

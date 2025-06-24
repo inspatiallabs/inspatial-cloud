@@ -15,6 +15,7 @@ import type {
 } from "/orm/field/field-def-types.ts";
 import type { InCloud } from "/cloud/cloud-common.ts";
 import type { InTask } from "#queue/generated-types/in-task.ts";
+import type { SessionData } from "#extensions/auth/types.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -29,7 +30,7 @@ export class BaseClass<N extends string = string> {
   _changeableFields: Map<string, InField> = new Map();
   _childrenClasses: Map<string, typeof ChildEntryList> = new Map();
   _childrenData: Map<string, ChildEntryList> = new Map();
-  readonly _user?: Record<string, any>;
+  readonly _user?: SessionData;
   _actions: Map<string, EntryActionDefinition | SettingsActionDefinition> =
     new Map();
   _getFieldType<T extends keyof InFieldMap>(fieldType: T): ORMFieldConfig<T> {
@@ -58,7 +59,7 @@ export class BaseClass<N extends string = string> {
     inCloud: InCloud,
     name: N,
     type: "settings" | "entry",
-    user?: Record<string, any>,
+    user?: SessionData,
   ) {
     this._user = user;
     this._type = type;

@@ -11,6 +11,7 @@ import type {
   ConfigDefinition,
   ExtensionConfig,
 } from "../cloud-config/config-types.ts";
+import type { RoleConfig } from "#orm/roles/role.ts";
 
 /**
  * Information about a {@link CloudExtension}
@@ -98,4 +99,5 @@ export interface ExtensionOptions<
   pathHandlers?: PathHandler[];
   /** Exception handlers */
   exceptionHandlers?: ExceptionHandler[];
+  roles?: Array<RoleConfig>;
 }

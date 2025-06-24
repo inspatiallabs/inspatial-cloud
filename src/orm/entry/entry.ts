@@ -272,7 +272,10 @@ export class Entry<
   }
 
   async #syncReferences() {
-    const entryRegistry = this._orm.registry.getEntryTypeRegistry(this._name);
+    const entryRegistry = this._orm.getEntryTypeRegistry(
+      this._name,
+      this._user,
+    );
     if (entryRegistry === undefined) {
       return;
     }

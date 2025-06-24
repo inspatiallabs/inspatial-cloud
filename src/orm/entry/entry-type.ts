@@ -2,6 +2,7 @@ import type {
   ActionParam,
   EntryActionConfig,
   EntryActionDefinition,
+  EntryConfig,
   EntryHookDefinition,
   EntryIndex,
   EntryTypeConfig,
@@ -10,10 +11,12 @@ import type {
 import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
 import type { EntryHookName } from "/orm/orm-types.ts";
 import { BaseType } from "/orm/shared/base-type-class.ts";
-import type { IDMode } from "/orm/field/types.ts";
 import { raiseORMException } from "/orm/orm-exception.ts";
-import convertString from "/utils/convert-string.ts";
-import type { BaseConfig } from "/orm/shared/shared-types.ts";
+import convertString from "#utils/convert-string.ts";
+import type {
+  EntryPermission,
+  EntryRole,
+} from "#/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -41,28 +44,25 @@ export class EntryType<
     beforeValidate: [],
     validate: [],
   };
+  permission: EntryPermission;
+  roles: Map<string, EntryRole> = new Map();
+  sourceConfig: EntryConfig<E, A, FK>;
   constructor(
     name: N,
-    config: BaseConfig<FK> & {
-      /**
-       * The field to use as the display value instead of the ID.
-       */
-      titleField?: FK;
-      idMode?: IDMode;
-      imageField?: FK;
-      defaultListFields?: Array<FK>;
-      defaultSortField?: FK;
-      defaultSortDirection?: "asc" | "desc";
-      searchFields?: Array<FK>;
-      index?: Array<EntryIndex<FK>>;
-      actions?: A;
-      hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-      roles?: Array<unknown>;
-    },
+    config: EntryConfig<E, A, FK>,
   ) {
     super(name, config);
+    this.sourceConfig = {
+      ...config,
+    };
     this.defaultSortField = config.defaultSortField || "id" as FK;
     this.defaultSortDirection = config.defaultSortDirection || "asc";
+    this.permission = {
+      create: true,
+      view: true,
+      modify: true,
+      delete: true,
+    };
     this.fields.set("id", {
       key: "id",
       type: "IDField",
@@ -205,5 +205,26 @@ export class EntryType<
         !action.private
       ),
     };
+  }
+  #setupRoles(roles?: Array<EntryRole>) {
+    this.roles.set("systemAdmin", {
+      roleName: "systemAdmin",
+      permission: {
+        view: true,
+        create: true,
+        modify: true,
+        delete: true,
+      },
+    });
+    if (!roles) return;
+    for (const role of roles) {
+      const { roleName } = role;
+      if (this.roles.has(roleName)) {
+        raiseORMException(
+          `Role ${roleName} is already set for Settings Type ${this.name}`,
+        );
+      }
+      this.roles.set(roleName, role);
+    }
   }
 }

@@ -3,15 +3,10 @@ import type { InFieldType } from "/orm/field/field-def-types.ts";
 import type { ORMFieldConfig } from "/orm/field/orm-field.ts";
 import type { EntryType } from "/orm/entry/entry-type.ts";
 import type { SettingsType } from "/orm/settings/settings-type.ts";
-import type { Settings } from "/orm/settings/settings.ts";
 import type { GetListResponse, GlobalEntryHooks } from "/orm/orm-types.ts";
 import type { Entry } from "/orm/entry/entry.ts";
 import { raiseORMException } from "/orm/orm-exception.ts";
-import { buildEntry } from "/orm/entry/build-entry.ts";
-import { buildSettings } from "/orm/settings/build-settings.ts";
-import { buildEntryType } from "/orm/setup/entry-type/build-entry-types.ts";
-import { validateEntryType } from "/orm/setup/entry-type/validate-entry-type.ts";
-import { buildSettingsType } from "/orm/setup/settings-type/build-settings-types.ts";
+
 import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
 import type {
   DBConfig,
@@ -31,22 +26,18 @@ import {
 } from "/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "/orm/field/fields.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
-import { inLog } from "/in-log/in-log.ts";
-import { ConnectionRegistry } from "/orm/registry/connection-registry.ts";
+import { inLog } from "#inLog";
 import type { InValue } from "/orm/field/types.ts";
-import { registerFetchFields } from "/orm/setup/setup-utils.ts";
 import type { IDValue } from "./entry/types.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
+import type { RoleManager } from "./roles/role.ts";
+import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
   fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
-  entryTypes: Map<string, EntryType>;
-  #entryClasses: Map<string, typeof Entry>;
-  settingsTypes: Map<string, SettingsType>;
-  #settingsClasses: Map<string, typeof Settings>;
-  registry: ConnectionRegistry;
-  #inCloud: InCloud;
+  _inCloud: InCloud;
+  #roles: RoleManager;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
@@ -95,29 +86,6 @@ export class InSpatialORM {
     }
     return fieldTypeDef;
   }
-  getEntryType<T extends EntryType = EntryType>(
-    entryType: string,
-    _user?: SessionData,
-  ): T {
-    if (!this.entryTypes.has(entryType)) {
-      raiseORMException(
-        `EntryType ${entryType} does not exist in ORM`,
-        "EntryType",
-        400,
-      );
-    }
-    return this.entryTypes.get(entryType)! as T;
-  }
-
-  getSettingsType<T extends SettingsType = SettingsType>(
-    settingsType: string,
-    _user?: SessionData,
-  ): T {
-    if (!this.settingsTypes.has(settingsType)) {
-      raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
-    }
-    return this.settingsTypes.get(settingsType)! as T;
-  }
   constructor(
     /**
      * A configuration object that will be used to initialize the InSpatial ORM.
@@ -145,8 +113,8 @@ export class InSpatialORM {
   ) {
     this.#rootPath = options.rootPath || Deno.cwd();
     this.#rootPath = `${this.#rootPath}/.inspatial`;
-    this.registry = new ConnectionRegistry();
-    this.#inCloud = options.inCloud;
+    this.#roles = options.inCloud.roles;
+    this._inCloud = options.inCloud;
     this.fieldTypes = new Map();
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
@@ -154,10 +122,6 @@ export class InSpatialORM {
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });
-    this.entryTypes = new Map();
-    this.#entryClasses = new Map();
-    this.settingsTypes = new Map();
-    this.#settingsClasses = new Map();
     for (const entryType of options.entries) {
       this.#addEntryType(entryType);
     }
@@ -167,9 +131,7 @@ export class InSpatialORM {
     if (options.globalEntryHooks) {
       this.#setupHooks(options.globalEntryHooks);
     }
-    this.#setupEntryTypes();
-    this.#setupSettingsTypes();
-    this.#build();
+    this.#roles.setup();
   }
   async init(): Promise<void> {
     await this.db.init();
@@ -178,16 +140,6 @@ export class InSpatialORM {
     const settings = await this.db.tableExists("inSettings");
     if (!settings) {
       await this.migrate();
-    }
-  }
-  #build(): void {
-    for (const entryType of this.entryTypes.values()) {
-      const entryClass = buildEntry(entryType);
-      this.#entryClasses.set(entryType.name, entryClass);
-    }
-    for (const settingsType of this.settingsTypes.values()) {
-      const settingsClass = buildSettings(settingsType);
-      this.#settingsClasses.set(settingsType.name, settingsClass);
     }
   }
 
@@ -215,55 +167,41 @@ export class InSpatialORM {
       ...globalHooks.afterDelete,
     );
   }
-
   #addEntryType(entryType: EntryType): void {
-    if (this.entryTypes.has(entryType.name)) {
-      raiseORMException(
-        `EntryType with name ${entryType.name} already exists.`,
-      );
-    }
-    this.entryTypes.set(entryType.name, entryType);
-  }
-  #setupEntryTypes(): void {
-    for (const entryType of this.entryTypes.values()) {
-      buildEntryType(this, entryType);
-    }
-    for (const entryType of this.entryTypes.values()) {
-      validateEntryType(this, entryType);
-      registerFetchFields(this, entryType);
-    }
+    this.#roles.addEntryType(entryType);
   }
   #addSettingsType(settingsType: SettingsType): void {
-    if (this.settingsTypes.has(settingsType.name)) {
-      raiseORMException(
-        `SettingsType with name ${settingsType.name} already exists.`,
-      );
-    }
-    this.settingsTypes.set(settingsType.name, settingsType);
+    this.#roles.addSettingsType(settingsType);
   }
-  #setupSettingsTypes(): void {
-    for (const settingsType of this.settingsTypes.values()) {
-      buildSettingsType(this, settingsType);
-    }
+  #getEntryInstance<E extends EntryBase = GenericEntry>(
+    entryType: string,
+    user?: SessionData,
+  ): E {
+    return this.#roles.getEntryInstance<E>(this, entryType, user);
   }
-  #getEntryInstance(entryType: string, user?: any): Entry {
-    const entryClass = this.#entryClasses.get(entryType);
-    if (!entryClass) {
-      raiseORMException(
-        `EntryType ${entryType} is not a valid entry type.`,
-      );
-    }
-    return new entryClass(this, this.#inCloud, entryType, user);
+  #getSettingsInstance<S extends SettingsBase = GenericSettings>(
+    settingsType: string,
+    user?: SessionData,
+  ): S {
+    return this.#roles.getSettingsInstance<S>(this, settingsType, user);
   }
-
-  #getSettingsInstance(settingsType: string, user?: any): Settings {
-    const settingsClass = this.#settingsClasses.get(settingsType);
-    if (!settingsClass) {
-      raiseORMException(
-        `SettingsType ${settingsType} is not a valid settings type.`,
-      );
-    }
-    return new settingsClass(this, this.#inCloud, settingsType, user);
+  getEntryType<T extends EntryType = EntryType>(
+    entryType: string,
+    user?: SessionData,
+  ): T {
+    return this.#roles.getEntryType<T>(entryType, user?.role);
+  }
+  getSettingsType<T extends SettingsType = SettingsType>(
+    settingsType: string,
+    user?: SessionData,
+  ): T {
+    return this.#roles.getSettingsType<T>(settingsType, user?.role);
+  }
+  getEntryTypeRegistry(
+    entryType: string,
+    user?: SessionData,
+  ): EntryTypeRegistry | undefined {
+    return this.#roles.getRegistry(entryType, user?.role);
   }
 
   // Single Entry Operations
@@ -544,9 +482,10 @@ export class InSpatialORM {
    * Makes the necessary changes to the database based on the output of the planMigration method.
    */
   async migrate(): Promise<Array<string>> {
+    const adminRole = this.#roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
-      entryTypes: Array.from(this.entryTypes.values()),
-      settingsTypes: Array.from(this.settingsTypes.values()),
+      entryTypes: Array.from(adminRole.entryTypes.values()),
+      settingsTypes: Array.from(adminRole.settingsTypes.values()),
       orm: this,
       onOutput: (message) => {
         inLog.info(message);
@@ -561,9 +500,10 @@ export class InSpatialORM {
    */
   async planMigration(): Promise<MigrationPlan> {
     inLog.info("Planning migration...");
+    const adminRole = this.#roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
-      entryTypes: Array.from(this.entryTypes.values()),
-      settingsTypes: Array.from(this.settingsTypes.values()),
+      entryTypes: Array.from(adminRole.entryTypes.values()),
+      settingsTypes: Array.from(adminRole.settingsTypes.values()),
       orm: this,
       onOutput: (message) => {
         inLog.info(message);
@@ -580,11 +520,12 @@ export class InSpatialORM {
   > {
     const generatedEntries: string[] = [];
     const generatedSettings: string[] = [];
-    for (const entryType of this.entryTypes.values()) {
+    const adminRole = this.#roles.getRole("systemAdmin");
+    for (const entryType of adminRole.entryTypes.values()) {
       await generateEntryInterface(this, entryType, this.#entriesPath);
       generatedEntries.push(entryType.name);
     }
-    for (const settingsType of this.settingsTypes.values()) {
+    for (const settingsType of adminRole.settingsTypes.values()) {
       await generateSettingsInterfaces(this, settingsType, this.#settingsPath);
       generatedSettings.push(settingsType.name);
     }

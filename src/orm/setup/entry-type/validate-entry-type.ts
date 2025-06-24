@@ -1,10 +1,10 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
 import type { EntryType } from "/orm/entry/entry-type.ts";
 import { validateConnectionFields } from "/orm/setup/setup-utils.ts";
+import type { Role } from "../../roles/role.ts";
 
 export function validateEntryType(
-  orm: InSpatialORM,
+  role: Role,
   entryType: EntryType,
 ): void {
-  validateConnectionFields(orm, entryType);
+  validateConnectionFields(role, entryType);
 }

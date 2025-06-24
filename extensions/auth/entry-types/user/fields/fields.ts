@@ -1,6 +1,6 @@
 import type { InField } from "/orm/field/field-def-types.ts";
 
-export default [{
+export const userFields = [{
   key: "firstName",
   type: "DataField",
   label: "First Name",
@@ -26,6 +26,11 @@ export default [{
   description: "The user's full name (automatically generated)",
   readOnly: true,
 }, {
+  key: "role",
+  label: "Role",
+  type: "ChoicesField",
+  choices: [],
+}, {
   key: "profilePicture",
   type: "ImageField",
   label: "Profile Picture",
@@ -48,7 +53,7 @@ export default [{
   key: "systemAdmin",
   label: "System Administrator",
   type: "BooleanField",
-  readOnly: true,
+  readOnly: false,
   description:
     "Is the user a system administrator? (admin users have access to all parts of the system)",
 }, {

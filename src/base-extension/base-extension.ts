@@ -8,11 +8,11 @@ import { cloudActions } from "./actions/dev-actions.ts";
 import { inTask } from "#queue/entry-types/in-task/in-task.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
-  description: "InSpatial Cloud Base Extension",
+  description: "InSpatial Cloud Core Extension",
   install(app) {
     Deno.mkdirSync(app.filesPath, { recursive: true });
   },
-  label: "InSpatial Cloud Base Extension",
+  label: "Core",
   version: "0.0.1",
   config: {
     mode: {
@@ -84,4 +84,13 @@ export const baseExtension = new CloudExtension("cloud", {
   entryTypes: [inTask],
   middleware: [corsMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandeler],
+  roles: [{
+    roleName: "systemAdmin",
+    label: "System Administrator",
+    description: "Super user role assigned to the system administrators",
+  }, {
+    roleName: "basic",
+    label: "Basic User",
+    description: "The default limited role assigned to new users",
+  }],
 });

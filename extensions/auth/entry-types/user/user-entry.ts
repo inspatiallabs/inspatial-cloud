@@ -3,7 +3,7 @@ import setPassword from "#extensions/auth/entry-types/user/actions/setPassword.t
 import validatePassword from "#extensions/auth/entry-types/user/actions/validatePassword.ts";
 import generateApiToken from "#extensions/auth/entry-types/user/actions/generate-api-token.ts";
 import generateResetToken from "#extensions/auth/entry-types/user/actions/generate-reset-token.ts";
-import fields from "#extensions/auth/entry-types/user/fields/fields.ts";
+import { userFields } from "#extensions/auth/entry-types/user/fields/fields.ts";
 import googleFields from "#extensions/auth/entry-types/user/fields/google-fields.ts";
 import { EntryType } from "/orm/entry/entry-type.ts";
 
@@ -16,7 +16,7 @@ const userEntry = new EntryType<User>("user", {
   searchFields: ["email"],
 
   fields: [
-    ...fields,
+    ...userFields,
     ...googleFields,
   ],
   actions: [
@@ -25,6 +25,21 @@ const userEntry = new EntryType<User>("user", {
     generateApiToken,
     generateResetToken,
   ],
+  roles: [{
+    roleName: "basic",
+    permission: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+      fields: {
+        systemAdmin: {
+          view: false,
+          modify: false,
+        },
+      },
+    },
+  }],
   hooks: {
     beforeUpdate: [{
       name: "setFullName",
@@ -33,6 +48,9 @@ const userEntry = new EntryType<User>("user", {
         user,
       }) {
         user.fullName = `${user.firstName} ${user.lastName}`;
+        if (user.systemAdmin) {
+          user.role = "systemAdmin";
+        }
       },
     }],
     beforeDelete: [{

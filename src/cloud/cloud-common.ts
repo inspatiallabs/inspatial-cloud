@@ -4,7 +4,7 @@ import { CloudAPI } from "../api/cloud-api.ts";
 import type { CloudExtension } from "../app/cloud-extension.ts";
 import { baseExtension } from "../base-extension/base-extension.ts";
 import { ExtensionManager } from "../extension-manager/extension-manager.ts";
-import { type InLog, inLog } from "../in-log/in-log.ts";
+import { type InLog, inLog } from "#inLog";
 import type { LogLevel } from "../in-log/types.ts";
 import type { InSpatialORM } from "#orm/mod.ts";
 import type { CloudRunnerMode } from "../runner/types.ts";
@@ -35,6 +35,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "../cloud-config/config-types.ts";
+import { RoleManager } from "#orm/roles/role.ts";
 
 export class InCloud {
   appName: string;
@@ -48,7 +49,7 @@ export class InCloud {
   // Functionality
   orm!: InSpatialORM;
   api!: CloudAPI;
-
+  roles: RoleManager;
   inLog: InLog;
 
   inLive: InLiveHandler;
@@ -74,6 +75,7 @@ export class InCloud {
     this.inLive = new InLiveHandler();
     this.inCache = new InCache();
     this.api = new CloudAPI();
+    this.roles = new RoleManager();
   }
   init() {
     // Extension manager initialization
@@ -154,6 +156,9 @@ export class InCloud {
     appExtensions.push(...this.#config.extensions || []);
     for (const appExtension of appExtensions) {
       this.extensionManager.registerExtension(appExtension);
+    }
+    for (const role of this.extensionManager.roles.values()) {
+      this.roles.addRole(role);
     }
     for (const extension of this.extensionManager.extensions.values()) {
       try {
