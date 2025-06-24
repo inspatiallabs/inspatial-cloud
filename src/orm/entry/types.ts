@@ -63,6 +63,7 @@ export type EntryActionMethod<
     & {
       orm: InSpatialORM;
       data: ExtractParams<K, P>;
+      inCloud: InCloud;
     }
     & {
       [K in E["_name"] | "entry"]: E;

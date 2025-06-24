@@ -238,8 +238,8 @@ export class RunManager {
       REUSE_PORT: config?.reusePort ? "true" : "false",
       SERVE_PROC_NUM: config?.instanceNumber || "_",
     });
-    let pid = proc.pid;
-    proc.status.then((status) => {
+    const pid = proc.pid;
+    proc.status.then((_status) => {
       this.serveProcs.delete(pid);
     });
     this.serveProcs.set(proc.pid, proc);

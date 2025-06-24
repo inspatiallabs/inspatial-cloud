@@ -6,7 +6,7 @@ import type { InSpatialORM } from "/orm/inspatial-orm.ts";
 import { ORMException, raiseORMException } from "/orm/orm-exception.ts";
 import ulid from "/orm/utils/ulid.ts";
 
-import { inLog } from "../../in-log/in-log.ts";
+import { inLog } from "#inLog";
 import type { InCloud } from "../../cloud/cloud-common.ts";
 
 export class Entry<
