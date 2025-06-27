@@ -288,6 +288,7 @@ function buildEntryTypeForRole(
   };
 
   setFieldPermissions(config, permission);
+  config.actions = Array.from(entryType.actions.values());
   setActionsPermissions(config, permission);
   const roleEntryType = new EntryType(entryType.name, config);
 

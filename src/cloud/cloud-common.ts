@@ -36,6 +36,8 @@ import type {
   ExtractConfig,
 } from "../cloud-config/config-types.ts";
 import { RoleManager } from "~/orm/roles/role.ts";
+import { StaticFileHandler } from "../static/staticFileHandler.ts";
+import { raiseCloudException } from "../app/exeption/cloud-exception.ts";
 
 export class InCloud {
   appName: string;
@@ -51,6 +53,7 @@ export class InCloud {
   api!: CloudAPI;
   roles: RoleManager;
   inLog: InLog;
+  static: StaticFileHandler;
 
   inLive: InLiveHandler;
   inCache: InCache;
@@ -76,6 +79,7 @@ export class InCloud {
     this.inCache = new InCache();
     this.api = new CloudAPI();
     this.roles = new RoleManager();
+    this.static = new StaticFileHandler();
     this.roles.addRole({
       roleName: "systemAdmin",
       description: "System Administrator",

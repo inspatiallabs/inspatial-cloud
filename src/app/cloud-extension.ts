@@ -153,7 +153,7 @@ export class CloudExtension<
     const pathHandlers = this.pathHandlers?.map((p) => {
       return {
         name: p.name,
-        path: p.path,
+        match: p.match.source,
         description: p.description,
       };
     }) || [];

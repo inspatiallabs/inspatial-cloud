@@ -18,7 +18,7 @@ import { raiseCloudException } from "../app/exeption/cloud-exception.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();
-  pathHandlers: Map<string, PathHandler> = new Map();
+  pathHandlers: Array<PathHandler> = [];
   exceptionHandlers: Map<string, ExceptionHandler> = new Map();
   extensions: Map<string, CloudExtension> = new Map();
   extensionsConfig: Map<string, Map<string, any>> = new Map();
@@ -89,21 +89,13 @@ export class ExtensionManager {
 
     // Path handlers
     for (const pathHandler of extension.pathHandlers) {
-      const paths = Array.isArray(pathHandler.path)
-        ? pathHandler.path
-        : [pathHandler.path];
-      for (const path of paths) {
-        if (this.pathHandlers.has(path)) {
-          throw new Error(`Path handler for path ${path} already exists`);
-        }
-        const handlerInstance = new RequestPathHandler(
-          pathHandler.name,
-          pathHandler.description,
-          path,
-          pathHandler.handler,
-        );
-        this.pathHandlers.set(path, handlerInstance);
-      }
+      const handlerInstance = new RequestPathHandler(
+        pathHandler.name,
+        pathHandler.description,
+        pathHandler.match,
+        pathHandler.handler,
+      );
+      this.pathHandlers.push(handlerInstance);
     }
 
     // Exception handlers

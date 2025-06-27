@@ -286,11 +286,23 @@ export class RunManager {
       ...rows.map((row) => center(row)),
       "",
       center(
-        "You can ping the server:",
+        "Static files are served at:",
       ),
       ColorMe.fromOptions(
         center(
-          `http://${this.hostname}:${this.port}/api?group=api&action=ping`,
+          `http://${this.hostname}:${this.port}`,
+        ),
+        {
+          color: "brightCyan",
+        },
+      ),
+      "",
+      center(
+        "API is available at:",
+      ),
+      ColorMe.fromOptions(
+        center(
+          `http://${this.hostname}:${this.port}/api`,
         ),
         {
           color: "brightCyan",

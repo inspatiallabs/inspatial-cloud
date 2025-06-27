@@ -130,6 +130,33 @@ export class InResponse {
   setAllowOrigin(origin: string): void {
     this.#headers.set("Access-Control-Allow-Origin", origin);
   }
+
+  /**
+   * Sets the `Cache-Control` header for the response.
+   */
+
+  setCacheControl(
+    options: {
+      maxAge: number;
+      public?: boolean;
+      noCache?: boolean;
+      noStore?: boolean;
+    },
+  ): void {
+    let cacheControl = `max-age=${options.maxAge}`;
+    if (options?.public) {
+      cacheControl += ", public";
+    } else {
+      cacheControl += ", private";
+    }
+    if (options?.noCache) {
+      cacheControl += ", no-cache";
+    }
+    if (options?.noStore) {
+      cacheControl += ", no-store";
+    }
+    this.#headers.set("Cache-Control", cacheControl);
+  }
   /**
    * Sets a cookie with the provided key and value.
    * @param key - The key of the cookie to set

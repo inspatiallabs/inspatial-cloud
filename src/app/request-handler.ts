@@ -4,6 +4,8 @@ import { InResponse } from "~/app/in-response.ts";
 import type { ExtensionManager } from "~/extension-manager/extension-manager.ts";
 import { handleException } from "~/app/exeption/handle-exception.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
+import { raiseCloudException } from "./exeption/cloud-exception.ts";
+import { raiseServerException } from "./server-exception.ts";
 
 export async function requestHandler(
   request: Request,
@@ -40,37 +42,32 @@ export async function requestHandler(
 
     const currentPath = inRequest.path;
 
-    let pathHandler: PathHandler | undefined = extensionManager
-      .pathHandlers.get(
-        currentPath,
-      );
-    if (!pathHandler) {
-      const pathHandlers = Array.from(
-        extensionManager.pathHandlers.keys(),
-      );
-      for (const path of pathHandlers) {
-        if (currentPath.startsWith(path)) {
-          pathHandler = extensionManager.pathHandlers.get(path);
-          break;
-        }
+    let pathHandler: PathHandler | undefined = undefined;
+    for (const handler of extensionManager.pathHandlers) {
+      if (handler.match.test(currentPath)) {
+        pathHandler = handler;
+        break;
       }
     }
-
-    if (pathHandler) {
-      const response = await pathHandler.handler(
-        inCloud,
-        inRequest,
-        inResponse,
+    if (!pathHandler) {
+      raiseServerException(
+        404,
+        `Not Found`,
       );
-      if (response instanceof InResponse) {
-        return response.respond();
-      }
-      if (response instanceof Response) {
-        return response;
-      }
-      if (response) {
-        inResponse.setContent(response);
-      }
+    }
+    const response = await pathHandler.handler(
+      inCloud,
+      inRequest,
+      inResponse,
+    );
+    if (response instanceof InResponse) {
+      return response.respond();
+    }
+    if (response instanceof Response) {
+      return response;
+    }
+    if (response) {
+      inResponse.setContent(response);
     }
     return inResponse.respond();
   } catch (e) {
