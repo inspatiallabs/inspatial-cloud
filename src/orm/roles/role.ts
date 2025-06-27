@@ -26,7 +26,7 @@ import type {
 } from "~/orm/settings/settings-base.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { Choice } from "~/orm/field/types.ts";
-import type { EntryConfig } from "~/orm/entry/types.ts";
+import type { EntryActionDefinition, EntryConfig } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
 import { raiseCloudException } from "../../app/exeption/cloud-exception.ts";
 
@@ -40,12 +40,18 @@ export class Role {
   #settingsClasses: Map<string, typeof Settings>;
   registry: ConnectionRegistry;
   #locked: boolean;
+  entryPermissions: Map<string, EntryPermission>;
+  settingsPermissions: Map<string, SettingsPermission>;
 
   constructor(config: RoleConfig) {
     this.#locked = false;
     this.roleName = config.roleName;
     this.description = config.description || "";
     this.label = config.label || convertString(config.roleName, "title", true);
+    this.entryPermissions = new Map(Object.entries(config.entryTypes || {}));
+    this.settingsPermissions = new Map(
+      Object.entries(config.settingsTypes || {}),
+    );
     this.entryTypes = new Map();
     this.#entryClasses = new Map();
     this.settingsTypes = new Map();
@@ -155,6 +161,8 @@ export interface RoleConfig {
   roleName: string;
   label?: string;
   description?: string;
+  entryTypes?: Record<string, EntryPermission>;
+  settingsTypes?: Record<string, SettingsPermission>;
 }
 
 export class RoleManager {
@@ -175,39 +183,43 @@ export class RoleManager {
     this.roles.set(role.roleName, role);
   }
   addEntryType(entryType: EntryType): void {
-    for (const entryRole of entryType.roles.values()) {
-      this.#validateRole(entryRole.roleName, entryType.name);
-      if (entryType.name === "user") {
-        const rolesField = entryType.fields.get(
-          "role",
-        )! as InField<"ChoicesField">;
-        const roles: Array<Choice> = [];
-        for (const role of this.roles.values()) {
-          roles.push({
-            key: role.roleName,
-            label: role.label,
-            description: role.description,
-          });
-        }
-        rolesField.choices = roles;
+    if (entryType.name === "user") {
+      const rolesField = entryType.fields.get(
+        "role",
+      )! as InField<"ChoicesField">;
+      const roles: Array<Choice> = [];
+      for (const role of this.roles.values()) {
+        roles.push({
+          key: role.roleName,
+          label: role.label,
+          description: role.description,
+        });
+      }
+      rolesField.choices = roles;
+    }
+    for (const role of this.roles.values()) {
+      const permission = role.entryPermissions.get(entryType.name);
+      if (!permission) {
+        continue;
       }
       const roleEntryType = buildEntryTypeForRole(
         entryType,
-        entryRole.permission,
+        permission,
       );
-      const role = this.getRole(entryRole.roleName);
       role.addEntryType(roleEntryType);
     }
   }
 
   addSettingsType(settingsType: SettingsType): void {
-    for (const settingsRole of settingsType.roles.values()) {
-      this.#validateRole(settingsRole.roleName, settingsType.name);
+    for (const role of this.roles.values()) {
+      const permission = role.settingsPermissions.get(settingsType.name);
+      if (!permission) {
+        continue;
+      }
       const roleSettingsType = buildSettingsTypeForRole(
         settingsType,
-        settingsRole.permission,
+        permission,
       );
-      const role = this.getRole(settingsRole.roleName);
       role.addSettingsType(roleSettingsType);
     }
   }
@@ -230,11 +242,6 @@ export class RoleManager {
     return role.getSettingsInstance<S>(orm, settingsType, user);
   }
 
-  #validateRole(roleName: string, forType: string) {
-    if (!this.roles.has(roleName)) {
-      raiseCloudException(`Role ${roleName} for ${forType} doesn't exist!`);
-    }
-  }
   getRole(roleName: string): Role {
     if (!this.roles.has(roleName)) {
       raiseCloudException(`Role ${roleName} doesn't exist!`);
@@ -279,10 +286,11 @@ function buildEntryTypeForRole(
   const config = {
     ...entryType.sourceConfig,
   };
-  delete config.roles;
 
   setFieldPermissions(config, permission);
+  setActionsPermissions(config, permission);
   const roleEntryType = new EntryType(entryType.name, config);
+
   roleEntryType.permission = { ...permission };
   roleEntryType.info = {
     ...roleEntryType.info,
@@ -303,8 +311,8 @@ function buildSettingsTypeForRole(
   const config = {
     ...settingsType.sourceConfig,
   };
-  delete config.roles;
   setFieldPermissions(config, permission);
+  setActionsPermissions(config, permission);
   const roleSettingsType = new SettingsType(settingsType.name, config);
   roleSettingsType.config.extension = settingsType.config.extension;
   roleSettingsType.permission = permission;
@@ -316,7 +324,27 @@ function buildSettingsTypeForRole(
   };
   return roleSettingsType;
 }
-
+function setActionsPermissions(
+  config: EntryConfig | SettingsConfig,
+  permission: EntryPermission | SettingsPermission,
+): void {
+  const perm = permission.actions;
+  if (!perm) {
+    return;
+  }
+  const actions = config.actions || [];
+  const usedActions: Array<any> = [];
+  for (const action of actions) {
+    if (perm.include !== undefined && !perm.include.includes(action.key)) {
+      continue;
+    }
+    if (perm.exclude !== undefined && perm.exclude.includes(action.key)) {
+      continue;
+    }
+    usedActions.push(action);
+  }
+  config.actions = usedActions;
+}
 function setFieldPermissions(
   config: EntryConfig | SettingsConfig,
   permission: EntryPermission | SettingsPermission,
@@ -327,6 +355,12 @@ function setFieldPermissions(
 
   if (permission.modify === false) {
     for (const field of fields.values()) {
+      if (permission.fields && field.key in permission.fields) {
+        const fieldPermission = permission.fields[field.key];
+        if (fieldPermission?.modify) {
+          continue;
+        }
+      }
       field.readOnly = true;
     }
   }
@@ -342,6 +376,7 @@ function setFieldPermissions(
       if (fieldPermission?.view === false) {
         fields.delete(fieldKey);
         removeFromGroup.add(fieldKey);
+        continue;
       }
     }
   }

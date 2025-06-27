@@ -153,7 +153,6 @@ export type EntryConfig<
   index?: Array<EntryIndex<FK>>;
   actions?: A;
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
-  roles?: Array<EntryRole<FK>>;
 };
 export type IDValue = string | number;
 

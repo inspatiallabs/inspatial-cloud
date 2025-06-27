@@ -114,6 +114,8 @@ export class InSpatialORM {
     this.#rootPath = options.rootPath || Deno.cwd();
     this.#rootPath = `${this.#rootPath}/.inspatial`;
     this.#roles = options.inCloud.roles;
+    const adminRole = this.#roles.getRole("systemAdmin");
+
     this._inCloud = options.inCloud;
     this.fieldTypes = new Map();
     for (const field of ormFields) {
@@ -123,9 +125,19 @@ export class InSpatialORM {
       ...options.dbConfig,
     });
     for (const entryType of options.entries) {
+      adminRole.entryPermissions.set(entryType.name, {
+        create: true,
+        view: true,
+        modify: true,
+        delete: true,
+      });
       this.#addEntryType(entryType);
     }
     for (const settingsType of options.settings) {
+      adminRole.settingsPermissions.set(settingsType.name, {
+        view: true,
+        modify: true,
+      });
       this.#addSettingsType(settingsType);
     }
     if (options.globalEntryHooks) {
@@ -369,6 +381,21 @@ export class InSpatialORM {
     if (options) {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options as any };
+    }
+    if (entryTypeObj.permission.userScoped && user?.userId) {
+      const idField = entryTypeObj.permission.userScoped.userIdField;
+      const filter = {
+        field: idField,
+        op: "=",
+        value: user.userId,
+      };
+      if (dbOptions.filter === undefined) {
+        dbOptions.filter = [filter];
+      } else if (Array.isArray(dbOptions.filter)) {
+        dbOptions.filter.push(filter);
+      } else {
+        dbOptions.filter[idField] = user.userId;
+      }
     }
     const result = await this.db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;

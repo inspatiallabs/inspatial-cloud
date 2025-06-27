@@ -15,7 +15,8 @@ interface FieldPermission {
 }
 
 interface ActionsPermissions {
-  [key: string]: ActionPermission;
+  include?: string[];
+  exclude?: string[];
 }
 
 type ActionPermission = "allowed" | "denied";

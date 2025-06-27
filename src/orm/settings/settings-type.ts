@@ -57,7 +57,6 @@ export class SettingsType<
     this.#setChildrenParent();
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
-    this.#setupRoles(config.roles);
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()).filter((action) =>
@@ -98,24 +97,5 @@ export class SettingsType<
       ...this.hooks,
       ...hooks,
     };
-  }
-  #setupRoles(roles?: Array<SettingsRole>) {
-    this.roles.set("systemAdmin", {
-      roleName: "systemAdmin",
-      permission: {
-        view: true,
-        modify: true,
-      },
-    });
-    if (!roles) return;
-    for (const role of roles) {
-      const { roleName } = role;
-      if (this.roles.has(roleName)) {
-        raiseORMException(
-          `Role ${roleName} is already set for Entry Type ${this.name}`,
-        );
-      }
-      this.roles.set(roleName, role);
-    }
   }
 }

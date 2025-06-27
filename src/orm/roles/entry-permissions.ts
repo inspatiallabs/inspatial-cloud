@@ -9,4 +9,7 @@ export interface EntryPermission<FK extends PropertyKey = PropertyKey>
   extends BasePermission<FK> {
   create: boolean;
   delete: boolean;
+  userScoped?: {
+    userIdField: string;
+  };
 }

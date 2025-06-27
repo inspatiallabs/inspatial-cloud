@@ -45,7 +45,6 @@ export class EntryType<
     validate: [],
   };
   permission: EntryPermission;
-  roles: Map<string, EntryRole> = new Map();
   sourceConfig: EntryConfig<E, A, FK>;
   constructor(
     name: N,
@@ -126,7 +125,7 @@ export class EntryType<
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
     this.#validateIndexFields();
-    this.#setupRoles(config.roles);
+
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()).filter((action) =>
@@ -207,26 +206,5 @@ export class EntryType<
         !action.private
       ),
     };
-  }
-  #setupRoles(roles?: Array<EntryRole>) {
-    this.roles.set("systemAdmin", {
-      roleName: "systemAdmin",
-      permission: {
-        view: true,
-        create: true,
-        modify: true,
-        delete: true,
-      },
-    });
-    if (!roles) return;
-    for (const role of roles) {
-      const { roleName } = role;
-      if (this.roles.has(roleName)) {
-        raiseORMException(
-          `Role ${roleName} is already set for Settings Type ${this.name}`,
-        );
-      }
-      this.roles.set(roleName, role);
-    }
   }
 }

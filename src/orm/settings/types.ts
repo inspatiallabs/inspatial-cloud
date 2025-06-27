@@ -10,7 +10,6 @@ import type {
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type { HookName } from "../orm-types.ts";
-import type { SettingsRole } from "../roles/settings-permissions.ts";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -23,7 +22,6 @@ export type SettingsConfig<S extends SettingsBase = GenericSettings> =
   & {
     actions?: Array<SettingsActionDefinition<S>>;
     hooks?: Partial<Record<HookName, Array<SettingsHookDefinition<S>>>>;
-    roles?: Array<SettingsRole>;
   };
 export interface SettingsRow {
   id: string;

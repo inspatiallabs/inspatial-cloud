@@ -76,6 +76,11 @@ export class InCloud {
     this.inCache = new InCache();
     this.api = new CloudAPI();
     this.roles = new RoleManager();
+    this.roles.addRole({
+      roleName: "systemAdmin",
+      description: "System Administrator",
+      label: "System Admin",
+    });
   }
   init() {
     // Extension manager initialization

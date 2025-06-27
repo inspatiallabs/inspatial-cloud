@@ -85,12 +85,42 @@ export const baseExtension = new CloudExtension("cloud", {
   middleware: [corsMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandeler],
   roles: [{
-    roleName: "systemAdmin",
-    label: "System Administrator",
-    description: "Super user role assigned to the system administrators",
-  }, {
     roleName: "basic",
     label: "Basic User",
     description: "The default limited role assigned to new users",
+    entryTypes: {
+      cloudFile: {
+        view: false,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      user: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+        userScoped: {
+          userIdField: "id",
+        },
+        fields: {
+          systemAdmin: {
+            view: false,
+            modify: false,
+          },
+          firstName: {
+            modify: true,
+            view: true,
+          },
+          lastName: {
+            modify: true,
+            view: true,
+          },
+        },
+        actions: {
+          include: [],
+        },
+      },
+    },
   }],
 });
