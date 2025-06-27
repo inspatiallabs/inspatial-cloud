@@ -1,28 +1,28 @@
-import { EntryType } from "/orm/entry/entry-type.ts";
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type {
   ForeignKeyConstraint,
   PgColumnDefinition,
   PostgresColumn,
   TableConstraint,
   TableIndex,
-} from "/orm/db/db-types.ts";
-import { EntryMigrationPlan } from "/orm/migrate/entry-type/entry-migration-plan.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
+} from "~/orm/db/db-types.ts";
+import { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migration-plan.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
-} from "/orm/migrate/types.ts";
+} from "~/orm/migrate/types.ts";
 import {
   compareDataTypes,
   compareNullable,
-} from "/orm/migrate/migrate-utils.ts";
+} from "~/orm/migrate/migrate-utils.ts";
 
-import type { ChildEntryType } from "/orm/child-entry/child-entry.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
-import { BaseMigrator } from "/orm/migrate/shared/base-migrator.ts";
-import type { EntryIndex } from "/orm/entry/types.ts";
-import { convertString } from "/utils/mod.ts";
+import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
+import type { EntryIndex } from "~/orm/entry/types.ts";
+import { convertString } from "~/utils/mod.ts";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {

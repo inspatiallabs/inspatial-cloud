@@ -1,4 +1,4 @@
-import type { ClientConnectionType } from "/orm/db/db-types.ts";
+import type { ClientConnectionType } from "~/orm/db/db-types.ts";
 
 export interface ConnectionOptions {
   // deno-lint-ignore camelcase

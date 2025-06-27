@@ -1,4 +1,4 @@
-import type { InFieldType } from "/orm/field/field-def-types.ts";
+import type { InFieldType } from "~/orm/field/field-def-types.ts";
 
 export const fieldTypeMap: Record<InFieldType, string> = {
   URLField: "string",

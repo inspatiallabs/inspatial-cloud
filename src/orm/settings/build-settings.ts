@@ -1,9 +1,9 @@
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import { Settings } from "/orm/settings/settings.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
-import { makeFields } from "/orm/build/make-fields.ts";
-import type { SettingsActionDefinition } from "/orm/settings/types.ts";
-import { buildChildren } from "/orm/child-entry/build-children.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import { Settings } from "~/orm/settings/settings.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
+import { makeFields } from "~/orm/build/make-fields.ts";
+import type { SettingsActionDefinition } from "~/orm/settings/types.ts";
+import { buildChildren } from "~/orm/child-entry/build-children.ts";
 import type { InCloud } from "../../cloud/cloud-common.ts";
 
 export function buildSettings(

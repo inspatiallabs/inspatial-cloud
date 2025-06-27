@@ -1,5 +1,5 @@
-import type { StackFrame } from "/in-log/types.ts";
-import ColorMe from "#terminal/color-me.ts";
+import type { StackFrame } from "~/in-log/types.ts";
+import ColorMe from "~/terminal/color-me.ts";
 
 /**
  * Parse a stack frame (a line from Error().stack) into a StackFrame object

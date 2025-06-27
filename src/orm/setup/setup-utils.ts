@@ -1,8 +1,8 @@
-import type { EntryType } from "/orm/entry/entry-type.ts";
-import type { InField, InFieldMap } from "/orm/field/field-def-types.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
-import type { ChildEntryType } from "/orm/child-entry/child-entry.ts";
+import type { EntryType } from "~/orm/entry/entry-type.ts";
+import type { InField, InFieldMap } from "~/orm/field/field-def-types.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
 
 export function buildConnectionFields(

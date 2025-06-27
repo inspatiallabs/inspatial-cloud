@@ -2,13 +2,13 @@ import type {
   BaseConfig,
   BaseTypeConfig,
   BaseTypeInfo,
-} from "/orm/shared/shared-types.ts";
+} from "~/orm/shared/shared-types.ts";
 import type {
   GenericSettings,
   SettingsBase,
-} from "/orm/settings/settings-base.ts";
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { InField, InFieldType } from "/orm/field/field-def-types.ts";
+} from "~/orm/settings/settings-base.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type { HookName } from "../orm-types.ts";
 import type { SettingsRole } from "../roles/settings-permissions.ts";
 

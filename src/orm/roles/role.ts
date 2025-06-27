@@ -1,33 +1,33 @@
-import convertString from "#utils/convert-string.ts";
-import { EntryType } from "/orm/entry/entry-type.ts";
-import type { Entry } from "/orm/entry/entry.ts";
-import { SettingsType } from "/orm/settings/settings-type.ts";
-import type { Settings } from "/orm/settings/settings.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
+import convertString from "~/utils/convert-string.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+import type { Entry } from "~/orm/entry/entry.ts";
+import { SettingsType } from "~/orm/settings/settings-type.ts";
+import type { Settings } from "~/orm/settings/settings.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
 import {
   ConnectionRegistry,
   type EntryTypeRegistry,
-} from "/orm/registry/connection-registry.ts";
-import { buildEntryType } from "/orm/setup/entry-type/build-entry-types.ts";
-import { validateEntryType } from "/orm/setup/entry-type/validate-entry-type.ts";
-import { registerFetchFields } from "/orm/setup/setup-utils.ts";
-import { buildSettingsType } from "/orm/setup/settings-type/build-settings-types.ts";
-import { buildEntry } from "/orm/entry/build-entry.ts";
-import { buildSettings } from "/orm/settings/build-settings.ts";
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
+} from "~/orm/registry/connection-registry.ts";
+import { buildEntryType } from "~/orm/setup/entry-type/build-entry-types.ts";
+import { validateEntryType } from "~/orm/setup/entry-type/validate-entry-type.ts";
+import { registerFetchFields } from "~/orm/setup/setup-utils.ts";
+import { buildSettingsType } from "~/orm/setup/settings-type/build-settings-types.ts";
+import { buildEntry } from "~/orm/entry/build-entry.ts";
+import { buildSettings } from "~/orm/settings/build-settings.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
-import type { EntryPermission } from "/orm/roles/entry-permissions.ts";
-import type { SettingsPermission } from "/orm/roles/settings-permissions.ts";
+import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
+import type { SettingsPermission } from "~/orm/roles/settings-permissions.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
-import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
+import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type {
   GenericSettings,
   SettingsBase,
-} from "/orm/settings/settings-base.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
-import type { Choice } from "/orm/field/types.ts";
-import type { EntryConfig } from "/orm/entry/types.ts";
-import type { SettingsConfig } from "/orm/settings/types.ts";
+} from "~/orm/settings/settings-base.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
+import type { Choice } from "~/orm/field/types.ts";
+import type { EntryConfig } from "~/orm/entry/types.ts";
+import type { SettingsConfig } from "~/orm/settings/types.ts";
 import { raiseCloudException } from "../../app/exeption/cloud-exception.ts";
 
 export class Role {

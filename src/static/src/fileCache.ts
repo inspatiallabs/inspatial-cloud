@@ -1,4 +1,4 @@
-// import { raiseServerException } from "/server-exception.ts";
+// import { raiseServerException } from "~/server-exception.ts";
 // import { inferMimeType, type MimeValue } from "#static/mimeTypes.ts";
 // import { joinPath } from "@vef/easy-utils";
 

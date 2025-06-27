@@ -1,5 +1,5 @@
-import { center } from "/utils/mod.ts";
-import type { InCloud } from "/cloud/cloud-common.ts";
+import { center } from "~/utils/mod.ts";
+import type { InCloud } from "~/cloud/cloud-common.ts";
 
 async function checkForUser(inCloud: InCloud) {
   const { orm } = inCloud;

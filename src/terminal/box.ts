@@ -1,4 +1,4 @@
-import type { LineStyle } from "#terminal/types.ts";
+import type { LineStyle } from "~/terminal/types.ts";
 
 interface BoxLine {
   horizontal: string;

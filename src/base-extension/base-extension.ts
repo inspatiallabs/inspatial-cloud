@@ -1,11 +1,11 @@
-import { CloudExtension } from "/app/cloud-extension.ts";
-import { corsMiddleware } from "/base-extension/middleware/cors.ts";
+import { CloudExtension } from "~/app/cloud-extension.ts";
+import { corsMiddleware } from "~/base-extension/middleware/cors.ts";
 
-import { inLiveMiddleware } from "/base-extension/middleware/inLive.ts";
-import { apiPathHandeler } from "/api/api-handler.ts";
-import { systemSettings } from "/base-extension/settings-types/systemSettings.ts";
+import { inLiveMiddleware } from "~/base-extension/middleware/inLive.ts";
+import { apiPathHandeler } from "~/api/api-handler.ts";
+import { systemSettings } from "~/base-extension/settings-types/systemSettings.ts";
 import { cloudActions } from "./actions/dev-actions.ts";
-import { inTask } from "#queue/entry-types/in-task/in-task.ts";
+import { inTask } from "~/in-queue/entry-types/in-task/in-task.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
   description: "InSpatial Cloud Core Extension",

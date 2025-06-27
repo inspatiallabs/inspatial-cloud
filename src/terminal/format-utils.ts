@@ -1,7 +1,7 @@
 import ColorMe, {
   type BasicFgColor,
   type StyleOptions,
-} from "#terminal/color-me.ts";
+} from "~/terminal/color-me.ts";
 
 export function getConsoleWidth(): number {
   try {

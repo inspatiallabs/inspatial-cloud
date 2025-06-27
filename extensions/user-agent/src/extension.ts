@@ -1,4 +1,4 @@
-import { CloudExtension } from "/app/cloud-extension.ts";
+import { CloudExtension } from "~/app/cloud-extension.ts";
 import { parseUserAgent } from "#extensions/user-agent/src/parse.ts";
 
 export const userAgentExtension = new CloudExtension("userAgent", {

@@ -1,4 +1,4 @@
-import { generateId } from "#utils/misc.ts";
+import { generateId } from "~/utils/misc.ts";
 
 export class InCloudBroker {
   clients: Map<string, WebSocket>;

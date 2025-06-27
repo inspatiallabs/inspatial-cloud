@@ -1,4 +1,4 @@
-import type { Middleware } from "/app/middleware.ts";
+import type { Middleware } from "~/app/middleware.ts";
 
 export const inLiveMiddleware: Middleware = {
   name: "Realtime Middleware",

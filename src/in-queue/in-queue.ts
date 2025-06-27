@@ -1,7 +1,7 @@
 import type { CloudConfig } from "#types/mod.ts";
-import { generateId } from "#utils/misc.ts";
+import { generateId } from "~/utils/misc.ts";
 import type { InTask } from "./generated-types/in-task.ts";
-import { InCloud } from "/cloud/cloud-common.ts";
+import { InCloud } from "~/cloud/cloud-common.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();

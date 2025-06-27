@@ -23,12 +23,7 @@
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
   "imports": {
-    "/": "./src/",
-    "./": "./",
-    "#orm/": "./src/orm/",
-    "#utils/": "./src/utils/",
-    "#terminal/": "./src/terminal/",
-    "#queue/": "./src/in-queue/",
+    "~/": "./src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",
     "#inLog": "./src/in-log/in-log.ts"

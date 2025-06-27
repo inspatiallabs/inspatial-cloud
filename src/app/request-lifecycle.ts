@@ -2,7 +2,7 @@ import type {
   ConfigDefinition,
   ExtensionConfig,
 } from "../cloud-config/config-types.ts";
-import type { InRequest } from "/app/in-request.ts";
+import type { InRequest } from "~/app/in-request.ts";
 
 /**
  * The lifecycle handlers for the incoming requests.

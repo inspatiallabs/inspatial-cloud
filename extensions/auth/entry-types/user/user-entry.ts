@@ -5,7 +5,7 @@ import generateApiToken from "#extensions/auth/entry-types/user/actions/generate
 import generateResetToken from "#extensions/auth/entry-types/user/actions/generate-reset-token.ts";
 import { userFields } from "#extensions/auth/entry-types/user/fields/fields.ts";
 import googleFields from "#extensions/auth/entry-types/user/fields/google-fields.ts";
-import { EntryType } from "/orm/entry/entry-type.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
 
 const userEntry = new EntryType<User>("user", {
   idMode: "ulid",

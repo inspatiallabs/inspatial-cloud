@@ -1,8 +1,8 @@
 import type { ExceptionHandler } from "#types/serve-types.ts";
 import type { CloudAPIGroup } from "../api/cloud-group.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
-import type { EntryType, SettingsType } from "#orm/mod.ts";
-import type { EntryHooks } from "#orm/orm-types.ts";
+import type { EntryType, SettingsType } from "~/orm/mod.ts";
+import type { EntryHooks } from "~/orm/orm-types.ts";
 import type { CloudBootFunction } from "./cloud-extension.ts";
 import type { Middleware } from "./middleware.ts";
 import type { PathHandler } from "./path-handler.ts";
@@ -11,7 +11,7 @@ import type {
   ConfigDefinition,
   ExtensionConfig,
 } from "../cloud-config/config-types.ts";
-import type { RoleConfig } from "#orm/roles/role.ts";
+import type { RoleConfig } from "~/orm/roles/role.ts";
 
 /**
  * Information about a {@link CloudExtension}

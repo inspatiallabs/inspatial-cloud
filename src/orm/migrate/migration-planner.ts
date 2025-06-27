@@ -1,12 +1,12 @@
-import type { EntryMigrationPlan } from "/orm/migrate/entry-type/entry-migration-plan.ts";
-import { EntryTypeMigrator } from "/orm/migrate/entry-type/entry-type-migrator.ts";
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { InSpatialDB } from "/orm/db/inspatial-db.ts";
-import type { EntryType } from "/orm/entry/entry-type.ts";
-import { SettingsTypeMigrator } from "/orm/migrate/settings-type/settings-type-migrator.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import type { PgColumnDefinition } from "/orm/db/db-types.ts";
-import { MigrationPlan } from "/orm/migrate/migration-plan.ts";
+import type { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migration-plan.ts";
+import { EntryTypeMigrator } from "~/orm/migrate/entry-type/entry-type-migrator.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { InSpatialDB } from "~/orm/db/inspatial-db.ts";
+import type { EntryType } from "~/orm/entry/entry-type.ts";
+import { SettingsTypeMigrator } from "~/orm/migrate/settings-type/settings-type-migrator.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
+import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;

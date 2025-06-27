@@ -7,16 +7,16 @@ import type {
   EntryIndex,
   EntryTypeConfig,
   ExtractFieldKeys,
-} from "/orm/entry/types.ts";
-import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
-import type { EntryHookName } from "/orm/orm-types.ts";
-import { BaseType } from "/orm/shared/base-type-class.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
-import convertString from "#utils/convert-string.ts";
+} from "~/orm/entry/types.ts";
+import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
+import type { EntryHookName } from "~/orm/orm-types.ts";
+import { BaseType } from "~/orm/shared/base-type-class.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import convertString from "~/utils/convert-string.ts";
 import type {
   EntryPermission,
   EntryRole,
-} from "/orm/roles/entry-permissions.ts";
+} from "~/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.

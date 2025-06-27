@@ -6,18 +6,18 @@ import { baseExtension } from "../base-extension/base-extension.ts";
 import { ExtensionManager } from "../extension-manager/extension-manager.ts";
 import { type InLog, inLog } from "#inLog";
 import type { LogLevel } from "../in-log/types.ts";
-import type { InSpatialORM } from "#orm/mod.ts";
+import type { InSpatialORM } from "~/orm/mod.ts";
 import type { CloudRunnerMode } from "../runner/types.ts";
-import { joinPath, normalizePath } from "#utils/path-utils.ts";
+import { joinPath, normalizePath } from "~/utils/path-utils.ts";
 import authCloudExtension from "#extensions/auth/mod.ts";
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
-import { setupOrm } from "#orm/setup-orm.ts";
+import { setupOrm } from "~/orm/setup-orm.ts";
 import {
   isServerException,
   raiseServerException,
 } from "../app/server-exception.ts";
-import { ORMException } from "#orm/orm-exception.ts";
+import { ORMException } from "~/orm/orm-exception.ts";
 import type { CloudAPIGroup } from "../api/cloud-group.ts";
 import { InLiveHandler } from "../in-live/in-live-handler.ts";
 import type { CloudExtensionInfo } from "../app/types.ts";
@@ -35,7 +35,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "../cloud-config/config-types.ts";
-import { RoleManager } from "#orm/roles/role.ts";
+import { RoleManager } from "~/orm/roles/role.ts";
 
 export class InCloud {
   appName: string;

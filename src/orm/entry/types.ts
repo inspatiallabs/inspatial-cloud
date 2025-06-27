@@ -1,12 +1,12 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
-import type { IDMode, InValue } from "/orm/field/types.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
+import type { IDMode, InValue } from "~/orm/field/types.ts";
 import type {
   BaseConfig,
   BaseTypeConfig,
   BaseTypeInfo,
-} from "/orm/shared/shared-types.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
+} from "~/orm/shared/shared-types.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "../../cloud/cloud-common.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
 import type { EntryRole } from "../roles/entry-permissions.ts";

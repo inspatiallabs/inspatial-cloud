@@ -6,7 +6,7 @@ import registerUser from "#extensions/auth/actions/register-user.ts";
 import signInWithGoogle from "#extensions/auth/actions/google/login-google.ts";
 import googleAuthCallback from "#extensions/auth/actions/google/google-auth-callback.ts";
 import googleTokenLogin from "#extensions/auth/actions/google/google-token-login.ts";
-import { CloudAPIGroup } from "/api/cloud-group.ts";
+import { CloudAPIGroup } from "~/api/cloud-group.ts";
 import { resetPassword } from "./actions/reset-password.ts";
 import { setNewPassword } from "./actions/set-new-password.ts";
 
