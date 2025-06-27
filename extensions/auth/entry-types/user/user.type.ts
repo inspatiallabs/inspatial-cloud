@@ -31,9 +31,9 @@ export interface User extends EntryBase {
   fullName?: string;
   /**
    * **Role** (ChoicesField)
-   * @type {'systemAdmin' | 'basic' | 'gedcomUser'}
+   * @type {'systemAdmin' | 'basic'}
    */
-  role?: "systemAdmin" | "basic" | "gedcomUser";
+  role?: "systemAdmin" | "basic";
   /**
    * **Profile Picture** (ImageField)
    * @description The user's profile picture

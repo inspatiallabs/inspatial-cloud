@@ -1,7 +1,7 @@
 [
   {
     "command": "deno",
-    "args": ["run", "-A", "--watch", "--watch-exclude=.inspatial", "main.ts"],
+    "args": ["run", "-A", "main.ts"],
     "cwd": "$ZED_WORKTREE_ROOT/examples/basic",
     "label": "Example: Basic",
     "allow_concurrent_runs": false,

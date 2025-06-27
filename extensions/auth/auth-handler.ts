@@ -12,10 +12,10 @@ export class AuthHandler {
     this.#inCloud = inCloud;
   }
 
-  #allowedPaths: Set<string> = new Set();
+  #allowedPaths: Set<RegExp> = new Set();
   #allowedActions: Map<string, Set<string>> = new Map();
 
-  get allowedPaths(): string[] {
+  get allowedPaths(): RegExp[] {
     return Array.from(this.#allowedPaths);
   }
 
@@ -31,8 +31,8 @@ export class AuthHandler {
     );
     return actions;
   }
-  allowPath(path: string): void {
-    this.#allowedPaths.add(path);
+  allowPath(match: RegExp): void {
+    this.#allowedPaths.add(match);
   }
   allowAction(group: string, action: string): void {
     if (!this.#allowedActions.has(group)) {
@@ -41,8 +41,8 @@ export class AuthHandler {
     this.#allowedActions.get(group)?.add(action);
   }
 
-  disallowPath(path: string): void {
-    this.#allowedPaths.delete(path);
+  disallowPath(match: RegExp): void {
+    this.#allowedPaths.delete(match);
   }
   disallowAction(group: string, action: string): void {
     if (this.#allowedActions.has(group)) {
@@ -50,8 +50,10 @@ export class AuthHandler {
     }
   }
   isPathAllowed(path: string): boolean {
-    if (this.#allowedPaths.has(path)) {
-      return true;
+    for (const match of this.#allowedPaths) {
+      if (match.test(path)) {
+        return true;
+      }
     }
     return false;
   }

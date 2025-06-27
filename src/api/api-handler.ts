@@ -1,7 +1,7 @@
 import type { HandlerResponse, PathHandler } from "~/app/path-handler.ts";
 import { raiseServerException, Redirect } from "~/app/server-exception.ts";
 
-export const apiPathHandeler: PathHandler = {
+export const apiPathHandler: PathHandler = {
   name: "api",
   description: "api",
   match: /^\/api/,
