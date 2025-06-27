@@ -34,7 +34,6 @@
     "example:tasks": "cd examples/task-queue && deno run -A --unstable-broadcast-channel run.ts",
     "example:tasks-queue": "cd examples/task-queue && deno run -A --unstable-broadcast-channel queue.ts"
   },
-  "scopes": {},
   "lint": {
     "rules": {
       "include": ["verbatim-module-syntax"],
