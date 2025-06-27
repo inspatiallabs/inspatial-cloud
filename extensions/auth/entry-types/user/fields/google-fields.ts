@@ -1,4 +1,4 @@
-import type { InField } from "/orm/field/field-def-types.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 
 const googleFields: Array<InField> = [{
   key: "googleAccessToken",

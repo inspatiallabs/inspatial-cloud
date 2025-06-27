@@ -1,4 +1,4 @@
-import type { EntryBase } from "/orm/entry/entry-base.ts";
+import type { EntryBase } from "@inspatial/cloud/types";
 
 export interface User extends EntryBase {
   _name: "user";
@@ -29,6 +29,11 @@ export interface User extends EntryBase {
    * @type {string}
    */
   fullName?: string;
+  /**
+   * **Role** (ChoicesField)
+   * @type {'systemAdmin' | 'basic' | 'gedcomUser'}
+   */
+  role?: "systemAdmin" | "basic" | "gedcomUser";
   /**
    * **Profile Picture** (ImageField)
    * @description The user's profile picture

@@ -1,5 +1,5 @@
-import type { EmailSettings } from "../_generated/email-settings.ts";
-import { SettingsType } from "/orm/settings/settings-type.ts";
+import { SettingsType } from "~/orm/settings/settings-type.ts";
+import type { EmailSettings } from "./email-settings.type.ts";
 
 export const emailSettings: SettingsType<EmailSettings> = new SettingsType<
   EmailSettings

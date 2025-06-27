@@ -1,10 +1,10 @@
-import type { HandlerResponse, PathHandler } from "/app/path-handler.ts";
-import { raiseServerException, Redirect } from "/app/server-exception.ts";
+import type { HandlerResponse, PathHandler } from "~/app/path-handler.ts";
+import { raiseServerException, Redirect } from "~/app/server-exception.ts";
 
 export const apiPathHandeler: PathHandler = {
   name: "api",
   description: "api",
-  path: "/api",
+  match: /^\/api/,
   handler: async (inCloud, inRequest, inResponse) => {
     const { api } = inCloud;
     const groupParam = inRequest.group;

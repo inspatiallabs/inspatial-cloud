@@ -1,4 +1,4 @@
-import type { InLiveUser } from "/in-live/types.ts";
+import type { InLiveUser } from "~/in-live/types.ts";
 
 export class InLiveRoom {
   roomName: string;

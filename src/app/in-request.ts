@@ -1,4 +1,4 @@
-import { InContext } from "/app/in-context.ts";
+import { InContext } from "~/app/in-context.ts";
 import type { RequestMethod } from "#types/serve-types.ts";
 import { inLog } from "../in-log/in-log.ts";
 
@@ -110,7 +110,9 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
   /**
    * The file extension of the request if it is a file request.
    */
-  fileExtension = "";
+  fileExtension: string = "";
+
+  fileName?: string;
 
   /**
    * The context object for the request.
@@ -146,7 +148,8 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
     const ext = parts[parts.length - 1];
     if (ext) {
       this.isFile = true;
-      this.fileExtension = ext;
+      this.fileExtension = ext.toLowerCase();
+      this.fileName = lastPart;
     }
   }
 

@@ -1,25 +1,26 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { EntryType } from "/orm/entry/entry-type.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { EntryType } from "~/orm/entry/entry-type.ts";
 import {
   formatInterfaceFile,
   writeInterfaceFile,
-} from "/orm/build/generate-interface/files-handling.ts";
-import { buildFields } from "/orm/build/generate-interface/build-fields.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import convertString from "/utils/convert-string.ts";
+} from "~/orm/build/generate-interface/files-handling.ts";
+import { buildFields } from "~/orm/build/generate-interface/build-fields.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import convertString from "~/utils/convert-string.ts";
 
 export async function generateEntryInterface(
   orm: InSpatialORM,
   entryType: EntryType,
-  entriesPath: string,
 ): Promise<void> {
-  await Deno.mkdir(entriesPath, { recursive: true });
+  if (!entryType.dir) {
+    return;
+  }
 
-  const fileName = `${convertString(entryType.name, "kebab", true)}.ts`;
-  const filePath = `${entriesPath}/${fileName}`;
+  const fileName = `${convertString(entryType.name, "kebab", true)}.type.ts`;
+  const filePath = `${entryType.dir!}/${fileName}`; //`${entriesPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { EntryBase, ChildList } from "@inspatial/cloud/types";',
+    'import type { EntryBase } from "@inspatial/cloud/types";\n',
     `export interface ${
       convertString(entryType.name, "pascal", true)
     } extends EntryBase {`,
@@ -36,6 +37,10 @@ export async function generateEntryInterface(
   }
 
   outLines.push("}");
+  if (entryType.children?.size) {
+    outLines[0] =
+      'import type { EntryBase, ChildList } from "@inspatial/cloud/types";\n';
+  }
   await writeInterfaceFile(filePath, outLines.join("\n"));
   await formatInterfaceFile(filePath);
 }
@@ -43,15 +48,17 @@ export async function generateEntryInterface(
 export async function generateSettingsInterfaces(
   orm: InSpatialORM,
   settingsType: SettingsType,
-  settingsPath: string,
 ): Promise<void> {
-  await Deno.mkdir(settingsPath, { recursive: true });
+  if (!settingsType.dir) {
+    return;
+  }
+  const settingsPath = settingsType.dir;
 
-  const fileName = `${convertString(settingsType.name, "kebab", true)}.ts`;
+  const fileName = `${convertString(settingsType.name, "kebab", true)}.type.ts`;
   const filePath = `${settingsPath}/${fileName}`;
 
   const outLines: string[] = [
-    'import type { SettingsBase, ChildList }from "@inspatial/cloud/types";',
+    'import type { SettingsBase }from "@inspatial/cloud/types";\n',
     `export interface ${
       convertString(settingsType.name, "pascal", true)
     } extends SettingsBase {`,
@@ -67,6 +74,10 @@ export async function generateSettingsInterfaces(
     );
   }
   outLines.push("}");
+  if (settingsType.children?.size) {
+    outLines[0] =
+      'import type { SettingsBase, ChildList } from "@inspatial/cloud/types";\n';
+  }
   await writeInterfaceFile(filePath, outLines.join("\n"));
   await formatInterfaceFile(filePath);
 }

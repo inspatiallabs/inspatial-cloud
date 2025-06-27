@@ -1,12 +1,13 @@
-import { BaseClass } from "/orm/shared/base-class.ts";
-import type { SettingsRow } from "/orm/settings/types.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import type { HookName } from "/orm/orm-types.ts";
+import { BaseClass } from "~/orm/shared/base-class.ts";
+import type { SettingsRow } from "~/orm/settings/types.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import type { HookName } from "~/orm/orm-types.ts";
 
-import dateUtils from "/utils/date-utils.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
-import type { InValue } from "/orm/field/types.ts";
+import dateUtils from "~/utils/date-utils.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InValue } from "~/orm/field/types.ts";
 import type { InCloud } from "../../cloud/cloud-common.ts";
+import { raiseORMException } from "../orm-exception.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -21,13 +22,12 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     readOnly: true,
     required: true,
   };
-  get _settingsType(): SettingsType {
-    return this._orm.getSettingsType(this._name);
-  }
+  readonly _settingsType!: SettingsType;
   constructor(orm: any, inCloud: InCloud, name: N, user?: any) {
     super(orm, inCloud, name, "settings", user);
   }
   get data(): Record<string, any> {
+    this.assertViewPermission();
     const data = Object.fromEntries(this._data.entries());
     const childData: Record<string, any> = {};
     for (const [key, value] of this._childrenData.entries()) {
@@ -44,6 +44,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   }
 
   async load(): Promise<void> {
+    this.assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
     this.#updatedAt.clear();
@@ -56,6 +57,9 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       columns: ["field", "value", "updatedAt"],
     });
     for (const row of result.rows) {
+      if (!this._fields.has(row.field)) {
+        continue;
+      }
       const fieldDef = this._getFieldDef(row.field);
       const fieldType = this._getFieldType(fieldDef.type);
       const timestampField = this._getFieldType("TimeStampField");
@@ -75,6 +79,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   async getValue(
     fieldKey: string,
   ): Promise<any> {
+    this.assertViewPermission();
     const fieldDef = this._getFieldDef(fieldKey);
     const fieldType = this._getFieldType(fieldDef.type);
 
@@ -86,6 +91,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     return fieldType.parseDbValue(dbValue.value.value, fieldDef);
   }
   update(data: Record<string, any>): void {
+    this.assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
         const childList = this._childrenData.get(key);
@@ -102,6 +108,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     }
   }
   async save(): Promise<void> {
+    this.assertModifyPermission();
     await this.refreshFetchedFields();
     await this.#beforeValidate();
     await this.#validate();
@@ -162,5 +169,29 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   }
   async #afterUpdate(): Promise<void> {
     await this.#runHooks("afterUpdate");
+  }
+  get canModify(): boolean {
+    return this._settingsType.permission.modify;
+  }
+  get canView(): boolean {
+    return this._settingsType.permission.view;
+  }
+  assertModifyPermission(): void {
+    if (!this.canModify) {
+      raiseORMException(
+        `You do not have permission to modify ${this._settingsType.config.label}`,
+        "PermissionDenied",
+        403,
+      );
+    }
+  }
+  assertViewPermission(): void {
+    if (!this.canView) {
+      raiseORMException(
+        `You do not have permission to view ${this._settingsType.config.label}`,
+        "PermissionDenied",
+        403,
+      );
+    }
   }
 }

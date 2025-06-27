@@ -1,6 +1,6 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
@@ -23,12 +23,7 @@
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
   "imports": {
-    "/": "./src/",
-    "./": "./",
-    "#orm/": "./src/orm/",
-    "#utils/": "./src/utils/",
-    "#terminal/": "./src/terminal/",
-    "#queue/": "./src/in-queue/",
+    "~/": "./src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",
     "#inLog": "./src/in-log/in-log.ts"
@@ -39,7 +34,6 @@
     "example:tasks": "cd examples/task-queue && deno run -A --unstable-broadcast-channel run.ts",
     "example:tasks-queue": "cd examples/task-queue && deno run -A --unstable-broadcast-channel queue.ts"
   },
-  "scopes": {},
   "lint": {
     "rules": {
       "include": ["verbatim-module-syntax"],

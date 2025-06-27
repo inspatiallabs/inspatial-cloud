@@ -1,14 +1,15 @@
-import { CloudExtension } from "/app/cloud-extension.ts";
-import userEntry from "#extensions/auth/entry-types/user/user-entry.ts";
-import userSessionEntry from "#extensions/auth/entry-types/user-session/user-session-entry.ts";
-import authSettings from "#extensions/auth/settings-types/auth-settings/auth-settings.ts";
+import { CloudExtension } from "~/app/cloud-extension.ts";
+
 import authGroup from "#extensions/auth/auth-group.ts";
 import checkForUser from "#extensions/auth/boot/checkForUser.ts";
 import { AuthHandler } from "#extensions/auth/auth-handler.ts";
 import { authLifecycle } from "#extensions/auth/auth-lifecycle.ts";
 import { authMiddleware } from "#extensions/auth/auth-middleware.ts";
+import { userSessionEntry } from "./entry-types/user-session/user-session-entry.ts";
+import { authSettings } from "./settings-types/auth-settings/auth-settings.ts";
+import { userEntry } from "./entry-types/user/user-entry.ts";
 
-const authCloudExtension: CloudExtension = new CloudExtension("auth", {
+export const authCloudExtension: CloudExtension = new CloudExtension("auth", {
   label: "Auth",
   description: "Auth extension",
   install(app, config) {
@@ -45,5 +46,3 @@ const authCloudExtension: CloudExtension = new CloudExtension("auth", {
   actionGroups: [authGroup],
   settingsTypes: [authSettings],
 });
-
-export default authCloudExtension;

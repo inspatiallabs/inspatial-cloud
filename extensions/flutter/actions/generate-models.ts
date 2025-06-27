@@ -1,9 +1,9 @@
-import { CloudAPIAction } from "/api/cloud-action.ts";
-import convertString from "/utils/convert-string.ts";
-import { EntryType } from "/orm/entry/entry-type.ts";
-import { ChildEntryType } from "/orm/child-entry/child-entry.ts";
-import { SettingsType } from "/orm/settings/settings-type.ts";
-import type { InField, InFieldType } from "/orm/field/field-def-types.ts";
+import { CloudAPIAction } from "~/api/cloud-action.ts";
+import convertString from "~/utils/convert-string.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+import { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
+import { SettingsType } from "~/orm/settings/settings-type.ts";
+import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 
 const generateModels = new CloudAPIAction(
   "generateModels",
@@ -24,7 +24,9 @@ const generateModels = new CloudAPIAction(
       const models: string[] = [];
       const helpers = getHelperClasses();
       await writeModelFile(`${modelsPath}/helpers.dart`, helpers.join("\n"));
-      const { entryTypes, settingsTypes } = inCloud.orm;
+      const { entryTypes, settingsTypes } = inCloud.roles.getRole(
+        "systemAdmin",
+      );
       const defs = [
         ...Array.from(entryTypes.values()),
         ...Array.from(settingsTypes.values()),

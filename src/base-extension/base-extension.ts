@@ -1,18 +1,38 @@
-import { CloudExtension } from "/app/cloud-extension.ts";
-import { corsMiddleware } from "/base-extension/middleware/cors.ts";
+import { CloudExtension } from "~/app/cloud-extension.ts";
+import { corsMiddleware } from "~/base-extension/middleware/cors.ts";
 
-import { inLiveMiddleware } from "/base-extension/middleware/inLive.ts";
-import { apiPathHandeler } from "/api/api-handler.ts";
-import { systemSettings } from "/base-extension/settings-types/systemSettings.ts";
+import { inLiveMiddleware } from "~/base-extension/middleware/inLive.ts";
+import { apiPathHandeler } from "~/api/api-handler.ts";
+import { systemSettings } from "~/base-extension/settings-types/systemSettings.ts";
 import { cloudActions } from "./actions/dev-actions.ts";
-import { inTask } from "#queue/entry-types/in-task/in-task.ts";
+import { inTask } from "~/in-queue/entry-types/in-task/in-task.ts";
+import { staticFilesHandler } from "../static/staticPathHandler.ts";
+import { normalizePath } from "../utils/path-utils.ts";
+import { raiseCloudException } from "../app/exeption/cloud-exception.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
-  description: "InSpatial Cloud Base Extension",
-  install(app) {
+  description: "InSpatial Cloud Core Extension",
+  async install(app, config) {
     Deno.mkdirSync(app.filesPath, { recursive: true });
+    try {
+      const path = Deno.realPathSync(config.publicRoot);
+      app.static.staticFilesRoot = normalizePath(path);
+    } catch (e) {
+      if (e instanceof Deno.errors.NotFound) {
+        raiseCloudException(
+          `Public root directory not found: ${config.publicRoot}`,
+        );
+      }
+      throw e;
+    }
+    app.static.spa = config.singlePageApp;
+    app.static.setCach(config.cacheStatic);
+
+    await app.static.init(
+      app.static.staticFilesRoot.replace(app.cloudRoot, "."),
+    );
   },
-  label: "InSpatial Cloud Base Extension",
+  label: "Core",
   version: "0.0.1",
   config: {
     mode: {
@@ -54,9 +74,30 @@ export const baseExtension = new CloudExtension("cloud", {
     hostName: {
       description: "The hostname for the server",
       required: false,
-      default: "0.0.0.0",
+      default: "localhost",
       type: "string",
       env: "SERVE_HOSTNAME",
+    },
+    publicRoot: {
+      description:
+        "The root directory for the public static files. This is used to serve static files like images, CSS, and JavaScript.",
+      required: false,
+      default: "./public",
+      type: "string",
+    },
+    singlePageApp: {
+      description:
+        "Whether the static files are being served as a SPA. This will default any path that's not a file to the root index.html",
+      type: "boolean",
+      required: false,
+      default: false,
+    },
+    cacheStatic: {
+      description:
+        "Whether to cache static files in memory for faster access. This is recommended for production environments.",
+      required: false,
+      type: "boolean",
+      default: false,
     },
     port: {
       description: "The port for the server",
@@ -83,5 +124,44 @@ export const baseExtension = new CloudExtension("cloud", {
   settingsTypes: [systemSettings],
   entryTypes: [inTask],
   middleware: [corsMiddleware, inLiveMiddleware],
-  pathHandlers: [apiPathHandeler],
+  pathHandlers: [apiPathHandeler, staticFilesHandler],
+  roles: [{
+    roleName: "basic",
+    label: "Basic User",
+    description: "The default limited role assigned to new users",
+    entryTypes: {
+      cloudFile: {
+        view: false,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      user: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+        userScoped: {
+          userIdField: "id",
+        },
+        fields: {
+          systemAdmin: {
+            view: false,
+            modify: false,
+          },
+          firstName: {
+            modify: true,
+            view: true,
+          },
+          lastName: {
+            modify: true,
+            view: true,
+          },
+        },
+        actions: {
+          include: [],
+        },
+      },
+    },
+  }],
 });

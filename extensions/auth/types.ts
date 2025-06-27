@@ -4,5 +4,6 @@ export interface SessionData {
   firstName: string;
   lastName: string;
   systemAdmin: boolean;
+  role: string;
   [key: string]: any;
 }

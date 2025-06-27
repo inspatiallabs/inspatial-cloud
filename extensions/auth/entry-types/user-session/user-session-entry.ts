@@ -1,9 +1,10 @@
-import { EntryType } from "/orm/entry/entry-type.ts";
-import type { UserSession } from "#extensions/auth/entry-types/generated-types/user-session.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+
 import fields from "#extensions/auth/entry-types/user-session/fields.ts";
 import { generateSalt } from "#extensions/auth/security.ts";
+import type { UserSession } from "./user-session.type.ts";
 
-const userSessionEntry = new EntryType<UserSession>("userSession", {
+export const userSessionEntry = new EntryType<UserSession>("userSession", {
   label: "User Session",
   description: "An authenticated user session",
   idMode: "ulid",
@@ -20,5 +21,3 @@ const userSessionEntry = new EntryType<UserSession>("userSession", {
     }],
   },
 });
-
-export default userSessionEntry;

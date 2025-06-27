@@ -1,12 +1,12 @@
-import { dateUtils } from "/utils/date-utils.ts";
-import { EntryType } from "/orm/entry/entry-type.ts";
-import { raiseServerException } from "/app/server-exception.ts";
+import { dateUtils } from "~/utils/date-utils.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
 import type { SMTPOptions } from "../smtp/smtpTypes.ts";
-import { inLog } from "/in-log/in-log.ts";
+import { inLog } from "~/in-log/in-log.ts";
 import { SMTPClient } from "../smtp/smtpClient.ts";
 
-import type { Email } from "../_generated/email.ts";
-import type { EmailSettings } from "../_generated/email-settings.ts";
+import type { EmailSettings } from "../settingsTypes/email-settings.type.ts";
+import type { Email } from "./email.type.ts";
 
 export const emailEntry = new EntryType<Email>("email", {
   label: "Email",

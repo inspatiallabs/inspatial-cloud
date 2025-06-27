@@ -1,5 +1,5 @@
-import type { HandlerResponse } from "/app/path-handler.ts";
-import { inLog } from "/in-log/in-log.ts";
+import type { HandlerResponse } from "~/app/path-handler.ts";
+import { inLog } from "~/in-log/in-log.ts";
 import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
 import type { FileType } from "#extensions/files/src/mime-types/file-types.ts";
 
@@ -129,6 +129,33 @@ export class InResponse {
    */
   setAllowOrigin(origin: string): void {
     this.#headers.set("Access-Control-Allow-Origin", origin);
+  }
+
+  /**
+   * Sets the `Cache-Control` header for the response.
+   */
+
+  setCacheControl(
+    options: {
+      maxAge: number;
+      public?: boolean;
+      noCache?: boolean;
+      noStore?: boolean;
+    },
+  ): void {
+    let cacheControl = `max-age=${options.maxAge}`;
+    if (options?.public) {
+      cacheControl += ", public";
+    } else {
+      cacheControl += ", private";
+    }
+    if (options?.noCache) {
+      cacheControl += ", no-cache";
+    }
+    if (options?.noStore) {
+      cacheControl += ", no-store";
+    }
+    this.#headers.set("Cache-Control", cacheControl);
   }
   /**
    * Sets a cookie with the provided key and value.

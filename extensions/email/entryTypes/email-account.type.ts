@@ -1,4 +1,4 @@
-import type { EntryBase } from "/orm/entry/entry-base.ts";
+import type { EntryBase } from "@inspatial/cloud/types";
 
 export interface EmailAccount extends EntryBase {
   _name: "emailAccount";

@@ -2,7 +2,7 @@ import {
   raiseServerException,
   // deno-lint-ignore no-unused-vars
   type ServerException,
-} from "/app/server-exception.ts";
+} from "~/app/server-exception.ts";
 
 /**
  * The InContext class is instantiated for each inRequest and assigned to the inRequest.context property.

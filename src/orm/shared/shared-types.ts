@@ -1,8 +1,8 @@
-import type { InField } from "/orm/field/field-def-types.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 import type {
   ChildEntryType,
   ChildEntryTypeInfo,
-} from "/orm/child-entry/child-entry.ts";
+} from "~/orm/child-entry/child-entry.ts";
 
 export interface BaseTypeInfo {
   name: string;
@@ -37,6 +37,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   fields: Array<InField>;
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;
+  dir?: string;
 }
 
 export interface FieldGroupConfig<FK extends PropertyKey = PropertyKey> {

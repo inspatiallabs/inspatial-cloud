@@ -1,10 +1,10 @@
-import type { InRequest } from "/app/in-request.ts";
-import type { InResponse } from "/app/in-response.ts";
+import type { InRequest } from "~/app/in-request.ts";
+import type { InResponse } from "~/app/in-response.ts";
 import type { InCloud } from "@inspatial/cloud/types";
 export class RequestPathHandler {
   name: string;
   description: string;
-  path: string | Array<string>;
+  match: RegExp;
   handler: (
     app: InCloud,
     inRequest: InRequest,
@@ -16,7 +16,7 @@ export class RequestPathHandler {
   constructor(
     name: string,
     description: string,
-    path: string | Array<string>,
+    match: RegExp,
     handler: (
       app: InCloud,
       inRequest: InRequest,
@@ -27,7 +27,7 @@ export class RequestPathHandler {
   ) {
     this.name = name;
     this.description = description;
-    this.path = path;
+    this.match = match;
     this.handler = handler;
   }
 }
@@ -61,7 +61,7 @@ export type PathHandler = {
    * The path that the handler should be called for.
    * This can be a string or an array of strings and must be unique.
    */
-  path: string | Array<string>;
+  match: RegExp;
 
   /**
    * The handler for the path.

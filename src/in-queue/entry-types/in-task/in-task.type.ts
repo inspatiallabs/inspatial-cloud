@@ -1,4 +1,5 @@
 import type { EntryBase } from "@inspatial/cloud/types";
+
 export interface InTask extends EntryBase {
   _name: "inTask";
   /**
@@ -35,11 +36,6 @@ export interface InTask extends EntryBase {
    * @required true
    */
   status: "queued" | "running" | "cancelled" | "completed" | "failed";
-  /**
-   * **Queued At** (TimeStampField)
-   * @type {number}
-   */
-  queuedAt?: number;
   /**
    * **Start Time** (TimeStampField)
    * @type {number}

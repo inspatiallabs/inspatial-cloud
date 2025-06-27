@@ -1,19 +1,20 @@
 import type { ExceptionHandler } from "#types/serve-types.ts";
-import type { PathHandler } from "/app/path-handler.ts";
-import type { RequestLifecycle } from "/app/request-lifecycle.ts";
-import { convertString } from "#utils/mod.ts";
-import type { EntryType } from "#orm/entry/entry-type.ts";
-import type { SettingsType } from "#orm/settings/settings-type.ts";
+import type { PathHandler } from "~/app/path-handler.ts";
+import type { RequestLifecycle } from "~/app/request-lifecycle.ts";
+import { convertString } from "~/utils/mod.ts";
+import type { EntryType } from "~/orm/entry/entry-type.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
 
-import type { CloudExtensionInfo, ExtensionOptions } from "/app/types.ts";
-import type { Middleware } from "/app/middleware.ts";
-import type { EntryHooks } from "#orm/orm-types.ts";
-import type { CloudAPIGroup } from "/api/cloud-group.ts";
+import type { CloudExtensionInfo, ExtensionOptions } from "~/app/types.ts";
+import type { Middleware } from "~/app/middleware.ts";
+import type { EntryHooks } from "~/orm/orm-types.ts";
+import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 import type {
   ConfigDefinition,
   ExtensionConfig,
 } from "../cloud-config/config-types.ts";
+import type { RoleConfig } from "~/orm/roles/role.ts";
 export type CloudInstallFunction<R = any> = (
   inCloud: InCloud,
 ) => R;
@@ -53,6 +54,7 @@ export class CloudExtension<
 
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
+  roles: RoleConfig[];
   ormGlobalHooks: EntryHooks;
   actionGroups: AG;
   install: (
@@ -72,7 +74,7 @@ export class CloudExtension<
     this.label = options.label;
     this.description = options.description || "";
     this.version = options.version;
-
+    this.roles = options.roles || [];
     const globalHooks = options.ormGlobalHooks;
     this.ormGlobalHooks = {
       beforeValidate: globalHooks?.beforeValidate || [],
@@ -151,7 +153,7 @@ export class CloudExtension<
     const pathHandlers = this.pathHandlers?.map((p) => {
       return {
         name: p.name,
-        path: p.path,
+        match: p.match.source,
         description: p.description,
       };
     }) || [];

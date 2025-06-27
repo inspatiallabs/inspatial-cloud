@@ -4,12 +4,12 @@ import {
   loadCloudConfigFile,
 } from "../cloud-config/cloud-config.ts";
 import { InCloud } from "../cloud/cloud-common.ts";
-import { makeLogo } from "#terminal/logo.ts";
+import { makeLogo } from "~/terminal/logo.ts";
 import { initCloud } from "../init.ts";
-import ColorMe from "#terminal/color-me.ts";
-import convertString from "#utils/convert-string.ts";
-import { center } from "#terminal/format-utils.ts";
-import { joinPath } from "#utils/path-utils.ts";
+import ColorMe from "~/terminal/color-me.ts";
+import convertString from "~/utils/convert-string.ts";
+import { center } from "~/terminal/format-utils.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 import { getCoreCount } from "./multicore.ts";
 import type { RunnerMode } from "./types.ts";
 import { type InLog, inLog } from "#inLog";
@@ -134,6 +134,9 @@ export class RunManager {
       if (item.isDirectory && item.name != ".inspatial") {
         paths.push(joinPath(this.rootPath, item.name));
       }
+      if (item.name.endsWith(".type.ts")) {
+        continue;
+      }
       if (item.isFile && item.name.endsWith("ts")) {
         paths.push(joinPath(this.rootPath, item.name));
       }
@@ -238,8 +241,8 @@ export class RunManager {
       REUSE_PORT: config?.reusePort ? "true" : "false",
       SERVE_PROC_NUM: config?.instanceNumber || "_",
     });
-    let pid = proc.pid;
-    proc.status.then((status) => {
+    const pid = proc.pid;
+    proc.status.then((_status) => {
       this.serveProcs.delete(pid);
     });
     this.serveProcs.set(proc.pid, proc);
@@ -286,11 +289,23 @@ export class RunManager {
       ...rows.map((row) => center(row)),
       "",
       center(
-        "You can ping the server:",
+        "Static files are served at:",
       ),
       ColorMe.fromOptions(
         center(
-          `http://${this.hostname}:${this.port}/api?group=api&action=ping`,
+          `http://${this.hostname}:${this.port}`,
+        ),
+        {
+          color: "brightCyan",
+        },
+      ),
+      "",
+      center(
+        "API is available at:",
+      ),
+      ColorMe.fromOptions(
+        center(
+          `http://${this.hostname}:${this.port}/api`,
         ),
         {
           color: "brightCyan",

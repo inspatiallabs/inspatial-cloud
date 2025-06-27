@@ -1,8 +1,8 @@
 //https://www.postgresql.org/docs/16/protocol-flow.html
 //https://www.postgresql.org/docs/16/protocol-message-formats.html
 
-import { errorCodeMap, pgErrorMap } from "/orm/db/postgres/maps/errorMap.ts";
-import { PgError } from "/orm/db/postgres/pgError.ts";
+import { errorCodeMap, pgErrorMap } from "~/orm/db/postgres/maps/errorMap.ts";
+import { PgError } from "~/orm/db/postgres/pgError.ts";
 import {
   type ColumnDescription,
   type PgClientConfig,
@@ -10,18 +10,18 @@ import {
   type QueryResponse,
   type ServerStatus,
   type SimpleQueryResponse,
-} from "/orm/db/postgres/pgTypes.ts";
-import { MessageWriter } from "/orm/db/postgres/messageWriter.ts";
-import { MessageReader } from "/orm/db/postgres/messageReader.ts";
+} from "~/orm/db/postgres/pgTypes.ts";
+import { MessageWriter } from "~/orm/db/postgres/messageWriter.ts";
+import { MessageReader } from "~/orm/db/postgres/messageReader.ts";
 import {
   convertToDataType,
   getDataType,
   statusMap,
-} from "/orm/db/postgres/maps/maps.ts";
-import { AUTH } from "/orm/db/postgres/pgAuth.ts";
-import { ScramClient } from "/orm/db/postgres/scram.ts";
-import { convertString } from "/utils/mod.ts";
-import { inLog } from "/in-log/in-log.ts";
+} from "~/orm/db/postgres/maps/maps.ts";
+import { AUTH } from "~/orm/db/postgres/pgAuth.ts";
+import { ScramClient } from "~/orm/db/postgres/scram.ts";
+import { convertString } from "~/utils/mod.ts";
+import { inLog } from "~/in-log/in-log.ts";
 import { InPgConn } from "./in-pg/in-pg-conn.ts";
 
 export class PostgresClient {

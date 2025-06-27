@@ -1,5 +1,5 @@
 import { createInCloud } from "@inspatial/cloud";
-import { EntryType } from "/orm/mod.ts";
+import { EntryType } from "~/orm/mod.ts";
 
 createInCloud({
   name: "myAwesomeCloud",

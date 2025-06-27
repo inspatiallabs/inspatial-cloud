@@ -1,22 +1,21 @@
-import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import setPassword from "#extensions/auth/entry-types/user/actions/setPassword.ts";
 import validatePassword from "#extensions/auth/entry-types/user/actions/validatePassword.ts";
 import generateApiToken from "#extensions/auth/entry-types/user/actions/generate-api-token.ts";
 import generateResetToken from "#extensions/auth/entry-types/user/actions/generate-reset-token.ts";
-import fields from "#extensions/auth/entry-types/user/fields/fields.ts";
+import { userFields } from "#extensions/auth/entry-types/user/fields/fields.ts";
 import googleFields from "#extensions/auth/entry-types/user/fields/google-fields.ts";
-import { EntryType } from "/orm/entry/entry-type.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+import type { User } from "./user.type.ts";
 
-const userEntry = new EntryType<User>("user", {
+export const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
   titleField: "fullName",
   label: "User",
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
   searchFields: ["email"],
-
   fields: [
-    ...fields,
+    ...userFields,
     ...googleFields,
   ],
   actions: [
@@ -25,6 +24,7 @@ const userEntry = new EntryType<User>("user", {
     generateApiToken,
     generateResetToken,
   ],
+
   hooks: {
     beforeUpdate: [{
       name: "setFullName",
@@ -33,6 +33,9 @@ const userEntry = new EntryType<User>("user", {
         user,
       }) {
         user.fullName = `${user.firstName} ${user.lastName}`;
+        if (user.systemAdmin) {
+          user.role = "systemAdmin";
+        }
       },
     }],
     beforeDelete: [{
@@ -48,5 +51,3 @@ const userEntry = new EntryType<User>("user", {
     }],
   },
 });
-
-export default userEntry;

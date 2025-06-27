@@ -1,7 +1,7 @@
-import { InResponse } from "/app/in-response.ts";
+import { InResponse } from "~/app/in-response.ts";
 import type { ExceptionHandler } from "#types/serve-types.ts";
-import { isServerException } from "/app/server-exception.ts";
-import { inLog } from "/in-log/in-log.ts";
+import { isServerException } from "~/app/server-exception.ts";
+import { inLog } from "~/in-log/in-log.ts";
 
 export async function handleException(
   err: unknown,

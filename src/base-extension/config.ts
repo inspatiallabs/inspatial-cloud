@@ -8,4 +8,7 @@ export type CloudConfig = {
   port: number;
   autoConfig: boolean;
   allowedOrigins: Set<string>;
+  publicRoot: string;
+  singlePageApp: boolean;
+  cacheStatic: boolean;
 };

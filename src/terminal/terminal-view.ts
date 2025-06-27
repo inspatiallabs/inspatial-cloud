@@ -1,8 +1,8 @@
-import type { LineStyle, StyleOptions, Theme } from "#terminal/types.ts";
-import { box } from "#terminal/box.ts";
-import { Terminal } from "#terminal/terminal.ts";
+import type { LineStyle, StyleOptions, Theme } from "~/terminal/types.ts";
+import { box } from "~/terminal/box.ts";
+import { Terminal } from "~/terminal/terminal.ts";
 
-import { center } from "#terminal/format-utils.ts";
+import { center } from "~/terminal/format-utils.ts";
 
 export class TerminalView {
   theme: Theme;
