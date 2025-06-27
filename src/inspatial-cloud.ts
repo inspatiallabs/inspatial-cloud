@@ -1,16 +1,16 @@
 import { CloudExtension } from "@inspatial/cloud";
-import { InCloudBroker } from "/cloud/cloud-broker.ts";
-import { RunManager } from "/runner/run-manager.ts";
-import type { CloudRunnerMode } from "/runner/types.ts";
+import { InCloudBroker } from "~/cloud/cloud-broker.ts";
+import { RunManager } from "~/runner/run-manager.ts";
+import type { CloudRunnerMode } from "~/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
-import { InCloudServer } from "/cloud/cloud-server.ts";
+import { InCloudServer } from "~/cloud/cloud-server.ts";
 
-import { InCloud } from "/cloud/cloud-common.ts";
+import { InCloud } from "~/cloud/cloud-common.ts";
 
-import type { ExtensionOptions } from "/app/types.ts";
-import convertString from "#utils/convert-string.ts";
-import { CloudDB } from "#orm/db/postgres/in-pg/cloud-db.ts";
-import { InQueue } from "#queue/in-queue.ts";
+import type { ExtensionOptions } from "~/app/types.ts";
+import convertString from "~/utils/convert-string.ts";
+import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
+import { InQueue } from "~/in-queue/in-queue.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;

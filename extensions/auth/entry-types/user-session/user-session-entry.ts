@@ -1,4 +1,4 @@
-import { EntryType } from "/orm/entry/entry-type.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
 import type { UserSession } from "#extensions/auth/entry-types/generated-types/user-session.ts";
 import fields from "#extensions/auth/entry-types/user-session/fields.ts";
 import { generateSalt } from "#extensions/auth/security.ts";

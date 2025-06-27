@@ -1,9 +1,9 @@
-import type { InRequest } from "/app/in-request.ts";
-import type { InResponse } from "/app/in-response.ts";
-import { raiseServerException } from "/app/server-exception.ts";
-import type { InField } from "#orm/field/field-def-types.ts";
-import type { InSpatialORM } from "#orm/inspatial-orm.ts";
-import type { CloudParam, ExtractParams } from "/api/api-types.ts";
+import type { InRequest } from "~/app/in-request.ts";
+import type { InResponse } from "~/app/in-response.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { CloudParam, ExtractParams } from "~/api/api-types.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 
 export type ActionMethod<

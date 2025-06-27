@@ -1,5 +1,5 @@
 import { createInCloud } from "@inspatial/cloud";
-import { EntryType } from "/orm/mod.ts";
+import { EntryType } from "~/orm/mod.ts";
 
 createInCloud({
   name: "myAwesomeCloud",
@@ -11,6 +11,15 @@ createInCloud({
         params: [],
         action() {
           console.log("Hello from the cloud!");
+        },
+      }],
+      roles: [{
+        roleName: "basic",
+        permission: {
+          view: true,
+          modify: false,
+          create: false,
+          delete: false,
         },
       }],
     }),

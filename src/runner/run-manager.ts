@@ -4,12 +4,12 @@ import {
   loadCloudConfigFile,
 } from "../cloud-config/cloud-config.ts";
 import { InCloud } from "../cloud/cloud-common.ts";
-import { makeLogo } from "#terminal/logo.ts";
+import { makeLogo } from "~/terminal/logo.ts";
 import { initCloud } from "../init.ts";
-import ColorMe from "#terminal/color-me.ts";
-import convertString from "#utils/convert-string.ts";
-import { center } from "#terminal/format-utils.ts";
-import { joinPath } from "#utils/path-utils.ts";
+import ColorMe from "~/terminal/color-me.ts";
+import convertString from "~/utils/convert-string.ts";
+import { center } from "~/terminal/format-utils.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 import { getCoreCount } from "./multicore.ts";
 import type { RunnerMode } from "./types.ts";
 import { type InLog, inLog } from "#inLog";

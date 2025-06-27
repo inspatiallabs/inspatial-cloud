@@ -1,4 +1,4 @@
-import type { EntryBase } from "/orm/entry/entry-base.ts";
+import type { EntryBase } from "~/orm/entry/entry-base.ts";
 
 export interface User extends EntryBase {
   _name: "user";
@@ -119,4 +119,6 @@ export interface User extends EntryBase {
    * @type {string}
    */
   profilePicture__title?: string;
+
+  role: string;
 }

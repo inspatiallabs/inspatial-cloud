@@ -4,11 +4,11 @@ import type {
   InLiveClientMessage,
   InLiveMessage,
   InLiveRoomDef,
-} from "/in-live/types.ts";
-import { raiseServerException } from "/app/server-exception.ts";
-import type { InRequest } from "/app/in-request.ts";
-import { InLiveRoom } from "/in-live/in-live-room.ts";
-import { inLog } from "/in-log/in-log.ts";
+} from "~/in-live/types.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
+import type { InRequest } from "~/app/in-request.ts";
+import { InLiveRoom } from "~/in-live/in-live-room.ts";
+import { inLog } from "~/in-log/in-log.ts";
 import { BrokerClient } from "./broker-client.ts";
 
 /**

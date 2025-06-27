@@ -2,7 +2,7 @@ import type {
   ForeignKeyConstraint,
   PgColumnDefinition,
   PgDataTypeDefinition,
-} from "/orm/db/db-types.ts";
+} from "~/orm/db/db-types.ts";
 
 export interface ColumnMigrationPlan {
   columnName: string;

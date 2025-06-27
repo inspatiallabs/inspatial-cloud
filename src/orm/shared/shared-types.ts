@@ -1,8 +1,8 @@
-import type { InField } from "/orm/field/field-def-types.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 import type {
   ChildEntryType,
   ChildEntryTypeInfo,
-} from "/orm/child-entry/child-entry.ts";
+} from "~/orm/child-entry/child-entry.ts";
 
 export interface BaseTypeInfo {
   name: string;

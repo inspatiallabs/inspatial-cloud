@@ -1,16 +1,16 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import { buildConnectionFields } from "/orm/setup/setup-utils.ts";
+import type { Role } from "../../roles/role.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import { buildConnectionFields } from "~/orm/setup/setup-utils.ts";
 
 export function buildSettingsType(
-  orm: InSpatialORM,
+  role: Role,
   settingsType: SettingsType,
 ): void {
-  buildConnectionFields(orm, settingsType);
+  buildConnectionFields(role, settingsType);
   if (!settingsType.children) {
     return;
   }
   for (const child of settingsType.children.values()) {
-    buildConnectionFields(orm, child);
+    buildConnectionFields(role, child);
   }
 }

@@ -1,7 +1,7 @@
-import { CloudAPIAction } from "/api/cloud-action.ts";
+import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { AuthSettings } from "#extensions/auth/generated-interfaces/settings/auth-settings.ts";
-import { raiseServerException } from "/app/server-exception.ts";
-import { generateId } from "/utils/mod.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
+import { generateId } from "~/utils/mod.ts";
 
 const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
   authRequired: false,

@@ -1,4 +1,4 @@
-import { addLeadingZeros } from "/utils/convert-string.ts";
+import { addLeadingZeros } from "~/utils/convert-string.ts";
 
 function now(): Date {
   return new Date();

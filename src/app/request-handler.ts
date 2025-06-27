@@ -1,8 +1,8 @@
-import { InRequest } from "/app/in-request.ts";
-import type { PathHandler } from "/app/path-handler.ts";
-import { InResponse } from "/app/in-response.ts";
-import type { ExtensionManager } from "/extension-manager/extension-manager.ts";
-import { handleException } from "/app/exeption/handle-exception.ts";
+import { InRequest } from "~/app/in-request.ts";
+import type { PathHandler } from "~/app/path-handler.ts";
+import { InResponse } from "~/app/in-response.ts";
+import type { ExtensionManager } from "~/extension-manager/extension-manager.ts";
+import { handleException } from "~/app/exeption/handle-exception.ts";
 import type { InCloud } from "../cloud/cloud-common.ts";
 
 export async function requestHandler(

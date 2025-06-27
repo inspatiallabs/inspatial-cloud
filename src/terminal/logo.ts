@@ -1,6 +1,6 @@
-import ColorMe, { type BasicFgColor } from "#terminal/color-me.ts";
-import { symbols } from "#terminal/print-utils.ts";
-import { center } from "#terminal/format-utils.ts";
+import ColorMe, { type BasicFgColor } from "~/terminal/color-me.ts";
+import { symbols } from "~/terminal/print-utils.ts";
+import { center } from "~/terminal/format-utils.ts";
 
 const big = [
   [27, 10, 27],

@@ -1,13 +1,17 @@
-import { BaseType } from "/orm/shared/base-type-class.ts";
+import { BaseType } from "~/orm/shared/base-type-class.ts";
 import type {
   SettingsActionDefinition,
+  SettingsConfig,
   SettingsHookDefinition,
   SettingsTypeConfig,
-} from "/orm/settings/types.ts";
-import type { HookName } from "/orm/orm-types.ts";
-import type { GenericSettings } from "/orm/settings/settings-base.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
-import type { BaseConfig } from "/orm/shared/shared-types.ts";
+} from "~/orm/settings/types.ts";
+import type { HookName } from "~/orm/orm-types.ts";
+import type { GenericSettings } from "~/orm/settings/settings-base.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import type {
+  SettingsPermission,
+  SettingsRole,
+} from "../roles/settings-permissions.ts";
 
 /**
  * Defines a settings type for the ORM.
@@ -30,15 +34,22 @@ export class SettingsType<
     beforeUpdate: [],
     afterUpdate: [],
   };
+  roles: Map<string, SettingsRole> = new Map();
+  sourceConfig: SettingsConfig<S>;
+  permission: SettingsPermission;
   constructor(
     name: N,
-    config: BaseConfig & {
-      actions?: Array<SettingsActionDefinition<S>>;
-      hooks?: Partial<Record<HookName, Array<SettingsHookDefinition<S>>>>;
-    },
+    config: SettingsConfig<S>,
   ) {
     super(name, config);
 
+    this.sourceConfig = {
+      ...config,
+    };
+    this.permission = {
+      view: true,
+      modify: true,
+    };
     this.config = {
       description: this.description,
       label: this.label,

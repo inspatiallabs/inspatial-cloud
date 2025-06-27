@@ -1,19 +1,19 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { EntryType } from "/orm/entry/entry-type.ts";
-import type { InField, InFieldMap } from "/orm/field/field-def-types.ts";
-import type { SettingsType } from "/orm/settings/settings-type.ts";
-import { raiseORMException } from "/orm/orm-exception.ts";
-import type { ChildEntryType } from "/orm/child-entry/child-entry.ts";
+import type { EntryType } from "~/orm/entry/entry-type.ts";
+import type { InField, InFieldMap } from "~/orm/field/field-def-types.ts";
+import type { SettingsType } from "~/orm/settings/settings-type.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
+import type { Role } from "../roles/role.ts";
 
 export function buildConnectionFields(
-  orm: InSpatialORM,
+  role: Role,
   entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
 ): void {
   for (const field of entryOrSettingsOrChildType.fields.values()) {
     switch (field.type) {
       case "ImageField":
       case "FileField":
-        setFileConnection(orm, field, entryOrSettingsOrChildType);
+        setFileConnection(role, field, entryOrSettingsOrChildType);
         continue;
       case "ConnectionField":
         break;
@@ -22,15 +22,14 @@ export function buildConnectionFields(
     }
     let connectionEntryType: EntryType;
     try {
-      connectionEntryType = orm.getEntryType(field.entryType);
+      connectionEntryType = role.getEntryType(field.entryType);
     } catch (_e) {
       raiseORMException(
-        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist`,
+        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist for role '${role.label}'`,
         "Invalid Connection",
       );
     }
     const titleField = buildConnectionTitleField(
-      orm,
       field,
       connectionEntryType,
     );
@@ -53,11 +52,11 @@ export function buildConnectionFields(
 }
 
 function setFileConnection(
-  orm: InSpatialORM,
+  role: Role,
   field: InFieldMap["ImageField"] | InFieldMap["FileField"],
   entryOrSettingsOrChildType: EntryType | SettingsType | ChildEntryType,
 ) {
-  const fileEntryType = orm.getEntryType("cloudFile");
+  const fileEntryType = role.getEntryType("cloudFile");
   if (!fileEntryType) {
     raiseORMException(
       `File entry type 'cloudFile' does not exist`,
@@ -65,7 +64,6 @@ function setFileConnection(
     );
   }
   const titleField = buildConnectionTitleField(
-    orm,
     field,
     fileEntryType,
   );
@@ -76,7 +74,7 @@ function setFileConnection(
 }
 
 export function validateConnectionFields(
-  orm: InSpatialORM,
+  role: Role,
   entryOrSettingsType: EntryType | SettingsType,
 ): void {
   for (const field of entryOrSettingsType.fields.values()) {
@@ -91,7 +89,7 @@ export function validateConnectionFields(
       }
     }
 
-    if (!orm.entryTypes.has(field.entryType)) {
+    if (!role.entryTypes.has(field.entryType)) {
       raiseORMException(
         `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsType.name}' EntryType does not exist`,
         "Invalid Connection",
@@ -100,7 +98,7 @@ export function validateConnectionFields(
   }
 }
 export function registerFetchFields(
-  orm: InSpatialORM,
+  role: Role,
   entryType: EntryType,
 ): void {
   for (const field of entryType.fields.values()) {
@@ -111,7 +109,7 @@ export function registerFetchFields(
     const connectionIdField = entryType.fields.get(
       fetchOptions.connectionField,
     ) as InField<"ConnectionField">;
-    const referencedEntryType = orm.getEntryType(connectionIdField.entryType);
+    const referencedEntryType = role.getEntryType(connectionIdField.entryType);
     const referencedField = referencedEntryType.fields.get(
       fetchOptions.fetchField,
     );
@@ -122,7 +120,7 @@ export function registerFetchFields(
         `Connection field ${fetchOptions.fetchField} does not exist on entry type ${referencedEntryType.name}`,
       );
     }
-    orm.registry.registerField({
+    role.registry.registerField({
       referencedEntryType: referencedEntryType.name,
       referencedFieldKey: referencedField.key,
       referencingEntryType: entryType.name,
@@ -132,7 +130,6 @@ export function registerFetchFields(
   }
 }
 function buildConnectionTitleField(
-  _orm: InSpatialORM,
   field:
     | InFieldMap["ConnectionField"]
     | InFieldMap["FileField"]

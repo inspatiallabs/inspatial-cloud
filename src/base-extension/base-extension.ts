@@ -1,18 +1,18 @@
-import { CloudExtension } from "/app/cloud-extension.ts";
-import { corsMiddleware } from "/base-extension/middleware/cors.ts";
+import { CloudExtension } from "~/app/cloud-extension.ts";
+import { corsMiddleware } from "~/base-extension/middleware/cors.ts";
 
-import { inLiveMiddleware } from "/base-extension/middleware/inLive.ts";
-import { apiPathHandeler } from "/api/api-handler.ts";
-import { systemSettings } from "/base-extension/settings-types/systemSettings.ts";
+import { inLiveMiddleware } from "~/base-extension/middleware/inLive.ts";
+import { apiPathHandeler } from "~/api/api-handler.ts";
+import { systemSettings } from "~/base-extension/settings-types/systemSettings.ts";
 import { cloudActions } from "./actions/dev-actions.ts";
-import { inTask } from "#queue/entry-types/in-task/in-task.ts";
+import { inTask } from "~/in-queue/entry-types/in-task/in-task.ts";
 
 export const baseExtension = new CloudExtension("cloud", {
-  description: "InSpatial Cloud Base Extension",
+  description: "InSpatial Cloud Core Extension",
   install(app) {
     Deno.mkdirSync(app.filesPath, { recursive: true });
   },
-  label: "InSpatial Cloud Base Extension",
+  label: "Core",
   version: "0.0.1",
   config: {
     mode: {
@@ -84,4 +84,43 @@ export const baseExtension = new CloudExtension("cloud", {
   entryTypes: [inTask],
   middleware: [corsMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandeler],
+  roles: [{
+    roleName: "basic",
+    label: "Basic User",
+    description: "The default limited role assigned to new users",
+    entryTypes: {
+      cloudFile: {
+        view: false,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      user: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+        userScoped: {
+          userIdField: "id",
+        },
+        fields: {
+          systemAdmin: {
+            view: false,
+            modify: false,
+          },
+          firstName: {
+            modify: true,
+            view: true,
+          },
+          lastName: {
+            modify: true,
+            view: true,
+          },
+        },
+        actions: {
+          include: [],
+        },
+      },
+    },
+  }],
 });

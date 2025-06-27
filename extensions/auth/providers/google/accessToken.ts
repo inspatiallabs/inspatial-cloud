@@ -1,6 +1,6 @@
-import { raiseServerException } from "/app/server-exception.ts";
-import convertString from "/utils/convert-string.ts";
-import { inLog } from "/in-log/in-log.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
+import convertString from "~/utils/convert-string.ts";
+import { inLog } from "~/in-log/in-log.ts";
 
 export class GoogleOAuth {
   #baseUrl: string = "https://oauth2.googleapis.com";

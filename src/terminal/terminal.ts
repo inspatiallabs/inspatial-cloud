@@ -2,7 +2,7 @@ import {
   type BasicFgColor,
   ColorMe,
   type StyleOptions,
-} from "#terminal/color-me.ts";
+} from "~/terminal/color-me.ts";
 
 export class Terminal {
   static write(content: string) {

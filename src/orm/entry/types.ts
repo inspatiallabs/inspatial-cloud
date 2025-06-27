@@ -1,9 +1,15 @@
-import type { InSpatialORM } from "/orm/inspatial-orm.ts";
-import type { EntryBase, GenericEntry } from "/orm/entry/entry-base.ts";
-import type { IDMode, InValue } from "/orm/field/types.ts";
-import type { BaseTypeConfig, BaseTypeInfo } from "/orm/shared/shared-types.ts";
-import type { InField } from "/orm/field/field-def-types.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
+import type { IDMode, InValue } from "~/orm/field/types.ts";
+import type {
+  BaseConfig,
+  BaseTypeConfig,
+  BaseTypeInfo,
+} from "~/orm/shared/shared-types.ts";
+import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { EntryHookName } from "@inspatial/cloud/types";
+import type { EntryRole } from "../roles/entry-permissions.ts";
 
 /* Hooks */
 type EntryHookFunction<
@@ -127,7 +133,27 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   defaultListFields?: Array<string>;
   index: Array<EntryIndex<string>>;
 }
-
+export type EntryConfig<
+  E extends EntryBase = GenericEntry,
+  A extends Array<EntryActionDefinition<E>> = Array<
+    EntryActionDefinition<E>
+  >,
+  FK extends PropertyKey = ExtractFieldKeys<E>,
+> = BaseConfig & {
+  /**
+   * The field to use as the display value instead of the ID.
+   */
+  titleField?: FK;
+  idMode?: IDMode;
+  imageField?: FK;
+  defaultListFields?: Array<FK>;
+  defaultSortField?: FK;
+  defaultSortDirection?: "asc" | "desc";
+  searchFields?: Array<FK>;
+  index?: Array<EntryIndex<FK>>;
+  actions?: A;
+  hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
+};
 export type IDValue = string | number;
 
 export type ExtractFieldKeys<T> = keyof {

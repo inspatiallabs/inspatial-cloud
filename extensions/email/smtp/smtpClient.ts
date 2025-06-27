@@ -1,13 +1,13 @@
 // https://mailtrap.io/blog/smtp-commands-and-responses/#SMTP-response-codes
 
-import { raiseServerException } from "/app/server-exception.ts";
+import { raiseServerException } from "~/app/server-exception.ts";
 import type {
   SMTPCapabilities,
   SMTPCommand,
   SMTPOptions,
   State,
 } from "./smtpTypes.ts";
-import { generateId } from "/utils/misc.ts";
+import { generateId } from "~/utils/misc.ts";
 
 export class SMTPClient {
   smtpServer: string;

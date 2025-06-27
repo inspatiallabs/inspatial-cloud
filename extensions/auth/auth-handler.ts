@@ -1,9 +1,9 @@
 import type { SessionData } from "#extensions/auth/types.ts";
 import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import type { UserSession } from "#extensions/auth/entry-types/generated-types/user-session.ts";
-import type { InRequest } from "/app/in-request.ts";
-import type { InResponse } from "/app/in-response.ts";
-import type { InCloud } from "/cloud/cloud-common.ts";
+import type { InRequest } from "~/app/in-request.ts";
+import type { InResponse } from "~/app/in-response.ts";
+import type { InCloud } from "~/cloud/cloud-common.ts";
 
 export class AuthHandler {
   #inCloud: InCloud;
@@ -85,6 +85,7 @@ export class AuthHandler {
           lastName: user.lastName,
           systemAdmin: user.systemAdmin ?? false,
           userId: user.id as string,
+          role: user.systemAdmin ? "systemAdmin" : user.role,
         };
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
@@ -134,6 +135,7 @@ export class AuthHandler {
       firstName: user.firstName,
       lastName: user.lastName,
       systemAdmin: user.systemAdmin ?? false,
+      role: user.systemAdmin ? "systemAdmin" : user.role,
     };
     const session = await this.#inCloud.orm.createEntry<UserSession>(
       "userSession",
