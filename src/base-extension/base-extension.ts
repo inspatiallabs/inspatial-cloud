@@ -2,7 +2,7 @@ import { CloudExtension } from "~/app/cloud-extension.ts";
 import { corsMiddleware } from "~/base-extension/middleware/cors.ts";
 
 import { inLiveMiddleware } from "~/base-extension/middleware/inLive.ts";
-import { apiPathHandeler } from "~/api/api-handler.ts";
+import { apiPathHandler } from "~/api/api-handler.ts";
 import { systemSettings } from "~/base-extension/settings-types/systemSettings.ts";
 import { cloudActions } from "./actions/dev-actions.ts";
 import { inTask } from "~/in-queue/entry-types/in-task/in-task.ts";
@@ -19,6 +19,13 @@ export const baseExtension = new CloudExtension("cloud", {
       app.static.staticFilesRoot = normalizePath(path);
     } catch (e) {
       if (e instanceof Deno.errors.NotFound) {
+        if (config.publicRoot === "./public") {
+          Deno.mkdirSync(config.publicRoot, { recursive: true });
+          app.static.staticFilesRoot = normalizePath(
+            Deno.realPathSync(config.publicRoot),
+          );
+          return;
+        }
         raiseCloudException(
           `Public root directory not found: ${config.publicRoot}`,
         );
@@ -124,7 +131,7 @@ export const baseExtension = new CloudExtension("cloud", {
   settingsTypes: [systemSettings],
   entryTypes: [inTask],
   middleware: [corsMiddleware, inLiveMiddleware],
-  pathHandlers: [apiPathHandeler, staticFilesHandler],
+  pathHandlers: [apiPathHandler, staticFilesHandler],
   roles: [{
     roleName: "basic",
     label: "Basic User",

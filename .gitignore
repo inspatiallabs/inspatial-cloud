@@ -5,3 +5,4 @@ pgdata/
 debug.log
 .zed/
 .vscode/
+public/
