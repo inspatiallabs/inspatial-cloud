@@ -37,6 +37,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   fields: Array<InField>;
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;
+  dir?: string;
 }
 
 export interface FieldGroupConfig<FK extends PropertyKey = PropertyKey> {

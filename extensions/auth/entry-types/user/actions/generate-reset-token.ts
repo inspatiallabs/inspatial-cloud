@@ -1,6 +1,6 @@
-import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import { generateSalt } from "#extensions/auth/security.ts";
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
+import type { User } from "../user.type.ts";
 
 const generateResetToken: EntryActionDefinition<User> = {
   key: "generateResetToken",

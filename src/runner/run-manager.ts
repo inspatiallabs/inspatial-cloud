@@ -134,6 +134,9 @@ export class RunManager {
       if (item.isDirectory && item.name != ".inspatial") {
         paths.push(joinPath(this.rootPath, item.name));
       }
+      if (item.name.endsWith(".type.ts")) {
+        continue;
+      }
       if (item.isFile && item.name.endsWith("ts")) {
         paths.push(joinPath(this.rootPath, item.name));
       }

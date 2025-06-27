@@ -1,6 +1,7 @@
 import { createInCloud } from "@inspatial/cloud";
-import customerAccount from "./entryTypes/customerAccount.ts";
+
 import { product } from "./entryTypes/product.ts";
+import { customerAccount } from "./entryTypes/customerAccount.ts";
 
 createInCloud({
   name: "CRM",

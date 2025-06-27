@@ -1,7 +1,6 @@
 import { ChildEntryType, EntryType } from "@inspatial/cloud";
-import type { CustomerAccount } from "../.inspatial/_generated/entries/customer-account.ts";
 
-export const customerAccount = new EntryType<CustomerAccount>(
+export const customerAccount = new EntryType(
   "customerAccount",
   {
     label: "Customer Account",
@@ -39,5 +38,3 @@ export const customerAccount = new EntryType<CustomerAccount>(
     ],
   },
 );
-
-export default customerAccount;

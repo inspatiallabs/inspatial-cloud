@@ -26,3 +26,13 @@ export type { SettingsBase } from "~/orm/settings/settings-base.ts";
 export type { SessionData } from "#extensions/auth/types.ts";
 
 export type ChildList<T extends Record<string, unknown>> = ChildEntryList<T>;
+
+export type { User } from "#extensions/auth/entry-types/user/user.type.ts";
+export type { UserSession } from "#extensions/auth/entry-types/user-session/user-session.type.ts";
+export type { AuthSettings } from "#extensions/auth/settings-types/auth-settings/auth-settings.type.ts";
+export type { CloudFile } from "#extensions/files/src/entry-types/cloud-file.type.ts";
+export type { EmailSettings } from "#extensions/email/settingsTypes/email-settings.type.ts";
+export type { Email } from "#extensions/email/entryTypes/email.type.ts";
+export type { EmailAccount } from "#extensions/email/entryTypes/email-account.type.ts";
+export type { InTask } from "~/in-queue/entry-types/in-task/in-task.type.ts";
+export type { SystemSettings } from "~/base-extension/settings-types/system-settings.type.ts";

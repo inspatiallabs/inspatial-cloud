@@ -13,10 +13,7 @@ import type { EntryHookName } from "~/orm/orm-types.ts";
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
-import type {
-  EntryPermission,
-  EntryRole,
-} from "~/orm/roles/entry-permissions.ts";
+import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -30,6 +27,7 @@ export class EntryType<
   FK extends PropertyKey = ExtractFieldKeys<E>,
 > extends BaseType<N> {
   config: EntryTypeConfig;
+
   defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
@@ -49,8 +47,26 @@ export class EntryType<
   constructor(
     name: N,
     config: EntryConfig<E, A, FK>,
+    rm?: boolean,
   ) {
     super(name, config);
+
+    if (!rm) {
+      try {
+        const matchPattern = /^\s+at\s(.+)\/[\w-_\s\d]+.ts:\d+:\d+/;
+        const callingFunction = new Error().stack?.split("\n")[2];
+        const match = callingFunction?.match(matchPattern);
+        if (match) {
+          const dir = new URL(match[1]);
+          if (dir.protocol === "file:") {
+            this.dir = dir.pathname;
+          }
+        }
+      } catch (_e) {
+        console.log("Error while setting dir for EntryType:", _e);
+        // silently ignore
+      }
+    }
     this.sourceConfig = {
       ...config,
     };

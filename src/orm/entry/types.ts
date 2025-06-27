@@ -9,7 +9,6 @@ import type {
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "../../cloud/cloud-common.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
-import type { EntryRole } from "../roles/entry-permissions.ts";
 
 /* Hooks */
 type EntryHookFunction<

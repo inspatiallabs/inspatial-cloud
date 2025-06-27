@@ -40,9 +40,24 @@ export class SettingsType<
   constructor(
     name: N,
     config: SettingsConfig<S>,
+    rm?: boolean,
   ) {
     super(name, config);
-
+    if (!rm) {
+      try {
+        const matchPattern = /^\s+at\s(.+)\/[\w-_\s\d]+.ts:\d+:\d+/;
+        const callingFunction = new Error().stack?.split("\n")[2];
+        const match = callingFunction?.match(matchPattern);
+        if (match) {
+          const dir = new URL(match[1]);
+          if (dir.protocol === "file:") {
+            this.dir = dir.pathname;
+          }
+        }
+      } catch (_e) {
+        // silently ignore
+      }
+    }
     this.sourceConfig = {
       ...config,
     };

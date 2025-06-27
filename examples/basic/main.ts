@@ -13,15 +13,6 @@ createInCloud({
           console.log("Hello from the cloud!");
         },
       }],
-      roles: [{
-        roleName: "basic",
-        permission: {
-          view: true,
-          modify: false,
-          create: false,
-          delete: false,
-        },
-      }],
     }),
   ],
 });

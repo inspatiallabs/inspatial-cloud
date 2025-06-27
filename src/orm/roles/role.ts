@@ -26,7 +26,7 @@ import type {
 } from "~/orm/settings/settings-base.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { Choice } from "~/orm/field/types.ts";
-import type { EntryActionDefinition, EntryConfig } from "~/orm/entry/types.ts";
+import type { EntryConfig } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
 import { raiseCloudException } from "../../app/exeption/cloud-exception.ts";
 
@@ -286,13 +286,13 @@ function buildEntryTypeForRole(
   const config = {
     ...entryType.sourceConfig,
   };
-
   setFieldPermissions(config, permission);
   config.actions = Array.from(entryType.actions.values());
   setActionsPermissions(config, permission);
-  const roleEntryType = new EntryType(entryType.name, config);
+  const roleEntryType = new EntryType(entryType.name, config, true);
 
   roleEntryType.permission = { ...permission };
+  roleEntryType.dir = entryType.dir;
   roleEntryType.info = {
     ...roleEntryType.info,
     permission: {
@@ -314,8 +314,9 @@ function buildSettingsTypeForRole(
   };
   setFieldPermissions(config, permission);
   setActionsPermissions(config, permission);
-  const roleSettingsType = new SettingsType(settingsType.name, config);
+  const roleSettingsType = new SettingsType(settingsType.name, config, true);
   roleSettingsType.config.extension = settingsType.config.extension;
+  roleSettingsType.dir = settingsType.dir;
   roleSettingsType.permission = permission;
   roleSettingsType.info = {
     ...roleSettingsType.info,

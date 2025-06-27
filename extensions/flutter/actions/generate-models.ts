@@ -24,7 +24,9 @@ const generateModels = new CloudAPIAction(
       const models: string[] = [];
       const helpers = getHelperClasses();
       await writeModelFile(`${modelsPath}/helpers.dart`, helpers.join("\n"));
-      const { entryTypes, settingsTypes } = inCloud.orm;
+      const { entryTypes, settingsTypes } = inCloud.roles.getRole(
+        "systemAdmin",
+      );
       const defs = [
         ...Array.from(entryTypes.values()),
         ...Array.from(settingsTypes.values()),

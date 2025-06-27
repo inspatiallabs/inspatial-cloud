@@ -549,11 +549,11 @@ export class InSpatialORM {
     const generatedSettings: string[] = [];
     const adminRole = this.#roles.getRole("systemAdmin");
     for (const entryType of adminRole.entryTypes.values()) {
-      await generateEntryInterface(this, entryType, this.#entriesPath);
+      await generateEntryInterface(this, entryType);
       generatedEntries.push(entryType.name);
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      await generateSettingsInterfaces(this, settingsType, this.#settingsPath);
+      await generateSettingsInterfaces(this, settingsType);
       generatedSettings.push(settingsType.name);
     }
     return {

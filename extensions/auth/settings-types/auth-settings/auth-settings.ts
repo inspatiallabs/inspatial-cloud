@@ -1,7 +1,8 @@
 import { SettingsType } from "~/orm/settings/settings-type.ts";
 import { googleFields } from "#extensions/auth/settings-types/auth-settings/field-groups/google-fields.ts";
+import type { AuthSettings } from "./auth-settings.type.ts";
 
-const authSettings = new SettingsType("authSettings", {
+export const authSettings = new SettingsType<AuthSettings>("authSettings", {
   label: "Auth Settings",
   fields: [{
     key: "enabled",
@@ -11,5 +12,3 @@ const authSettings = new SettingsType("authSettings", {
     defaultValue: true,
   }, ...googleFields],
 });
-
-export default authSettings;

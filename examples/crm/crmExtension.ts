@@ -1,6 +1,7 @@
 import { CloudExtension } from "@inspatial/cloud";
-import customerAccount from "./entryTypes/customerAccount.ts";
+
 import { product } from "./entryTypes/product.ts";
+import { customerAccount } from "./entryTypes/customerAccount.ts";
 
 const crmExtension = new CloudExtension("crm", {
   label: "CRM",

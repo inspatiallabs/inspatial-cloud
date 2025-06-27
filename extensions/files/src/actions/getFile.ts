@@ -1,7 +1,7 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
-import type { CloudFile } from "#extensions/files/src/types/cloud-file.ts";
 import { raiseServerException } from "~/app/server-exception.ts";
+import type { CloudFile } from "../entry-types/cloud-file.type.ts";
 
 const getFileAction = new CloudAPIAction("getFile", {
   params: [{

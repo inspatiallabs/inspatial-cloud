@@ -1,4 +1,3 @@
-import type { User } from "#extensions/auth/entry-types/generated-types/user.ts";
 import setPassword from "#extensions/auth/entry-types/user/actions/setPassword.ts";
 import validatePassword from "#extensions/auth/entry-types/user/actions/validatePassword.ts";
 import generateApiToken from "#extensions/auth/entry-types/user/actions/generate-api-token.ts";
@@ -6,15 +5,15 @@ import generateResetToken from "#extensions/auth/entry-types/user/actions/genera
 import { userFields } from "#extensions/auth/entry-types/user/fields/fields.ts";
 import googleFields from "#extensions/auth/entry-types/user/fields/google-fields.ts";
 import { EntryType } from "~/orm/entry/entry-type.ts";
+import type { User } from "./user.type.ts";
 
-const userEntry = new EntryType<User>("user", {
+export const userEntry = new EntryType<User>("user", {
   idMode: "ulid",
   titleField: "fullName",
   label: "User",
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
   searchFields: ["email"],
-
   fields: [
     ...userFields,
     ...googleFields,
@@ -52,5 +51,3 @@ const userEntry = new EntryType<User>("user", {
     }],
   },
 });
-
-export default userEntry;
