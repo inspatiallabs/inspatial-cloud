@@ -62,12 +62,12 @@ class InCloudRunner {
     }
   }
 
-  async #init() {
+  #init() {
     const inCloud = new InCloudInit(
       this.#appName,
       this.#config,
     );
-    await inCloud.init();
+    inCloud.validateConfig();
   }
 
   #initBroker() {
