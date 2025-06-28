@@ -8,13 +8,16 @@ import { authMiddleware } from "#extensions/auth/auth-middleware.ts";
 import { userSessionEntry } from "./entry-types/user-session/user-session-entry.ts";
 import { authSettings } from "./settings-types/auth-settings/auth-settings.ts";
 import { userEntry } from "./entry-types/user/user-entry.ts";
+import { staticFilesHandler } from "~/static/staticPathHandler.ts";
+import { apiPathHandler } from "~/api/api-handler.ts";
 
 export const authCloudExtension: CloudExtension = new CloudExtension("auth", {
   label: "Auth",
   description: "Auth extension",
   install(app, config) {
     const handler = new AuthHandler(app);
-    handler.allowPath("/api");
+    handler.allowPath(apiPathHandler.match);
+    handler.allowPath(staticFilesHandler.match);
 
     for (const group of app.actionGroups.values()) {
       for (const action of group.actions.values()) {
