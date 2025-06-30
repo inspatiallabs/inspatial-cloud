@@ -1,18 +1,22 @@
-import type { CloudConfig } from "#types/mod.ts";
-import {
-  generateConfigSchema,
-  loadCloudConfigFile,
-} from "../cloud-config/cloud-config.ts";
-import { InCloud } from "../cloud/cloud-common.ts";
+const inLog = new InLog({
+  consoleDefaultStyle: "full",
+  name: "InSpatial Cloud",
+  traceOffset: 1,
+});
+const inLogSmall = new InLog({
+  consoleDefaultStyle: "compact",
+  name: "InSpatial Cloud",
+  traceOffset: 1,
+});
 import { makeLogo } from "~/terminal/logo.ts";
-import { initCloud } from "../init.ts";
-import ColorMe from "~/terminal/color-me.ts";
-import convertString from "~/utils/convert-string.ts";
-import { center } from "~/terminal/format-utils.ts";
-import { joinPath } from "~/utils/path-utils.ts";
+import { InLog } from "~/in-log/in-log.ts";
 import { getCoreCount } from "./multicore.ts";
+import { loadCloudConfigFile } from "./cloud-config.ts";
+import convertString from "~/utils/convert-string.ts";
+import { joinPath } from "~/utils/path-utils.ts";
+import { center } from "~/terminal/format-utils.ts";
+import ColorMe from "~/terminal/color-me.ts";
 import type { RunnerMode } from "./types.ts";
-import { type InLog, inLog } from "#inLog";
 
 const logo = makeLogo({
   symbol: "alt2DownLeft",
@@ -31,61 +35,55 @@ export class RunManager {
   port?: number;
   hostname?: string;
   appName: string;
+  appTitle: string = "InSpatial Cloud";
   isReloading: boolean = false;
   watch?: boolean;
   autoMigrate?: boolean;
   autoTypes?: boolean;
+  moduleName: string;
+  env: Record<string, string> = {};
 
-  constructor(rootPath: string) {
+  constructor(rootPath: string, moduleName?: string) {
     this.serveProcs = new Map();
     this.brokerProc = undefined;
     this.queueProc = undefined;
     this.coreCount = 1;
     this.rootPath = rootPath;
+    this.moduleName = moduleName || "main.ts";
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
-  async init(appName: string, config: CloudConfig): Promise<void> {
-    // Terminal.clear();
-    Deno.args.forEach((arg) => {
-      if (arg === "--watch") {
-        this.watch = true;
-      }
-    });
-
+  async init(): Promise<void> {
     this.coreCount = await getCoreCount();
-    this.appName = appName;
-    const hasConfig = loadCloudConfigFile(this.rootPath);
-    const inCloud = new InCloud(appName, config, "manager");
-
-    inCloud.init();
-    if (!hasConfig) {
-      generateConfigSchema(inCloud);
-      initCloud(inCloud);
-    }
-
-    const { hostName, port, brokerPort, queuePort, mode } = inCloud
-      .getExtensionConfig(
-        "cloud",
+    await this.spawnInit();
+    const result = loadCloudConfigFile(this.rootPath);
+    if (!result) {
+      inLog.error(
+        "No cloud-config.json file found. Please run `in init` to create one.",
+        convertString(this.appName, "title", true),
       );
-    if (mode == "development") {
+      Deno.exit(1);
+    }
+    const { config, env } = result;
+    this.env = env;
+    const { hostName, port, brokerPort, queuePort, cloudMode, name } =
+      config.cloud;
+    this.appName = name || this.appName;
+    this.appTitle = convertString(this.appName, "title", true);
+    if (cloudMode == "development") {
       this.watch = true;
     }
-    const { embeddedDb, embeddedDbPort, autoTypes, autoMigrate } = inCloud
-      .getExtensionConfig(
-        "orm",
-      );
+    const { embeddedDb, embeddedDbPort, autoTypes, autoMigrate } = config.orm;
 
     this.autoMigrate = autoMigrate;
     this.autoTypes = autoTypes;
-    this.hostname = hostName;
-    this.port = port;
+    this.hostname = hostName || "localhost";
+    this.port = port || 8000;
 
     if (embeddedDb) {
       this.spawnDB(embeddedDbPort);
     }
     this.spawnBroker(brokerPort);
 
-    await inCloud.boot();
     if (this.autoMigrate || this.autoTypes) {
       await this.spawnMigrator();
     }
@@ -103,7 +101,7 @@ export class RunManager {
     }
     if (!embeddedDb) {
       dbConnectionString = makeDBConnectionString(
-        inCloud.getExtensionConfig("orm"),
+        config.orm,
       );
     }
     const rows = [
@@ -116,12 +114,12 @@ export class RunManager {
         `${this.port} (${procCount} instances)`,
       ),
     ];
-    this.printInfo(inCloud.inLog, rows);
+    this.printInfo(rows);
 
     if (this.watch) {
       inLog.info(
         "Watching for file changes. Press Ctrl+C to stop.",
-        convertString(this.appName, "title", true),
+        this.appTitle,
       );
       this.setupWatcher();
     }
@@ -160,14 +158,18 @@ export class RunManager {
 
   handleWatchEvent(event: Deno.FsEvent) {
     for (const path of event.paths) {
+      if (path.endsWith(".type.ts")) {
+        // Ignore type files
+        continue;
+      }
       if (path.endsWith(".ts")) {
         if (this.isReloading) {
           return;
         }
         this.isReloading = true;
-        inLog.warn(
+        inLogSmall.warn(
           `File change detected, reloading...`,
-          convertString(this.appName, "title", true),
+          this.appTitle,
         );
         this.reload();
         return;
@@ -189,6 +191,7 @@ export class RunManager {
     this.queueProc = undefined;
     this.spawnMigrator().then((success) => {
       if (!success) {
+        this.isReloading = false;
         // inLog.error(
         //   "Migration failed. Please check the logs for details.",
         //   convertString(this.appName, "title", true),
@@ -198,6 +201,10 @@ export class RunManager {
       this.spawnServers();
       this.spawnQueue();
       this.isReloading = false;
+      inLogSmall.info(
+        "Reloaded successfully.",
+        this.appTitle,
+      );
     });
   }
 
@@ -217,6 +224,14 @@ export class RunManager {
     }
     return totalCount;
   }
+  async spawnInit() {
+    const proc = this.spawnProcess("init");
+    const status = await proc.status;
+    if (!status.success) {
+      Deno.exit(1);
+    }
+    return true;
+  }
   spawnDB(port: number) {
     inLog.warn(
       "Starting the embedded database....",
@@ -229,7 +244,7 @@ export class RunManager {
     });
   }
   async spawnMigrator(): Promise<boolean> {
-    const proc = this.spawnProcess("migrator", []);
+    const proc = this.spawnProcess("migrator", [], this.env);
     const status = await proc.status;
     return status.success;
   }
@@ -240,6 +255,7 @@ export class RunManager {
     const proc = this.spawnProcess("server", ["--unstable-net"], {
       REUSE_PORT: config?.reusePort ? "true" : "false",
       SERVE_PROC_NUM: config?.instanceNumber || "_",
+      ...this.env,
     });
     const pid = proc.pid;
     proc.status.then((_status) => {
@@ -248,8 +264,7 @@ export class RunManager {
     this.serveProcs.set(proc.pid, proc);
   }
   spawnBroker(port: number): void {
-    if (this.brokerProc) {
-      console.log("Broker is already running.");
+    if (this.brokerProc?.pid) {
       return;
     }
     this.brokerProc = this.spawnProcess("broker", [], {
@@ -258,11 +273,10 @@ export class RunManager {
     });
   }
   spawnQueue(): void {
-    if (this.queueProc) {
-      console.log("Queue is already running.");
+    if (this.queueProc?.pid) {
       return;
     }
-    this.queueProc = this.spawnProcess("queue");
+    this.queueProc = this.spawnProcess("queue", [], this.env);
   }
   spawnProcess(
     mode: RunnerMode,
@@ -270,7 +284,7 @@ export class RunManager {
     env: Record<string, string> = {},
   ): Deno.ChildProcess {
     const cmd = new Deno.Command(Deno.execPath(), {
-      args: ["run", "-A", ...flags, "main.ts"],
+      args: ["run", "-A", ...flags, this.moduleName],
       cwd: this.rootPath,
       env: {
         CLOUD_RUNNER_MODE: mode,
@@ -279,10 +293,34 @@ export class RunManager {
     });
     const process = cmd.spawn();
 
+    process.status.then((status) => {
+      if (status.success) {
+        return;
+      }
+
+      switch (status.code) {
+        case 143: // SIGTERM
+          if (mode === "server" || mode === "queue") {
+            return; // Ignore SIGTERM for server and queue processes, it's a fs watcher restart
+          }
+      }
+      const message = ColorMe.standard();
+      message.content("Exit code ").color("white").content(
+        status.code.toString(),
+      ).color("brightRed");
+      if (status.signal) {
+        message.content(` (${status.signal})`).color("brightYellow");
+      }
+      inLogSmall.error(
+        message.end(),
+        `${this.appTitle}: ${mode}`,
+      );
+    });
+
     return process;
   }
 
-  printInfo(inLog: InLog, rows: Array<string> = []) {
+  printInfo(rows: Array<string> = []) {
     const output = [
       logo,
       "",
@@ -321,13 +359,14 @@ export class RunManager {
 function makeDBConnectionString(dbConfig: any, connected?: boolean): string {
   const { dbConnectionType, dbHost, dbPort, dbName, dbUser } = dbConfig;
   if (connected) {
-    const outConn = ColorMe.standard().content("Connected ").color(
-      "brightGreen",
-    ).content(
-      "db: ",
-    ).color("white").content(
-      dbName,
-    ).color("brightCyan");
+    const outConn = ColorMe.standard()
+      .content("Connected ").color(
+        "brightGreen",
+      ).content(
+        "db: ",
+      ).color("white").content(
+        dbName,
+      ).color("brightCyan");
     if (dbConnectionType === "socket") {
       outConn.content(" via ").color("white").content(
         dbConnectionType,
@@ -338,13 +377,14 @@ function makeDBConnectionString(dbConfig: any, connected?: boolean): string {
       `${dbHost}:${dbPort}`,
     ).color("brightCyan").end();
   }
-  const out = ColorMe.standard().content("via ").color("white").content(
-    dbConnectionType,
-  ).color("brightCyan").content(" db:").color("white").content(
-    dbName,
-  ).color("brightCyan").content(" user:").color("white").content(
-    dbUser,
-  ).color("brightCyan");
+  const out = ColorMe.standard().content("Database: ").color("brightBlue")
+    .content("via ").color("white").content(
+      dbConnectionType,
+    ).color("brightCyan").content(" db:").color("white").content(
+      dbName,
+    ).color("brightCyan").content(" user:").color("white").content(
+      dbUser,
+    ).color("brightCyan");
 
   if (dbConnectionType === "socket") {
     return out.end();

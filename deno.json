@@ -5,7 +5,8 @@
   "exports": {
     ".": "./mod.ts",
     "./extensions": "./extensions/mod.ts",
-    "./types": "./types.ts"
+    "./types": "./types.ts",
+    "./incloud": "./cli/incloud.ts"
   },
 
   "publish": {

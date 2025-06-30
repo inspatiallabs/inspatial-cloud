@@ -1,7 +1,5 @@
 import { CloudExtension } from "@inspatial/cloud";
 import { InCloudBroker } from "~/cloud/cloud-broker.ts";
-import { RunManager } from "~/runner/run-manager.ts";
-import type { CloudRunnerMode } from "~/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
 import { InCloudServer } from "~/cloud/cloud-server.ts";
 
@@ -12,10 +10,11 @@ import convertString from "~/utils/convert-string.ts";
 import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
 import { InQueue } from "~/in-queue/in-queue.ts";
 import { InCloudInit } from "./cloud/cloud-init.ts";
+import type { CloudRunnerMode } from "../cli/src/types.ts";
+import { inLog } from "#inLog";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
-  #manager?: RunManager;
   rootPath: string;
   #initialized: boolean = false;
   #appName: string;
@@ -109,35 +108,16 @@ class InCloudRunner {
       "migrator",
     );
     inCloud.init();
+    const { autoTypes, autoMigrate } = inCloud.getExtensionConfig("orm");
 
-    const autoTypes = inCloud.getExtensionConfigValue(
-      "orm",
-      "autoTypes",
-    );
-    const autoMigrate = inCloud.getExtensionConfigValue(
-      "orm",
-      "autoMigrate",
-    );
     if (!autoMigrate && !autoTypes) {
-      inCloud.inLog.warn(
-        "No migrations or types will be generated. Set 'autoMigrate' or 'autoTypes' to true in the ORM extension config.",
-        "ORM",
-      );
+      Deno.exit(0);
     }
-
     await inCloud.boot();
     if (autoMigrate) {
-      // inCloud.inLog.info(
-      //   "Running ORM migrations...",
-      //   "ORM",
-      // );
       await inCloud.orm.migrate();
     }
     if (autoTypes) {
-      // inCloud.inLog.info(
-      //   "Generating ORM type interfaces...",
-      //   "ORM",
-      // );
       await inCloud.orm.generateInterfaces();
     }
 
@@ -165,7 +145,7 @@ class InCloudRunner {
         return mode as CloudRunnerMode;
       default:
         throw new Error(
-          `Invalid CLOUD_RUNNER_MODE: ${mode}. Expected one of: manager, server, broker, queue.`,
+          `Invalid CLOUD_RUNNER_MODE: ${mode}. Expected one of: init, server, broker, queue, db, migrator.`,
         );
     }
   }
