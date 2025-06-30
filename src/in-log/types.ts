@@ -62,6 +62,7 @@ export interface LogMessage {
    * The timestamp of the log message
    */
   timestamp: Date;
+  compact?: boolean;
 }
 
 /**
@@ -73,6 +74,7 @@ export interface LogOptions {
    */
   subject?: string;
   stackTrace?: any;
+  compact?: boolean;
 }
 
 /**

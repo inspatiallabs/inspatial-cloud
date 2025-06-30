@@ -15,11 +15,11 @@ export function initCloud(inCloud: InCloud): void {
     masterConfig.set(extension.key, configResult);
   });
 
-  const config = {
+  const config: Record<string, any> = {
     $schema: ".inspatial/cloud-config-schema.json",
     ...Object.fromEntries(masterConfig),
   };
-
+  config.cloud.name = inCloud.appName;
   const file = JSON.stringify(config, null, 2);
   Deno.writeTextFileSync(filePath, file);
 }

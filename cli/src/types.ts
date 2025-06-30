@@ -1,8 +1,8 @@
 export type CloudRunnerMode =
-  | "manager"
+  | "init"
   | "server"
   | "migrator"
   | "broker"
   | "queue"
   | "db";
-export type RunnerMode = Exclude<CloudRunnerMode, "manager">;
+export type RunnerMode = CloudRunnerMode;

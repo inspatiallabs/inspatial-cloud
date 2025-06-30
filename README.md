@@ -40,7 +40,7 @@ _Reality is your canvas_
 
 </div>
 
-## 
+##
 
 <div align="center">
 
@@ -126,28 +126,24 @@ InSpatial Cloud is released under the Apache 2.0 License. See the
 
 ### Installation
 
-Add the InSpatial Cloud module to your Deno project using the following command:
+Install the InSpatial Cloud CLI:
 
 ```shell
-deno add jsr:@inspatial/cloud
+deno install -g jsr:@inspatial/cloud/incloud
 ```
 
-## Usage
-
-### Basic Usage
-
-```ts
-import { createInCloud } from "@inspatial/cloud";
-
-createInCloud();
-```
-
-That's it! Now you can run the app:
+initialize a new project
 
 ```shell
-deno run -A main.ts
+incloud init myProject
+```
+This will create a folder in the current directory with a started project.
+
+Now you can run your InSpatial Cloud project:
+
+```shell
+cd my-project
+incloud run main.ts
 ```
 
-You can verify the app is running by pinging the API endpoint in you browser:
-
-[http://localhost:8000/api?group=api&action=ping](http://localhost:8000/api?group=api&action=ping)
+You can verify the app is running by navigating to [http://localhost:8000](http://localhost:8000) in your browser

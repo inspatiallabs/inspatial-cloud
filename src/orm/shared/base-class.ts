@@ -15,7 +15,7 @@ import type {
 } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/cloud/cloud-common.ts";
 import type { SessionData } from "#extensions/auth/types.ts";
-import { InTask } from "../../in-queue/entry-types/in-task/in-task.type.ts";
+import type { InTask } from "../../in-queue/entry-types/in-task/in-task.type.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";

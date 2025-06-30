@@ -1,7 +1,5 @@
 import { CloudExtension } from "@inspatial/cloud";
 import { InCloudBroker } from "~/cloud/cloud-broker.ts";
-import { RunManager } from "~/runner/run-manager.ts";
-import type { CloudRunnerMode } from "~/runner/types.ts";
 import type { CloudConfig } from "#types/mod.ts";
 import { InCloudServer } from "~/cloud/cloud-server.ts";
 
@@ -11,10 +9,11 @@ import type { ExtensionOptions } from "~/app/types.ts";
 import convertString from "~/utils/convert-string.ts";
 import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
 import { InQueue } from "~/in-queue/in-queue.ts";
+import { InCloudInit } from "./cloud/cloud-init.ts";
+import type { CloudRunnerMode } from "../cli/src/types.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
-  #manager?: RunManager;
   rootPath: string;
   #initialized: boolean = false;
   #appName: string;
@@ -38,8 +37,8 @@ class InCloudRunner {
     }
     this.#mode = this.getMode();
     switch (this.#mode) {
-      case "manager":
-        this.#initManager();
+      case "init":
+        this.#init();
         break;
       case "broker":
         this.#initBroker();
@@ -61,14 +60,12 @@ class InCloudRunner {
     }
   }
 
-  async #initManager() {
-    if (this.#mode != "manager") {
-      throw new Error("Manager can only be initialized in 'manager' mode.");
-    }
-
-    this.#manager = new RunManager(this.rootPath);
-
-    await this.#manager.init(this.#appName, this.#config);
+  #init() {
+    const inCloud = new InCloudInit(
+      this.#appName,
+      this.#config,
+    );
+    inCloud.validateConfig();
   }
 
   #initBroker() {
@@ -110,35 +107,16 @@ class InCloudRunner {
       "migrator",
     );
     inCloud.init();
+    const { autoTypes, autoMigrate } = inCloud.getExtensionConfig("orm");
 
-    const autoTypes = inCloud.getExtensionConfigValue(
-      "orm",
-      "autoTypes",
-    );
-    const autoMigrate = inCloud.getExtensionConfigValue(
-      "orm",
-      "autoMigrate",
-    );
     if (!autoMigrate && !autoTypes) {
-      inCloud.inLog.warn(
-        "No migrations or types will be generated. Set 'autoMigrate' or 'autoTypes' to true in the ORM extension config.",
-        "ORM",
-      );
+      Deno.exit(0);
     }
-
     await inCloud.boot();
     if (autoMigrate) {
-      // inCloud.inLog.info(
-      //   "Running ORM migrations...",
-      //   "ORM",
-      // );
       await inCloud.orm.migrate();
     }
     if (autoTypes) {
-      // inCloud.inLog.info(
-      //   "Generating ORM type interfaces...",
-      //   "ORM",
-      // );
       await inCloud.orm.generateInterfaces();
     }
 
@@ -157,18 +135,16 @@ class InCloudRunner {
   getMode(): CloudRunnerMode {
     const mode = Deno.env.get("CLOUD_RUNNER_MODE");
     switch (mode) {
+      case "init":
       case "server":
       case "broker":
       case "queue":
       case "db":
       case "migrator":
         return mode as CloudRunnerMode;
-      case undefined:
-      case "manager":
-        return "manager";
       default:
         throw new Error(
-          `Invalid CLOUD_RUNNER_MODE: ${mode}. Expected one of: manager, server, broker, queue.`,
+          `Invalid CLOUD_RUNNER_MODE: ${mode}. Expected one of: init, server, broker, queue, db, migrator.`,
         );
     }
   }

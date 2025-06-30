@@ -7,7 +7,6 @@ import { ExtensionManager } from "../extension-manager/extension-manager.ts";
 import { type InLog, inLog } from "#inLog";
 import type { LogLevel } from "../in-log/types.ts";
 import type { InSpatialORM } from "~/orm/mod.ts";
-import type { CloudRunnerMode } from "../runner/types.ts";
 import { joinPath, normalizePath } from "~/utils/path-utils.ts";
 
 import { filesExtension } from "#extensions/files/src/files-extension.ts";
@@ -38,6 +37,7 @@ import type {
 import { RoleManager } from "~/orm/roles/role.ts";
 import { StaticFileHandler } from "../static/staticFileHandler.ts";
 import { authCloudExtension } from "#extensions/auth/mod.ts";
+import type { CloudRunnerMode } from "../../cli/src/types.ts";
 
 export class InCloud {
   appName: string;

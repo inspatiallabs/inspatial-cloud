@@ -216,8 +216,9 @@ export class ExtensionManager {
     for (const key in configDefinition) {
       const def = configDefinition[key];
       const envKey = def.env!;
-      const value = Deno.env.get(envKey) ||
-        this.getExtensionConfigValue(extension.key, key) || def.default;
+      const value = Deno.env.has(envKey)
+        ? Deno.env.get(envKey)
+        : this.getExtensionConfigValue(extension.key, key) || def.default;
       if (def.required && value === undefined) {
         console.warn(`Missing required environment variable ${envKey}`);
       }

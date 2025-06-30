@@ -10,7 +10,7 @@ import {
   formatStackFrame,
   parseStackFrame,
 } from "~/in-log/stack-formatting.ts";
-import type { BasicFgColor } from "~/terminal/color-me.ts";
+import { type BasicFgColor, ColorMe } from "~/terminal/color-me.ts";
 import printUtils from "~/terminal/print-utils.ts";
 import formatUtils from "~/terminal/format-utils.ts";
 
@@ -275,6 +275,8 @@ export class InLog {
       content: [content],
       caller: frame,
       timestamp: new Date(),
+      compact: options?.compact ||
+        this.config.consoleDefaultStyle === "compact",
     };
     const formatted = this.#formatLogMessage(logMessage);
     console.log(formatted);
@@ -284,8 +286,32 @@ export class InLog {
    * Format the log message into a colored and styled string to be printed to the console
    */
   #formatLogMessage(message: LogMessage) {
-    const { content, type, subject, caller, timestamp: _timestamp } = message;
+    const { content, type, subject, caller, timestamp: _timestamp, compact } =
+      message;
     const color: BasicFgColor = colorMap[type];
+    if (compact) {
+      const contentString = content.map((c) => {
+        if (typeof c === "string") {
+          return c;
+        }
+        if (c instanceof Map) {
+          return JSON.stringify(Object.fromEntries(c), null, 2);
+        }
+        if (Array.isArray(c)) {
+          return c.map((item) => {
+            if (typeof item === "string") {
+              return item;
+            }
+            return JSON.stringify(item, null, 2);
+          }).join(", ");
+        }
+        return JSON.stringify(c, null, 2);
+      }).join(", ");
+      return ColorMe.standard()
+        .content(`[${subject}] `)
+        .color(color)
+        .content(contentString).end();
+    }
     let title = subject;
     if (this.name) {
       title = `${this.name} - ${subject}`;
@@ -319,6 +345,7 @@ export class InLog {
 
       return JSON.stringify(c, null, 2);
     });
+
     const endRow = formatUtils.fill(this.#lineChar, {
       color,
     });

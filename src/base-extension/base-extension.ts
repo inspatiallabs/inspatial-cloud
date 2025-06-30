@@ -42,14 +42,13 @@ export const baseExtension = new CloudExtension("cloud", {
   label: "Core",
   version: "0.0.1",
   config: {
-    mode: {
+    cloudMode: {
       description:
         "Specify if the server is running in development or production mode",
       required: false,
       type: "string",
       default: "development",
       enum: ["development", "production"],
-      env: "SERVE_MODE",
     },
     logLevel: {
       description: "The log level for the server",
