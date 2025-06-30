@@ -11,7 +11,6 @@ import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
 import { InQueue } from "~/in-queue/in-queue.ts";
 import { InCloudInit } from "./cloud/cloud-init.ts";
 import type { CloudRunnerMode } from "../cli/src/types.ts";
-import { inLog } from "#inLog";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;

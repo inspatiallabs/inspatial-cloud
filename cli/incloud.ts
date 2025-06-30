@@ -53,7 +53,7 @@ function doRun(rootPath: string, file?: string) {
   runner.init();
 }
 
-function doInit(rootPath: string, projectName?: string) {
+function doInit(_rootPath: string, projectName?: string) {
   if (!projectName) {
     inLog.warn("Project name is required for initialization.");
     Deno.exit(1);
@@ -127,7 +127,7 @@ function init() {
     logTrace: false,
   });
   const rootPath = Deno.cwd();
-  const { command, file, args } = parseArgs();
+  const { command, file } = parseArgs();
   switch (command) {
     case "run":
       doRun(rootPath, file);

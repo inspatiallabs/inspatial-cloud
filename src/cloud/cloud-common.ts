@@ -37,7 +37,7 @@ import type {
 import { RoleManager } from "~/orm/roles/role.ts";
 import { StaticFileHandler } from "../static/staticFileHandler.ts";
 import { authCloudExtension } from "#extensions/auth/mod.ts";
-import { CloudRunnerMode } from "../../cli/src/types.ts";
+import type { CloudRunnerMode } from "../../cli/src/types.ts";
 
 export class InCloud {
   appName: string;

@@ -16,6 +16,7 @@
       "src/**/*.data",
       "examples/",
       "extensions/",
+      "cli/",
       "types.ts",
       "mod.ts",
       "README.md",
