@@ -129,7 +129,7 @@ InSpatial Cloud is released under the Apache 2.0 License. See the
 Install the InSpatial Cloud CLI:
 
 ```shell
-deno install -g jsr:@inspatial/cloud/incloud
+deno install -g -A jsr:@inspatial/cloud/incloud
 ```
 
 initialize a new project
@@ -137,7 +137,7 @@ initialize a new project
 ```shell
 incloud init myProject
 ```
-This will create a folder in the current directory with a started project.
+This will create a folder in the current directory with a starter project.
 
 Now you can run your InSpatial Cloud project:
 

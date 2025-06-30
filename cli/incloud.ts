@@ -4,7 +4,7 @@ import convertString from "~/utils/convert-string.ts";
 import { center } from "~/terminal/format-utils.ts";
 
 const inLog = new InLog({
-  consoleDefaultStyle: "compact",
+  consoleDefaultStyle: "full",
   name: "InSpatial CLI",
   traceOffset: 1,
 });
@@ -128,6 +128,14 @@ function init() {
   });
   const rootPath = Deno.cwd();
   const { command, file } = parseArgs();
+  if (command === undefined) {
+    inLog.warn(
+      "No command provided. Please use 'incloud run <file>' or 'incloud init <project-name>'.",
+      {
+        compact: true,
+      },
+    );
+  }
   switch (command) {
     case "run":
       doRun(rootPath, file);
