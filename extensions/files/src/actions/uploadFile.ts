@@ -6,12 +6,12 @@ const uploadFileAction = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
   params: [],
-  async run({ inCloud, inRequest, inResponse }) {
+  async run({ inCloud, orm, inRequest, inResponse }) {
     const formData = await inRequest.request.formData();
     const file = formData.get("content") as File;
     const fileName = formData.get("fileName") as string;
 
-    const cloudFile = inCloud.orm.getNewEntry<CloudFile>("cloudFile");
+    const cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
     cloudFile.fileName = fileName;
     cloudFile.fileSize = file.size;
     cloudFile.mimeType = file.type as any;

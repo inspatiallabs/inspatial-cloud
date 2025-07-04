@@ -6,8 +6,9 @@ import type { HookName } from "~/orm/orm-types.ts";
 import dateUtils from "~/utils/date-utils.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InValue } from "~/orm/field/types.ts";
-import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { InCloud } from "../../cloud/in-cloud.ts";
 import { raiseORMException } from "../orm-exception.ts";
+import type { UserID } from "../../auth/types.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -23,7 +24,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     required: true,
   };
   readonly _settingsType!: SettingsType;
-  constructor(orm: any, inCloud: InCloud, name: N, user?: any) {
+  constructor(orm: any, inCloud: InCloud, name: N, user: UserID) {
     super(orm, inCloud, name, "settings", user);
   }
   get data(): Record<string, any> {

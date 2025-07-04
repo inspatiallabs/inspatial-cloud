@@ -25,18 +25,24 @@ import {
   generateSettingsInterfaces,
 } from "~/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "~/orm/field/fields.ts";
-import type { SessionData } from "#extensions/auth/types.ts";
 import { inLog } from "#inLog";
 import type { InValue } from "~/orm/field/types.ts";
 import type { IDValue } from "./entry/types.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
+import type { UserContext, UserID } from "../auth/types.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
+  systemDb: InSpatialDB;
   fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
   _inCloud: InCloud;
+  _user: UserContext | undefined;
+  systemAdminUser: UserID = {
+    role: "systemAdmin",
+    userId: "systemAdmin",
+  };
   #roles: RoleManager;
   #globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
@@ -48,6 +54,20 @@ export class InSpatialORM {
     beforeDelete: [],
     afterDelete: [],
   };
+
+  withUser(user: UserContext | undefined): InSpatialORM {
+    if (!user) {
+      raiseORMException(
+        "User context is required to use withUser method",
+        "ORMUserContext",
+        400,
+      );
+    }
+    const clone = Object.create(this);
+    clone._user = user;
+    clone.db = this.db.withSchema(user.accountId);
+    return clone;
+  }
   /**
    * The root path of the generated files for the ORM.
    */
@@ -95,6 +115,7 @@ export class InSpatialORM {
        * A list of EntryTypes that will be used to define the structure of the database.
        */
       entries: Array<EntryType>;
+
       /**
        * A list of SettingsTypes that will be used to define the structure of the settings
        */
@@ -124,6 +145,7 @@ export class InSpatialORM {
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });
+    this.systemDb = this.db.withSchema("cloud_global");
     for (const entryType of options.entries) {
       adminRole.entryPermissions.set(entryType.name, {
         create: true,
@@ -147,12 +169,6 @@ export class InSpatialORM {
   }
   async init(): Promise<void> {
     await this.db.init();
-
-    // Check if the first run migration is needed
-    const settings = await this.db.tableExists("inSettings");
-    if (!settings) {
-      await this.migrate();
-    }
   }
 
   #setupHooks(globalHooks: GlobalEntryHooks): void {
@@ -187,33 +203,45 @@ export class InSpatialORM {
   }
   #getEntryInstance<E extends EntryBase = GenericEntry>(
     entryType: string,
-    user?: SessionData,
   ): E {
-    return this.#roles.getEntryInstance<E>(this, entryType, user);
+    return this.#roles.getEntryInstance<E>(
+      this,
+      entryType,
+      this._user || this.systemAdminUser,
+    );
   }
   #getSettingsInstance<S extends SettingsBase = GenericSettings>(
     settingsType: string,
-    user?: SessionData,
   ): S {
-    return this.#roles.getSettingsInstance<S>(this, settingsType, user);
+    return this.#roles.getSettingsInstance<S>(
+      this,
+      settingsType,
+      this._user || this.systemAdminUser,
+    );
   }
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
-    user?: SessionData,
   ): T {
-    return this.#roles.getEntryType<T>(entryType, user?.role);
+    return this.#roles.getEntryType<T>(
+      entryType,
+      this._user?.role || this.systemAdminUser.role,
+    );
   }
   getSettingsType<T extends SettingsType = SettingsType>(
     settingsType: string,
-    user?: SessionData,
   ): T {
-    return this.#roles.getSettingsType<T>(settingsType, user?.role);
+    return this.#roles.getSettingsType<T>(
+      settingsType,
+      this._user?.role || this.systemAdminUser.role,
+    );
   }
   getEntryTypeRegistry(
     entryType: string,
-    user?: SessionData,
   ): EntryTypeRegistry | undefined {
-    return this.#roles.getRegistry(entryType, user?.role);
+    return this.#roles.getRegistry(
+      entryType,
+      this._user?.role || this.systemAdminUser.role,
+    );
   }
 
   // Single Entry Operations
@@ -223,9 +251,8 @@ export class InSpatialORM {
   async createEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     data: Record<string, any>,
-    user?: SessionData,
   ): Promise<E> {
-    const entry = this.#getEntryInstance(entryType, user) as E;
+    const entry = this.#getEntryInstance(entryType) as E;
     entry.create();
     entry.update(data);
     await entry.save();
@@ -236,9 +263,8 @@ export class InSpatialORM {
    */
   getNewEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
-    user?: SessionData,
   ): E {
-    const entry = this.#getEntryInstance(entryType, user) as E;
+    const entry = this.#getEntryInstance(entryType) as E;
     entry.create();
     return entry;
   }
@@ -248,9 +274,8 @@ export class InSpatialORM {
   async getEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     id: IDValue,
-    user?: SessionData,
   ): Promise<E> {
-    const entry = this.#getEntryInstance(entryType, user) as E;
+    const entry = this.#getEntryInstance(entryType) as E;
     await entry.load(id);
     return entry;
   }
@@ -262,9 +287,8 @@ export class InSpatialORM {
     entryType: E["_name"],
     id: string,
     data: Record<string, any>,
-    user?: SessionData,
   ): Promise<any> {
-    const entry = await this.getEntry(entryType, id, user);
+    const entry = await this.getEntry(entryType, id);
     entry.update(data);
     await entry.save();
   }
@@ -275,9 +299,8 @@ export class InSpatialORM {
   async deleteEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     id: string,
-    user?: SessionData,
   ): Promise<any> {
-    const entry = await this.getEntry(entryType, id, user);
+    const entry = await this.getEntry(entryType, id);
     await entry.delete();
     return entry;
   }
@@ -285,9 +308,8 @@ export class InSpatialORM {
   async findEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     filter: DBFilter,
-    user?: SessionData,
   ): Promise<E | null> {
-    const entryTypeObj = this.getEntryType(entryType, user);
+    const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     const result = await this.db.getRows(tableName, {
       filter,
@@ -297,15 +319,14 @@ export class InSpatialORM {
     if (result.rowCount === 0) {
       return null;
     }
-    const entry = await this.getEntry<E>(entryType, result.rows[0].id, user);
+    const entry = await this.getEntry<E>(entryType, result.rows[0].id);
     return entry;
   }
   async findEntryId(
     entryType: string,
     filter: DBFilter,
-    user?: SessionData,
   ): Promise<IDValue | null> {
-    const entryTypeObj = this.getEntryType(entryType, user);
+    const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     const result = await this.db.getRows(tableName, {
       filter,
@@ -325,9 +346,8 @@ export class InSpatialORM {
   async getEntryList<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     options?: ListOptions<E>,
-    user?: SessionData,
   ): Promise<GetListResponse<E>> {
-    const entryTypeObj = this.getEntryType(entryType, user);
+    const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     let dbOptions: DBListOptions = {
       limit: 100,
@@ -382,19 +402,19 @@ export class InSpatialORM {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options as any };
     }
-    if (entryTypeObj.permission.userScoped && user?.userId) {
+    if (entryTypeObj.permission.userScoped && this._user?.userId) {
       const idField = entryTypeObj.permission.userScoped.userIdField;
       const filter = {
         field: idField,
         op: "=",
-        value: user.userId,
+        value: this._user.userId,
       };
       if (dbOptions.filter === undefined) {
         dbOptions.filter = [filter];
       } else if (Array.isArray(dbOptions.filter)) {
         dbOptions.filter.push(filter);
       } else {
-        dbOptions.filter[idField] = user.userId;
+        dbOptions.filter[idField] = this._user.userId;
       }
     }
     const result = await this.db.getRows(tableName, dbOptions);
@@ -405,9 +425,8 @@ export class InSpatialORM {
     entryType: string,
     filter?: DBFilter,
     groupBy?: Array<string>,
-    user?: SessionData,
   ): Promise<number> {
-    const entryTypeObj = this.getEntryType(entryType, user);
+    const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     const result = await this.db.count(tableName, {
       filter,
@@ -424,7 +443,6 @@ export class InSpatialORM {
     _entryType: E["_name"],
     _id: string,
     _field: string,
-    _user?: SessionData,
   ): Promise<any> {
     raiseORMException(
       `getEntryValue is not implemented yet. Use getEntry instead.`,
@@ -440,9 +458,8 @@ export class InSpatialORM {
    */
   async getSettings<T extends SettingsBase = GenericSettings>(
     settingsType: T["_name"],
-    user?: SessionData,
   ): Promise<T> {
-    const settings = this.#getSettingsInstance(settingsType, user) as T;
+    const settings = this.#getSettingsInstance(settingsType) as T;
     await settings.load();
     return settings;
   }
@@ -454,9 +471,8 @@ export class InSpatialORM {
   >(
     settingsType: T["_name"],
     data: Record<string, any>,
-    user?: SessionData,
   ): Promise<T> {
-    const settings = await this.getSettings<T>(settingsType, user);
+    const settings = await this.getSettings<T>(settingsType);
     settings.update(data);
     await settings.save();
     return settings;
@@ -470,9 +486,8 @@ export class InSpatialORM {
   >(
     settingsType: T["_name"],
     field: string,
-    user?: SessionData,
   ): Promise<any> {
-    const settings = this.#getSettingsInstance(settingsType, user);
+    const settings = this.#getSettingsInstance(settingsType);
     return await settings.getValue(field);
   }
 
@@ -508,12 +523,13 @@ export class InSpatialORM {
   /**
    * Makes the necessary changes to the database based on the output of the planMigration method.
    */
-  async migrate(): Promise<Array<string>> {
+  async migrate(schema: string): Promise<Array<string>> {
     const adminRole = this.#roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
       entryTypes: Array.from(adminRole.entryTypes.values()),
       settingsTypes: Array.from(adminRole.settingsTypes.values()),
       orm: this,
+      db: this.db.withSchema(schema),
       onOutput: (message) => {
         inLog.info(message);
       },
@@ -521,6 +537,22 @@ export class InSpatialORM {
     return await migrationPlanner.migrate();
   }
 
+  async migrateGlobal(): Promise<Array<string>> {
+    inLog.info("Migrating global database...");
+    const adminRole = this.#roles.getRole("systemAdmin");
+
+    const migrationPlanner = new MigrationPlanner({
+      entryTypes: adminRole.globalEntryTypes,
+      settingsTypes: adminRole.globalSettingsTypes,
+      orm: this,
+      db: this.systemDb,
+      onOutput: (message) => {
+        inLog.info(message);
+      },
+    });
+
+    return await migrationPlanner.migrate();
+  }
   /**
    * Plans a migration for the ORM. This will return the details of the changes that will be made to the database.
    * This method does not make any changes to the database.
@@ -532,6 +564,7 @@ export class InSpatialORM {
       entryTypes: Array.from(adminRole.entryTypes.values()),
       settingsTypes: Array.from(adminRole.settingsTypes.values()),
       orm: this,
+      db: this.db,
       onOutput: (message) => {
         inLog.info(message);
       },

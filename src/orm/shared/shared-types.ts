@@ -34,6 +34,10 @@ export interface BaseTypeConfig {
 export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   label?: string;
   description?: string;
+  /**
+   * If true, this will exist in the shared schema of the database that all tenants can reference.
+   */
+  systemGlobal?: boolean;
   fields: Array<InField>;
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;

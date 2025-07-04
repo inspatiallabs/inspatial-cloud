@@ -3,14 +3,13 @@ import { InCloudBroker } from "~/cloud/cloud-broker.ts";
 import type { CloudConfig } from "#types/mod.ts";
 import { InCloudServer } from "~/cloud/cloud-server.ts";
 
-import { InCloud } from "~/cloud/cloud-common.ts";
-
 import type { ExtensionOptions } from "~/app/types.ts";
 import convertString from "~/utils/convert-string.ts";
 import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
 import { InQueue } from "~/in-queue/in-queue.ts";
 import { InCloudInit } from "./cloud/cloud-init.ts";
 import type { CloudRunnerMode } from "../cli/src/types.ts";
+import { InCloudMigrator } from "./cloud/cloud-migrator.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
@@ -101,10 +100,9 @@ class InCloudRunner {
     cloudDB.start(parseInt(port));
   }
   async #initMigrator() {
-    const inCloud = new InCloud(
+    const inCloud = new InCloudMigrator(
       this.#appName,
       this.#config,
-      "migrator",
     );
     inCloud.init();
     const { autoTypes, autoMigrate } = inCloud.getExtensionConfig("orm");
@@ -112,9 +110,10 @@ class InCloudRunner {
     if (!autoMigrate && !autoTypes) {
       Deno.exit(0);
     }
-    await inCloud.boot();
+    // await inCloud.boot();
     if (autoMigrate) {
-      await inCloud.orm.migrate();
+      await inCloud.orm.init();
+      await inCloud.migrate();
     }
     if (autoTypes) {
       await inCloud.orm.generateInterfaces();

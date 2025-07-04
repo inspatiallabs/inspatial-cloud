@@ -3,21 +3,21 @@ import { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import type { SettingsTypeInfo } from "~/orm/settings/types.ts";
 import type { EntryTypeInfo } from "~/orm/entry/types.ts";
-import type { SessionData } from "../../auth/types.ts";
+import type { SessionData } from "~/auth/types.ts";
 
 const migrateAction = new CloudAPIAction("migrate", {
   label: "Migrate Database",
   description: "Run Database Migrations",
-  async run({ inCloud }): Promise<Array<string>> {
-    return await inCloud.orm.migrate();
+  async run({ orm }): Promise<Array<string>> {
+    return await orm.migrate();
   },
   params: [],
 });
 const planMigrationAction = new CloudAPIAction("planMigration", {
   description: "Generate Migration Plan",
   label: "Plan Migration",
-  async run({ inCloud }): Promise<MigrationPlan> {
-    return await inCloud.orm.planMigration();
+  async run({ orm }): Promise<MigrationPlan> {
+    return await orm.planMigration();
   },
   params: [],
 });
@@ -56,11 +56,11 @@ const settingsTypesInfo = new CloudAPIAction("settingsTypes", {
 const generateInterfaces = new CloudAPIAction("generateInterfaces", {
   description: "Generate Entry Typescript Interfaces",
   label: "Generate Interfaces",
-  async run({ inCloud }): Promise<{
+  async run({ orm }): Promise<{
     generatedEntries: Array<string>;
     generatedSettings: Array<string>;
   }> {
-    return await inCloud.orm.generateInterfaces();
+    return await orm.generateInterfaces();
   },
   params: [],
 });

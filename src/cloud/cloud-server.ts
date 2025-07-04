@@ -1,7 +1,6 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { requestHandler } from "../app/request-handler.ts";
-import { InCloud } from "./cloud-common.ts";
-
+import { InCloud } from "./in-cloud.ts";
 export class InCloudServer extends InCloud {
   instanceNumber: string;
   constructor(

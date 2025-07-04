@@ -189,16 +189,6 @@ const ormCloudExtension: CloudExtension = new CloudExtension("orm", {
         value: false,
       }],
     },
-    dbSchema: {
-      type: "string",
-      description: "Schema of the database",
-      default: "public",
-      required: false,
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
-    },
     dbAppName: {
       type: "string",
       description: "Application name for the database connection",

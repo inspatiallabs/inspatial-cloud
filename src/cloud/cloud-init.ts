@@ -3,7 +3,7 @@ import {
   loadCloudConfigFile,
 } from "../cloud-config/cloud-config.ts";
 import { initCloud } from "../init.ts";
-import { InCloud } from "./cloud-common.ts";
+import { InCloud } from "./in-cloud.ts";
 
 export class InCloudInit extends InCloud {
   constructor(appName: string, config: any) {

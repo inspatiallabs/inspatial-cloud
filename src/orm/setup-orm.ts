@@ -7,7 +7,7 @@ import type {
 } from "~/orm/orm-types.ts";
 
 import type { ExtensionManager } from "~/extension-manager/extension-manager.ts";
-import type { InCloud } from "~/cloud/cloud-common.ts";
+import type { InCloud } from "~/cloud/in-cloud.ts";
 
 export function setupOrm(args: {
   inCloud: InCloud;
@@ -94,6 +94,9 @@ export function setupOrm(args: {
       host: "127.0.0.1",
       port: config.embeddedDbPort,
     } as any;
+  }
+  for (const entryType of extensionManager.entryTypes.values()) {
+    console.log(entryType.name);
   }
   const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),

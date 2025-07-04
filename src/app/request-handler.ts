@@ -3,7 +3,7 @@ import type { PathHandler } from "~/app/path-handler.ts";
 import { InResponse } from "~/app/in-response.ts";
 import type { ExtensionManager } from "~/extension-manager/extension-manager.ts";
 import { handleException } from "~/app/exeption/handle-exception.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
 import { raiseServerException } from "./server-exception.ts";
 
 export async function requestHandler(

@@ -14,9 +14,9 @@ const getFileAction = new CloudAPIAction("getFile", {
     label: "Download",
     type: "BooleanField",
   }],
-  async run({ inCloud, params, inResponse }) {
+  async run({ orm, params, inResponse }) {
     const { fileId } = params;
-    const file = await inCloud.orm.getEntry<CloudFile>("cloudFile", fileId);
+    const file = await orm.getEntry<CloudFile>("cloudFile", fileId);
     try {
       const fileHandle = await Deno.open(file.filePath, { read: true });
 

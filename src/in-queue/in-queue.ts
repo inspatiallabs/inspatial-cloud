@@ -1,6 +1,6 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { generateId } from "~/utils/misc.ts";
-import { InCloud } from "~/cloud/cloud-common.ts";
+import { InCloud } from "~/cloud/in-cloud.ts";
 import type { InTask } from "./entry-types/in-task/in-task.type.ts";
 
 export class InQueue extends InCloud {

@@ -13,13 +13,15 @@ import type {
   InFieldMap,
   InFieldType,
 } from "~/orm/field/field-def-types.ts";
-import type { InCloud } from "~/cloud/cloud-common.ts";
-import type { SessionData } from "#extensions/auth/types.ts";
+import type { InCloud } from "~/cloud/in-cloud.ts";
+
 import type { InTask } from "../../in-queue/entry-types/in-task/in-task.type.ts";
+import type { UserID } from "../../auth/types.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
   _name: N;
+  _systemGlobal: boolean = false;
   _orm: InSpatialORM;
   _inCloud: InCloud;
   _db: InSpatialDB;
@@ -30,7 +32,7 @@ export class BaseClass<N extends string = string> {
   _changeableFields: Map<string, InField> = new Map();
   _childrenClasses: Map<string, typeof ChildEntryList> = new Map();
   _childrenData: Map<string, ChildEntryList> = new Map();
-  readonly _user?: SessionData;
+  readonly _user?: UserID;
   _actions: Map<string, EntryActionDefinition | SettingsActionDefinition> =
     new Map();
   _getFieldType<T extends keyof InFieldMap>(fieldType: T): ORMFieldConfig<T> {
@@ -59,13 +61,14 @@ export class BaseClass<N extends string = string> {
     inCloud: InCloud,
     name: N,
     type: "settings" | "entry",
-    user?: SessionData,
+    user: UserID,
   ) {
     this._user = user;
     this._type = type;
     this._name = name;
     this._orm = orm;
-    this._inCloud = inCloud, this._db = orm.db;
+    this._inCloud = inCloud;
+    this._db = this._systemGlobal ? orm.systemDb : orm.db;
     this._data = new Map();
     this._childrenData = new Map();
   }
@@ -106,7 +109,7 @@ export class BaseClass<N extends string = string> {
   _setupChildren(): void {
     this._childrenData.clear();
     for (const child of this._childrenClasses.values()) {
-      const childList = new child(this._orm);
+      const childList = new child(this._orm, this._db);
       this._childrenData.set(childList._name, childList);
     }
   }

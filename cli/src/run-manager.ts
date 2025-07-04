@@ -87,6 +87,7 @@ export class RunManager {
     if (this.autoMigrate || this.autoTypes) {
       await this.spawnMigrator();
     }
+    // Deno.exit();
     this.spawnQueue();
 
     const procCount = this.spawnServers();
@@ -121,7 +122,7 @@ export class RunManager {
         "Watching for file changes. Press Ctrl+C to stop.",
         this.appTitle,
       );
-      this.setupWatcher();
+      // this.setupWatcher();
     }
     // Terminal.showCursor();
   }

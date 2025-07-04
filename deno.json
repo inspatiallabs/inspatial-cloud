@@ -25,6 +25,7 @@
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
   "imports": {
+    "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "~/": "./src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",

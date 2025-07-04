@@ -4,7 +4,8 @@ import { raiseServerException } from "~/app/server-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { CloudParam, ExtractParams } from "~/api/api-types.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
+import convertString from "../utils/convert-string.ts";
 
 export type ActionMethod<
   K extends PropertyKey = PropertyKey,
@@ -68,7 +69,8 @@ export class CloudAPIAction<
     this.#_run = config.run;
     this.actionName = actionName;
     this.raw = config.raw || false;
-    this.label = config.label || this.label;
+    this.label = config.label || this.label ||
+      convertString(actionName, "title", true);
     this.description = config.description || this.description;
     if (config.authRequired === false) {
       this.authRequired = false;
@@ -149,12 +151,17 @@ export class CloudAPIAction<
     inResponse: InResponse;
   }): Promise<any> {
     const validatedData = this.#validateParams(args.inCloud.orm, args.params);
-    return await this.#_run({
-      inCloud: args.inCloud,
+    const runObject = {
+      ...args,
+      params: validatedData,
       orm: args.inCloud.orm,
-      params: validatedData as any,
-      inRequest: args.inRequest,
-      inResponse: args.inResponse,
-    });
+    };
+    if (this.authRequired) {
+      runObject.orm = args.inCloud.orm.withUser(
+        args.inRequest.context.get("user"),
+      );
+    }
+
+    return await this.#_run(runObject);
   }
 }

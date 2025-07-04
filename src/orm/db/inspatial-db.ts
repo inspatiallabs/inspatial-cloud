@@ -16,7 +16,7 @@ import type { IDValue } from "~/orm/entry/types.ts";
 import { PostgresPool } from "~/orm/db/postgres/pgPool.ts";
 import type { PgClientConfig } from "~/orm/db/postgres/pgTypes.ts";
 import convertString from "~/utils/convert-string.ts";
-import { inLog } from "~/in-log/in-log.ts";
+import { inLog } from "#inLog";
 import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 
@@ -39,21 +39,21 @@ export class InSpatialDB {
   /**
    * The Postgres client used to interact with the database
    */
-  #pool: PostgresPool;
+  pool: PostgresPool;
 
   /**
    * The version of the database
    */
   #version: string | undefined;
 
-  #debugMode: boolean = false;
+  debugMode: boolean = false;
   /**
    * InSpatialDB is an interface for interacting with a Postgres database
    */
   constructor(config: DBConfig) {
     this.config = config;
     if (config.debug) {
-      this.#debugMode = true;
+      this.debugMode = true;
       inLog.debug("InSpatialDB debug mode enabled");
     }
     this.dbName = config.connection.database;
@@ -66,7 +66,7 @@ export class InSpatialDB {
     };
     const clientConfig: PgClientConfig = {
       ...config.connection,
-      debug: this.#debugMode,
+      debug: this.debugMode,
       options: {
         application_name: config.appName || "InSpatial",
       },
@@ -74,7 +74,7 @@ export class InSpatialDB {
 
     switch (config.clientMode) {
       case "pool":
-        this.#pool = new PostgresPool({
+        this.pool = new PostgresPool({
           clientConfig: clientConfig,
           pool: {
             ...poolOptions,
@@ -84,7 +84,7 @@ export class InSpatialDB {
         });
         break;
       case "dev":
-        this.#pool = new PostgresPool({
+        this.pool = new PostgresPool({
           clientConfig: clientConfig,
           useDev: true,
           pool: poolOptions,
@@ -92,16 +92,20 @@ export class InSpatialDB {
         break;
       case "single":
       default:
-        this.#pool = new PostgresPool({
+        this.pool = new PostgresPool({
           clientConfig: clientConfig,
           pool: poolOptions,
         });
         break;
     }
   }
-
+  withSchema(schema: string): InSpatialDB {
+    const clone = Object.create(this);
+    clone.schema = schema;
+    return clone;
+  }
   async init(): Promise<void> {
-    await this.#pool.initialized();
+    await this.pool.initialized();
   }
   /**
    * Get the version number of the postgres database
@@ -124,8 +128,8 @@ export class InSpatialDB {
   async query<T extends Record<string, any> = Record<string, any>>(
     query: string,
   ): Promise<QueryResultFormatted<T>> {
-    this.#debugMode && inLog.debug(`Query: ${query}`);
-    const result = await this.#pool.query<T>(query);
+    this.debugMode && inLog.debug(`Query: ${query}`);
+    const result = await this.pool.query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
     return {
       rowCount: result.rowCount,
@@ -133,7 +137,22 @@ export class InSpatialDB {
       columns,
     };
   }
+  async hasSchema(schema: string): Promise<boolean> {
+    const query =
+      `SELECT schema_name FROM information_schema.schemata WHERE schema_name = '${schema}'`;
+    const result = await this.query<{ schemaName: string }>(query);
+    return result.rowCount > 0;
+  }
 
+  async createSchema(schema: string): Promise<any> {
+    schema = toSnake(schema);
+    if (await this.hasSchema(schema)) {
+      inLog.warn(`Schema ${schema} already exists`);
+      return;
+    }
+    const query = `CREATE SCHEMA IF NOT EXISTS ${schema}`;
+    return await this.query(query);
+  }
   /**
    * Get a list of column definitions for a table
    */
@@ -228,6 +247,11 @@ export class InSpatialDB {
     return result.rows.map((row) => snakeToCamel(row.tableName));
   }
 
+  async getSchemaList(): Promise<string[]> {
+    const query = `SELECT schema_name FROM information_schema.schemata`;
+    const result = await this.query<{ schemaName: string }>(query);
+    return result.rows.map((row) => row.schemaName);
+  }
   /**
    * Check if a table exists in the database
    */
@@ -374,7 +398,7 @@ export class InSpatialDB {
     let query = `DELETE FROM ${this.schema}.${tableName}`;
     if (filters) {
       query += " WHERE ";
-      query += this.#makeAndFilter(filters);
+      query += this.makeAndFilter(filters);
     }
     await this.query(query);
   }
@@ -397,7 +421,7 @@ export class InSpatialDB {
     if (options.columns && Array.isArray(options.columns)) {
       columns = options.columns.map((column) => {
         if (typeof column === "object") {
-          return this.#makeMultiChoiceFieldQuery(
+          return this.makeMultiChoiceFieldQuery(
             schema,
             tableName,
             column.entryType,
@@ -412,10 +436,10 @@ export class InSpatialDB {
     let andFilter = "";
     let orFilter = "";
     if (options.filter) {
-      andFilter = this.#makeAndFilter(options.filter);
+      andFilter = this.makeAndFilter(options.filter);
     }
     if (options.orFilter) {
-      orFilter = this.#makeOrFilter(options.orFilter);
+      orFilter = this.makeOrFilter(options.orFilter);
     }
     if (andFilter && orFilter) {
       query += ` WHERE ${andFilter} AND (${orFilter})`;
@@ -474,7 +498,7 @@ export class InSpatialDB {
     } = ${formatDbValue(value)}`;
     if (filters) {
       query += " WHERE ";
-      query += this.#makeAndFilter(filters);
+      query += this.makeAndFilter(filters);
     }
     await this.query(query);
   }
@@ -520,10 +544,10 @@ export class InSpatialDB {
     let andFilter = "";
     let orFilter = "";
     if (options?.filter) {
-      andFilter = this.#makeAndFilter(options.filter);
+      andFilter = this.makeAndFilter(options.filter);
     }
     if (options?.orFilter) {
-      orFilter = this.#makeOrFilter(options.orFilter);
+      orFilter = this.makeOrFilter(options.orFilter);
     }
     if (andFilter && orFilter) {
       countQuery += ` WHERE ${andFilter} AND (${orFilter})`;
@@ -897,20 +921,20 @@ export class InSpatialDB {
       };
     });
   }
-  #makeOrFilter(
+  makeOrFilter(
     filters: DBFilter,
   ) {
     const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" OR ");
   }
-  #makeAndFilter(
+  makeAndFilter(
     filters: DBFilter,
   ) {
     const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" AND ");
   }
 
-  #makeMultiChoiceFieldQuery(
+  makeMultiChoiceFieldQuery(
     schema: string,
     parentTableName: string,
     entryType: string,

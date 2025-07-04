@@ -142,6 +142,12 @@ export const baseExtension = new CloudExtension("cloud", {
         create: false,
         delete: false,
       },
+      globalCloudFile: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
       user: {
         view: true,
         modify: false,

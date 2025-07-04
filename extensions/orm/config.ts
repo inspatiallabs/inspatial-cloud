@@ -11,7 +11,6 @@ export type ORMConfig = {
   dbPort: number;
   dbUser: string;
   dbPassword: string;
-  dbSchema: string;
   dbAppName: string;
   dbClientMode: "pool" | "single";
   dbPoolSize: number;

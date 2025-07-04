@@ -7,7 +7,7 @@ import type {
   BaseTypeInfo,
 } from "~/orm/shared/shared-types.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
-import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { InCloud } from "../../cloud/in-cloud.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
 
 /* Hooks */

@@ -12,6 +12,7 @@ export class BaseType<N extends string = string> {
   name: N;
   label: string;
   dir?: string;
+  systemGlobal: boolean;
   description: string;
   fields: Map<string, InField> = new Map();
   displayFields: Map<string, InField> = new Map();
@@ -25,12 +26,14 @@ export class BaseType<N extends string = string> {
     config: {
       fields: Array<InField>;
       fieldGroups?: Array<FieldGroupConfig>;
+      systemGlobal?: boolean;
       label?: string;
       description?: string;
       children?: Array<ChildEntryType<any>>;
     },
   ) {
     this.name = this.#sanitizeName(name);
+    this.systemGlobal = config.systemGlobal || false;
     let label: string | undefined = config.label;
     if (!label) {
       label = convertString(this.name, "title", true);
@@ -47,8 +50,11 @@ export class BaseType<N extends string = string> {
         case "ImageField":
         case "FileField":
           field.connectionIdMode = "ulid";
-          field.entryType = "cloudFile";
+          field.entryType = this.systemGlobal ? "globalCloudFile" : "cloudFile";
           break;
+      }
+      if (!field.label) {
+        field.label = convertString(field.key, "title", true);
       }
       this.fields.set(field.key, field);
     }

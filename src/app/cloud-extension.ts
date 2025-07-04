@@ -9,7 +9,7 @@ import type { CloudExtensionInfo, ExtensionOptions } from "~/app/types.ts";
 import type { Middleware } from "~/app/middleware.ts";
 import type { EntryHooks } from "~/orm/orm-types.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
 import type {
   ConfigDefinition,
   ExtensionConfig,
@@ -66,12 +66,12 @@ export class CloudExtension<
   constructor(
     extensionName: N,
     options: Omit<ExtensionOptions<AG, E, ST, C>, "name"> & {
-      label: string;
+      label?: string;
       description?: string;
     },
   ) {
     this.key = extensionName;
-    this.label = options.label;
+    this.label = options.label || convertString(extensionName, "title", true);
     this.description = options.description || "";
     this.version = options.version;
     this.roles = options.roles || [];

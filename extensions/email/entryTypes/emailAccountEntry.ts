@@ -2,7 +2,7 @@ import { raiseServerException } from "~/app/server-exception.ts";
 import { EntryType } from "~/orm/entry/entry-type.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import type { EmailAccount } from "./email-account.type.ts";
-import type { AuthSettings } from "../../auth/settings-types/auth-settings/auth-settings.type.ts";
+import type { AuthSettings } from "~/auth/settings-types/auth-settings/auth-settings.type.ts";
 
 export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
   label: "Email Account",

@@ -1,5 +1,5 @@
 import type { ORMConfig } from "#extensions/orm/config.ts";
-import type { AuthConfig } from "#extensions/auth/config.ts";
+import type { AuthConfig } from "~/auth/config.ts";
 import type { CloudConfig } from "../base-extension/config.ts";
 
 /**

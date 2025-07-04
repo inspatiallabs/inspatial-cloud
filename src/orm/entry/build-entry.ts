@@ -6,9 +6,10 @@ import type { EntryActionDefinition } from "~/orm/entry/types.ts";
 import { makeFields } from "~/orm/build/make-fields.ts";
 import { buildChildren } from "~/orm/child-entry/build-children.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
-import type { InCloud } from "~/cloud/cloud-common.ts";
+import type { InCloud } from "~/cloud/in-cloud.ts";
+import type { UserID } from "../../auth/types.ts";
 
-export function buildEntry(entryType: EntryType): typeof Entry {
+export function buildEntry(entryType: EntryType): typeof Entry<any> {
   const changeableFields = new Map<string, InField>();
   for (const field of entryType.fields.values()) {
     if (
@@ -20,6 +21,7 @@ export function buildEntry(entryType: EntryType): typeof Entry {
   }
   const childrenClasses = buildChildren(entryType);
   const entryClass = class extends Entry<any> {
+    override _systemGlobal: boolean = entryType.systemGlobal;
     override _fields: Map<string, InField> = entryType.fields;
     override _changeableFields = changeableFields;
     override _titleFields: Map<string, InField> =
@@ -28,8 +30,8 @@ export function buildEntry(entryType: EntryType): typeof Entry {
     override _childrenClasses = childrenClasses;
     override readonly _entryType = entryType;
 
-    constructor(orm: InSpatialORM, inCloud: InCloud) {
-      super(orm, inCloud, entryType.name);
+    constructor(orm: InSpatialORM, inCloud: InCloud, user: UserID) {
+      super(orm, inCloud, entryType.name, user);
       this._setupChildren();
     }
   };

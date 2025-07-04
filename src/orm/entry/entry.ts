@@ -6,8 +6,9 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import ulid from "~/orm/utils/ulid.ts";
 
-import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { InCloud } from "../../cloud/in-cloud.ts";
 import type { EntryPermission } from "../roles/entry-permissions.ts";
+import type { UserID } from "../../auth/types.ts";
 
 export class Entry<
   N extends string = string,
@@ -50,7 +51,7 @@ export class Entry<
     };
   }
 
-  constructor(orm: InSpatialORM, inCloud: InCloud, name: N, user?: any) {
+  constructor(orm: InSpatialORM, inCloud: InCloud, name: N, user: UserID) {
     super(orm, inCloud, name, "entry", user);
   }
   /**
@@ -277,7 +278,6 @@ export class Entry<
   async #syncReferences() {
     const entryRegistry = this._orm.getEntryTypeRegistry(
       this._name,
-      this._user,
     );
     if (entryRegistry === undefined) {
       return;

@@ -1,6 +1,6 @@
 import type { ExceptionHandler } from "#types/serve-types.ts";
 import type { CloudAPIGroup } from "../api/cloud-group.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
 import type { EntryType, SettingsType } from "~/orm/mod.ts";
 import type { EntryHooks } from "~/orm/orm-types.ts";
 import type { CloudBootFunction } from "./cloud-extension.ts";

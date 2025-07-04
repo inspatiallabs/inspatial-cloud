@@ -3,8 +3,8 @@ import { EntryType } from "@inspatial/cloud";
 import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
 import { convertString } from "~/utils/mod.ts";
 import type { CloudFile } from "./cloud-file.type.ts";
-
-const fileEntry = new EntryType<CloudFile>("cloudFile", {
+import { EntryConfig } from "~/orm/entry/types.ts";
+const config = {
   label: "File",
   titleField: "fileName",
   defaultListFields: ["fileName", "fileType", "fileSize"],
@@ -75,6 +75,9 @@ const fileEntry = new EntryType<CloudFile>("cloudFile", {
       },
     }],
   },
+} as EntryConfig<CloudFile>;
+export const fileEntry = new EntryType<CloudFile>("cloudFile", config);
+export const globalFileEntry = new EntryType<CloudFile>("globalCloudFile", {
+  ...config,
+  systemGlobal: true,
 });
-
-export default fileEntry;

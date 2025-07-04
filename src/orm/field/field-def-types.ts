@@ -58,7 +58,7 @@ type DependsOn<FK extends PropertyKey = PropertyKey> =
   }>;
 type BaseField<FK extends PropertyKey = PropertyKey> = {
   key: string;
-  label: string;
+  label?: string;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
@@ -161,7 +161,7 @@ export interface ImageField extends BaseField {
   type: "ImageField";
   defaultValue?: InValue<"ImageField">;
   allowedImageTypes: Array<ImageFileType> | "all";
-  entryType?: "cloudFile";
+  entryType?: "cloudFile" | "globalCloudFile";
   connectionIdMode?: "ulid";
 }
 

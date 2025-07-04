@@ -11,6 +11,7 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { ORMFieldConfig } from "~/orm/field/orm-field.ts";
 import ulid from "~/orm/utils/ulid.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
+import type { InSpatialDB } from "../db/inspatial-db.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
   [key: string]: any;
 }
@@ -37,20 +38,14 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   _fields: Map<string, InField> = new Map();
   _titleFields: Map<string, InField> = new Map();
   _changeableFields: Map<string, InField> = new Map();
-  _orm!: InSpatialORM;
+  _db: InSpatialDB;
   _tableName: string = "";
   _data: Map<string, ChildEntry<T>> = new Map();
   _newData: Map<string, ChildEntry<T>> = new Map();
   _parentId: string = "";
-  _getFieldType<T extends keyof InFieldMap>(fieldType: T): ORMFieldConfig<T> {
-    const fieldTypeDef = this._orm.fieldTypes.get(fieldType);
-    if (!fieldTypeDef) {
-      raiseORMException(
-        `Field type ${fieldType} does not exist in ORM`,
-      );
-    }
-    return fieldTypeDef as unknown as ORMFieldConfig<T>;
-  }
+  _getFieldType: (
+    fieldType: keyof InFieldMap,
+  ) => ORMFieldConfig<keyof InFieldMap>;
   _getFieldDef<T extends keyof InFieldMap>(fieldKey: string): InFieldMap[T] {
     const fieldDef = this._fields.get(fieldKey);
     if (!fieldDef) {
@@ -60,8 +55,17 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
     return fieldDef as unknown as InFieldMap[T];
   }
-  constructor(orm: InSpatialORM) {
-    this._orm = orm;
+  constructor(orm: InSpatialORM, db: InSpatialDB) {
+    this._db = db;
+    this._getFieldType = (fieldType) => {
+      const fieldTypeDef = orm.fieldTypes.get(fieldType);
+      if (!fieldTypeDef) {
+        raiseORMException(
+          `Field type ${fieldType} does not exist in ORM`,
+        );
+      }
+      return fieldTypeDef as unknown as ORMFieldConfig;
+    };
   }
 
   get data(): Array<T> {
@@ -82,7 +86,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   async load(parentId: string): Promise<void> {
     this._data = new Map();
     this._parentId = parentId;
-    const children = await this._orm.db.getRows(
+    const children = await this._db.getRows(
       this._tableName,
       {
         columns: "*",
@@ -107,7 +111,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
   }
   async clear(): Promise<void> {
-    await this._orm.db.deleteRows(this._tableName, [{
+    await this._db.deleteRows(this._tableName, [{
       field: "parent",
       op: "=",
       value: this._parentId,
@@ -116,7 +120,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     await this.load(this._parentId);
   }
   async deleteStaleRecords(): Promise<void> {
-    const dbRecords = await this._orm.db.getRows<{ id: string }>(
+    const dbRecords = await this._db.getRows<{ id: string }>(
       this._tableName,
       {
         filter: [{
@@ -130,7 +134,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
 
     for (const row of dbRecords.rows) {
       if (!this._data.has(row.id)) {
-        await this._orm.db.deleteRow(this._tableName, row.id);
+        await this._db.deleteRow(this._tableName, row.id);
       }
     }
   }
@@ -199,7 +203,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
         const fieldType = this._getFieldType(fieldDef.type);
         data[key] = fieldType.prepareForDB(value.to, fieldDef);
       }
-      await this._orm.db.updateRow(
+      await this._db.updateRow(
         this._tableName,
         childEntry.id,
         data,
@@ -217,7 +221,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
         const fieldType = this._getFieldType(fieldDef.type);
         data[key] = fieldType.prepareForDB(value, fieldDef);
       }
-      await this._orm.db.insertRow(
+      await this._db.insertRow(
         this._tableName,
         data,
       );
@@ -233,7 +237,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
         const def = this._getFieldDef<"ConnectionField">(
           field.fetchField.connectionField,
         );
-        const value = await this._orm.db.getValue(
+        const value = await this._db.getValue(
           `entry_${def.entryType}`,
           child._data.get(def.key),
           field.fetchField.fetchField,

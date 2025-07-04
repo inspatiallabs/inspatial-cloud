@@ -5,10 +5,9 @@ import type { EntryTypeInfo } from "~/orm/entry/types.ts";
 const getEntryAction = new CloudAPIAction("getEntry", {
   label: "Get Entry",
   description: "Get a singe entry for a given Entry Type",
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, id } = params;
-    const entry = await inCloud.orm.getEntry(entryType, id, user);
+    const entry = await orm.getEntry(entryType, id);
     return entry.data;
   },
   params: [{
@@ -30,10 +29,9 @@ const newEntryAction = new CloudAPIAction("getNewEntry", {
   label: "Get New Entry",
   description:
     "Get the default values for a new entry, not saved to the database",
-  run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  run({ orm, params }) {
     const { entryType } = params;
-    const entry = inCloud.orm.getNewEntry(entryType, user);
+    const entry = orm.getNewEntry(entryType);
     return entry.data;
   },
   params: [{
@@ -49,10 +47,9 @@ const updateEntryAction = new CloudAPIAction("updateEntry", {
   label: "Update Entry",
   description: "Update an existing entry",
 
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, id, data } = params;
-    const entry = await inCloud.orm.getEntry(entryType, id, user);
+    const entry = await orm.getEntry(entryType, id);
     entry.update(data);
     await entry.save();
     return entry.data;
@@ -81,10 +78,9 @@ const updateEntryAction = new CloudAPIAction("updateEntry", {
 const createEntryAction = new CloudAPIAction("createEntry", {
   label: "Create Entry",
   description: "Create a new entry",
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, data } = params;
-    const entry = await inCloud.orm.createEntry(entryType, data, user);
+    const entry = await orm.createEntry(entryType, data);
     return entry.data;
   },
   params: [{
@@ -105,11 +101,10 @@ const createEntryAction = new CloudAPIAction("createEntry", {
 const runEntryAction = new CloudAPIAction("runEntryAction", {
   label: "Run Entry Action",
   description: "Run an action on an entry",
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, id, action, data, enqueue } = params;
 
-    const entry = await inCloud.orm.getEntry(entryType, id, user);
+    const entry = await orm.getEntry(entryType, id);
     if (enqueue) {
       await entry.enqueueAction(action, data);
       return {
@@ -155,10 +150,9 @@ const runEntryAction = new CloudAPIAction("runEntryAction", {
 const deleteEntryAction = new CloudAPIAction("deleteEntry", {
   label: "Delete Entry",
   description: "Delete an existing entry",
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, id } = params;
-    await inCloud.orm.deleteEntry(entryType, id, user);
+    await orm.deleteEntry(entryType, id);
     return {
       entryType,
       id,
@@ -183,10 +177,9 @@ const deleteEntryAction = new CloudAPIAction("deleteEntry", {
 const getEntryListAction = new CloudAPIAction("getEntryList", {
   label: "Get Entry List",
   description: "Get a list of entries for a given Entry Type",
-  async run({ inCloud, inRequest, params }) {
-    const user = inRequest.context.get("user");
+  async run({ orm, params }) {
     const { entryType, options } = params;
-    const entryList = await inCloud.orm.getEntryList(entryType, options, user);
+    const entryList = await orm.getEntryList(entryType, options);
     return entryList;
   },
   params: [{
@@ -207,9 +200,8 @@ const getEntryListAction = new CloudAPIAction("getEntryList", {
 const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
   label: "Get Entry Type Info",
   description: "Get the Entry Type definition for a given Entry Type",
-  run({ inCloud, inRequest, params }): EntryTypeInfo {
-    const user = inRequest.context.get("user");
-    const entryType = inCloud.orm.getEntryType(params.entryType, user);
+  run({ orm, params }): EntryTypeInfo {
+    const entryType = orm.getEntryType(params.entryType);
     return entryType.info as EntryTypeInfo;
   },
   params: [{

@@ -1,5 +1,5 @@
 import { joinPath, normalizePath } from "~/utils/path-utils.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import type { InCloud } from "../cloud/in-cloud.ts";
 import type { ConfigDefinition } from "./config-types.ts";
 function getPath() {
   return normalizePath(Deno.mainModule, {

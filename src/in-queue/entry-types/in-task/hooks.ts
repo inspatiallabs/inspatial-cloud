@@ -2,7 +2,7 @@ import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { InCloud } from "../../../cloud/cloud-common.ts";
+import type { InCloud } from "../../../cloud/in-cloud.ts";
 import type { InTask } from "./in-task.type.ts";
 
 export const validateTask: EntryHookDefinition<InTask> = {
