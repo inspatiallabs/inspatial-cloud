@@ -4,8 +4,8 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 import { makeFields } from "~/orm/build/make-fields.ts";
 import type { SettingsActionDefinition } from "~/orm/settings/types.ts";
 import { buildChildren } from "~/orm/child-entry/build-children.ts";
-import type { InCloud } from "../../cloud/in-cloud.ts";
-import type { UserID } from "../../auth/types.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { UserID } from "~/auth/types.ts";
 
 export function buildSettings(
   settingsType: SettingsType,
@@ -30,8 +30,14 @@ export function buildSettings(
       settingsType.actions;
     override readonly _settingsType = settingsType;
     override _childrenClasses = childrenClasses;
-    constructor(orm: any, inCloud: InCloud, user: UserID) {
-      super(orm, inCloud, settingsType.name, user);
+    constructor(config: { orm: any; inCloud: InCloud; user: UserID }) {
+      super({
+        orm: config.orm,
+        inCloud: config.inCloud,
+        name: settingsType.name,
+        user: config.user,
+        systemGlobal: settingsType.systemGlobal,
+      });
       this._setupChildren();
     }
   };

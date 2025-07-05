@@ -64,6 +64,7 @@ export class BaseType<N extends string = string> {
     this.#baseInfo = {
       name: this.name,
       label: this.label,
+      systemGlobal: this.systemGlobal,
       description: this.description,
       fields: Array.from(this.fields.values()),
       titleFields: Array.from(this.connectionTitleFields.values()),

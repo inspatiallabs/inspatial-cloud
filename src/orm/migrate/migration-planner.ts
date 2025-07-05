@@ -98,10 +98,7 @@ export class MigrationPlanner {
     const hasSchema = await this.db.hasSchema(this.db.schema);
     if (!hasSchema) {
       const result = await this.db.createSchema(this.db.schema);
-
-      console.log(`Created schema ${this.db.schema}:`, result);
     }
-    console.log({ hasSchema });
   }
   async #migrateEntryTypes(): Promise<void> {
     await this.#createMissingTables();

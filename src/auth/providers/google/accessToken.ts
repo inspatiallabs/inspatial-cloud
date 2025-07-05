@@ -1,4 +1,4 @@
-import { raiseServerException } from "~/app/server-exception.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 import { inLog } from "~/in-log/in-log.ts";
 

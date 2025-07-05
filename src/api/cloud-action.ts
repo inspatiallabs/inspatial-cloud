@@ -1,11 +1,12 @@
-import type { InRequest } from "~/app/in-request.ts";
-import type { InResponse } from "~/app/in-response.ts";
-import { raiseServerException } from "~/app/server-exception.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { CloudParam, ExtractParams } from "~/api/api-types.ts";
-import type { InCloud } from "../cloud/in-cloud.ts";
-import convertString from "../utils/convert-string.ts";
+import convertString from "~/utils/convert-string.ts";
+import type { SessionData } from "~/auth/types.ts";
+import type { InCloud } from "~/in-cloud.ts";
 
 export type ActionMethod<
   K extends PropertyKey = PropertyKey,
@@ -157,9 +158,11 @@ export class CloudAPIAction<
       orm: args.inCloud.orm,
     };
     if (this.authRequired) {
-      runObject.orm = args.inCloud.orm.withUser(
-        args.inRequest.context.get("user"),
-      );
+      const user = args.inRequest.context.get<SessionData>("user");
+      if (!user) {
+        raiseServerException(401, "User is not authenticated");
+      }
+      runObject.orm = args.inCloud.orm.withUser(user);
     }
 
     return await this.#_run(runObject);

@@ -1,6 +1,6 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { generateId } from "~/utils/misc.ts";
-import { InCloud } from "~/cloud/in-cloud.ts";
+import { InCloud } from "~/in-cloud.ts";
 import type { InTask } from "./entry-types/in-task/in-task.type.ts";
 
 export class InQueue extends InCloud {
@@ -11,7 +11,7 @@ export class InQueue extends InCloud {
   }
   override async run() {
     await super.run();
-    const port = this.getExtensionConfigValue("cloud", "queuePort");
+    const port = this.getExtensionConfigValue("core", "queuePort");
     if (port === undefined) {
       throw new Error("Queue port is not defined in the configuration.");
     }

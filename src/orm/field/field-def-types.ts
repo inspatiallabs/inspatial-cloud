@@ -2,7 +2,7 @@ import type { Choice, IDMode, InValue } from "~/orm/field/types.ts";
 import type {
   FileTypes,
   ImageFileType,
-} from "#extensions/files/src/mime-types/file-types.ts";
+} from "~/files/mime-types/file-types.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 

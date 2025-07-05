@@ -1,4 +1,5 @@
-import MimeTypes from "#extensions/files/src/mime-types/mime-types.ts";
+import MimeTypes from "~/files/mime-types/mime-types.ts";
+export { createInCloud } from "~/runner/in-cloud-runner.ts";
 
 export {
   ChildEntry,
@@ -8,9 +9,7 @@ export {
 
 export { CloudAPIAction } from "~/api/cloud-action.ts";
 export { CloudAPIGroup } from "~/api/cloud-group.ts";
-export { CloudExtension } from "~/app/cloud-extension.ts";
-
-export { createInCloud } from "~/inspatial-cloud.ts";
+export { CloudExtension } from "~/extension/cloud-extension.ts";
 
 export { MimeTypes };
 

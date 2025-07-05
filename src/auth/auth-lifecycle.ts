@@ -1,4 +1,4 @@
-import type { LifecycleHandler } from "~/app/request-lifecycle.ts";
+import type { LifecycleHandler } from "~/serve/request-lifecycle.ts";
 
 export const authLifecycle: LifecycleHandler = {
   name: "parseAuth",

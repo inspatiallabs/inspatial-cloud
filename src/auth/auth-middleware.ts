@@ -1,16 +1,15 @@
-import type { AuthHandler } from "~/auth/auth-handler.ts";
-import type { Middleware } from "~/app/middleware.ts";
+import type { Middleware } from "~/serve/middleware.ts";
 export const authMiddleware: Middleware = {
   name: "auth",
   description: "Auth middleware",
-  async handler(app, inRequest, inResponse) {
+  async handler(inCloud, inRequest, inResponse) {
     if (inRequest.method === "OPTIONS") {
       return;
     }
 
     const sessionId = inRequest.context.get("userSession");
 
-    const authHandler = app.getExtension<AuthHandler>("auth");
+    const authHandler = inCloud.auth;
 
     let sessionData = await authHandler.loadUserSession(sessionId);
     if (!sessionData) {
@@ -23,7 +22,7 @@ export const authMiddleware: Middleware = {
     }
 
     let isAllowed = false;
-    isAllowed = app.getExtensionConfigValue("auth", "allowAll");
+    isAllowed = inCloud.getExtensionConfigValue("core", "authAllowAll");
     if (isAllowed) {
       return;
     }

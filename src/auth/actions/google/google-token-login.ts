@@ -2,8 +2,8 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { GoogleOAuth } from "~/auth/providers/google/accessToken.ts";
 import type { AuthHandler } from "~/auth/auth-handler.ts";
-import { raiseServerException } from "~/app/server-exception.ts";
-import type { User } from "../../entry-types/user/user.type.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
+import type { User } from "~/auth/entries/user/user.type.ts";
 
 const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   authRequired: false,
@@ -45,7 +45,7 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
     user.googleId = id;
     await user.save();
 
-    const authHandler = inCloud.getExtension<AuthHandler>("auth");
+    const authHandler = inCloud.auth;
     const sessionData = await authHandler.createUserSession(
       user,
       inRequest,

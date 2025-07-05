@@ -7,11 +7,13 @@ import type {
   ChildEntry,
   ChildEntryType,
 } from "~/orm/child-entry/child-entry.ts";
+
 interface ForTypeMap {
   entry: EntryType;
   settings: SettingsType;
   child: ChildEntryType;
 }
+
 interface ForTypeMapWithData {
   entry: typeof Entry<any>;
   settings: typeof Settings<any>;

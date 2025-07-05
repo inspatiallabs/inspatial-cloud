@@ -2,13 +2,14 @@ import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { InCloud } from "../../../cloud/in-cloud.ts";
+import type { InCloud } from "~/in-cloud.ts";
 import type { InTask } from "./in-task.type.ts";
+import type { InTaskGlobal } from "./in-task-global.type.ts";
 
-export const validateTask: EntryHookDefinition<InTask> = {
+export const validateTask: EntryHookDefinition<any> = {
   name: "validate entry or settings",
   description: "",
-  handler({ inTask, orm, inCloud }) {
+  handler({ entry: inTask, orm, inCloud }) {
     switch (inTask.taskType) {
       case "entry":
         validateEntryTask(inTask, orm);
@@ -22,7 +23,10 @@ export const validateTask: EntryHookDefinition<InTask> = {
   },
 };
 
-async function validateEntryTask(inTask: InTask, orm: InSpatialORM) {
+async function validateEntryTask(
+  inTask: InTask | InTaskGlobal,
+  orm: InSpatialORM,
+) {
   const entryTypeName = inTask.typeKey;
   if (!entryTypeName) {
     raiseORMException(`EntryType must be set on this task!`);
@@ -44,7 +48,10 @@ async function validateEntryTask(inTask: InTask, orm: InSpatialORM) {
   await orm.getEntry(entryTypeName, entryId);
 }
 
-function validateSettingsTask(inTask: InTask, orm: InSpatialORM) {
+function validateSettingsTask(
+  inTask: InTask | InTaskGlobal,
+  orm: InSpatialORM,
+) {
   const settingsName = inTask.typeKey;
   if (!settingsName) {
     raiseORMException(`Settings Name must be set on this task!`);
@@ -59,7 +66,7 @@ function validateSettingsTask(inTask: InTask, orm: InSpatialORM) {
   }
 }
 
-function validateAppTask(inTask: InTask, inCloud: InCloud) {
+function validateAppTask(inTask: InTask | InTaskGlobal, inCloud: InCloud) {
   const group = inTask.group;
   const actionName = inTask.actionName;
   if (!group) {

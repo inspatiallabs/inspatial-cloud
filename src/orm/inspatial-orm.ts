@@ -28,7 +28,7 @@ import { ormFields } from "~/orm/field/fields.ts";
 import { inLog } from "#inLog";
 import type { InValue } from "~/orm/field/types.ts";
 import type { IDValue } from "./entry/types.ts";
-import type { InCloud } from "../cloud/in-cloud.ts";
+import type { InCloud } from "~/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
@@ -39,12 +39,17 @@ export class InSpatialORM {
   fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
   _inCloud: InCloud;
   _user: UserContext | undefined;
-  systemAdminUser: UserID = {
+  readonly systemAdminUser: UserID = {
     role: "systemAdmin",
     userId: "systemAdmin",
   };
-  #roles: RoleManager;
-  #globalEntryHooks: GlobalEntryHooks = {
+  readonly systemGobalUser: UserContext = {
+    accountId: "cloud_global",
+    userId: "systemAdmin",
+    role: "systemAdmin",
+  };
+  roles: RoleManager;
+  globalEntryHooks: GlobalEntryHooks = {
     beforeValidate: [],
     validate: [],
     beforeCreate: [],
@@ -55,7 +60,7 @@ export class InSpatialORM {
     afterDelete: [],
   };
 
-  withUser(user: UserContext | undefined): InSpatialORM {
+  withUser(user: UserContext): InSpatialORM {
     if (!user) {
       raiseORMException(
         "User context is required to use withUser method",
@@ -72,20 +77,14 @@ export class InSpatialORM {
    * The root path of the generated files for the ORM.
    */
   get generatedRoot(): string {
-    return `${this.#rootPath}/_generated`;
+    return `${this.rootPath}/_generated`;
   }
-  #rootPath: string;
-  get #entriesPath(): string {
-    return `${this.#rootPath}/_generated/entries`;
-  }
-  get #settingsPath(): string {
-    return `${this.#rootPath}/_generated/settings`;
-  }
+  rootPath: string;
   async _runGlobalHooks(
     hookType: keyof GlobalEntryHooks,
     entry: Entry,
   ): Promise<void> {
-    for (const hook of this.#globalEntryHooks[hookType]) {
+    for (const hook of this.globalEntryHooks[hookType]) {
       await hook({
         entryType: entry._name,
         entry,
@@ -132,10 +131,10 @@ export class InSpatialORM {
       inCloud: InCloud;
     },
   ) {
-    this.#rootPath = options.rootPath || Deno.cwd();
-    this.#rootPath = `${this.#rootPath}/.inspatial`;
-    this.#roles = options.inCloud.roles;
-    const adminRole = this.#roles.getRole("systemAdmin");
+    this.rootPath = options.rootPath || Deno.cwd();
+    this.rootPath = `${this.rootPath}/.inspatial`;
+    this.roles = options.inCloud.roles;
+    const adminRole = this.roles.getRole("systemAdmin");
 
     this._inCloud = options.inCloud;
     this.fieldTypes = new Map();
@@ -145,6 +144,7 @@ export class InSpatialORM {
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });
+    this.db.schema = this.systemGobalUser.accountId; // "cloud_global" default
     this.systemDb = this.db.withSchema("cloud_global");
     for (const entryType of options.entries) {
       adminRole.entryPermissions.set(entryType.name, {
@@ -165,55 +165,55 @@ export class InSpatialORM {
     if (options.globalEntryHooks) {
       this.#setupHooks(options.globalEntryHooks);
     }
-    this.#roles.setup();
+    this.roles.setup();
   }
   async init(): Promise<void> {
     await this.db.init();
   }
 
   #setupHooks(globalHooks: GlobalEntryHooks): void {
-    this.#globalEntryHooks.validate.push(...globalHooks.validate);
-    this.#globalEntryHooks.beforeValidate.push(
+    this.globalEntryHooks.validate.push(...globalHooks.validate);
+    this.globalEntryHooks.beforeValidate.push(
       ...globalHooks.beforeValidate,
     );
-    this.#globalEntryHooks.beforeCreate.push(
+    this.globalEntryHooks.beforeCreate.push(
       ...globalHooks.beforeCreate,
     );
-    this.#globalEntryHooks.afterCreate.push(
+    this.globalEntryHooks.afterCreate.push(
       ...globalHooks.afterCreate,
     );
-    this.#globalEntryHooks.beforeUpdate.push(
+    this.globalEntryHooks.beforeUpdate.push(
       ...globalHooks.beforeUpdate,
     );
-    this.#globalEntryHooks.afterUpdate.push(
+    this.globalEntryHooks.afterUpdate.push(
       ...globalHooks.afterUpdate,
     );
-    this.#globalEntryHooks.beforeDelete.push(
+    this.globalEntryHooks.beforeDelete.push(
       ...globalHooks.beforeDelete,
     );
-    this.#globalEntryHooks.afterDelete.push(
+    this.globalEntryHooks.afterDelete.push(
       ...globalHooks.afterDelete,
     );
   }
   #addEntryType(entryType: EntryType): void {
-    this.#roles.addEntryType(entryType);
+    this.roles.addEntryType(entryType);
   }
   #addSettingsType(settingsType: SettingsType): void {
-    this.#roles.addSettingsType(settingsType);
+    this.roles.addSettingsType(settingsType);
   }
-  #getEntryInstance<E extends EntryBase = GenericEntry>(
+  getEntryInstance<E extends EntryBase = GenericEntry>(
     entryType: string,
   ): E {
-    return this.#roles.getEntryInstance<E>(
+    return this.roles.getEntryInstance<E>(
       this,
       entryType,
       this._user || this.systemAdminUser,
     );
   }
-  #getSettingsInstance<S extends SettingsBase = GenericSettings>(
+  getSettingsInstance<S extends SettingsBase = GenericSettings>(
     settingsType: string,
   ): S {
-    return this.#roles.getSettingsInstance<S>(
+    return this.roles.getSettingsInstance<S>(
       this,
       settingsType,
       this._user || this.systemAdminUser,
@@ -222,7 +222,7 @@ export class InSpatialORM {
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
   ): T {
-    return this.#roles.getEntryType<T>(
+    return this.roles.getEntryType<T>(
       entryType,
       this._user?.role || this.systemAdminUser.role,
     );
@@ -230,7 +230,7 @@ export class InSpatialORM {
   getSettingsType<T extends SettingsType = SettingsType>(
     settingsType: string,
   ): T {
-    return this.#roles.getSettingsType<T>(
+    return this.roles.getSettingsType<T>(
       settingsType,
       this._user?.role || this.systemAdminUser.role,
     );
@@ -238,7 +238,7 @@ export class InSpatialORM {
   getEntryTypeRegistry(
     entryType: string,
   ): EntryTypeRegistry | undefined {
-    return this.#roles.getRegistry(
+    return this.roles.getRegistry(
       entryType,
       this._user?.role || this.systemAdminUser.role,
     );
@@ -252,7 +252,7 @@ export class InSpatialORM {
     entryType: E["_name"],
     data: Record<string, any>,
   ): Promise<E> {
-    const entry = this.#getEntryInstance(entryType) as E;
+    const entry = this.getEntryInstance(entryType) as E;
     entry.create();
     entry.update(data);
     await entry.save();
@@ -264,7 +264,7 @@ export class InSpatialORM {
   getNewEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
   ): E {
-    const entry = this.#getEntryInstance(entryType) as E;
+    const entry = this.getEntryInstance(entryType) as E;
     entry.create();
     return entry;
   }
@@ -275,7 +275,7 @@ export class InSpatialORM {
     entryType: E["_name"],
     id: IDValue,
   ): Promise<E> {
-    const entry = this.#getEntryInstance(entryType) as E;
+    const entry = this.getEntryInstance(entryType) as E;
     await entry.load(id);
     return entry;
   }
@@ -311,7 +311,8 @@ export class InSpatialORM {
   ): Promise<E | null> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
-    const result = await this.db.getRows(tableName, {
+    const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
+    const result = await db.getRows(tableName, {
       filter,
       limit: 1,
       columns: ["id"],
@@ -417,7 +418,8 @@ export class InSpatialORM {
         dbOptions.filter[idField] = this._user.userId;
       }
     }
-    const result = await this.db.getRows(tableName, dbOptions);
+    const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
+    const result = await db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;
   }
 
@@ -427,8 +429,9 @@ export class InSpatialORM {
     groupBy?: Array<string>,
   ): Promise<number> {
     const entryTypeObj = this.getEntryType(entryType);
+    const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
     const tableName = entryTypeObj.config.tableName;
-    const result = await this.db.count(tableName, {
+    const result = await db.count(tableName, {
       filter,
       groupBy,
     });
@@ -459,7 +462,7 @@ export class InSpatialORM {
   async getSettings<T extends SettingsBase = GenericSettings>(
     settingsType: T["_name"],
   ): Promise<T> {
-    const settings = this.#getSettingsInstance(settingsType) as T;
+    const settings = this.getSettingsInstance(settingsType) as T;
     await settings.load();
     return settings;
   }
@@ -487,7 +490,7 @@ export class InSpatialORM {
     settingsType: T["_name"],
     field: string,
   ): Promise<any> {
-    const settings = this.#getSettingsInstance(settingsType);
+    const settings = this.getSettingsInstance(settingsType);
     return await settings.getValue(field);
   }
 
@@ -511,8 +514,8 @@ export class InSpatialORM {
       raiseORMException("Value is not valid!");
     }
     value = fieldType.prepareForDB(value, inField);
-
-    await this.db.batchUpdateColumn(
+    const db = entryTypeDef.systemGlobal ? this.systemDb : this.db;
+    await db.batchUpdateColumn(
       entryTypeDef.config.tableName,
       field,
       value,
@@ -524,10 +527,10 @@ export class InSpatialORM {
    * Makes the necessary changes to the database based on the output of the planMigration method.
    */
   async migrate(schema: string): Promise<Array<string>> {
-    const adminRole = this.#roles.getRole("systemAdmin");
+    const adminRole = this.roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
-      entryTypes: Array.from(adminRole.entryTypes.values()),
-      settingsTypes: Array.from(adminRole.settingsTypes.values()),
+      entryTypes: adminRole.accountEntryTypes,
+      settingsTypes: adminRole.accountSettingsTypes,
       orm: this,
       db: this.db.withSchema(schema),
       onOutput: (message) => {
@@ -539,7 +542,7 @@ export class InSpatialORM {
 
   async migrateGlobal(): Promise<Array<string>> {
     inLog.info("Migrating global database...");
-    const adminRole = this.#roles.getRole("systemAdmin");
+    const adminRole = this.roles.getRole("systemAdmin");
 
     const migrationPlanner = new MigrationPlanner({
       entryTypes: adminRole.globalEntryTypes,
@@ -559,7 +562,7 @@ export class InSpatialORM {
    */
   async planMigration(): Promise<MigrationPlan> {
     inLog.info("Planning migration...");
-    const adminRole = this.#roles.getRole("systemAdmin");
+    const adminRole = this.roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
       entryTypes: Array.from(adminRole.entryTypes.values()),
       settingsTypes: Array.from(adminRole.settingsTypes.values()),
@@ -580,7 +583,7 @@ export class InSpatialORM {
   > {
     const generatedEntries: string[] = [];
     const generatedSettings: string[] = [];
-    const adminRole = this.#roles.getRole("systemAdmin");
+    const adminRole = this.roles.getRole("systemAdmin");
     for (const entryType of adminRole.entryTypes.values()) {
       await generateEntryInterface(this, entryType);
       generatedEntries.push(entryType.name);

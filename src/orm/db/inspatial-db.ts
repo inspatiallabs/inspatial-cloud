@@ -19,6 +19,7 @@ import convertString from "~/utils/convert-string.ts";
 import { inLog } from "#inLog";
 import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
+import { raiseORMException } from "../orm-exception.ts";
 
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -32,10 +33,25 @@ export class InSpatialDB {
    * The name of the database to connect to
    */
   dbName: string;
+
+  _schema: string | undefined;
   /**
-   * The schema to use for the database. Default is 'public'
+   * The schema to use for the database
    */
-  schema: string;
+  get schema(): string {
+    if (!this._schema) {
+      raiseORMException("Schema not set");
+    }
+    return this._schema;
+  }
+
+  /**
+   * The schema to use for the database
+   */
+  set schema(value: string) {
+    this._schema = value;
+  }
+
   /**
    * The Postgres client used to interact with the database
    */
@@ -57,7 +73,6 @@ export class InSpatialDB {
       inLog.debug("InSpatialDB debug mode enabled");
     }
     this.dbName = config.connection.database;
-    this.schema = config.connection.schema || "public";
     const poolOptions = {
       size: 1,
       maxSize: 1,
@@ -145,12 +160,11 @@ export class InSpatialDB {
   }
 
   async createSchema(schema: string): Promise<any> {
-    schema = toSnake(schema);
     if (await this.hasSchema(schema)) {
       inLog.warn(`Schema ${schema} already exists`);
       return;
     }
-    const query = `CREATE SCHEMA IF NOT EXISTS ${schema}`;
+    const query = `CREATE SCHEMA "${schema}"`;
     return await this.query(query);
   }
   /**
@@ -223,7 +237,7 @@ export class InSpatialDB {
   async addTableComment(tableName: string, comment: string): Promise<void> {
     tableName = toSnake(tableName);
     const query =
-      `COMMENT ON TABLE ${this.schema}.${tableName} IS '${comment}'`;
+      `COMMENT ON TABLE "${this.schema}".${tableName} IS '${comment}'`;
     await this.query(query);
   }
 
@@ -274,7 +288,7 @@ export class InSpatialDB {
   ): Promise<void> {
     tableName = toSnake(tableName);
     idMode = idMode || "ulid";
-    let query = `CREATE TABLE IF NOT EXISTS ${this.schema}.${tableName} ( id`;
+    let query = `CREATE TABLE IF NOT EXISTS "${this.schema}".${tableName} ( id`;
     switch (idMode) {
       case "auto":
         query += ` bigint GENERATED ALWAYS AS IDENTITY`;
@@ -316,7 +330,7 @@ export class InSpatialDB {
     const values = columnKeys.map((key) => {
       return formatDbValue(data[key]);
     });
-    const query = `INSERT INTO ${this.schema}.${tableName} (${
+    const query = `INSERT INTO "${this.schema}".${tableName} (${
       columns.join(", ")
     }) VALUES (${values.join(", ")}) RETURNING *`;
     const result = await this.query<T>(query);
@@ -336,7 +350,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     value = formatDbValue(value);
     const query =
-      `SELECT * FROM ${this.schema}.${tableName} WHERE id = ${value}`;
+      `SELECT * FROM "${this.schema}".${tableName} WHERE id = ${value}`;
     const result = await this.query<T>(query);
     if (result.rowCount === 0) {
       return undefined;
@@ -362,7 +376,7 @@ export class InSpatialDB {
     });
     const idValue = formatDbValue(id);
 
-    const query = `UPDATE ${this.schema}.${tableName} SET ${
+    const query = `UPDATE "${this.schema}".${tableName} SET ${
       values.join(", ")
     } WHERE id = ${idValue} RETURNING *`;
     return await this.query<T>(query);
@@ -375,7 +389,7 @@ export class InSpatialDB {
    */
   async deleteRow(tableName: string, id: IDValue): Promise<void> {
     tableName = toSnake(tableName);
-    const query = `DELETE FROM ${this.schema}.${tableName} WHERE id = ${
+    const query = `DELETE FROM "${this.schema}".${tableName} WHERE id = ${
       formatDbValue(id)
     }`;
     await this.query(query);
@@ -395,7 +409,7 @@ export class InSpatialDB {
     filters?: DBFilter,
   ): Promise<void> {
     tableName = toSnake(tableName);
-    let query = `DELETE FROM ${this.schema}.${tableName}`;
+    let query = `DELETE FROM "${this.schema}".${tableName}`;
     if (filters) {
       query += " WHERE ";
       query += this.makeAndFilter(filters);
@@ -431,8 +445,8 @@ export class InSpatialDB {
         return formatColumnName(column);
       }).join(", ");
     }
-    let query = `SELECT ${columns} FROM ${schema}.${tableName}`;
-    let countQuery = `SELECT COUNT(*) FROM ${schema}.${tableName}`;
+    let query = `SELECT ${columns} FROM "${schema}".${tableName}`;
+    let countQuery = `SELECT COUNT(*) FROM "${schema}".${tableName}`;
     let andFilter = "";
     let orFilter = "";
     if (options.filter) {
@@ -493,7 +507,7 @@ export class InSpatialDB {
     filters: DBFilter,
   ): Promise<void> {
     tableName = toSnake(tableName);
-    let query = `UPDATE ${this.schema}.${tableName} SET ${
+    let query = `UPDATE "${this.schema}".${tableName} SET ${
       formatColumnName(column)
     } = ${formatDbValue(value)}`;
     if (filters) {
@@ -513,7 +527,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     const query = `SELECT ${
       formatColumnName(column)
-    } FROM ${this.schema}.${tableName} WHERE id = ${formatDbValue(id)}`;
+    } FROM "${this.schema}".${tableName} WHERE id = ${formatDbValue(id)}`;
     const result = await this.query<Record<string, T>>(query);
     if (result.rowCount === 0) {
       return undefined;
@@ -533,13 +547,13 @@ export class InSpatialDB {
     },
   ): Promise<any> {
     tableName = toSnake(tableName);
-    let countQuery = `SELECT COUNT(*) FROM ${this.schema}.${tableName}`;
+    let countQuery = `SELECT COUNT(*) FROM "${this.schema}".${tableName}`;
     if (options?.groupBy) {
       countQuery = `SELECT ${
         options.groupBy.map((column) => {
           return formatColumnName(column as string);
         }).join(", ")
-      }, COUNT(*) FROM ${this.schema}.${tableName}`;
+      }, COUNT(*) FROM "${this.schema}".${tableName}`;
     }
     let andFilter = "";
     let orFilter = "";
@@ -600,7 +614,7 @@ export class InSpatialDB {
       })`
       : "";
     const query =
-      `CREATE ${uniqueStr} INDEX IF NOT EXISTS ${indexName} ON ${this.schema}.${tableNameSnake} (${fieldsStr}) ${includeStr}`;
+      `CREATE ${uniqueStr} INDEX IF NOT EXISTS ${indexName} ON "${this.schema}".${tableNameSnake} (${fieldsStr}) ${includeStr}`;
     await this.query(query);
   }
   /**
@@ -610,7 +624,7 @@ export class InSpatialDB {
    */
   async dropIndex(tableName: string, indexName: string): Promise<void> {
     tableName = toSnake(tableName);
-    const query = `DROP INDEX ${indexName}`;
+    const query = `DROP INDEX "${this.schema}".${indexName}`;
     await this.query(query);
   }
 
@@ -653,11 +667,11 @@ export class InSpatialDB {
    */
   async vacuumAnalyze(tableName?: string): Promise<QueryResultFormatted> {
     if (!tableName) {
-      const query = `VACUUM ANALYZE`;
+      const query = `VACUUM ANALYZE "${this.schema}"`;
       return await this.query(query);
     }
     tableName = toSnake(tableName);
-    const query = `VACUUM ANALYZE ${this.schema}.${tableName}`;
+    const query = `VACUUM ANALYZE "${this.schema}".${tableName}`;
     return await this.query(query);
   }
   /* Column Operations */
@@ -672,7 +686,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     const columnName = convertString(column.columnName, "snake", true);
 
-    let query = `ALTER TABLE ${this.schema}.${tableName} ADD "${columnName}"`;
+    let query = `ALTER TABLE "${this.schema}".${tableName} ADD "${columnName}"`;
 
     switch (column.dataType) {
       case "character varying":
@@ -715,7 +729,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     columnName = formatColumnName(columnName);
     const query =
-      `ALTER TABLE ${this.schema}.${tableName} DROP COLUMN ${columnName}`;
+      `ALTER TABLE "${this.schema}".${tableName} DROP COLUMN ${columnName}`;
     await this.query(query);
   }
 
@@ -730,7 +744,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     columnName = formatColumnName(columnName);
     let query =
-      `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName}`;
+      `ALTER TABLE "${this.schema}".${tableName} ALTER COLUMN ${columnName}`;
     const { dataType } = columnDataType;
     switch (dataType) {
       case "character varying":
@@ -756,7 +770,7 @@ export class InSpatialDB {
     columnName = toSnake(columnName);
     const formattedColumn = formatColumnName(columnName);
     const query =
-      `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${formattedColumn})`;
+      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${tableName}_${columnName}_unique UNIQUE (${formattedColumn})`;
     await this.query(query);
   }
   /**
@@ -769,7 +783,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     columnName = toSnake(columnName);
     const query =
-      `ALTER TABLE ${this.schema}.${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
+      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
     await this.query(query);
   }
 
@@ -790,15 +804,15 @@ export class InSpatialDB {
     let query = "";
     if (defaultIfNull !== undefined && !allowNull) {
       query +=
-        `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} SET DEFAULT ${
+        `ALTER TABLE "${this.schema}".${tableName} ALTER COLUMN ${columnName} SET DEFAULT ${
           formatDbValue(defaultIfNull)
         };`;
-      query += `UPDATE ${this.schema}.${tableName} SET ${columnName} = ${
+      query += `UPDATE "${this.schema}".${tableName} SET ${columnName} = ${
         formatDbValue(defaultIfNull)
       } WHERE ${columnName} IS NULL;`;
     }
     query +=
-      `ALTER TABLE ${this.schema}.${tableName} ALTER COLUMN ${columnName} ${
+      `ALTER TABLE "${this.schema}".${tableName} ALTER COLUMN ${columnName} ${
         allowNull ? "DROP NOT NULL" : "SET NOT NULL"
       };`;
 
@@ -846,7 +860,7 @@ export class InSpatialDB {
     foreignTableName = toSnake(foreignTableName);
     foreignColumnName = formatColumnName(foreignColumnName);
     let query =
-      `ALTER TABLE ${this.schema}.${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES ${this.schema}.${foreignTableName} (${foreignColumnName})`;
+      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES "${this.schema}".${foreignTableName} (${foreignColumnName})`;
     if (options?.onDelete) {
       switch (options.onDelete) {
         case "cascade":
@@ -935,16 +949,15 @@ export class InSpatialDB {
   }
 
   makeMultiChoiceFieldQuery(
-    schema: string,
     parentTableName: string,
     entryType: string,
     fieldName: string,
     parentAlias?: string,
   ): string {
     fieldName = toSnake(fieldName);
-    const parentTable = parentAlias ?? `${schema}.${parentTableName}`;
+    const parentTable = parentAlias ?? `"${this.schema}".${parentTableName}`;
     return `(SELECT string_agg(values.value, ', ')
-    FROM (SELECT value FROM ${schema}.${entryType}_${fieldName}_mc_values WHERE parent_id = ${parentTable}.id) AS values) AS ${fieldName}`;
+    FROM (SELECT value FROM "${this.schema}".${entryType}_${fieldName}_mc_values WHERE parent_id = ${parentTable}.id) AS values) AS ${fieldName}`;
   }
 
   /**

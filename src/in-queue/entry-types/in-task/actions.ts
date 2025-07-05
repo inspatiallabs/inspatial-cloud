@@ -2,20 +2,26 @@ import type { EntryActionDefinition } from "~/orm/entry/types.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 import { dateUtils } from "~/utils/date-utils.ts";
-import type { InCloud } from "../../../cloud/in-cloud.ts";
+import type { InCloud } from "~/in-cloud.ts";
 import type { InTask } from "./in-task.type.ts";
+import type { InTaskGlobal } from "./in-task-global.type.ts";
 
-export const runTask: EntryActionDefinition<InTask> = {
+export const runTask: EntryActionDefinition<any> = {
   key: "runTask",
   params: [],
   async action({
-    inTask,
+    entry,
     inCloud,
     orm,
   }) {
+    const inTask = entry as InTask | InTaskGlobal;
     let results;
-    if (inTask.status !== "queued") {
-      return;
+    switch (inTask.status) {
+      case "queued":
+      case "failed":
+        break;
+      default:
+        return;
     }
     inTask.status = "running";
     inTask.startTime = dateUtils.nowTimestamp();
@@ -48,17 +54,20 @@ export const runTask: EntryActionDefinition<InTask> = {
   },
 };
 
-async function runEntryTask(inTask: InTask, orm: InSpatialORM) {
+async function runEntryTask(inTask: InTask | InTaskGlobal, orm: InSpatialORM) {
   const entry = await orm.getEntry(inTask.typeKey!, inTask.entryId!);
   return await entry.runAction(inTask.actionName, inTask.taskData);
 }
 
-async function runSettingsTask(inTask: InTask, orm: InSpatialORM) {
+async function runSettingsTask(
+  inTask: InTask | InTaskGlobal,
+  orm: InSpatialORM,
+) {
   const settings = await orm.getSettings(inTask.typeKey!);
   return await settings.runAction(inTask.actionName, inTask.taskData);
 }
 
-async function runAppTask(inTask: InTask, inCloud: InCloud) {
+async function runAppTask(inTask: InTask | InTaskGlobal, inCloud: InCloud) {
   return await inCloud.runAction(
     inTask.group!,
     inTask.actionName,

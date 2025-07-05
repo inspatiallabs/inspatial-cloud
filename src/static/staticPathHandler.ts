@@ -1,4 +1,4 @@
-import type { PathHandler } from "../app/path-handler.ts";
+import type { PathHandler } from "~/serve/path-handler.ts";
 
 export const staticFilesHandler: PathHandler = {
   name: "staticFiles",

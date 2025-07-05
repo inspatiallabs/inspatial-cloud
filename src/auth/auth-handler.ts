@@ -1,12 +1,22 @@
 import type { SessionData } from "~/auth/types.ts";
-import type { InRequest } from "~/app/in-request.ts";
-import type { InResponse } from "~/app/in-response.ts";
-import type { InCloud } from "~/cloud/in-cloud.ts";
-import type { UserSession } from "./entry-types/user-session/user-session.type.ts";
-import type { User } from "./entry-types/user/user.type.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { UserSession } from "./entries/user-session/user-session.type.ts";
+import type { User } from "./entries/user/user.type.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 export class AuthHandler {
   #inCloud: InCloud;
+  #orm: InSpatialORM | null = null;
+
+  get orm(): InSpatialORM {
+    if (!this.#orm) {
+      const globalUser = this.#inCloud.orm.systemGobalUser;
+      this.#orm = this.#inCloud.orm.withUser(globalUser);
+    }
+    return this.#orm;
+  }
 
   constructor(inCloud: InCloud) {
     this.#inCloud = inCloud;
@@ -108,7 +118,7 @@ export class AuthHandler {
     }
     let sessionData = this.#inCloud.inCache.getValue("userSession", sessionId);
     if (!sessionData) {
-      const userSession = await this.#inCloud.orm.findEntry<UserSession>(
+      const userSession = await this.orm.findEntry<UserSession>(
         "userSession",
         [{
           field: "sessionId",
@@ -151,7 +161,7 @@ export class AuthHandler {
       role: user.systemAdmin ? "systemAdmin" : user.role || "basic",
       accountId: accountId || "none",
     };
-    const session = await this.#inCloud.orm.createEntry<UserSession>(
+    const session = await this.orm.createEntry<UserSession>(
       "userSession",
       {
         user: user.id,

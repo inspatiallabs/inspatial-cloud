@@ -1,4 +1,4 @@
-import type { CloudExtension } from "../app/cloud-extension.ts";
+import type { CloudExtension } from "~/extension/cloud-extension.ts";
 
 export type AppMode = "development" | "production";
 

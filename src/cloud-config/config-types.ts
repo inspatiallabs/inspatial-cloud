@@ -1,6 +1,4 @@
-import type { ORMConfig } from "#extensions/orm/config.ts";
-import type { AuthConfig } from "~/auth/config.ts";
-import type { CloudConfig } from "../base-extension/config.ts";
+import type { CoreConfig } from "../extension/core-config.ts";
 
 /**
  * The configuration for an environment variable.
@@ -71,9 +69,7 @@ export type ExtractConfig<K extends ConfigKey> = ConfigMap[K];
 export type ConfigKey = keyof ConfigMap;
 
 export interface ConfigMap {
-  cloud: CloudConfig;
-  orm: ORMConfig;
-  auth: AuthConfig;
+  core: CoreConfig;
 }
 
 /**

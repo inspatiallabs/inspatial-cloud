@@ -34,7 +34,7 @@ _Reality is your canvas_
 
 </div>
 
-## 
+##
 
 <div align="center">
 
@@ -144,7 +144,6 @@ const orm = new InSpatialORM({
       host: "localhost",
       port: 5432,
       user: "postgres",
-      schema: "public", // optional, default is public
       password: "password",
       database: "inspatial", // database name, be sure to create it first with postgres `createdb <database>`
     },

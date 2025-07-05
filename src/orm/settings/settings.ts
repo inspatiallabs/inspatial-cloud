@@ -6,9 +6,10 @@ import type { HookName } from "~/orm/orm-types.ts";
 import dateUtils from "~/utils/date-utils.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InValue } from "~/orm/field/types.ts";
-import type { InCloud } from "../../cloud/in-cloud.ts";
+import type { InCloud } from "~/in-cloud.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import type { UserID } from "../../auth/types.ts";
+import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -24,8 +25,25 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     required: true,
   };
   readonly _settingsType!: SettingsType;
-  constructor(orm: any, inCloud: InCloud, name: N, user: UserID) {
-    super(orm, inCloud, name, "settings", user);
+  constructor(
+    config: {
+      orm: any;
+      inCloud: InCloud;
+      user: UserID;
+      name?: N;
+      systemGlobal?: boolean;
+    },
+  ) {
+    if (!config.name) {
+      raiseCloudException("Settings name is required");
+    }
+    super({
+      orm: config.orm,
+      inCloud: config.inCloud,
+      name: config.name,
+      type: "settings",
+      user: config.user,
+    });
   }
   get data(): Record<string, any> {
     this.assertViewPermission();

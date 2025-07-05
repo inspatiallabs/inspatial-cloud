@@ -1,18 +1,18 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
-import { raiseServerException } from "~/app/server-exception.ts";
-import type { InRequest } from "~/app/in-request.ts";
-import type { InResponse } from "~/app/in-response.ts";
-import type { InCloud } from "~/cloud/in-cloud.ts";
-import type { AuthSettings } from "../../settings-types/auth-settings/auth-settings.type.ts";
-import type { User } from "../../entry-types/user/user.type.ts";
-import { InSpatialORM } from "~/orm/mod.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { AuthSettings } from "~/auth/settings/auth-settings.type.ts";
+import type { User } from "~/auth/entries/user/user.type.ts";
+import type { InSpatialORM } from "~/orm/mod.ts";
 import {
-  GoogleAccessTokenResponse,
-  GoogleIdToken,
+  type GoogleAccessTokenResponse,
+  type GoogleIdToken,
   GoogleOAuth,
 } from "../../providers/google/accessToken.ts";
-import { AuthHandler } from "../../auth-handler.ts";
+import type { AuthHandler } from "~/auth/auth-handler.ts";
 
 const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,
@@ -126,7 +126,7 @@ async function handleGoogleLogin(args: {
     inRequest,
     inResponse,
   } = args;
-  const authHandler = inCloud.getExtension<AuthHandler>("auth");
+  const authHandler = inCloud.auth;
   if (!email || !emailVerified) {
     raiseServerException(401, "Google auth: Email not verified");
   }

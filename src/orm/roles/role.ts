@@ -28,8 +28,9 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 import type { Choice } from "~/orm/field/types.ts";
 import type { EntryConfig } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
-import { raiseCloudException } from "../../app/exeption/cloud-exception.ts";
-import type { UserID } from "../../auth/types.ts";
+
+import type { UserID } from "~/auth/types.ts";
+import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 
 export class Role {
   readonly roleName: string;
@@ -65,16 +66,27 @@ export class Role {
     );
   }
 
+  get accountEntryTypes(): Array<EntryType> {
+    return Array.from(this.entryTypes.values()).filter(
+      (et) => !et.systemGlobal,
+    );
+  }
+
   get globalSettingsTypes(): Array<SettingsType> {
     return Array.from(this.settingsTypes.values()).filter(
       (st) => st.systemGlobal,
     );
   }
 
+  get accountSettingsTypes(): Array<SettingsType> {
+    return Array.from(this.settingsTypes.values()).filter(
+      (st) => !st.systemGlobal,
+    );
+  }
+
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
   ): T {
-    console.log(`Getting entry type ${entryType} for role ${this.roleName}`);
     if (!this.entryTypes.has(entryType)) {
       raiseORMException(
         `EntryType ${entryType} does not exist in ORM`,
@@ -153,7 +165,7 @@ export class Role {
         `EntryType ${entryType} is not a valid entry type for role ${this.roleName}`,
       );
     }
-    return new entryClass(orm, orm._inCloud, entryType, user) as E;
+    return new entryClass({ orm, inCloud: orm._inCloud, user }) as E;
   }
 
   getSettingsInstance<S extends SettingsBase = GenericSettings>(
@@ -167,7 +179,12 @@ export class Role {
         `SettingsType ${settingsType} is not a valid settings type.`,
       );
     }
-    return new settingsClass(orm, orm._inCloud, settingsType, user) as S;
+    return new settingsClass({
+      orm,
+      inCloud: orm._inCloud,
+      name: settingsType,
+      user,
+    }) as S;
   }
 }
 
@@ -197,7 +214,6 @@ export class RoleManager {
     this.roles.set(role.roleName, role);
   }
   addEntryType(entryType: EntryType): void {
-    console.log(`Adding entry type ${entryType.name} to roles`);
     if (entryType.name === "user") {
       const rolesField = entryType.fields.get(
         "role",

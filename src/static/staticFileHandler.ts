@@ -1,7 +1,7 @@
-import type { InRequest } from "../app/in-request.ts";
-import type { InResponse } from "../app/in-response.ts";
-import { dateUtils } from "../utils/date-utils.ts";
-import { joinPath } from "../utils/path-utils.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import { dateUtils } from "~/utils/date-utils.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 import {
   faviconContent,
   getDefaultHome,
@@ -69,16 +69,16 @@ export class StaticFileHandler {
     }
     this.cacheTime = 0;
   }
-  async init(relativePath: string): Promise<void> {
-    await Deno.mkdir(this.staticFilesRoot, { recursive: true });
+  init(relativePath: string): void {
+    Deno.mkdirSync(this.staticFilesRoot, { recursive: true });
     try {
-      await Deno.stat(this.staticFilesRoot + "/index.html");
+      Deno.statSync(this.staticFilesRoot + "/index.html");
     } catch (e) {
       const content = getDefaultHome({
         publicPath: relativePath,
       });
       if (e instanceof Deno.errors.NotFound) {
-        await Deno.writeTextFile(
+        Deno.writeTextFileSync(
           joinPath(this.staticFilesRoot, "index.html"),
           content,
         );

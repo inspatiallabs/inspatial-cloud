@@ -1,4 +1,4 @@
-import { CloudExtension } from "~/app/cloud-extension.ts";
+import { CloudExtension } from "~/extension/cloud-extension.ts";
 import { onboardingSettings } from "./ob-settings.ts";
 import { onboardingStep } from "./ob-step.ts";
 

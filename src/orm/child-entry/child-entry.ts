@@ -15,6 +15,7 @@ import type { InSpatialDB } from "../db/inspatial-db.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
   [key: string]: any;
 }
+type BuiltInFields = "id" | "createdAt" | "updatedAt" | "parent" | "order";
 export class ChildEntry<
   T extends Record<string, unknown> = any,
 > {
@@ -85,6 +86,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   }
   async load(parentId: string): Promise<void> {
     this._data = new Map();
+    this._newData.clear();
     this._parentId = parentId;
     const children = await this._db.getRows(
       this._tableName,
@@ -110,6 +112,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       this._data.set(childRow.id, child);
     }
   }
+  /**
+   * Deletes all child records for the current parent ID.
+   */
   async clear(): Promise<void> {
     await this._db.deleteRows(this._tableName, [{
       field: "parent",
@@ -138,7 +143,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       }
     }
   }
-  update(data: Array<Record<string, unknown>>): void {
+  update(data: Array<T>): void {
     const rowsToRemove = new Set(this._data.keys());
     for (const row of data) {
       switch (typeof row.id) {
@@ -147,7 +152,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
           this.updateChild(row.id, row);
           break;
         default:
-          this.addChild(row);
+          this.add(row);
       }
     }
     for (const rowId of rowsToRemove) {
@@ -163,7 +168,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
     return child;
   }
-  updateChild(id: string, data: Record<string, unknown>): void {
+  updateChild(id: string, data: Omit<T, BuiltInFields>): void {
     const child = this.getChild(id);
     for (const [key, value] of Object.entries(data)) {
       if (this._fields.has(key)) {
@@ -171,7 +176,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       }
     }
   }
-  addChild(data: Record<string, unknown>): void {
+  add(data: Omit<T, BuiltInFields>): void {
     const child = new this._childClass(
       this._getFieldDef.bind(this),
       this._getFieldType.bind(this),
@@ -188,7 +193,11 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
     this._newData.set(this._newData.size.toString(), child);
   }
-  async save(): Promise<void> {
+  async save(withParentId?: string): Promise<void> {
+    if (withParentId) {
+      this._parentId = withParentId;
+    }
+
     for (const childEntry of this._data.values()) {
       await this.#refreshFetchedFields(childEntry);
       if (childEntry._modifiedValues.size === 0) {
@@ -196,7 +205,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       }
 
       childEntry.updatedAt = dateUtils.nowTimestamp();
-
+      if (withParentId) {
+        childEntry.parent = this._parentId;
+      }
       const data: Record<string, any> = {};
       for (const [key, value] of childEntry._modifiedValues.entries()) {
         const fieldDef = this._getFieldDef(key);
@@ -211,7 +222,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
     for (const childEntry of this._newData.values()) {
       await this.#refreshFetchedFields(childEntry);
-
+      if (withParentId) {
+        childEntry.parent = this._parentId;
+      }
       childEntry.createdAt = dateUtils.nowTimestamp();
       childEntry.updatedAt = dateUtils.nowTimestamp();
       childEntry.id = ulid();

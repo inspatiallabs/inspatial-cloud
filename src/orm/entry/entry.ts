@@ -6,9 +6,10 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import ulid from "~/orm/utils/ulid.ts";
 
-import type { InCloud } from "../../cloud/in-cloud.ts";
-import type { EntryPermission } from "../roles/entry-permissions.ts";
-import type { UserID } from "../../auth/types.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { UserID } from "~/auth/types.ts";
+import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
+import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 
 export class Entry<
   N extends string = string,
@@ -51,8 +52,26 @@ export class Entry<
     };
   }
 
-  constructor(orm: InSpatialORM, inCloud: InCloud, name: N, user: UserID) {
-    super(orm, inCloud, name, "entry", user);
+  constructor(
+    config: {
+      systemGlobal?: boolean;
+      orm: InSpatialORM;
+      inCloud: InCloud;
+      name?: N;
+      user: UserID;
+    },
+  ) {
+    if (!config.name) {
+      raiseCloudException("Entry name is required");
+    }
+    super({
+      inCloud: config.inCloud,
+      name: config.name,
+      orm: config.orm,
+      type: "entry",
+      user: config.user,
+      systemGlobal: config.systemGlobal,
+    });
   }
   /**
    * Creates a new instance of this entry type, and sets all the fields to their default values.
@@ -145,6 +164,8 @@ export class Entry<
   async delete(): Promise<boolean> {
     this.assertDeletePermission();
     await this.#beforeDelete();
+    // Delete all children first
+    await this.deleteChildren();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
     await this.#afterDelete();
     return true;
@@ -253,6 +274,8 @@ export class Entry<
     if (!result?.id) {
       return;
     }
+
+    await this.saveChildren(result.id);
     await this.load(result.id);
 
     await this.#afterCreate();

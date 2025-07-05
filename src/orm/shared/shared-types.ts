@@ -7,6 +7,7 @@ import type {
 export interface BaseTypeInfo {
   name: string;
   description: string;
+  systemGlobal: boolean;
   extension?: string;
   label: string;
   fields: Array<InField>;
