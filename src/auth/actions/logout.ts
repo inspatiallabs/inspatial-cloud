@@ -6,7 +6,8 @@ const logout = new CloudAPIAction("logout", {
   async run({ inCloud, orm, inRequest, inResponse }) {
     const sessionId = inRequest.context.get<string>("userSession");
     if (sessionId) {
-      const userSession = await orm.findEntry("userSession", [{
+      // use InCloud.orm to access entries that require admin privileges
+      const userSession = await inCloud.orm.findEntry("userSession", [{
         field: "sessionId",
         op: "=",
         value: sessionId,

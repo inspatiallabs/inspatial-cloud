@@ -11,6 +11,7 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 export class BaseType<N extends string = string> {
   name: N;
   label: string;
+  extension: string;
   dir?: string;
   systemGlobal: boolean;
   description: string;
@@ -32,6 +33,7 @@ export class BaseType<N extends string = string> {
       children?: Array<ChildEntryType<any>>;
     },
   ) {
+    this.extension = "";
     this.name = this.#sanitizeName(name);
     this.systemGlobal = config.systemGlobal || false;
     let label: string | undefined = config.label;
@@ -63,6 +65,7 @@ export class BaseType<N extends string = string> {
     this.#addFieldGroups(config.fieldGroups);
     this.#baseInfo = {
       name: this.name,
+      extension: this.extension,
       label: this.label,
       systemGlobal: this.systemGlobal,
       description: this.description,
@@ -101,6 +104,7 @@ export class BaseType<N extends string = string> {
       }
       child.config.parentEntryType = this.name;
       child.generateTableName();
+      child.systemGlobal = this.systemGlobal;
       this.children.set(child.name, child);
     }
     this.#baseInfo.children = Array.from(this.children.values()).map(

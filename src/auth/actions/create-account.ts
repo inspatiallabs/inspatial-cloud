@@ -5,6 +5,7 @@ import type { Account } from "~/auth/entries/account/account.type.ts";
 
 export const createAccount = new CloudAPIAction("createAccount", {
   label: "Create a New Account",
+  authRequired: false,
   async run({ orm, params }) {
     const { firstName, lastName, email, password } = params;
     const existingUser = await orm.findEntry<User>("user", [{

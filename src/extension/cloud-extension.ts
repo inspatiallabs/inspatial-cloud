@@ -144,6 +144,7 @@ export class CloudExtension<
       },
     };
     for (const entryType of this.entryTypes) {
+      entryType.extension = info.key;
       entryType.config.extension = extensionInfo;
     }
 

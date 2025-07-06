@@ -99,18 +99,13 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     this.#loadTargetColumns();
     this.#loadTargetIndexes();
     await this.#loadExistingIndexes();
-    this.#validateIndexes();
-    if (this.migrationPlan.table.create) {
-      this.#checkForColumnsToCreate();
-
-      return this.migrationPlan;
+    if (!this.migrationPlan.table.create) {
+      await this.#loadExistingColumns();
+      await this.#loadExistingConstraints();
+      this.#checkForColumnsToDrop();
+      this.#checkForColumnsToModify();
     }
-    await this.#loadExistingColumns();
-    await this.#loadExistingConstraints();
-
-    this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
-    this.#checkForColumnsToModify();
 
     if (!this.isChild) {
       await this.loadExistingChildren();

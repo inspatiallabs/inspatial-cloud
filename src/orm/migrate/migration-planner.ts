@@ -6,7 +6,7 @@ import { SettingsTypeMigrator } from "~/orm/migrate/settings-type/settings-type-
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
 import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
-import { InSpatialORM } from "../inspatial-orm.ts";
+import type { InSpatialORM } from "../inspatial-orm.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;

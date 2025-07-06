@@ -13,6 +13,5 @@ export class InCloudMigrator extends InCloud {
         orm: this.orm,
       });
     }
-    console.log(result);
   }
 }

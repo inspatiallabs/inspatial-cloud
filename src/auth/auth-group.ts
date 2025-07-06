@@ -11,7 +11,7 @@ import googleTokenLogin from "./actions/google/google-token-login.ts";
 import { createAccount } from "./actions/create-account.ts";
 
 const authGroup = new CloudAPIGroup("auth", {
-  description: "Authentication actions",
+  description: "User, Account and Authentication related actions",
   label: "Authentication",
   actions: [
     login,

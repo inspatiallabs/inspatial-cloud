@@ -29,13 +29,13 @@ import {
   settingsGroup,
 } from "~/orm/api-actions/groups.ts";
 import { authLifecycle } from "../auth/auth-lifecycle.ts";
-import checkForUser from "../auth/migrate/checkForUser.ts";
 import { authMiddleware } from "../auth/auth-middleware.ts";
 import { userEntry } from "~/auth/entries/user/user-entry.ts";
 import { userSessionEntry } from "~/auth/entries/user-session/user-session-entry.ts";
 import { account } from "~/auth/entries/account/account.ts";
 import { authSettings } from "~/auth/settings/auth-settings.ts";
 import authGroup from "~/auth/auth-group.ts";
+import { initAdminAccount } from "../auth/migrate/init-admin-account.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -69,16 +69,16 @@ export const coreExtension = new CloudExtension("core", {
     setup: [authLifecycle],
   },
   afterGlobalMigrate: {
-    name: "checkForUser",
+    name: "initAdminAccount",
     description: "Check for the existence of a system user",
-    async action({ orm }) {
-      await checkForUser(orm);
+    async action({ inCloud, orm }) {
+      await initAdminAccount(inCloud, orm);
     },
   },
   roles: [{
-    roleName: "basic",
-    label: "Basic User",
-    description: "The default limited role assigned to new users",
+    roleName: "accountOwner",
+    label: "Account Owner",
+    description: "The default role assigned to a user",
     entryTypes: {
       cloudFile: {
         view: false,

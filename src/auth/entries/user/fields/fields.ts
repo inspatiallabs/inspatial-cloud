@@ -29,6 +29,7 @@ export const userFields = [{
   key: "role",
   label: "Role",
   type: "ChoicesField",
+  defaultValue: "accountOwner",
   choices: [],
 }, {
   key: "profilePicture",

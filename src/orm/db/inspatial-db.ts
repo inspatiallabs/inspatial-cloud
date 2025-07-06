@@ -143,7 +143,10 @@ export class InSpatialDB {
   async query<T extends Record<string, any> = Record<string, any>>(
     query: string,
   ): Promise<QueryResultFormatted<T>> {
-    this.debugMode && inLog.debug(`Query: ${query}`);
+    this.debugMode && inLog.debug(`Query: ${query}`, {
+      compact: true,
+      subject: "DB",
+    });
     const result = await this.pool.query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
     return {

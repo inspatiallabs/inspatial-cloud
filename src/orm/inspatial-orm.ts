@@ -135,6 +135,7 @@ export class InSpatialORM {
     this.rootPath = `${this.rootPath}/.inspatial`;
     this.roles = options.inCloud.roles;
     const adminRole = this.roles.getRole("systemAdmin");
+    const basicRole = this.roles.getRole("accountOwner");
 
     this._inCloud = options.inCloud;
     this.fieldTypes = new Map();
@@ -153,6 +154,14 @@ export class InSpatialORM {
         modify: true,
         delete: true,
       });
+      if (entryType.extension !== "core") {
+        basicRole.entryPermissions.set(entryType.name, {
+          create: true,
+          view: true,
+          modify: true,
+          delete: true,
+        });
+      }
       this.#addEntryType(entryType);
     }
     for (const settingsType of options.settings) {
