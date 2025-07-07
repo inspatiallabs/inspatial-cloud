@@ -1,12 +1,12 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 import type { User } from "~/auth/entries/user/_user.type.ts";
-import type { Account } from "~/auth/entries/account/account.type.ts";
+import type { Account } from "~/auth/entries/account/_account.type.ts";
 
 export const createAccount = new CloudAPIAction("createAccount", {
   label: "Create a New Account",
   authRequired: false,
-  async run({ orm, params }) {
+  async run({ inCloud, orm, params, inRequest, inResponse }) {
     const { firstName, lastName, email, password } = params;
     const existingUser = await orm.findEntry<User>("user", [{
       field: "email",
@@ -29,7 +29,7 @@ export const createAccount = new CloudAPIAction("createAccount", {
     const account = await orm.createEntry<Account>("account", {
       users: [{ user: user.id }],
     });
-    return account.data;
+    return await inCloud.auth.createUserSession(user, inRequest, inResponse);
   },
   params: [{
     key: "firstName",

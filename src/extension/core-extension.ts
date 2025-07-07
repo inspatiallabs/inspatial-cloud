@@ -40,6 +40,7 @@ import { emailGroup } from "../email/actions/email-group.ts";
 import { emailSettings } from "../email/settings/emailSettings.ts";
 import { emailEntry } from "../email/entries/email.ts";
 import { emailAccountEntry } from "../email/entries/emailAccount.ts";
+import { ServerException } from "../serve/server-exception.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -183,6 +184,16 @@ export const coreExtension = new CloudExtension("core", {
           status: error.responseCode || 500,
           statusText: error.subject || "Internal Server Error",
         };
+      }
+      if (error instanceof ServerException) {
+        switch (error.status) {
+          case 401:
+            return {
+              clientMessage: error.message,
+              status: 401,
+              statusText: "Unauthorized",
+            };
+        }
       }
     },
   }],

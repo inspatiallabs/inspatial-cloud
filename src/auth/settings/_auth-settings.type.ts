@@ -3,12 +3,6 @@ import type { SettingsBase } from "@inspatial/cloud/types";
 export interface AuthSettings extends SettingsBase {
   _name: "authSettings";
   /**
-   * **Enabled** (BooleanField)
-   * @description Enable or disable authentication
-   * @type {boolean}
-   */
-  enabled?: boolean;
-  /**
    * **Google Client ID** (TextField)
    * @description The client ID for Google authentication.
    * @type {string}

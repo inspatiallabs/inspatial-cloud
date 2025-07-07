@@ -32,11 +32,11 @@ export function buildSettings(
     override _childrenClasses = childrenClasses;
     constructor(config: { orm: any; inCloud: InCloud; user: UserID }) {
       super({
+        systemGlobal: settingsType.systemGlobal,
         orm: config.orm,
         inCloud: config.inCloud,
         name: settingsType.name,
         user: config.user,
-        systemGlobal: settingsType.systemGlobal,
       });
       this._setupChildren();
     }

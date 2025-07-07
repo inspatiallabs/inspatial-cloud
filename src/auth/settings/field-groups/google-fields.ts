@@ -18,5 +18,5 @@ export const googleFields: Array<InField> = [{
   label: "Hostname",
   description:
     "The hostname for the server used to construct the redirect URL.",
-  defaultValue: "https://localhost:8000",
+  defaultValue: "http://localhost:8000",
 }];

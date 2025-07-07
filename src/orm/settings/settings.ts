@@ -43,6 +43,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       name: config.name,
       type: "settings",
       user: config.user,
+      systemGlobal: config.systemGlobal,
     });
   }
   get data(): Record<string, any> {

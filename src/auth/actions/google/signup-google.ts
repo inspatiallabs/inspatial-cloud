@@ -1,17 +1,17 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
-import { raiseServerException } from "~/serve/server-exception.ts";
-import { generateId } from "~/utils/mod.ts";
-import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
+import { CloudAPIAction } from "@inspatial/cloud";
+import { raiseServerException } from "../../../serve/server-exception.ts";
+import { generateId } from "../../../utils/misc.ts";
+import type { AuthSettings } from "../../settings/_auth-settings.type.ts";
 
-export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
+export const signupWithGoogle = new CloudAPIAction("signupWithGoogle", {
   authRequired: false,
-  description: "Redirect to Google OAuth2 login page",
+  description: "Sign up with Google",
   async run({ orm, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,
       csrfToken,
-      type: "login",
+      type: "signup",
     });
     const authSettings = await orm.getSettings<AuthSettings>(
       "authSettings",
@@ -23,7 +23,6 @@ export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
         "Google auth: Client ID not set in settings",
       );
     }
-
     const redirectUri = `${
       authSettings.hostname || inRequest.fullHost
     }/api?group=auth&action=googleAuthCallback`;
@@ -40,7 +39,6 @@ export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
     const nonce = generateId(30);
     url.searchParams.set("nonce", nonce);
     url.searchParams.set("state", state);
-
     return {
       redirect: url.toString(),
     };

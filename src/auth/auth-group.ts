@@ -5,7 +5,8 @@ import login from "./actions/login.ts";
 import logout from "./actions/logout.ts";
 import authCheck from "./actions/auth-check.ts";
 import registerUser from "./actions/register-user.ts";
-import signInWithGoogle from "./actions/google/login-google.ts";
+import { signInWithGoogle } from "./actions/google/login-google.ts";
+import { signupWithGoogle } from "./actions/google/signup-google.ts";
 import googleAuthCallback from "./actions/google/google-auth-callback.ts";
 import googleTokenLogin from "./actions/google/google-token-login.ts";
 import { createAccount } from "./actions/create-account.ts";
@@ -21,6 +22,7 @@ const authGroup = new CloudAPIGroup("auth", {
     setNewPassword,
     registerUser,
     signInWithGoogle,
+    signupWithGoogle,
     googleAuthCallback,
     googleTokenLogin,
     createAccount,
