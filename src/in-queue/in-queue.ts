@@ -1,11 +1,13 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { generateId } from "~/utils/misc.ts";
 import { InCloud } from "~/in-cloud.ts";
-import type { InTask } from "./entry-types/in-task/in-task.type.ts";
+import type { TaskInfo } from "./types.ts";
+import { raiseCloudException } from "../serve/exeption/cloud-exception.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
   isRunning: boolean = false;
+  queue: TaskInfo[] = [];
   constructor(appName: string, config: CloudConfig) {
     super(appName, config, "queue");
   }
@@ -15,8 +17,44 @@ export class InQueue extends InCloud {
     if (port === undefined) {
       throw new Error("Queue port is not defined in the configuration.");
     }
-
+    await this.loadTasks();
     this.#start(port);
+  }
+  addTask(task: TaskInfo) {
+    this.queue.push(task);
+    this.#processQueue();
+  }
+  async #processQueue() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    await this.#runNextTask();
+  }
+  async #runNextTask() {
+    const taskInfo = this.getNextTask();
+    if (!taskInfo) {
+      this.isRunning = false;
+      return;
+    }
+    switch (taskInfo.systemGlobal) {
+      case true:
+        {
+          const task = await this.orm.getEntry("inTaskGlobal", taskInfo.id);
+          await task.runAction("runTask");
+        }
+        break;
+      default: {
+        if (!taskInfo.account) {
+          raiseCloudException(`task ${taskInfo.id} has no account`);
+        }
+        const orm = this.orm.withAccount(taskInfo.account);
+        const task = await orm.getEntry("inTask", taskInfo.id);
+        await task.runAction("runTask");
+      }
+    }
+    await this.#runNextTask();
+  }
+  getNextTask(): TaskInfo | undefined {
+    return this.queue.shift();
   }
   broadcast(message: Record<string, any>): void {
     for (const client of this.clients.values()) {
@@ -26,26 +64,73 @@ export class InQueue extends InCloud {
       client.send(JSON.stringify(message));
     }
   }
-
-  async checkAndRunTasks() {
-    this.isRunning = true;
-    const taskResults = await this.orm.getEntryList<InTask>("inTask", {
-      filter: {
-        status: "queued",
-      },
+  async loadTasks() {
+    // load global tasks
+    const { rows: globalTasks } = await this.orm.getEntryList("inTaskGlobal", {
       columns: ["id"],
+      filter: [{
+        field: "status",
+        op: "=",
+        value: "queued",
+      }],
+      limit: 0,
     });
-    for (const { id } of taskResults.rows) {
-      const task = await this.orm.getEntry<InTask>("inTask", id);
-      await task.runAction("runTask");
+    for (const task of globalTasks) {
+      this.queue.push({
+        id: task.id as string,
+        systemGlobal: true,
+        account: "cloud_global",
+      });
     }
-    this.isRunning = false;
-    setTimeout(() => {
-      this.checkAndRunTasks();
-    }, 10000);
+
+    // load account tasks
+    const { rows: accounts } = await this.orm.getEntryList("account", {
+      columns: ["id"],
+      limit: 0,
+    });
+
+    for (const account of accounts) {
+      const orm = this.orm.withAccount(account.id as string);
+
+      const { rows: accountTasks } = await orm.getEntryList("inTask", {
+        columns: ["id"],
+        filter: [{
+          field: "status",
+          op: "=",
+          value: "queued",
+        }],
+        limit: 0,
+      });
+      for (const task of accountTasks) {
+        this.queue.push({
+          id: task.id as string,
+          systemGlobal: false,
+          account: account.id as string,
+        });
+      }
+    }
+
+    // load system tasks
+    const { rows: systemTasks } = await this.orm.getEntryList("inTaskGlobal", {
+      columns: ["id"],
+      filter: [{
+        field: "status",
+        op: "=",
+        value: "queued",
+      }],
+      limit: 0,
+    });
+    for (const task of systemTasks) {
+      this.queue.push({
+        id: task.id as string,
+        systemGlobal: true,
+        account: "cloud_global",
+      });
+    }
   }
   startScheduler() {
-    this.checkAndRunTasks();
+    // this.checkAndRunTasks();
+    this.#processQueue();
   }
   #start(port: number) {
     Deno.serve({
@@ -66,7 +151,12 @@ export class InQueue extends InCloud {
       this.clients.set(clientId, socket);
     });
     socket.addEventListener("message", (event) => {
-      this.handleMessage(clientId, event.data);
+      try {
+        const data = JSON.parse(event.data);
+        this.handleMessage(clientId, data);
+      } catch (error) {
+        this.inLog.error(error);
+      }
     });
     socket.addEventListener("close", () => {
       this.clients.delete(clientId);
@@ -75,7 +165,7 @@ export class InQueue extends InCloud {
       this.clients.delete(clientId);
     });
   }
-  handleMessage(_clientId: string, _data: string) {
-    // Handle the message as needed
+  handleMessage(_clientId: string, task: TaskInfo) {
+    this.addTask(task);
   }
 }

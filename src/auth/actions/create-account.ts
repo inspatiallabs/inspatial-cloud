@@ -1,6 +1,6 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
-import type { User } from "~/auth/entries/user/user.type.ts";
+import type { User } from "~/auth/entries/user/_user.type.ts";
 import type { Account } from "~/auth/entries/account/account.type.ts";
 
 export const createAccount = new CloudAPIAction("createAccount", {

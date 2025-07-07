@@ -95,5 +95,12 @@ export const runSettingsAction = new CloudAPIAction("runSettingsAction", {
     label: "Data",
     description: "The data to run the action with",
     required: false,
+  }, {
+    key: "enqueue",
+    type: "BooleanField",
+    label: "Enqueue",
+    description:
+      "Whether to send the action to the queue instead of running it immediately",
+    required: false,
   }],
 });

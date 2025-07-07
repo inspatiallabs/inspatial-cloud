@@ -1,5 +1,5 @@
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
-import type { User } from "../user.type.ts";
+import type { User } from "../_user.type.ts";
 import { hashPassword } from "../../../security.ts";
 
 export const validatePassword: EntryActionDefinition<User> = {

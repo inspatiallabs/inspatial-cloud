@@ -5,13 +5,30 @@ export class InCloudMigrator extends InCloud {
     super(appName, config, "migrator");
   }
   async migrate(): Promise<void> {
-    // const schemas = await this.orm.db.getSchemaList();
-    const result = await this.orm.migrateGlobal();
+    await this.#migrateGlobal();
+    await this.#migrateAccounts();
+  }
+
+  async #migrateGlobal() {
+    await this.orm.migrateGlobal();
     for (const migrateAction of this.extensionManager.afterMigrate.global) {
       await migrateAction.action({
         inCloud: this,
         orm: this.orm,
       });
+    }
+  }
+
+  async #migrateAccounts() {
+    const { rows: accounts } = await this.orm.getEntryList(
+      "account",
+      {
+        columns: ["id"],
+        limit: 0,
+      },
+    );
+    for (const { id } of accounts) {
+      await this.orm.migrate(id);
     }
   }
 }

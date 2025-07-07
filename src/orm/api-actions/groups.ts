@@ -12,8 +12,6 @@ import {
 import {
   entryTypesInfo,
   generateInterfaces,
-  migrateAction,
-  planMigrationAction,
   settingsTypesInfo,
 } from "./orm-group.ts";
 import {
@@ -41,8 +39,6 @@ export const ormGroup = new CloudAPIGroup("orm", {
   description: "ORM related actions",
   label: "ORM",
   actions: [
-    planMigrationAction,
-    migrateAction,
     entryTypesInfo,
     settingsTypesInfo,
     generateInterfaces,

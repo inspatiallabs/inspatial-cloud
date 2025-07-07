@@ -1,5 +1,5 @@
 import { EntryType } from "~/orm/entry/entry-type.ts";
-import type { User } from "./user.type.ts";
+import type { User } from "./_user.type.ts";
 import { findAccounts } from "./actions/find-accounts.ts";
 import { userFields } from "./fields/fields.ts";
 import { googleFields } from "./fields/google-fields.ts";

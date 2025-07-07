@@ -16,7 +16,7 @@ export async function generateEntryInterface(
     return;
   }
 
-  const fileName = `${convertString(entryType.name, "kebab", true)}.type.ts`;
+  const fileName = `_${convertString(entryType.name, "kebab", true)}.type.ts`;
   const filePath = `${entryType.dir!}/${fileName}`; //`${entriesPath}/${fileName}`;
 
   const outLines: string[] = [
@@ -54,7 +54,9 @@ export async function generateSettingsInterfaces(
   }
   const settingsPath = settingsType.dir;
 
-  const fileName = `${convertString(settingsType.name, "kebab", true)}.type.ts`;
+  const fileName = `_${
+    convertString(settingsType.name, "kebab", true)
+  }.type.ts`;
   const filePath = `${settingsPath}/${fileName}`;
 
   const outLines: string[] = [

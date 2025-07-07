@@ -2,8 +2,8 @@ import type { SessionData } from "~/auth/types.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import type { InResponse } from "~/serve/in-response.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { UserSession } from "./entries/user-session/user-session.type.ts";
-import type { User } from "./entries/user/user.type.ts";
+import type { UserSession } from "./entries/user-session/_user-session.type.ts";
+import type { User } from "./entries/user/_user.type.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 export class AuthHandler {

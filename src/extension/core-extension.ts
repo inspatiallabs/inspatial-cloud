@@ -36,6 +36,10 @@ import { account } from "~/auth/entries/account/account.ts";
 import { authSettings } from "~/auth/settings/auth-settings.ts";
 import authGroup from "~/auth/auth-group.ts";
 import { initAdminAccount } from "../auth/migrate/init-admin-account.ts";
+import { emailGroup } from "../email/actions/email-group.ts";
+import { emailSettings } from "../email/settings/emailSettings.ts";
+import { emailEntry } from "../email/entries/email.ts";
+import { emailAccountEntry } from "../email/entries/emailAccount.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -52,8 +56,9 @@ export const coreExtension = new CloudExtension("core", {
     settingsGroup,
     devActions,
     filesGroup,
+    emailGroup,
   ],
-  settingsTypes: [systemSettings, authSettings],
+  settingsTypes: [systemSettings, authSettings, emailSettings],
   entryTypes: [
     userEntry,
     userSessionEntry,
@@ -62,6 +67,8 @@ export const coreExtension = new CloudExtension("core", {
     inTaskGlobal,
     cloudFile,
     globalCloudFile,
+    emailEntry,
+    emailAccountEntry,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, staticFilesHandler],

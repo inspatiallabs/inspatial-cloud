@@ -250,7 +250,7 @@ export class InSpatialDB {
   async getTableComment(tableName: string): Promise<string> {
     tableName = toSnake(tableName);
     const query =
-      `SELECT obj_description('${this.schema}.${tableName}'::regclass, 'pg_class') as comment`;
+      `SELECT obj_description('"${this.schema}".${tableName}'::regclass, 'pg_class') as comment`;
     const result = await this.query<{ comment: string }>(query);
     return result.rows[0].comment;
   }
@@ -475,11 +475,11 @@ export class InSpatialDB {
       query += ` ${order}`;
     }
 
-    if (options.limit) {
+    if (options.limit !== undefined && options.limit > 0) {
       query += ` LIMIT ${options.limit}`;
     }
 
-    if (options.offset) {
+    if (options.offset !== undefined && options.offset > 0) {
       query += ` OFFSET ${options.offset}`;
     }
     const result = await this.query<T>(query);

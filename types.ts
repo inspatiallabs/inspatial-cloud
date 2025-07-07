@@ -27,12 +27,12 @@ export type { SessionData } from "~/auth/types.ts";
 
 export type ChildList<T extends Record<string, unknown>> = ChildEntryList<T>;
 
-export type { User } from "~/auth/entries/user/user.type.ts";
-export type { UserSession } from "~/auth/entries/user-session/user-session.type.ts";
-export type { AuthSettings } from "~/auth/settings/auth-settings.type.ts";
-export type { CloudFile } from "~/files/entries/cloud-file.type.ts";
-export type { EmailSettings } from "~/email/settings/email-settings.type.ts";
-export type { Email } from "~/email/entries/email.type.ts";
-export type { EmailAccount } from "~/email/entries/email-account.type.ts";
-export type { InTask } from "~/in-queue/entry-types/in-task/in-task.type.ts";
-export type { SystemSettings } from "~/extension/settings/system-settings.type.ts";
+export type { User } from "~/auth/entries/user/_user.type.ts";
+export type { UserSession } from "~/auth/entries/user-session/_user-session.type.ts";
+export type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
+export type { CloudFile } from "~/files/entries/_cloud-file.type.ts";
+export type { EmailSettings } from "~/email/settings/_email-settings.type.ts";
+export type { Email } from "~/email/entries/_email.type.ts";
+export type { EmailAccount } from "~/email/entries/_email-account.type.ts";
+export type { InTask } from "~/in-queue/entry-types/in-task/_in-task.type.ts";
+export type { SystemSettings } from "~/extension/settings/_system-settings.type.ts";

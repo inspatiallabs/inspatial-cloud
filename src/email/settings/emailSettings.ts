@@ -1,11 +1,12 @@
 import { SettingsType } from "~/orm/settings/settings-type.ts";
-import type { EmailSettings } from "./email-settings.type.ts";
+import type { EmailSettings } from "./_email-settings.type.ts";
 
 export const emailSettings: SettingsType<EmailSettings> = new SettingsType<
   EmailSettings
 >("emailSettings", {
   label: "Email Settings",
   description: "Settings for sending emails",
+  systemGlobal: true,
   fields: [
     {
       key: "redirectFinal",

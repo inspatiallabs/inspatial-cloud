@@ -1,12 +1,13 @@
 import { raiseServerException } from "~/serve/server-exception.ts";
 import { EntryType } from "~/orm/entry/entry-type.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
-import type { EmailAccount } from "./email-account.type.ts";
-import type { AuthSettings } from "~/auth/settings/auth-settings.type.ts";
+import type { EmailAccount } from "./_email-account.type.ts";
+import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
 
 export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
   label: "Email Account",
   description: "An email account that can be used to send and receive emails",
+  systemGlobal: true,
   titleField: "emailAccount",
   defaultListFields: ["senderName", "useGmailOauth", "authStatus"],
   fieldGroups: [

@@ -4,8 +4,8 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import type { InResponse } from "~/serve/in-response.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { AuthSettings } from "~/auth/settings/auth-settings.type.ts";
-import type { User } from "~/auth/entries/user/user.type.ts";
+import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
+import type { User } from "~/auth/entries/user/_user.type.ts";
 import type { InSpatialORM } from "~/orm/mod.ts";
 import {
   type GoogleAccessTokenResponse,

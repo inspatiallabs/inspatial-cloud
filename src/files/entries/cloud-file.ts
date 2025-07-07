@@ -1,7 +1,7 @@
 import { EntryType } from "@inspatial/cloud";
 
 import { convertString } from "~/utils/mod.ts";
-import type { CloudFile } from "./cloud-file.type.ts";
+import type { CloudFile } from "./_cloud-file.type.ts";
 import type { EntryConfig } from "~/orm/entry/types.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 const config = {

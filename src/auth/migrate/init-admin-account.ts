@@ -1,6 +1,6 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { User } from "../entries/user/user.type.ts";
+import type { User } from "../entries/user/_user.type.ts";
 import { inLog } from "#inLog";
 import { center } from "../../terminal/format-utils.ts";
 

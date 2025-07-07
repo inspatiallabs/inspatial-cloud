@@ -8,7 +8,7 @@ import { CloudDB } from "~/orm/db/postgres/in-pg/cloud-db.ts";
 import { InQueue } from "~/in-queue/in-queue.ts";
 import { InCloudInit } from "~/runner/cloud-init.ts";
 import type { CloudRunnerMode } from "#cli/types.ts";
-import { InCloudMigrator } from "~/runner/cloud-migrator.ts";
+import { InCloudMigrator } from "~/orm/migrate/cloud-migrator.ts";
 import { CloudExtension } from "~/extension/cloud-extension.ts";
 
 class InCloudRunner {

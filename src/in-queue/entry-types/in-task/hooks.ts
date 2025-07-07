@@ -3,8 +3,8 @@ import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { InTask } from "./in-task.type.ts";
-import type { InTaskGlobal } from "./in-task-global.type.ts";
+import type { InTask } from "./_in-task.type.ts";
+import type { InTaskGlobal } from "./_in-task-global.type.ts";
 
 export const validateTask: EntryHookDefinition<any> = {
   name: "validate entry or settings",

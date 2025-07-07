@@ -5,12 +5,13 @@ import type { SMTPOptions } from "../smtp/smtpTypes.ts";
 import { inLog } from "#inLog";
 import { SMTPClient } from "../smtp/smtpClient.ts";
 
-import type { EmailSettings } from "~/email/settings/email-settings.type.ts";
-import type { Email } from "./email.type.ts";
+import type { EmailSettings } from "~/email/settings/_email-settings.type.ts";
+import type { Email } from "./_email.type.ts";
 
 export const emailEntry = new EntryType<Email>("email", {
   label: "Email",
   description: "An email",
+  systemGlobal: true,
   fieldGroups: [],
   defaultListFields: [
     "emailAccount",

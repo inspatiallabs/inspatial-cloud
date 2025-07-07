@@ -3,8 +3,8 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 import { dateUtils } from "~/utils/date-utils.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { InTask } from "./in-task.type.ts";
-import type { InTaskGlobal } from "./in-task-global.type.ts";
+import type { InTask } from "./_in-task.type.ts";
+import type { InTaskGlobal } from "./_in-task-global.type.ts";
 
 export const runTask: EntryActionDefinition<any> = {
   key: "runTask",
@@ -38,7 +38,10 @@ export const runTask: EntryActionDefinition<any> = {
           results = await runAppTask(inTask, inCloud);
           break;
       }
-      inTask.resultData = results;
+
+      inTask.resultData = {
+        result: results,
+      };
       inTask.status = "completed";
     } catch (e) {
       let data = {};

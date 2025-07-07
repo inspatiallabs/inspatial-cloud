@@ -19,7 +19,6 @@ import type {
   SettingsBase,
 } from "~/orm/settings/settings-base.ts";
 import { MigrationPlanner } from "~/orm/migrate/migration-planner.ts";
-import type { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import {
   generateEntryInterface,
   generateSettingsInterfaces,
@@ -71,6 +70,13 @@ export class InSpatialORM {
     const clone = Object.create(this);
     clone._user = user;
     clone.db = this.db.withSchema(user.accountId);
+    return clone;
+  }
+
+  withAccount(accountId: string): InSpatialORM {
+    const clone = Object.create(this);
+    clone._user = this.systemAdminUser;
+    clone.db = this.db.withSchema(accountId);
     return clone;
   }
   /**
@@ -353,7 +359,9 @@ export class InSpatialORM {
   /**
    * Gets a list of entries for a specific EntryType.
    */
-  async getEntryList<E extends EntryBase = GenericEntry>(
+  async getEntryList<
+    E extends EntryBase = GenericEntry,
+  >(
     entryType: E["_name"],
     options?: ListOptions<E>,
   ): Promise<GetListResponse<E>> {
@@ -503,6 +511,9 @@ export class InSpatialORM {
     return await settings.getValue(field);
   }
 
+  /**
+   * Updates the value of a specific field for multiple entries. This is used internally by the ORM to update the title value of connection fields.
+   */
   async batchUpdateField(
     entryType: string,
     field: string,
@@ -533,9 +544,13 @@ export class InSpatialORM {
   }
 
   /**
-   * Makes the necessary changes to the database based on the output of the planMigration method.
+   * Synchronizes the ORM models with the database based on the output of the planMigration method.
+   * The schema passed to this method is the account ID of the account/tenant to be migrated.
    */
-  async migrate(schema: string): Promise<Array<string>> {
+  async migrate(schema: IDValue): Promise<Array<string>> {
+    if (typeof schema !== "string") {
+      schema = schema.toString();
+    }
     const adminRole = this.roles.getRole("systemAdmin");
     const migrationPlanner = new MigrationPlanner({
       entryTypes: adminRole.accountEntryTypes,
@@ -548,9 +563,10 @@ export class InSpatialORM {
     });
     return await migrationPlanner.migrate();
   }
-
+  /**
+   * Synchronizes the systemGlobal ORM models with the shared database schema `cloud_global`
+   */
   async migrateGlobal(): Promise<Array<string>> {
-    inLog.info("Migrating global database...");
     const adminRole = this.roles.getRole("systemAdmin");
 
     const migrationPlanner = new MigrationPlanner({
@@ -562,26 +578,7 @@ export class InSpatialORM {
         inLog.info(message);
       },
     });
-
     return await migrationPlanner.migrate();
-  }
-  /**
-   * Plans a migration for the ORM. This will return the details of the changes that will be made to the database.
-   * This method does not make any changes to the database.
-   */
-  async planMigration(): Promise<MigrationPlan> {
-    inLog.info("Planning migration...");
-    const adminRole = this.roles.getRole("systemAdmin");
-    const migrationPlanner = new MigrationPlanner({
-      entryTypes: Array.from(adminRole.entryTypes.values()),
-      settingsTypes: Array.from(adminRole.settingsTypes.values()),
-      orm: this,
-      db: this.db,
-      onOutput: (message) => {
-        inLog.info(message);
-      },
-    });
-    return await migrationPlanner.createMigrationPlan();
   }
   /**
    * Generates TypeScript interfaces for all EntryTypes in the ORM.

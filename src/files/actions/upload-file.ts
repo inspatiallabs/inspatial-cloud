@@ -1,5 +1,5 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
-import type { CloudFile } from "../entries/cloud-file.type.ts";
+import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 
 export const uploadFile = new CloudAPIAction("upload", {

@@ -39,6 +39,7 @@ import { AuthHandler } from "./auth/auth-handler.ts";
 import { apiPathHandler } from "./api/api-handler.ts";
 import { staticFilesHandler } from "./static/staticPathHandler.ts";
 import { raiseCloudException } from "./serve/exeption/cloud-exception.ts";
+import { InQueueClient } from "./in-queue/in-queue-client.ts";
 
 export class InCloud {
   appName: string;
@@ -59,6 +60,7 @@ export class InCloud {
   auth: AuthHandler;
   inLive: InLiveHandler;
   inCache: InCache;
+  inQueue: InQueueClient;
   /**
    * The absolute path to the cloud root directory.
    */
@@ -88,6 +90,7 @@ export class InCloud {
       label: "System Admin",
     });
     this.auth = new AuthHandler(this);
+    this.inQueue = new InQueueClient();
   }
   init() {
     // Extension manager initialization
@@ -96,7 +99,7 @@ export class InCloud {
 
     // InLog initialization
     const config = this.getExtensionConfig("core");
-
+    this.inQueue.port = config.queuePort;
     this.inLog.setConfig({
       logLevel: config.logLevel as LogLevel,
       logTrace: config.logTrace,
@@ -148,12 +151,12 @@ export class InCloud {
   async run(): Promise<void> {
     this.init();
     await this.boot();
-    const brokerPort = this.getExtensionConfigValue(
+    const { brokerPort, queuePort } = this.getExtensionConfig(
       "core",
-      "brokerPort",
     );
     this.inLive.init(brokerPort);
     this.inCache.init(brokerPort);
+    this.inQueue.init(queuePort);
   }
   #initExtensions() {
     const cloudExtensions: Array<CloudExtension> = [];

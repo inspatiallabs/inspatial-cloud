@@ -1,9 +1,8 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { GoogleOAuth } from "~/auth/providers/google/accessToken.ts";
-import type { AuthHandler } from "~/auth/auth-handler.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
-import type { User } from "~/auth/entries/user/user.type.ts";
+import type { User } from "~/auth/entries/user/_user.type.ts";
 
 const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   authRequired: false,

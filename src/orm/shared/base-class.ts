@@ -15,9 +15,9 @@ import type {
 } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 
-import type { InTask } from "~/in-queue/entry-types/in-task/in-task.type.ts";
+import type { InTask } from "~/in-queue/entry-types/in-task/_in-task.type.ts";
 import type { UserID } from "~/auth/types.ts";
-import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/in-task-global.type.ts";
+import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/_in-task-global.type.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -112,6 +112,12 @@ export class BaseClass<N extends string = string> {
       taskEntryName,
       fields,
     );
+
+    this._inCloud.inQueue.send({
+      id: task.id,
+      systemGlobal: this._systemGlobal,
+      account: this._db._schema,
+    });
     return task.data;
   }
   _setupChildren(): void {

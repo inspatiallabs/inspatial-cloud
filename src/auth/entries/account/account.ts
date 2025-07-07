@@ -1,5 +1,5 @@
 import { ChildEntryType, EntryType } from "@inspatial/cloud";
-import type { Account } from "./account.type.ts";
+import type { Account } from "./_account.type.ts";
 
 export const account = new EntryType<Account>("account", {
   label: "Account",
