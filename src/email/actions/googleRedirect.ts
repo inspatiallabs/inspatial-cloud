@@ -8,7 +8,7 @@ import { GoogleOAuth } from "~/auth/providers/google/accessToken.ts";
 export const redirectAction = new CloudAPIAction("redirect", {
   description: "Redirect from Google OAuth",
 
-  async run({ inRequest, params, orm }) {
+  async run({ inRequest, params, orm, inResponse }) {
     const emailSettings = await orm.getSettings<EmailSettings>("emailSettings");
     const authSettings = await orm.getSettings("authSettings");
 
@@ -41,7 +41,7 @@ export const redirectAction = new CloudAPIAction("redirect", {
     await emailAccount.save();
     const redirectFinal = emailSettings.redirectFinal ||
       `${inRequest.origin}/#/entry/emailAccount/${emailAccount.id}`;
-    return new Redirect(redirectFinal);
+    return inResponse.redirect(redirectFinal);
   },
   params: [
     {
@@ -61,6 +61,27 @@ export const redirectAction = new CloudAPIAction("redirect", {
       label: "State",
       type: "DataField",
       required: true,
+    },
+    {
+      key: "authuser",
+      label: "Auth User",
+      type: "DataField",
+      required: false,
+      description: "The authuser parameter returned by Google",
+    },
+    {
+      key: "hd",
+      label: "HD",
+      type: "DataField",
+      required: false,
+      description: "The hd parameter returned by Google",
+    },
+    {
+      key: "prompt",
+      label: "Prompt",
+      type: "DataField",
+      required: false,
+      description: "The prompt parameter returned by Google",
     },
   ],
 });
