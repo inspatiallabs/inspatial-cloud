@@ -193,6 +193,12 @@ export const coreExtension = new CloudExtension("core", {
               status: 401,
               statusText: "Unauthorized",
             };
+          case 404:
+            return {
+              clientMessage: error.message,
+              status: 404,
+              statusText: "Not Found",
+            };
         }
       }
     },

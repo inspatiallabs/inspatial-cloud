@@ -4,7 +4,7 @@ import { raiseServerException, Redirect } from "~/serve/server-exception.ts";
 export const apiPathHandler: PathHandler = {
   name: "api",
   description: "api",
-  match: /^\/api/,
+  match: /^\/api$/,
   handler: async (inCloud, inRequest, inResponse) => {
     const { api } = inCloud;
     const groupParam = inRequest.group;
