@@ -79,8 +79,8 @@ export const coreExtension = new CloudExtension("core", {
   afterGlobalMigrate: {
     name: "initAdminAccount",
     description: "Check for the existence of a system user",
-    async action({ inCloud, orm }) {
-      await initAdminAccount(inCloud, orm);
+    async action({ orm }) {
+      await initAdminAccount(orm);
     },
   },
   roles: [{

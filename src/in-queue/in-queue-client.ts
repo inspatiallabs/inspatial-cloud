@@ -87,7 +87,7 @@ export class InQueueClient {
   }
   send(message: TaskInfo) {
     if (!this.connected) {
-      inLog.warn("Queue is not connected");
+      inLog.debug("Queue is not connected");
       return;
     }
     this.#socket!.send(JSON.stringify(message));

@@ -26,7 +26,7 @@ export const createAccount = new CloudAPIAction("createAccount", {
     });
     await user.save();
     await user.runAction("setPassword", { password });
-    const account = await orm.createEntry<Account>("account", {
+    await orm.createEntry<Account>("account", {
       users: [{ user: user.id }],
     });
     return await inCloud.auth.createUserSession(user, inRequest, inResponse);
