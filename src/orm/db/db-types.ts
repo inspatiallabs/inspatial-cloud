@@ -209,7 +209,7 @@ type FilterInList = {
 
 type FilterEqual = {
   op: EqualsOp;
-  value: string | number;
+  value: string | number | boolean;
 };
 type FilterBetween = {
   op: BetweenOps;

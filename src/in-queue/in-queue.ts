@@ -86,6 +86,11 @@ export class InQueue extends InCloud {
     // load account tasks
     const { rows: accounts } = await this.orm.getEntryList("account", {
       columns: ["id"],
+      filter: [{
+        field: "initialized",
+        op: "=",
+        value: true,
+      }],
       limit: 0,
     });
 
