@@ -1,3 +1,4 @@
+import { joinPath } from "../../../../utils/path-utils.ts";
 import { normalizeVirtualPath } from "./src/convert.ts";
 import { FileManager } from "./src/fileManager/in-pg-files.ts";
 import { PGMem } from "./src/pgMem.ts";
@@ -172,6 +173,7 @@ export class InPG {
     switch (idb) {
       case 2:
         // populating pgdata
+        this.#setPgConf();
         break;
       case 14:
         //found valid db+user
@@ -187,6 +189,38 @@ export class InPG {
       Deno.exit(1);
     }
   }
+  #setPgConf() {
+    const pgConf = new Map<string, string>();
+    const configPath = joinPath(this.#env.PGDATA, "postgresql.conf");
+    const content = Deno.readTextFileSync(
+      configPath,
+    );
+    const lines = content.split("\n");
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith("#")) {
+        continue;
+      }
+
+      const match = trimmedLine.match(/(^\w+)\s*=\s*(\S*)/);
+      if (!match) {
+        continue;
+      }
+      const key = match[1];
+      const value = match[2];
+      pgConf.set(key, value);
+    }
+    pgConf.set("shared_buffers", "128kb");
+    pgConf.set("max_connections", "5");
+    const config = Array.from(pgConf.entries()).map(([key, value]) =>
+      `${key} = ${value}`
+    ).join("\n");
+    Deno.writeTextFileSync(
+      configPath,
+      config,
+    );
+  }
+
   async loadRemoteFiles() {
     const wasmUrl =
       "https://github.com/inspatiallabs/inspatial-cloud/releases/download/0.2.2/inpg.wasm";
