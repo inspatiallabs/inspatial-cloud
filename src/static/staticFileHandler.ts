@@ -67,7 +67,6 @@ export class StaticFileHandler {
     enabled: boolean;
     paths?: Set<string>;
   }) {
-    console.log({ options });
     this.spa = options.enabled;
     if (options.paths) {
       this.spaRootPaths = options.paths;
