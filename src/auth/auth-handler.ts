@@ -91,20 +91,7 @@ export class AuthHandler {
         value: authToken,
       }]);
       if (user) {
-        let accountId: string | undefined = undefined;
-        const accounts = await user.runAction<string[]>("findAccounts");
-        if (accounts.length > 0) {
-          accountId = accounts[0];
-        }
-        sessionData = {
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          systemAdmin: user.systemAdmin ?? false,
-          userId: user.id as string,
-          role: user.systemAdmin ? "systemAdmin" : user.role || "basic",
-          accountId: accountId || "none",
-        };
+        const sessionData = await makeSessiondata(user);
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
     }
@@ -147,20 +134,8 @@ export class AuthHandler {
       sessionId: string;
     }
   > {
-    let accountId: string | undefined = undefined;
-    const accounts = await user.runAction<string[]>("findAccounts");
-    if (accounts.length > 0) {
-      accountId = accounts[0];
-    }
-    const sessionData: SessionData = {
-      userId: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      systemAdmin: user.systemAdmin ?? false,
-      role: user.systemAdmin ? "systemAdmin" : user.role || "basic",
-      accountId: accountId || "none",
-    };
+    const sessionData = await makeSessiondata(user);
+
     const session = await this.orm.createEntry<UserSession>(
       "userSession",
       {
@@ -188,4 +163,29 @@ export class AuthHandler {
       sessionId: session.sessionId,
     };
   }
+}
+
+async function makeSessiondata(user: User): Promise<SessionData> {
+  const accounts = await user.runAction<
+    Array<{ accountId: string; role: string }>
+  >("findAccounts");
+  const sessionData: SessionData = {
+    userId: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    systemAdmin: user.systemAdmin ?? false,
+    accountId: null,
+    role: null,
+  };
+  if (accounts.length > 0) {
+    const { accountId, role } = accounts[0];
+    sessionData.accountId = accountId;
+    sessionData.role = role;
+  }
+  if (user.systemAdmin) {
+    sessionData.role = "systemAdmin";
+  }
+
+  return sessionData;
 }

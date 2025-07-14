@@ -50,6 +50,7 @@ export type PgDataType =
   | "jsonb"
   | "numeric"
   | "bigint"
+  | "time"
   | "date";
 export interface PgDataTypeDefinition {
   dataType: PgDataType;

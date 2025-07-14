@@ -30,11 +30,6 @@ export interface User extends EntryBase {
    */
   fullName?: string;
   /**
-   * **Role** (ChoicesField)
-   * @type {'systemAdmin' | 'accountOwner'}
-   */
-  role?: "systemAdmin" | "accountOwner";
-  /**
    * **Profile Picture** (ImageField)
    * @description The user's profile picture
    * @type {string}

@@ -46,10 +46,12 @@ export interface DataTypeMap {
   30: "oidvector";
   114: "json";
   142: "xml";
+  1042: "bpchar";
   1043: "varchar";
+  1082: "date";
+  1083: "time";
   1114: "timestamp";
   1184: "timestamptz";
-  1082: "date";
   1700: "numeric";
   3802: "jsonb";
 }

@@ -33,10 +33,7 @@ export const userEntry = new EntryType<User>("user", {
       handler({
         user,
       }) {
-        user.fullName = `${user.firstName} ${user.lastName}`;
-        if (user.systemAdmin) {
-          user.role = "systemAdmin";
-        }
+        user.fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
       },
     }],
     beforeDelete: [{

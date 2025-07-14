@@ -1,4 +1,3 @@
-import type { AuthHandler } from "~/auth/auth-handler.ts";
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { raiseServerException } from "~/serve/server-exception.ts";

@@ -10,6 +10,8 @@ import { signupWithGoogle } from "./actions/google/signup-google.ts";
 import googleAuthCallback from "./actions/google/google-auth-callback.ts";
 import googleTokenLogin from "./actions/google/google-token-login.ts";
 import { createAccount } from "./actions/create-account.ts";
+import { getAccount } from "./actions/get-account.ts";
+import { updateAccount } from "./actions/update-account.ts";
 
 const authGroup = new CloudAPIGroup("auth", {
   description: "User, Account and Authentication related actions",
@@ -26,6 +28,8 @@ const authGroup = new CloudAPIGroup("auth", {
     googleAuthCallback,
     googleTokenLogin,
     createAccount,
+    getAccount,
+    updateAccount,
   ],
 });
 

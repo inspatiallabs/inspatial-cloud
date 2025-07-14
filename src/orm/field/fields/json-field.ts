@@ -13,7 +13,13 @@ export default new ORMFieldConfig("JSONField", {
   validate(_value, _fieldDef) {
     return true;
   },
-  dbSave(value, _fieldDef) {
+  normalize(value, _fieldDef) {
     return value;
+  },
+  dbSave(value, _fieldDef) {
+    if (typeof value === "undefined" || value === null) {
+      return null; // Handle undefined or null values
+    }
+    return JSON.stringify(value); // Ensure value is serializable
   },
 });

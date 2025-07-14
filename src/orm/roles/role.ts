@@ -203,7 +203,7 @@ export class RoleManager {
 
   constructor() {
     this.roles = new Map();
-    this.defaultRole = "systemAdmin";
+    this.defaultRole = "accountOwner";
     this.#locked = false;
   }
   addRole(config: RoleConfig): void {
@@ -214,10 +214,12 @@ export class RoleManager {
     this.roles.set(role.roleName, role);
   }
   addEntryType(entryType: EntryType): void {
-    if (entryType.name === "user") {
-      const rolesField = entryType.fields.get(
-        "role",
-      )! as InField<"ChoicesField">;
+    if (entryType.name === "account") {
+      const usersChild = entryType.children!.get("users")!;
+      const roleField = usersChild.fields.get("role")! as InField<
+        "ChoicesField"
+      >;
+
       const roles: Array<Choice> = [];
       for (const role of this.roles.values()) {
         roles.push({
@@ -226,7 +228,7 @@ export class RoleManager {
           description: role.description,
         });
       }
-      rolesField.choices = roles;
+      roleField.choices = roles;
     }
     for (const role of this.roles.values()) {
       const permission = role.entryPermissions.get(entryType.name);

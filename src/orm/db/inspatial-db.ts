@@ -687,37 +687,91 @@ export class InSpatialDB {
     column: PgColumnDefinition,
   ): Promise<void> {
     tableName = toSnake(tableName);
+    // check if there are already records in the table
+    const countQuery = `SELECT COUNT(*) FROM "${this.schema}".${tableName}`;
+    const countResult = await this.query<{ count: number }>(countQuery);
+    const count = countResult.rows[0]?.count || 0;
+    const hasRecords = count > 0;
+
     const columnName = convertString(column.columnName, "snake", true);
 
-    let query = `ALTER TABLE "${this.schema}".${tableName} ADD "${columnName}"`;
+    let updateQuery = "";
+    let nullQuery = "";
+    let createColumnQuery =
+      `ALTER TABLE "${this.schema}".${tableName} ADD "${columnName}"`;
 
     switch (column.dataType) {
       case "character varying":
-        query += ` VARCHAR`;
+        createColumnQuery += ` VARCHAR`;
         if (column.characterMaximumLength) {
-          query += `(${column.characterMaximumLength})`;
+          createColumnQuery += `(${column.characterMaximumLength})`;
         }
         break;
       case "numeric":
-        query += ` NUMERIC`;
+        createColumnQuery += ` NUMERIC`;
         if (column.numericPrecision) {
-          query += `(${column.numericPrecision}`;
+          createColumnQuery += `(${column.numericPrecision}`;
           if (column.numericScale) {
-            query += `, ${column.numericScale}`;
+            createColumnQuery += `, ${column.numericScale}`;
           }
-          query += ")";
+          createColumnQuery += ")";
         }
         break;
       default:
-        query += ` ${column.dataType || "TEXT"}`;
+        createColumnQuery += ` ${column.dataType || "TEXT"}`;
         break;
     }
+    if (column.columnDefault !== undefined) {
+      createColumnQuery += ` DEFAULT ${formatDbValue(column.columnDefault)}`;
+    }
+    createColumnQuery += ";";
+
+    if (
+      hasRecords && column.isNullable === "NO" &&
+      column.columnDefault === undefined
+    ) {
+      updateQuery =
+        `UPDATE "${this.schema}".${tableName} SET "${columnName}" = `;
+
+      switch (column.dataType) {
+        case "boolean":
+          updateQuery += "false";
+          break;
+        case "bigint":
+        case "integer":
+        case "numeric":
+          updateQuery += "0";
+          break;
+        case "date":
+          updateQuery += "CURRENT_DATE";
+          break;
+        case "timestamp with time zone":
+          updateQuery += "CURRENT_TIMESTAMP";
+          break;
+        case "time":
+          updateQuery += "CURRENT_TIME";
+          break;
+        case "jsonb":
+          updateQuery += "'{}'";
+          break;
+        case "character varying":
+          updateQuery += "''";
+          break;
+        case "text":
+          updateQuery += "''";
+          break;
+        default:
+          updateQuery += "NULL"; // Default to NULL for other types
+          break;
+      }
+      updateQuery += ` WHERE "${columnName}" IS NULL;`;
+    }
+
     if (column.isNullable === "NO") {
-      query += ` NOT NULL`;
+      nullQuery +=
+        `ALTER TABLE "${this.schema}".${tableName} ALTER COLUMN "${columnName}" SET NOT NULL;`;
     }
-    if (column.columnDefault) {
-      query += ` DEFAULT ${formatDbValue(column.columnDefault)}`;
-    }
+    const query = `${createColumnQuery} ${updateQuery} ${nullQuery}`;
 
     // return query;
     await this.query(query);

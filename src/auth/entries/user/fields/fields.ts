@@ -26,12 +26,6 @@ export const userFields = [{
   description: "The user's full name (automatically generated)",
   readOnly: true,
 }, {
-  key: "role",
-  label: "Role",
-  type: "ChoicesField",
-  defaultValue: "accountOwner",
-  choices: [],
-}, {
   key: "profilePicture",
   type: "ImageField",
   label: "Profile Picture",

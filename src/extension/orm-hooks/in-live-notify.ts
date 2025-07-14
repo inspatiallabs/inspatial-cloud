@@ -9,6 +9,11 @@ export const notifyUpdate: EntryHookFunction = (
     event: "update",
     data: entry.data,
   });
+  app.inLive.notify({
+    roomName: entryType,
+    event: "update",
+    data: entry.data,
+  });
 };
 
 export const notifyCreate: EntryHookFunction = (

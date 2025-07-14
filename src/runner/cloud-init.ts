@@ -31,7 +31,7 @@ export class InCloudInit extends InCloud {
         $schema: ".inspatial/cloud-config-schema.json",
         ...Object.fromEntries(masterConfig),
       };
-      config.cloud.name = this.appName;
+      config.core.name = this.appName;
       const file = JSON.stringify(config, null, 2);
       Deno.writeTextFileSync(filePath, file);
     }

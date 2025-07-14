@@ -145,6 +145,7 @@ export type EntryConfig<
   titleField?: FK;
   idMode?: IDMode;
   imageField?: FK;
+  statusField?: FK;
   defaultListFields?: Array<FK>;
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc";

@@ -19,6 +19,8 @@ export type {
   IntFormat,
 } from "~/orm/field/field-def-types.ts";
 
+export type { OnboardingStepConfig } from "~/onboarding/ob-config.ts";
+
 export type { Choice, IDMode, InValue } from "~/orm/field/types.ts";
 
 export type { EntryBase } from "~/orm/entry/entry-base.ts";

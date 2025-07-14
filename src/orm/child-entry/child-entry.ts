@@ -193,6 +193,16 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     }
     this._newData.set(this._newData.size.toString(), child);
   }
+  /** Returns the number of children, including unsaved ones */
+  get count(): number {
+    return this._data.size + this._newData.size;
+  }
+  get countNew(): number {
+    return this._newData.size;
+  }
+  get countExisting(): number {
+    return this._data.size;
+  }
   async save(withParentId?: string): Promise<void> {
     if (withParentId) {
       this._parentId = withParentId;

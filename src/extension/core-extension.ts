@@ -12,13 +12,11 @@ import {
   notifyDelete,
   notifyUpdate,
 } from "./orm-hooks/in-live-notify.ts";
-import { PGErrorCode } from "~/orm/db/postgres/maps/errorMap.ts";
 import { ORMException } from "~/orm/orm-exception.ts";
-import convertString from "~/utils/convert-string.ts";
 
 import { inLiveMiddleware } from "~/in-live/in-live-middleware.ts";
 import { devActions } from "./action-groups/dev-actions.ts";
-import { PgError } from "../orm/db/postgres/pgError.ts";
+import { handlePgError, PgError } from "../orm/db/postgres/pgError.ts";
 import { systemSettings } from "./settings/systemSettings.ts";
 import { corsMiddleware } from "../serve/cors.ts";
 import { cloudFile, globalCloudFile } from "../files/entries/cloud-file.ts";
@@ -41,6 +39,8 @@ import { emailSettings } from "../email/settings/emailSettings.ts";
 import { emailEntry } from "../email/entries/email.ts";
 import { emailAccountEntry } from "../email/entries/emailAccount.ts";
 import { ServerException } from "../serve/server-exception.ts";
+import { onboardingStep } from "../onboarding/ob-step.ts";
+import { onboardingSettings } from "../onboarding/ob-settings.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -59,7 +59,12 @@ export const coreExtension = new CloudExtension("core", {
     filesGroup,
     emailGroup,
   ],
-  settingsTypes: [systemSettings, authSettings, emailSettings],
+  settingsTypes: [
+    systemSettings,
+    authSettings,
+    emailSettings,
+    onboardingSettings,
+  ],
   entryTypes: [
     userEntry,
     userSessionEntry,
@@ -70,6 +75,7 @@ export const coreExtension = new CloudExtension("core", {
     globalCloudFile,
     emailEntry,
     emailAccountEntry,
+    onboardingStep,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, staticFilesHandler],
@@ -89,12 +95,18 @@ export const coreExtension = new CloudExtension("core", {
     description: "The default role assigned to a user",
     entryTypes: {
       cloudFile: {
-        view: false,
+        view: true,
+        modify: true,
+        create: true,
+        delete: true,
+      },
+      globalCloudFile: {
+        view: true,
         modify: false,
         create: false,
         delete: false,
       },
-      globalCloudFile: {
+      onboardingStep: {
         view: true,
         modify: false,
         create: false,
@@ -143,34 +155,22 @@ export const coreExtension = new CloudExtension("core", {
           status: 500,
           statusText: "Internal Server Error",
         };
-        switch (error.code) {
-          case PGErrorCode.UndefinedColumn:
-            response.clientMessage = `${
-              convertString(
-                error.message.split('"')[1],
-                "camel",
-              )
-            } field does not exist in the database. You may need to run a migration`;
-            response.status = 400;
-            response.statusText = "Bad Request";
-            break;
-          case PGErrorCode.ForeignKeyViolation:
-            response.clientMessage = error.detail;
-            response.status = 400;
-            response.statusText = "Cannot Delete";
-            break;
-          case PGErrorCode.InvalidCatalogName:
-            response.serverMessage = {
-              content: error.message,
-              subject: "InSpatial ORM - Postgres Error",
-              type: "warning",
-            };
-            response.clientMessage =
-              `Database ${error.message} does not exist. Please check your database configuration`;
-            response.status = 400;
-            response.statusText = "Bad Request";
-            break;
+        const { response: responseLines, subject } = handlePgError(error);
+        response.statusText = subject || "Internal Server Error";
+        response.serverMessage = {
+          content: responseLines.join("\n"),
+          subject: subject || "InSpatial ORM - Postgres Error",
+          type: "warning",
+        };
+        response.clientMessage = responseLines.join("\n");
+        if (error.severity === "ERROR") {
+          response.status = 500;
+          response.statusText = "Internal Server Error";
+        } else {
+          response.status = 400;
+          response.statusText = "Bad Request";
         }
+
         return response;
       }
       if (error instanceof ORMException) {
@@ -259,6 +259,13 @@ export const coreExtension = new CloudExtension("core", {
       type: "boolean",
       required: false,
       default: false,
+    },
+    spaRootPaths: {
+      description:
+        "A list of sub-paths relative to the public root that should be treated as single page applications. This will default any path that's not a file to the index.html in the sub-path.",
+      type: "string[]",
+      required: false,
+      default: [],
     },
     cacheStatic: {
       description:

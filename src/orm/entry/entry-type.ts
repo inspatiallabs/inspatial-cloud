@@ -14,6 +14,7 @@ import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
+import type { InField } from "@inspatial/cloud/types";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -27,7 +28,7 @@ export class EntryType<
   FK extends PropertyKey = ExtractFieldKeys<E>,
 > extends BaseType<N> {
   config: EntryTypeConfig;
-
+  statusField: InField<"ChoicesField"> | undefined;
   defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
@@ -141,6 +142,15 @@ export class EntryType<
     this.#setupActions(config.actions);
     this.#setupHooks(config.hooks);
     this.#validateIndexFields();
+    if (config.statusField) {
+      const field = this.fields.get(config.statusField as string);
+      if (field?.type !== "ChoicesField") {
+        raiseORMException(
+          `Status field ${config.statusField.toString()} must be of type ChoicesField in EntryType ${this.name}`,
+        );
+      }
+      this.statusField = field;
+    }
 
     this.info = {
       config: this.config,
@@ -149,6 +159,7 @@ export class EntryType<
       ),
       permission: this.permission,
       displayFields: Array.from(this.displayFields.values()),
+      statusField: this.statusField,
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
       ),

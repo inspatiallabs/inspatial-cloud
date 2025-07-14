@@ -1,5 +1,5 @@
 import type { ValueType } from "~/orm/db/db-types.ts";
-import { inLog } from "~/in-log/in-log.ts";
+import { inLog } from "#inLog";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 /**
@@ -7,7 +7,7 @@ import convertString from "~/utils/convert-string.ts";
  */
 export function formatColumnName(column: string): string {
   column = toSnake(column);
-  const reservedWords = ["order", "user", "group"];
+  const reservedWords = ["order", "user", "group", "table", "column", "to"];
   if (reservedWords.includes(column)) {
     return `"${column}"`;
   }

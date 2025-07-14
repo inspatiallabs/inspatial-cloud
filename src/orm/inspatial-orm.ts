@@ -31,6 +31,7 @@ import type { InCloud } from "~/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
+import { handlePgError, isPgError } from "./db/postgres/pgError.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -72,7 +73,7 @@ export class InSpatialORM {
     clone.db = this.db.withSchema(user.accountId);
     return clone;
   }
-
+  /** ORM instance for an account with admin privileges */
   withAccount(accountId: string): InSpatialORM {
     const clone = Object.create(this);
     clone._user = this.systemAdminUser;
@@ -561,7 +562,18 @@ export class InSpatialORM {
         inLog.info(message);
       },
     });
-    return await migrationPlanner.migrate();
+    try {
+      return await migrationPlanner.migrate();
+    } catch (e) {
+      if (!isPgError(e)) {
+        throw e;
+      }
+      const { response, subject } = handlePgError(e);
+      inLog.warn(response, {
+        subject,
+      });
+      Deno.exit(1);
+    }
   }
   /**
    * Synchronizes the systemGlobal ORM models with the shared database schema `cloud_global`
@@ -578,7 +590,18 @@ export class InSpatialORM {
         inLog.info(message);
       },
     });
-    return await migrationPlanner.migrate();
+    try {
+      return await migrationPlanner.migrate();
+    } catch (e) {
+      if (!isPgError(e)) {
+        throw e;
+      }
+      const { response, subject } = handlePgError(e);
+      inLog.warn(response, {
+        subject,
+      });
+      Deno.exit(1);
+    }
   }
   /**
    * Generates TypeScript interfaces for all EntryTypes in the ORM.

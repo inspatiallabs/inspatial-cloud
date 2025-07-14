@@ -213,7 +213,10 @@ export class InCloud {
       }
       throw e;
     }
-    this.static.spa = config.singlePageApp;
+    this.static.setSpa({
+      enabled: config.singlePageApp,
+      paths: config.spaRootPaths || [],
+    });
     this.static.setCach(config.cacheStatic);
 
     this.static.init(

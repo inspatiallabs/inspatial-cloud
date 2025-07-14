@@ -7,13 +7,18 @@ export const findAccounts: EntryActionDefinition<User> = {
   params: [],
   async action({ user, orm }) {
     const result = await orm.systemDb.getRows("childAccountUsers", {
-      columns: ["parent"],
+      columns: ["parent", "role"],
       filter: [{
         field: "user",
         op: "=",
         value: user.id,
       }],
     });
-    return result.rows.map((row) => row.parent);
+    return result.rows.map((row) => {
+      return {
+        accountId: row.parent,
+        role: row.role,
+      };
+    });
   },
 };

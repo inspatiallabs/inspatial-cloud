@@ -12,6 +12,7 @@ import type {
 } from "~/cloud-config/config-types.ts";
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { AfterMigrate } from "~/extension/cloud-extension.ts";
+import { OnboardingStepConfig } from "../onboarding/ob-config.ts";
 
 /**
  * Information about a {@link CloudExtension}
@@ -106,4 +107,5 @@ export interface ExtensionOptions<
   /** Exception handlers */
   exceptionHandlers?: ExceptionHandler[];
   roles?: Array<RoleConfig>;
+  onBoarding?: Array<OnboardingStepConfig>;
 }

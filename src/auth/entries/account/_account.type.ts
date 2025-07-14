@@ -3,10 +3,20 @@ import type { ChildList, EntryBase } from "@inspatial/cloud/types";
 export interface Account extends EntryBase {
   _name: "account";
   /**
+   * **Onboarding Complete** (BooleanField)
+   * @type {boolean}
+   */
+  onboardingComplete?: boolean;
+  /**
    * **Initialized** (BooleanField)
    * @type {boolean}
    */
   initialized?: boolean;
+  /**
+   * **Onboarding Response** (JSONField)
+   * @type {Record<string, any>}
+   */
+  obResponse?: Record<string, any>;
   /**
    * **Account** (IDField)
    * @type {string}
@@ -36,6 +46,11 @@ export interface Account extends EntryBase {
      * @required true
      */
     user: string;
+    /**
+     * **Role** (ChoicesField)
+     * @type {'systemAdmin' | 'accountOwner'}
+     */
+    role?: "systemAdmin" | "accountOwner";
     /**
      * **ID** (IDField)
      * @type {string}

@@ -11,6 +11,7 @@ export type CoreConfig = {
   allowedOrigins: Set<string>;
   publicRoot: string;
   singlePageApp: boolean;
+  spaRootPaths: Set<string>;
   cacheStatic: boolean;
   autoTypes: boolean;
   autoMigrate: boolean;

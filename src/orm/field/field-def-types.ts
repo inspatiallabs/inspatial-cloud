@@ -29,6 +29,7 @@ export type InFieldMap = {
   CurrencyField: CurrencyField;
   IDField: IDField;
   FileField: FileField;
+  TimeField: TimeField;
 };
 
 export type InFieldType = keyof InFieldMap;
@@ -128,6 +129,11 @@ export interface TimeStampField extends BaseField {
   type: "TimeStampField";
   defaultValue?: InValue<"TimeStampField">;
   showTime?: boolean;
+}
+
+export interface TimeField extends BaseField {
+  type: "TimeField";
+  defaultValue?: InValue<"TimeField">;
 }
 
 export interface BooleanField extends BaseField {
