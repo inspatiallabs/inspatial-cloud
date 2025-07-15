@@ -3,6 +3,7 @@ import { EntryType } from "~/orm/entry/entry-type.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import type { EmailAccount } from "./_email-account.type.ts";
 import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
+import { GoogleOAuth } from "../../auth/providers/google/accessToken.ts";
 
 export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
   label: "Email Account",
@@ -228,28 +229,45 @@ emailAccountEntry.addAction({
   params: [],
   description: "Refresh the access token for this email account",
   async action({ orm, emailAccount }) {
-    const emailSettings = await orm.getSettings("emailSettings");
+    const { googleClientId, googleClientSecret } = await orm.getSettings<
+      AuthSettings
+    >("authSettings");
+    if (!googleClientId || !googleClientSecret) {
+      raiseServerException(
+        400,
+        "Google auth: Client ID or Client Secret not set in settings",
+      );
+    }
 
-    const refreshToken = emailAccount.refreshToken;
-    if (!refreshToken) {
+    const googleAuth = new GoogleOAuth({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    });
+    if (!emailAccount.refreshToken) {
       raiseServerException(
         400,
         "Refresh token is missing",
       );
     }
-    const { access_token, expires_in, token_type, refresh_token } =
-      await refreshAccessToken({
-        clientId: emailSettings.clientId,
-        clientSecret: emailSettings.clientSecret,
-        refreshToken,
-      });
+
+    const response = await googleAuth.refreshAccessToken(
+      emailAccount.refreshToken,
+    );
+    if (response === null) {
+      raiseServerException(
+        400,
+        "Failed to refresh access token",
+      );
+    }
+    const { accessToken, refreshToken, expiresIn, tokenType, idToken, scope } =
+      response;
     const acquiredTime = dateUtils.nowTimestamp();
-    emailAccount.accessToken = access_token;
+    emailAccount.accessToken = accessToken;
     emailAccount.acquiredTime = acquiredTime;
-    emailAccount.expireTime = acquiredTime + expires_in * 1000;
-    emailAccount.tokenType = token_type;
-    if (refresh_token) {
-      emailAccount.refreshToken = refresh_token;
+    emailAccount.expireTime = acquiredTime + expiresIn * 1000;
+    emailAccount.tokenType = tokenType;
+    if (refreshToken) {
+      emailAccount.refreshToken = refreshToken;
     }
     // if (scope) {
     //   emailAccount.scope = scope;
@@ -260,87 +278,3 @@ emailAccountEntry.addAction({
     await emailAccount.save();
   },
 });
-
-export async function refreshAccessToken(creds: {
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-}): Promise<{
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-  refresh_token?: string;
-  scope?: string;
-}> {
-  const { clientId, clientSecret, refreshToken } = creds;
-  const url = new URL("https://oauth2.googleapis.com/token");
-  const headers = new Headers();
-  headers.set("Content-Type", "application/x-www-form-urlencoded");
-
-  const body = new URLSearchParams();
-  body.append("client_id", clientId);
-  body.append("client_secret", clientSecret);
-  body.append("refresh_token", refreshToken);
-  body.append("grant_type", "refresh_token");
-
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers,
-    body: body.toString(),
-  });
-
-  if (!response.ok) {
-    raiseServerException(
-      response.status,
-      "Failed to refresh access token",
-    );
-  }
-
-  return await response.json();
-}
-
-export async function getAccessToken(creds: {
-  clientId: string;
-  clientSecret: string;
-  code: string;
-  redirectUri: string;
-}): Promise<
-  {
-    access_token: string;
-    expires_in: number;
-    token_type: string;
-    refresh_token?: string;
-    scope?: string;
-  }
-> {
-  const { clientId, clientSecret, code } = creds;
-  const url = new URL("https://oauth2.googleapis.com/token");
-  const headers = new Headers();
-  headers.set("Content-Type", "application/x-www-form-urlencoded");
-
-  const body = new URLSearchParams();
-  body.append("client_id", clientId);
-  body.append("client_secret", clientSecret);
-  body.append("code", code);
-  body.append("grant_type", "authorization_code");
-  body.append(
-    "redirect_uri",
-    creds.redirectUri,
-  );
-
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    redirect: "manual",
-    headers,
-    body: body.toString(),
-  });
-
-  if (!response.ok) {
-    raiseServerException(
-      response.status,
-      "Failed to get access token",
-    );
-  }
-
-  return await response.json();
-}

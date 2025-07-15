@@ -7,6 +7,7 @@ export interface ConnectionOptions {
   client_encoding?: string;
   // deno-lint-ignore camelcase
   idle_session_timeout?: number;
+  lc_monetary?: "en_US.UTF-8" | "en_GB.UTF-8";
   dateStyle?: string;
   TimeZone?: string;
 }

@@ -94,4 +94,20 @@ export interface Email extends EntryBase {
    * @type {string}
    */
   emailAccount__title?: string;
+  runAction<N extends keyof EmailActionMap>(
+    actionName: N,
+  ): EmailActionMap[N]["return"];
+  runAction<N extends keyof EmailParamsActionMap>(
+    actionName: N,
+    params: EmailParamsActionMap[N]["params"],
+  ): EmailParamsActionMap[N]["return"];
 }
+type EmailActionMap = {
+  enqueueSend: {
+    return: Promise<any>;
+  };
+  send: {
+    return: Promise<any>;
+  };
+};
+type EmailParamsActionMap = {};

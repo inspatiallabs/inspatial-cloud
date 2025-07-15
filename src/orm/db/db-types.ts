@@ -51,6 +51,7 @@ export type PgDataType =
   | "numeric"
   | "bigint"
   | "time"
+  | "money"
   | "date";
 export interface PgDataTypeDefinition {
   dataType: PgDataType;

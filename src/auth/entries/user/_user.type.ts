@@ -119,4 +119,48 @@ export interface User extends EntryBase {
    * @type {string}
    */
   profilePicture__title?: string;
+  runAction<N extends keyof UserActionMap>(
+    actionName: N,
+  ): UserActionMap[N]["return"];
+  runAction<N extends keyof UserParamsActionMap>(
+    actionName: N,
+    params: UserParamsActionMap[N]["params"],
+  ): UserParamsActionMap[N]["return"];
 }
+type UserActionMap = {
+  generateApiToken: {
+    return: Promise<any>;
+  };
+  generateResetToken: {
+    return: Promise<any>;
+  };
+  findAccounts: {
+    return: Promise<any>;
+  };
+};
+type UserParamsActionMap = {
+  setPassword: {
+    params: {
+      /**
+       * **Password** (PasswordField)
+       * @description Password to set
+       * @type {string}
+       * @required true
+       */
+      password: string;
+    };
+    return: Promise<any>;
+  };
+  validatePassword: {
+    params: {
+      /**
+       * **Password** (PasswordField)
+       * @description Password to validate
+       * @type {string}
+       * @required true
+       */
+      password: string;
+    };
+    return: Promise<any>;
+  };
+};

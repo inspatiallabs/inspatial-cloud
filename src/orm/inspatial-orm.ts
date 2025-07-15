@@ -1,5 +1,5 @@
 import { InSpatialDB } from "~/orm/db/inspatial-db.ts";
-import type { InFieldType } from "~/orm/field/field-def-types.ts";
+import { Currencies, type InFieldType } from "~/orm/field/field-def-types.ts";
 import type { ORMFieldConfig } from "~/orm/field/orm-field.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
@@ -39,6 +39,7 @@ export class InSpatialORM {
   fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
   _inCloud: InCloud;
   _user: UserContext | undefined;
+  _accountId: string | undefined;
   readonly systemAdminUser: UserID = {
     role: "systemAdmin",
     userId: "systemAdmin",
@@ -68,15 +69,17 @@ export class InSpatialORM {
         400,
       );
     }
-    const clone = Object.create(this);
+    const clone = Object.create(this) as InSpatialORM;
     clone._user = user;
+    clone._accountId = user.accountId;
     clone.db = this.db.withSchema(user.accountId);
     return clone;
   }
   /** ORM instance for an account with admin privileges */
   withAccount(accountId: string): InSpatialORM {
-    const clone = Object.create(this);
-    clone._user = this.systemAdminUser;
+    const clone = Object.create(this) as InSpatialORM;
+    clone._user = { ...this.systemAdminUser, accountId };
+    clone._accountId = accountId;
     clone.db = this.db.withSchema(accountId);
     return clone;
   }
@@ -212,10 +215,39 @@ export class InSpatialORM {
     );
   }
   #addEntryType(entryType: EntryType): void {
+    this.#setDefaultCurrency(entryType);
     this.roles.addEntryType(entryType);
   }
   #addSettingsType(settingsType: SettingsType): void {
+    this.#setDefaultCurrency(settingsType);
     this.roles.addSettingsType(settingsType);
+  }
+  #setDefaultCurrency(entryOrSettings: EntryType | SettingsType) {
+    const defaultCurrency = this._inCloud.getExtensionConfigValue(
+      "core",
+      "defaultCurrency",
+    );
+    const currency = Currencies[defaultCurrency];
+    for (const field of entryOrSettings.fields.values()) {
+      if (field.type !== "CurrencyField") {
+        continue;
+      }
+      if (!field.currencyCode) {
+        field.currencyCode = defaultCurrency;
+        field.currency = currency;
+        continue;
+      }
+      if (!field.currency) {
+        field.currency = Currencies[field.currencyCode];
+        if (!field.currency) {
+          raiseORMException(
+            `Currency with code ${field.currencyCode} does not exist in Currencies`,
+            "ORMField",
+            400,
+          );
+        }
+      }
+    }
   }
   getEntryInstance<E extends EntryBase = GenericEntry>(
     entryType: string,
@@ -614,11 +646,11 @@ export class InSpatialORM {
     const generatedSettings: string[] = [];
     const adminRole = this.roles.getRole("systemAdmin");
     for (const entryType of adminRole.entryTypes.values()) {
-      await generateEntryInterface(this, entryType);
+      await generateEntryInterface(entryType);
       generatedEntries.push(entryType.name);
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      await generateSettingsInterfaces(this, settingsType);
+      await generateSettingsInterfaces(settingsType);
       generatedSettings.push(settingsType.name);
     }
     return {

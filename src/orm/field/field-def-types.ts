@@ -218,4 +218,83 @@ export interface ListField extends BaseField {
 export interface CurrencyField extends BaseField {
   type: "CurrencyField";
   defaultValue?: InValue<"CurrencyField">;
+  currencyCode?: CurrencyCode;
+  currency?: Currency;
 }
+export type CurrencyCode = keyof typeof Currencies;
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+  symbolPosition?: "left" | "right";
+  decimalSeparator?: string;
+  thousandsSeparator?: string;
+  decimalPlaces?: number;
+}
+
+export const Currencies = {
+  USD: {
+    code: "USD",
+    symbol: "$",
+    name: "US Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  EUR: {
+    code: "EUR",
+    symbol: "€",
+    name: "Euro",
+    symbolPosition: "right",
+    decimalSeparator: ",",
+    thousandsSeparator: ".",
+    decimalPlaces: 2,
+  },
+  GBP: {
+    code: "GBP",
+    symbol: "£",
+    name: "British Pound",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  JPY: {
+    code: "JPY",
+    symbol: "¥",
+    name: "Japanese Yen",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 0,
+  },
+  AUD: {
+    code: "AUD",
+    symbol: "A$",
+    name: "Australian Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  CAD: {
+    code: "CAD",
+    symbol: "C$",
+    name: "Canadian Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  ILS: {
+    code: "ILS",
+    symbol: "₪",
+    name: "Israeli New Shekel",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  // Add more currencies as needed
+} as const satisfies Record<string, Currency>;

@@ -40,9 +40,14 @@ import { apiPathHandler } from "./api/api-handler.ts";
 import { staticFilesHandler } from "./static/staticPathHandler.ts";
 import { raiseCloudException } from "./serve/exeption/cloud-exception.ts";
 import { InQueueClient } from "./in-queue/in-queue-client.ts";
+import { EmailManager } from "./email/email-manager.ts";
+import convertString from "./utils/convert-string.ts";
 
 export class InCloud {
   appName: string;
+  get appDisplayName(): string {
+    return convertString(this.appName, "title", true);
+  }
   mode: AppMode = "production";
   runMode: CloudRunnerMode;
   // extensions
@@ -61,6 +66,7 @@ export class InCloud {
   inLive: InLiveHandler;
   inCache: InCache;
   inQueue: InQueueClient;
+  emailManager: EmailManager;
   /**
    * The absolute path to the cloud root directory.
    */
@@ -84,6 +90,7 @@ export class InCloud {
     this.api = new CloudAPI();
     this.roles = new RoleManager();
     this.static = new StaticFileHandler();
+    this.emailManager = new EmailManager(this);
     this.roles.addRole({
       roleName: "systemAdmin",
       description: "System Administrator",
@@ -275,30 +282,6 @@ export class InCloud {
   generateConfigFile(): void {
     generateConfigSchema(this);
     generateCloudConfigFile(this);
-  }
-  /**
-   * Runs an action from the specified action group.
-   */
-  async runAction(
-    groupName: string,
-    actionName: string,
-    data?: Record<string, any>,
-  ): Promise<any> {
-    const gn = groupName as string;
-    const an = actionName as string;
-    const group = this.actionGroups.get(gn);
-    if (!group) {
-      throw new Error(`Action group ${gn} not found`);
-    }
-    data = data || {} as any;
-    const action = this.api.getAction(gn, an);
-
-    return await action.run({
-      inCloud: this,
-      params: data,
-      inRequest: new InRequest(new Request("http://localhost")),
-      inResponse: new InResponse(),
-    });
   }
   /**
    * Adds a custom property to the server instance.

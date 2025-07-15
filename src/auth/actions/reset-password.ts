@@ -7,7 +7,6 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
   authRequired: false,
   label: "Reset Password",
   async run({ inCloud, orm, inRequest, params }) {
-    console.log("Reset password action called with params:", params);
     const { email } = params;
     const user = await orm.findEntry("user", [{
       field: "email",
@@ -22,7 +21,7 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
     }
     await user.runAction("generateResetToken");
     const token = user.resetPasswordToken as string;
-    const resetLink = `${inRequest.origin}/#/reset-password?token=${token}`;
+    const resetLink = `${inRequest.origin}/admin/reset-password?token=${token}`;
 
     const emailContent = `
       <p>Hi ${user.firstName},</p>
@@ -31,10 +30,10 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
       <a href="${resetLink}" target="_blank">${resetLink}</a>
       <p>If you didn't request a password reset, you can ignore this email.</p>
       <p>Thanks!</p>
-      <p>${inCloud.appName}</p>
+      <p>${inCloud.appDisplayName}</p>
       `;
     try {
-      await inCloud.runAction("email", "sendEmail", {
+      await inCloud.emailManager.sendEmail({
         recipientEmail: email,
         subject: "Reset your password",
         body: emailContent,

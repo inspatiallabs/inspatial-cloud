@@ -41,6 +41,7 @@ import { emailAccountEntry } from "../email/entries/emailAccount.ts";
 import { ServerException } from "../serve/server-exception.ts";
 import { onboardingStep } from "../onboarding/ob-step.ts";
 import { onboardingSettings } from "../onboarding/ob-settings.ts";
+import { Currencies } from "../orm/field/field-def-types.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -307,6 +308,12 @@ export const coreExtension = new CloudExtension("core", {
       required: false,
       type: "boolean",
       default: true,
+    },
+    defaultCurrency: {
+      description: "Sets the default currency for the system",
+      type: "string",
+      enum: Object.keys(Currencies),
+      default: "USD",
     },
     embeddedDb: {
       description:

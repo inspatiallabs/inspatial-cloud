@@ -4,10 +4,10 @@ export interface InTaskGlobal extends EntryBase {
   _name: "inTaskGlobal";
   /**
    * **Task Type** (ChoicesField)
-   * @type {'entry' | 'settings' | 'app'}
+   * @type {'entry' | 'settings'}
    * @required true
    */
-  taskType: "entry" | "settings" | "app";
+  taskType: "entry" | "settings";
   /**
    * **Entry/Settings Name** (DataField)
    * @type {string}
@@ -76,4 +76,17 @@ export interface InTaskGlobal extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  runAction<N extends keyof InTaskGlobalActionMap>(
+    actionName: N,
+  ): InTaskGlobalActionMap[N]["return"];
+  runAction<N extends keyof InTaskGlobalParamsActionMap>(
+    actionName: N,
+    params: InTaskGlobalParamsActionMap[N]["params"],
+  ): InTaskGlobalParamsActionMap[N]["return"];
 }
+type InTaskGlobalActionMap = {
+  runTask: {
+    return: Promise<any>;
+  };
+};
+type InTaskGlobalParamsActionMap = {};

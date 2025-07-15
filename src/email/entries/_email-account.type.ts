@@ -113,4 +113,17 @@ export interface EmailAccount extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  runAction<N extends keyof EmailAccountActionMap>(
+    actionName: N,
+  ): EmailAccountActionMap[N]["return"];
+  runAction<N extends keyof EmailAccountParamsActionMap>(
+    actionName: N,
+    params: EmailAccountParamsActionMap[N]["params"],
+  ): EmailAccountParamsActionMap[N]["return"];
 }
+type EmailAccountActionMap = {
+  refreshToken: {
+    return: Promise<any>;
+  };
+};
+type EmailAccountParamsActionMap = {};

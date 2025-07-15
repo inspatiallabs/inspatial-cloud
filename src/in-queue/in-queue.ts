@@ -3,16 +3,19 @@ import { generateId } from "~/utils/misc.ts";
 import { InCloud } from "~/in-cloud.ts";
 import type { TaskInfo } from "./types.ts";
 import { raiseCloudException } from "../serve/exeption/cloud-exception.ts";
+import { InSpatialORM } from "../orm/inspatial-orm.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
   isRunning: boolean = false;
   queue: TaskInfo[] = [];
+  globalOrm!: InSpatialORM;
   constructor(appName: string, config: CloudConfig) {
     super(appName, config, "queue");
   }
   override async run() {
     await super.run();
+    this.globalOrm = this.orm.withAccount("cloud_global");
     const port = this.getExtensionConfigValue("core", "queuePort");
     if (port === undefined) {
       throw new Error("Queue port is not defined in the configuration.");
@@ -38,7 +41,10 @@ export class InQueue extends InCloud {
     switch (taskInfo.systemGlobal) {
       case true:
         {
-          const task = await this.orm.getEntry("inTaskGlobal", taskInfo.id);
+          const task = await this.globalOrm.getEntry(
+            "inTaskGlobal",
+            taskInfo.id,
+          );
           await task.runAction("runTask");
         }
         break;

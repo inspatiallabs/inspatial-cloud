@@ -11,12 +11,7 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       label: "Recipient Email",
       required: true,
     },
-    {
-      key: "recipientName",
-      label: "Recipient Name",
-      type: "DataField",
-      required: false,
-    },
+
     {
       key: "subject",
       label: "Subject",
@@ -29,16 +24,21 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       type: "TextField",
       required: true,
     },
+    {
+      key: "now",
+      label: "Send Immediately",
+      description:
+        "Sends the email immediately, instead of adding it to the task queue",
+      type: "BooleanField",
+    },
   ],
   async run({ inCloud, orm, params }) {
-    const { body, recipientEmail, subject, recipientName } = params;
-    const email = await orm.createEntry("email", {
-      senderName: inCloud.appName,
-      recipientEmail,
-      recipientName,
-      subject,
+    const { body, recipientEmail, subject, now } = params;
+    return await inCloud.emailManager.sendEmail({
       body,
+      recipientEmail,
+      subject,
+      now,
     });
-    await email.runAction("enqueueEmail");
   },
 });

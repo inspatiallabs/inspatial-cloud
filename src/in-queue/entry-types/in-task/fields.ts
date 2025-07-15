@@ -11,9 +11,6 @@ export const inTaskFields: Array<InField> = [{
   }, {
     key: "settings",
     label: "Settings",
-  }, {
-    key: "app",
-    label: "App",
   }],
 }, {
   key: "typeKey",

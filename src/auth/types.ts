@@ -1,11 +1,8 @@
-export interface SessionData {
+export interface SessionData extends UserContext {
   email: string;
   firstName: string;
   lastName: string;
   systemAdmin: boolean;
-  accountId: string | null;
-  role: string | null;
-  userId: string;
   [key: string]: any;
 }
 

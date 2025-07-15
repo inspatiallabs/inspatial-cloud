@@ -1,3 +1,5 @@
+import { CurrencyCode } from "../orm/field/field-def-types.ts";
+
 export type CoreConfig = {
   name: string;
   cloudMode: "production" | "development";
@@ -21,6 +23,7 @@ export type CoreConfig = {
   dbConnectionType: "tcp" | "socket";
   dbSocketPath: string;
   dbName: string;
+  dbCurrency: "en_US.UTF-8" | "en_GB.UTF-8";
   dbHost: string;
   dbPort: number;
   dbUser: string;
@@ -31,4 +34,5 @@ export type CoreConfig = {
   dbMaxPoolSize: number;
   dbIdleTimeout: number;
   authAllowAll: boolean;
+  defaultCurrency: CurrencyCode;
 };

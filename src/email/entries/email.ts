@@ -87,7 +87,7 @@ export const emailEntry = new EntryType<Email>("email", {
     label: "Status",
     description: "The status of the email",
     defaultValue: "pending",
-    readOnly: true,
+    readOnly: false,
     choices: [
       { key: "pending", label: "Pending", color: "warning" },
       { key: "queued", label: "Queued", color: "info" },
@@ -164,7 +164,7 @@ const _attachementFields = [{
   }],
 }];
 emailEntry.addAction({
-  key: "enqueueEmail",
+  key: "enqueueSend",
   label: "Send Email",
   params: [],
   async action({ email }) {
@@ -186,7 +186,7 @@ emailEntry.addAction({
         break;
     }
     email.status = "queued";
-    await email.enqueueAction("sendEmail");
+    await email.enqueueAction("send");
     await email.save();
     return {
       message: "Email has been queued for sending.",
@@ -195,9 +195,9 @@ emailEntry.addAction({
   },
 });
 emailEntry.addAction({
-  key: "sendEmail",
+  key: "send",
   params: [],
-  private: true,
+  private: false,
   description: "Send the email",
   label: "Send",
   async action({ email, orm }) {

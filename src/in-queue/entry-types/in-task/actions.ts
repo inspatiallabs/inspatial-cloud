@@ -2,7 +2,6 @@ import type { EntryActionDefinition } from "~/orm/entry/types.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 import { dateUtils } from "~/utils/date-utils.ts";
-import type { InCloud } from "~/in-cloud.ts";
 import type { InTask } from "./_in-task.type.ts";
 import type { InTaskGlobal } from "./_in-task-global.type.ts";
 
@@ -11,7 +10,6 @@ export const runTask: EntryActionDefinition<any> = {
   params: [],
   async action({
     entry,
-    inCloud,
     orm,
   }) {
     const inTask = entry as InTask | InTaskGlobal;
@@ -34,9 +32,9 @@ export const runTask: EntryActionDefinition<any> = {
         case "settings":
           results = await runSettingsTask(inTask, orm);
           break;
-        case "app":
-          results = await runAppTask(inTask, inCloud);
-          break;
+          // case "app":
+          //   results = await runAppTask(inTask, inCloud);
+          //   break;
       }
 
       inTask.resultData = {
@@ -70,10 +68,10 @@ async function runSettingsTask(
   return await settings.runAction(inTask.actionName, inTask.taskData);
 }
 
-async function runAppTask(inTask: InTask | InTaskGlobal, inCloud: InCloud) {
-  return await inCloud.runAction(
-    inTask.group!,
-    inTask.actionName,
-    inTask.taskData,
-  );
-}
+// async function runAppTask(inTask: InTask | InTaskGlobal, inCloud: InCloud) {
+//   return await inCloud.runAction(
+//     inTask.group!,
+//     inTask.actionName,
+//     inTask.taskData,
+//   );
+// }

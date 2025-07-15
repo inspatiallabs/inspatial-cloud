@@ -4,10 +4,10 @@ export interface InTask extends EntryBase {
   _name: "inTask";
   /**
    * **Task Type** (ChoicesField)
-   * @type {'entry' | 'settings' | 'app'}
+   * @type {'entry' | 'settings'}
    * @required true
    */
-  taskType: "entry" | "settings" | "app";
+  taskType: "entry" | "settings";
   /**
    * **Entry/Settings Name** (DataField)
    * @type {string}
@@ -76,4 +76,17 @@ export interface InTask extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  runAction<N extends keyof InTaskActionMap>(
+    actionName: N,
+  ): InTaskActionMap[N]["return"];
+  runAction<N extends keyof InTaskParamsActionMap>(
+    actionName: N,
+    params: InTaskParamsActionMap[N]["params"],
+  ): InTaskParamsActionMap[N]["return"];
 }
+type InTaskActionMap = {
+  runTask: {
+    return: Promise<any>;
+  };
+};
+type InTaskParamsActionMap = {};

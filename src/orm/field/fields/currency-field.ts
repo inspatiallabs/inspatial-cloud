@@ -5,7 +5,7 @@ export default new ORMFieldConfig("CurrencyField", {
     return {
       columnName: fieldDef.key,
       dataType: "numeric",
-      numericPrecision: 2,
+      numericPrecision: 12,
       numericScale: 2,
     };
   },
