@@ -1,6 +1,6 @@
 import { CloudAPIAction } from "../../api/cloud-action.ts";
-import { Account } from "../entries/account/_account.type.ts";
-import { SessionData } from "../types.ts";
+import type { Account } from "../entries/account/_account.type.ts";
+import type { SessionData } from "../types.ts";
 
 export const updateAccount = new CloudAPIAction("updateAccount", {
   description: "Updates the account data for the current authenticated user",

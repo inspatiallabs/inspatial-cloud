@@ -57,6 +57,11 @@ export interface InTask extends EntryBase {
    */
   resultData?: Record<string, any>;
   /**
+   * **Error Info** (TextField)
+   * @type {string}
+   */
+  errorInfo?: string;
+  /**
    * **InTask** (IDField)
    * @type {string}
    * @required true

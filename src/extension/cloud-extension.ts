@@ -5,9 +5,13 @@ import { convertString } from "~/utils/mod.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 
-import type { CloudExtensionInfo, ExtensionOptions } from "~/serve/types.ts";
+import type {
+  AfterOnboarding,
+  CloudExtensionInfo,
+  ExtensionOptions,
+} from "~/serve/types.ts";
 import type { Middleware } from "~/serve/middleware.ts";
-import type { EntryHooks } from "~/orm/orm-types.ts";
+import type { EntryHooks, GlobalSettingsHooks } from "~/orm/orm-types.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type {
   ConfigDefinition,
@@ -16,6 +20,8 @@ import type {
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import type { InCloud } from "../in-cloud.ts";
+import { GlobalEntryHooks } from "@inspatial/cloud/types";
+import { GlobalSettingsHook } from "../orm/settings/types.ts";
 export type CloudInstallFunction<R = any> = (
   inCloud: InCloud,
 ) => R;
@@ -59,10 +65,13 @@ export class CloudExtension<
    */
   config?: C;
 
+  afterOnboarding?: AfterOnboarding;
+
   entryTypes: EntryType[];
   settingsTypes: SettingsType[];
   roles: RoleConfig[];
-  ormGlobalHooks: EntryHooks;
+  ormGlobalEntryHooks: GlobalEntryHooks;
+  ormGlobalSettingsHooks: GlobalSettingsHooks;
   afterMigrate: {
     account: AfterMigrate[];
     global: AfterMigrate[];
@@ -84,21 +93,30 @@ export class CloudExtension<
       account: [],
       global: [],
     };
+    this.afterOnboarding = options.afterOnboarding;
     this.key = extensionName;
     this.label = options.label || convertString(extensionName, "title", true);
     this.description = options.description || "";
     this.version = options.version;
     this.roles = options.roles || [];
-    const globalHooks = options.ormGlobalHooks;
-    this.ormGlobalHooks = {
-      beforeValidate: globalHooks?.beforeValidate || [],
-      validate: globalHooks?.validate || [],
-      beforeCreate: globalHooks?.beforeCreate || [],
-      afterCreate: globalHooks?.afterCreate || [],
-      beforeUpdate: globalHooks?.beforeUpdate || [],
-      afterUpdate: globalHooks?.afterUpdate || [],
-      beforeDelete: globalHooks?.beforeDelete || [],
-      afterDelete: globalHooks?.afterDelete || [],
+
+    const { settings, entries } = options.ormGlobalHooks || {};
+
+    this.ormGlobalEntryHooks = {
+      beforeValidate: entries?.beforeValidate || [],
+      validate: entries?.validate || [],
+      beforeCreate: entries?.beforeCreate || [],
+      afterCreate: entries?.afterCreate || [],
+      beforeUpdate: entries?.beforeUpdate || [],
+      afterUpdate: entries?.afterUpdate || [],
+      beforeDelete: entries?.beforeDelete || [],
+      afterDelete: entries?.afterDelete || [],
+    };
+    this.ormGlobalSettingsHooks = {
+      afterUpdate: settings?.afterUpdate || [],
+      beforeUpdate: settings?.beforeUpdate || [],
+      beforeValidate: settings?.beforeValidate || [],
+      validate: settings?.validate || [],
     };
     const { afterAccountMigrate, afterGlobalMigrate } = options;
     if (afterAccountMigrate) {
@@ -149,6 +167,7 @@ export class CloudExtension<
     }
 
     for (const settingType of this.settingsTypes) {
+      settingType.extension = info.key;
       settingType.config.extension = extensionInfo;
     }
   }

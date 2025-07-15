@@ -1,8 +1,8 @@
 import type { ExceptionHandler } from "#types/serve-types.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { EntryType, SettingsType } from "~/orm/mod.ts";
-import type { EntryHooks } from "~/orm/orm-types.ts";
+import type { EntryType, InSpatialORM, SettingsType } from "~/orm/mod.ts";
+import type { EntryHooks, GlobalSettingsHooks } from "~/orm/orm-types.ts";
 import type { Middleware } from "./middleware.ts";
 import type { PathHandler } from "./path-handler.ts";
 import type { RequestLifecycle } from "./request-lifecycle.ts";
@@ -12,7 +12,9 @@ import type {
 } from "~/cloud-config/config-types.ts";
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { AfterMigrate } from "~/extension/cloud-extension.ts";
-import { OnboardingStepConfig } from "../onboarding/ob-config.ts";
+import type { Account } from "../auth/entries/account/_account.type.ts";
+import { GlobalEntryHooks } from "@inspatial/cloud/types";
+import { GlobalSettingsHook } from "../orm/settings/types.ts";
 
 /**
  * Information about a {@link CloudExtension}
@@ -75,6 +77,13 @@ export interface DetailInfo {
   description?: string;
 }
 
+export type AfterOnboarding = (args: {
+  inCloud: InCloud;
+  account: Account;
+  orm: InSpatialORM;
+  responses: Record<string, any>;
+}) => void | Promise<void>;
+
 export interface ExtensionOptions<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
   E extends Array<EntryType<any>> = Array<EntryType<any>>,
@@ -87,7 +96,10 @@ export interface ExtensionOptions<
   config?: C;
   entryTypes?: E;
   settingsTypes?: ST;
-  ormGlobalHooks?: Partial<EntryHooks>;
+  ormGlobalHooks?: {
+    entries: Partial<GlobalEntryHooks>;
+    settings: Partial<GlobalSettingsHooks>;
+  };
   actionGroups?: AG;
   install?(
     inCloud: InCloud,
@@ -97,6 +109,8 @@ export interface ExtensionOptions<
   afterAccountMigrate?: AfterMigrate | AfterMigrate[];
 
   afterGlobalMigrate?: AfterMigrate | AfterMigrate[];
+
+  afterOnboarding?: AfterOnboarding;
   /** The lifecycle handlers for the incoming requests. */
   requestLifecycle?: Partial<RequestLifecycle<C>>;
   /** Request middleware */
@@ -107,5 +121,4 @@ export interface ExtensionOptions<
   /** Exception handlers */
   exceptionHandlers?: ExceptionHandler[];
   roles?: Array<RoleConfig>;
-  onBoarding?: Array<OnboardingStepConfig>;
 }

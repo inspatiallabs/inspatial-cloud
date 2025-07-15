@@ -537,7 +537,35 @@ export class InSpatialDB {
     }
     return result.rows[0][column];
   }
-
+  async sum(tableName: string, options: {
+    columns: string[];
+    filter?: DBFilter;
+    orFilter?: DBFilter;
+  }) {
+    tableName = toSnake(tableName);
+    const columns = options.columns.map((column) => {
+      const columnName = formatColumnName(column);
+      return `SUM(${columnName}) as ${columnName}`;
+    }).join(", ");
+    let query = `SELECT ${columns} FROM "${this.schema}".${tableName}`;
+    let andFilter = "";
+    let orFilter = "";
+    if (options.filter) {
+      andFilter = this.makeAndFilter(options.filter);
+    }
+    if (options.orFilter) {
+      orFilter = this.makeOrFilter(options.orFilter);
+    }
+    if (andFilter && orFilter) {
+      query += ` WHERE ${andFilter} AND (${orFilter})`;
+    } else if (andFilter) {
+      query += ` WHERE ${andFilter}`;
+    } else if (orFilter) {
+      query += ` WHERE ${orFilter}`;
+    }
+    const result = await this.query(query);
+    return result.rows[0];
+  }
   /**
    * Count the number of rows in a table that match the filter
    */

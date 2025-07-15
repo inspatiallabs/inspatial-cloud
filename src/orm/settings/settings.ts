@@ -170,6 +170,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   async #runHooks(hookName: HookName): Promise<void> {
     for (const hook of this._settingsType.hooks[hookName]) {
       await hook.handler({
+        inCloud: this._inCloud,
         orm: this._orm,
         settings: this as any,
         [this._name]: this as any,
@@ -180,15 +181,19 @@ export class Settings<N extends string = string> extends BaseClass<N> {
 
   async #beforeValidate(): Promise<void> {
     await this.#runHooks("beforeValidate");
+    await this._orm._runGlobalSettingsHooks("beforeValidate", this);
   }
   async #validate(): Promise<void> {
     await this.#runHooks("validate");
+    await this._orm._runGlobalSettingsHooks("validate", this);
   }
   async #beforeUpdate(): Promise<void> {
     await this.#runHooks("beforeUpdate");
+    await this._orm._runGlobalSettingsHooks("beforeUpdate", this);
   }
   async #afterUpdate(): Promise<void> {
     await this.#runHooks("afterUpdate");
+    await this._orm._runGlobalSettingsHooks("afterUpdate", this);
   }
   get canModify(): boolean {
     return this._settingsType.permission.modify;

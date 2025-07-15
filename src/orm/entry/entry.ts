@@ -194,6 +194,10 @@ export class Entry<
     }
   }
 
+  isFieldModified(fieldName: string): boolean {
+    this.assertViewPermission();
+    return this._modifiedValues.has(fieldName);
+  }
   /* Lifecycle Hooks */
 
   async #runHooks(hookName: EntryHookName): Promise<void> {
@@ -209,12 +213,12 @@ export class Entry<
   }
   async #beforeValidate(): Promise<void> {
     await this.#runHooks("beforeValidate");
-    await this._orm._runGlobalHooks("beforeValidate", this);
+    await this._orm._runGlobalEntryHooks("beforeValidate", this);
   }
   async #validate(): Promise<void> {
     await this.#beforeValidate();
     await this.#runHooks("validate");
-    await this._orm._runGlobalHooks("validate", this);
+    await this._orm._runGlobalEntryHooks("validate", this);
   }
   async #beforeCreate(): Promise<void> {
     for (const field of this._fields.values()) {
@@ -228,11 +232,11 @@ export class Entry<
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this.#runHooks("beforeCreate");
-    await this._orm._runGlobalHooks("beforeCreate", this);
+    await this._orm._runGlobalEntryHooks("beforeCreate", this);
   }
   async #afterCreate(): Promise<void> {
     await this.#runHooks("afterCreate");
-    await this._orm._runGlobalHooks("afterCreate", this);
+    await this._orm._runGlobalEntryHooks("afterCreate", this);
   }
   async #beforeUpdate(): Promise<void> {
     for (const field of this._fields.values()) {
@@ -245,20 +249,20 @@ export class Entry<
     }
     await this.#validate();
     await this.#runHooks("beforeUpdate");
-    await this._orm._runGlobalHooks("beforeUpdate", this);
+    await this._orm._runGlobalEntryHooks("beforeUpdate", this);
   }
   async #afterUpdate(): Promise<void> {
     await this.#syncReferences();
     await this.#runHooks("afterUpdate");
-    await this._orm._runGlobalHooks("afterUpdate", this);
+    await this._orm._runGlobalEntryHooks("afterUpdate", this);
   }
   async #beforeDelete(): Promise<void> {
     await this.#runHooks("beforeDelete");
-    await this._orm._runGlobalHooks("beforeDelete", this);
+    await this._orm._runGlobalEntryHooks("beforeDelete", this);
   }
   async #afterDelete(): Promise<void> {
     await this.#runHooks("afterDelete");
-    await this._orm._runGlobalHooks("afterDelete", this);
+    await this._orm._runGlobalEntryHooks("afterDelete", this);
   }
   /* End Lifecycle Hooks */
   async #insertNew(data: Record<string, any>): Promise<void> {

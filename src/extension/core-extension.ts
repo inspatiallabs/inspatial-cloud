@@ -10,6 +10,7 @@ import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import {
   notifyCreate,
   notifyDelete,
+  notifySettings,
   notifyUpdate,
 } from "./orm-hooks/in-live-notify.ts";
 import { ORMException } from "~/orm/orm-exception.ts";
@@ -47,9 +48,14 @@ export const coreExtension = new CloudExtension("core", {
   label: "Core",
   version: "0.0.1",
   ormGlobalHooks: {
-    afterUpdate: [notifyUpdate],
-    afterCreate: [notifyCreate],
-    afterDelete: [notifyDelete],
+    entries: {
+      afterUpdate: [notifyUpdate],
+      afterCreate: [notifyCreate],
+      afterDelete: [notifyDelete],
+    },
+    settings: {
+      afterUpdate: [notifySettings],
+    },
   },
   actionGroups: [
     authGroup,

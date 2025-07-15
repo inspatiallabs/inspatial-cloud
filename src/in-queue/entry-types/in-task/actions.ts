@@ -42,13 +42,8 @@ export const runTask: EntryActionDefinition<any> = {
       };
       inTask.status = "completed";
     } catch (e) {
-      let data = {};
-
+      inTask.errorInfo = Deno.inspect(e);
       inTask.status = "failed";
-      if (e instanceof Error) {
-        data = e;
-      }
-      inTask.resultData = data;
     }
     inTask.endTime = dateUtils.nowTimestamp();
     await inTask.save();

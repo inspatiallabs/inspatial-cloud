@@ -8,8 +8,10 @@ import type {
 import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import { InLiveRoom } from "~/in-live/in-live-room.ts";
-import { inLog } from "~/in-log/in-log.ts";
+import { inLog } from "#inLog";
 import { BrokerClient } from "./broker-client.ts";
+
+import type { SessionData } from "../auth/types.ts";
 
 /**
  * Handles realtime websocket connections
@@ -73,7 +75,12 @@ export class InLiveHandler {
       const { socket, response } = Deno.upgradeWebSocket(
         inRequest.request,
       );
-      this.#addClient(socket);
+      const user = inRequest.context.get<SessionData>("user");
+      if (!user) {
+        inLog.warn("No user session found for websocket connection.");
+        return new Response("Unauthorized", { status: 401 });
+      }
+      this.#addClient(socket, user);
       return response;
     }
 
@@ -82,14 +89,12 @@ export class InLiveHandler {
     });
   }
 
-  #addClient(socket: WebSocket) {
+  #addClient(socket: WebSocket, user: SessionData) {
     const id = Math.random().toString(36).substring(7);
     const client: InLiveClient = {
       id,
       socket,
-      user: {
-        id,
-      },
+      user,
       rooms: new Set(),
     };
     this.#addListeners(client);
@@ -154,18 +159,29 @@ export class InLiveHandler {
   #handleConnection(_client: InLiveClient) {
   }
 
-  #getRoom(roomName: string): InLiveRoom {
-    const room = this.#rooms.get(roomName);
+  #getRoom({ roomName, accountId }: {
+    roomName: string;
+    accountId: string;
+  }): InLiveRoom {
+    const room = this.#rooms.get(`${accountId}:${roomName}`);
     if (!room) {
       raiseServerException(404, `Room ${roomName} not found`);
     }
     return room;
   }
-  #leave(roomName: string, client: InLiveClient): void {
-    this.#validateRoom(roomName);
-    const room = this.#getRoom(roomName);
+  #leave(
+    roomName: string,
+    client: InLiveClient,
+  ): void {
+    const accountId = client.user.accountId;
+    this.#validateRoom({ roomName, accountId });
+    const room = this.#getRoom({
+      roomName,
+      accountId,
+    });
 
     this.notify({
+      accountId: client.user.accountId,
       roomName,
       event: "leave",
       data: {
@@ -196,6 +212,7 @@ export class InLiveHandler {
 
   announce(message: string | Record<string, any>): void {
     const broadcastMessage: InLiveBroadcastMessage = {
+      accountId: "everyone",
       roomName: "everyone",
       event: "announce",
       data: typeof message === "string" ? { message } : message,
@@ -211,10 +228,14 @@ export class InLiveHandler {
       client.socket.send(JSON.stringify(message));
     });
   }
-  #validateRoom(room: string) {
-    if (!this.#rooms.has(room)) {
+  #validateRoom({ roomName, accountId }: {
+    roomName: string;
+    accountId: string;
+  }) {
+    const name = `${accountId}:${roomName}`;
+    if (!this.#rooms.has(name)) {
       this.addRoom({
-        roomName: room,
+        roomName: name,
       });
       return;
     }
@@ -249,8 +270,9 @@ export class InLiveHandler {
       this.#sendToAll(message);
       return;
     }
-    this.#validateRoom(message.roomName);
-    const room = this.#getRoom(message.roomName);
+    const { accountId, roomName } = message;
+    this.#validateRoom({ roomName, accountId });
+    const room = this.#getRoom({ roomName, accountId });
 
     for (const clientId of room.clients) {
       const client = this.#clients.get(clientId);
@@ -267,9 +289,16 @@ export class InLiveHandler {
   }
 
   #join(roomName: string, client: InLiveClient): void {
-    this.#validateRoom(roomName);
+    const accountId = client.user.accountId;
+    this.#validateRoom({
+      roomName,
+      accountId,
+    });
 
-    const room = this.#getRoom(roomName);
+    const room = this.#getRoom({
+      roomName,
+      accountId,
+    });
     if (room.clients.has(client.id)) {
       return;
     }
@@ -277,6 +306,7 @@ export class InLiveHandler {
     room.clients.add(client.id);
     client.rooms.add(roomName);
     this.notify({
+      accountId,
       roomName,
       event: "join",
       data: {

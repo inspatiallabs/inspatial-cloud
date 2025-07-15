@@ -24,11 +24,6 @@ export class InCloudMigrator extends InCloud {
       "account",
       {
         columns: ["id"],
-        filter: [{
-          field: "initialized",
-          op: "=",
-          value: true,
-        }],
         limit: 0,
       },
     );

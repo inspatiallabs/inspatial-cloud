@@ -7,6 +7,7 @@ import {
   getEntryTypeInfoAction,
   newEntryAction,
   runEntryAction,
+  sum,
   updateEntryAction,
 } from "./entries-group.ts";
 import {
@@ -32,6 +33,7 @@ export const entriesGroup = new CloudAPIGroup("entry", {
     createEntryAction,
     deleteEntryAction,
     getEntryListAction,
+    sum,
   ],
 });
 

@@ -1,3 +1,5 @@
+import type { SessionData } from "../auth/types.ts";
+
 /**
  * A user connected to the realtime server.
  */
@@ -28,7 +30,7 @@ export interface InLiveClient {
   /**
    * The user associated with the client.
    */
-  user: InLiveUser;
+  user: SessionData;
 
   /**
    * The rooms the client is in
@@ -76,6 +78,7 @@ export type InLiveClientMessage<
 export type InLiveBroadcastMessage<
   T extends Record<string, any> = Record<string, any>,
 > = {
+  accountId: string;
   /**
    * The name of the room to broadcast to.
    */

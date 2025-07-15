@@ -66,6 +66,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
   unique?: boolean;
   defaultValue?: any;
   hidden?: boolean;
+  placeholder?: string;
   /**
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */

@@ -92,4 +92,8 @@ export const inTaskFields: Array<InField> = [{
   label: "Result Data",
   type: "JSONField",
   readOnly: true,
+}, {
+  key: "errorInfo",
+  type: "TextField",
+  readOnly: true,
 }];

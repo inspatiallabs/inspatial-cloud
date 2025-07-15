@@ -4,6 +4,8 @@ import type {
   EntryHooks,
   GlobalEntryHooks,
   GlobalHookFunction,
+  GlobalSettingsHookFunction,
+  GlobalSettingsHooks,
 } from "~/orm/orm-types.ts";
 
 import type { ExtensionManager } from "~/extension/extension-manager.ts";
@@ -15,7 +17,7 @@ export function setupOrm(args: {
 }): InSpatialORM {
   const { inCloud, extensionManager } = args;
   const config = extensionManager.getExtensionConfig("core");
-  const globalHooks: GlobalEntryHooks = {
+  const globalEntryHooks: GlobalEntryHooks = {
     afterCreate: [],
     beforeCreate: [],
     beforeUpdate: [],
@@ -25,15 +27,29 @@ export function setupOrm(args: {
     beforeValidate: [],
     validate: [],
   };
-  for (const hookName of Object.keys(extensionManager.ormGlobalHooks)) {
-    const hooks = extensionManager.ormGlobalHooks[hookName as keyof EntryHooks];
+  const globalSettingsHooks: GlobalSettingsHooks = {
+    afterUpdate: [],
+    beforeUpdate: [],
+    beforeValidate: [],
+    validate: [],
+  };
+  for (const hookName of Object.keys(extensionManager.ormGlobalEntryHooks)) {
+    const hooks =
+      extensionManager.ormGlobalEntryHooks[hookName as keyof EntryHooks];
     for (const hook of hooks) {
-      const newHook: GlobalHookFunction = async (
-        { entry, entryType, orm },
-      ) => {
-        return await hook(inCloud, { entry, entryType, orm });
-      };
-      globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
+      globalEntryHooks[hookName as keyof GlobalEntryHooks].push(hook);
+    }
+  }
+  for (
+    const hookName of Object.keys(
+      extensionManager.ormGlobalSettingsHooks,
+    )
+  ) {
+    const hooks = extensionManager.ormGlobalSettingsHooks[
+      hookName as keyof GlobalSettingsHooks
+    ];
+    for (const hook of hooks) {
+      globalSettingsHooks[hookName as keyof GlobalSettingsHooks].push(hook);
     }
   }
   let connectionConfig: ClientConnectionType;
@@ -97,7 +113,8 @@ export function setupOrm(args: {
   const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),
-    globalEntryHooks: globalHooks,
+    globalEntryHooks,
+    globalSettingsHooks,
     dbConfig,
     inCloud,
   });

@@ -7,7 +7,11 @@ import type { InRequest } from "~/serve/in-request.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { Middleware } from "~/serve/middleware.ts";
-import type { EntryHooks } from "~/orm/orm-types.ts";
+import type {
+  EntryHooks,
+  GlobalEntryHooks,
+  GlobalSettingsHooks,
+} from "~/orm/orm-types.ts";
 import type {
   ConfigKey,
   ConfigMap,
@@ -16,10 +20,12 @@ import type {
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 import type { AfterMigrate, CloudExtension } from "./cloud-extension.ts";
+import type { AfterOnboarding } from "../serve/types.ts";
 
 export class ExtensionManager {
   middlewares: Map<string, Middleware> = new Map();
   pathHandlers: Array<PathHandler> = [];
+  afterOnboarding: Array<AfterOnboarding> = [];
   exceptionHandlers: Map<string, ExceptionHandler> = new Map();
   extensions: Map<string, CloudExtension> = new Map();
   extensionsConfig: Map<string, Map<string, any>> = new Map();
@@ -33,7 +39,7 @@ export class ExtensionManager {
     account: [],
     global: [],
   };
-  ormGlobalHooks: EntryHooks = {
+  ormGlobalEntryHooks: GlobalEntryHooks = {
     afterCreate: [],
     beforeUpdate: [],
     beforeDelete: [],
@@ -42,6 +48,12 @@ export class ExtensionManager {
     beforeCreate: [],
     beforeValidate: [],
     validate: [],
+  };
+  ormGlobalSettingsHooks: GlobalSettingsHooks = {
+    beforeUpdate: [],
+    afterUpdate: [],
+    validate: [],
+    beforeValidate: [],
   };
   requestLifecycle: LifecycleHandlerRunner = {
     setup: [],
@@ -83,7 +95,9 @@ export class ExtensionManager {
         });
       }
     }
-
+    if (extension.afterOnboarding) {
+      this.afterOnboarding.push(extension.afterOnboarding);
+    }
     // Middleware
     for (const middleware of extension.middleware) {
       if (this.middlewares.has(middleware.name)) {
@@ -116,17 +130,30 @@ export class ExtensionManager {
       this.exceptionHandlers.set(exceptionHandler.name, exceptionHandler);
     }
     /* ORM */
-    const { entryTypes, settingsTypes, ormGlobalHooks } = extension;
+    const {
+      entryTypes,
+      settingsTypes,
+      ormGlobalEntryHooks,
+      ormGlobalSettingsHooks,
+    } = extension;
     if (entryTypes) {
       this.entryTypes.push(...entryTypes);
     }
     if (settingsTypes) {
       this.settingsTypes.push(...settingsTypes);
     }
-    if (ormGlobalHooks) {
-      for (const hookName of Object.keys(ormGlobalHooks)) {
-        this.ormGlobalHooks[hookName as keyof EntryHooks].push(
-          ...(ormGlobalHooks[hookName as keyof EntryHooks] || []),
+    if (ormGlobalEntryHooks) {
+      for (const hookName of Object.keys(ormGlobalEntryHooks)) {
+        this.ormGlobalEntryHooks[hookName as keyof EntryHooks].push(
+          ...(ormGlobalEntryHooks[hookName as keyof EntryHooks] || []),
+        );
+      }
+    }
+    if (ormGlobalSettingsHooks) {
+      for (const hookName of Object.keys(ormGlobalSettingsHooks)) {
+        this.ormGlobalSettingsHooks[hookName as keyof GlobalSettingsHooks].push(
+          ...(ormGlobalSettingsHooks[hookName as keyof GlobalSettingsHooks] ||
+            []),
         );
       }
     }

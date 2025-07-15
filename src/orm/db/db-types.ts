@@ -137,6 +137,7 @@ export interface ListOptions<T extends EntryBase = EntryBase> {
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
+  groupBy?: string | Array<string>;
 }
 
 export type DBFilter =

@@ -3,7 +3,11 @@ import { Currencies, type InFieldType } from "~/orm/field/field-def-types.ts";
 import type { ORMFieldConfig } from "~/orm/field/orm-field.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
-import type { GetListResponse, GlobalEntryHooks } from "~/orm/orm-types.ts";
+import type {
+  GetListResponse,
+  GlobalEntryHooks,
+  GlobalSettingsHooks,
+} from "~/orm/orm-types.ts";
 import type { Entry } from "~/orm/entry/entry.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 
@@ -32,6 +36,7 @@ import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
 import { handlePgError, isPgError } from "./db/postgres/pgError.ts";
+import type { Settings } from "./settings/settings.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -59,6 +64,12 @@ export class InSpatialORM {
     afterUpdate: [],
     beforeDelete: [],
     afterDelete: [],
+  };
+  globalSettingsHooks: GlobalSettingsHooks = {
+    afterUpdate: [],
+    beforeUpdate: [],
+    beforeValidate: [],
+    validate: [],
   };
 
   withUser(user: UserContext): InSpatialORM {
@@ -90,14 +101,27 @@ export class InSpatialORM {
     return `${this.rootPath}/_generated`;
   }
   rootPath: string;
-  async _runGlobalHooks(
+  async _runGlobalEntryHooks(
     hookType: keyof GlobalEntryHooks,
     entry: Entry,
   ): Promise<void> {
     for (const hook of this.globalEntryHooks[hookType]) {
       await hook({
+        inCloud: this._inCloud,
         entryType: entry._name,
         entry,
+        orm: this,
+      });
+    }
+  }
+  async _runGlobalSettingsHooks(
+    hookType: keyof GlobalSettingsHooks,
+    settings: Settings,
+  ): Promise<void> {
+    for (const hook of this.globalSettingsHooks[hookType]) {
+      await hook({
+        inCloud: this._inCloud,
+        settings,
         orm: this,
       });
     }
@@ -135,7 +159,7 @@ export class InSpatialORM {
        * If not provided, the current working directory will be used.
        */
       rootPath?: string;
-
+      globalSettingsHooks?: GlobalSettingsHooks;
       globalEntryHooks?: GlobalEntryHooks;
       dbConfig: DBConfig;
       inCloud: InCloud;
@@ -179,18 +203,40 @@ export class InSpatialORM {
         view: true,
         modify: true,
       });
+      if (settingsType.extension !== "core") {
+        basicRole.settingsPermissions.set(settingsType.name, {
+          view: true,
+          modify: true,
+        });
+      }
       this.#addSettingsType(settingsType);
     }
     if (options.globalEntryHooks) {
-      this.#setupHooks(options.globalEntryHooks);
+      this.#setupGlobalEntryHooks(options.globalEntryHooks);
+    }
+    if (options.globalSettingsHooks) {
+      this.#setupGlobalSettingsHooks(options.globalSettingsHooks);
     }
     this.roles.setup();
   }
   async init(): Promise<void> {
     await this.db.init();
   }
-
-  #setupHooks(globalHooks: GlobalEntryHooks): void {
+  #setupGlobalSettingsHooks(
+    globalHooks: GlobalSettingsHooks,
+  ): void {
+    this.globalSettingsHooks.validate.push(...globalHooks.validate);
+    this.globalSettingsHooks.beforeValidate.push(
+      ...globalHooks.beforeValidate,
+    );
+    this.globalSettingsHooks.beforeUpdate.push(
+      ...globalHooks.beforeUpdate,
+    );
+    this.globalSettingsHooks.afterUpdate.push(
+      ...globalHooks.afterUpdate,
+    );
+  }
+  #setupGlobalEntryHooks(globalHooks: GlobalEntryHooks): void {
     this.globalEntryHooks.validate.push(...globalHooks.validate);
     this.globalEntryHooks.beforeValidate.push(
       ...globalHooks.beforeValidate,
@@ -472,7 +518,46 @@ export class InSpatialORM {
     const result = await db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;
   }
+  async sum(entryType: string, options: {
+    fields: Array<string>;
+    filter?: DBFilter;
+    orFilter?: DBFilter;
+  }) {
+    const entryTypeObj = this.getEntryType(entryType);
+    const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
+    const tableName = entryTypeObj.config.tableName;
+    const columns: string[] = [];
+    for (const field of options.fields) {
+      const inField = entryTypeObj.fields.get(field);
+      if (!inField) {
+        raiseORMException(
+          `Field with key ${field} does not exist in EntryType ${entryType}`,
+        );
+      }
 
+      switch (inField.type) {
+        case "CurrencyField":
+        case "IntField":
+        case "DecimalField":
+        case "BigIntField":
+          // These fields can be summed
+          break;
+        default:
+          raiseORMException(
+            `Field with key ${field} in EntryType ${entryType} is not a valid field type for summation. Supported types are: CurrencyField, IntField, DecimalField, BigIntField.`,
+            "ORMField",
+            400,
+          );
+      }
+      columns.push(field);
+    }
+
+    return await db.sum(tableName, {
+      columns,
+      filter: options.filter,
+      orFilter: options.orFilter,
+    });
+  }
   async count(
     entryType: string,
     filter?: DBFilter,

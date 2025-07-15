@@ -1,5 +1,6 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { EntryTypeInfo } from "~/orm/entry/types.ts";
+import { DBFilter } from "../db/db-types.ts";
 
 export const getEntryAction = new CloudAPIAction("getEntry", {
   label: "Get Entry",
@@ -210,4 +211,34 @@ export const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
     description: "The Entry Type to get the schema for",
     required: true,
   }],
+});
+
+export const sum = new CloudAPIAction("sum", {
+  label: "Get the sum of the selected fields for a given Entry Type",
+  params: [{
+    key: "entryType",
+    type: "DataField",
+    label: "Entry Type",
+    description: "The Entry Type to list",
+    required: true,
+  }, {
+    key: "filter",
+    type: "JSONField",
+    required: false,
+  }, {
+    key: "orFilter",
+    type: "JSONField",
+    required: false,
+  }, {
+    key: "fields",
+    type: "ListField",
+    required: true,
+  }],
+  async run({ orm, params: { entryType, fields, filter, orFilter } }) {
+    return await orm.sum(entryType, {
+      fields,
+      filter: filter as DBFilter,
+      orFilter: orFilter as DBFilter,
+    });
+  },
 });
