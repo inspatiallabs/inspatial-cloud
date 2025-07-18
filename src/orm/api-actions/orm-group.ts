@@ -46,3 +46,17 @@ export const generateInterfaces = new CloudAPIAction("generateInterfaces", {
   },
   params: [],
 });
+
+export const getClientInterfaces = new CloudAPIAction("getClientInterfaces", {
+  description: "Get Client Typescript Interfaces",
+  label: "Get Client Interfaces",
+  run({ orm, inResponse }) {
+    const result = orm.generateClientInterfaces();
+    return inResponse.setFile({
+      content: result,
+      fileName: "client-interfaces.ts",
+      download: true,
+    });
+  },
+  params: [],
+});

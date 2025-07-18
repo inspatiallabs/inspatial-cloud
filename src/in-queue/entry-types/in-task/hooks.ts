@@ -24,7 +24,7 @@ export const validateTask: EntryHookDefinition<any> = {
 };
 
 async function validateEntryTask(
-  inTask: InTask | InTaskGlobal,
+  inTask: InTaskGlobal,
   orm: InSpatialORM,
 ) {
   const entryTypeName = inTask.typeKey;
@@ -44,8 +44,12 @@ async function validateEntryTask(
   if (!entryId) {
     raiseORMException("Entry ID must be set for this task!");
   }
-  // Load the entry in order to trigget the not found exception if it doesn't exist
-  await orm.getEntry(entryTypeName, entryId);
+  const id = await orm.db.getValue(entryType.config.tableName, entryId, "id");
+  if (!id) {
+    raiseORMException(
+      `Entry with ID ${entryId} doesn't exist in Entry Type ${entryTypeName}!`,
+    );
+  }
 }
 
 function validateSettingsTask(

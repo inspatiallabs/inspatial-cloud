@@ -13,7 +13,7 @@ export const account = new EntryType<Account>("account", {
   }, {
     key: "initialized",
     type: "BooleanField",
-    readOnly: true,
+    readOnly: false,
   }, {
     key: "obResponse",
     label: "Onboarding Response",
@@ -51,12 +51,13 @@ export const account = new EntryType<Account>("account", {
 account.addAction({
   key: "initialize",
   label: "Initialize Account",
-  private: true,
-  async action({ account, orm }) {
+  private: false,
+  async action({ account, inCloud }) {
     if (account.initialized) return;
     const schemaId = account.id;
-    await orm.db.createSchema(schemaId);
-    await orm.migrate(schemaId);
+    await inCloud.orm.db.createSchema(schemaId);
+    await inCloud.orm.migrate(schemaId);
+    // await account.load(account.id);
     account.initialized = true;
     await account.save();
   },

@@ -3,8 +3,6 @@ import type { ClientConnectionType, DBConfig } from "~/orm/db/db-types.ts";
 import type {
   EntryHooks,
   GlobalEntryHooks,
-  GlobalHookFunction,
-  GlobalSettingsHookFunction,
   GlobalSettingsHooks,
 } from "~/orm/orm-types.ts";
 

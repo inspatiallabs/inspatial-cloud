@@ -2,8 +2,7 @@ import type { CloudConfig } from "#types/mod.ts";
 import { generateId } from "~/utils/misc.ts";
 import { InCloud } from "~/in-cloud.ts";
 import type { TaskInfo } from "./types.ts";
-import { raiseCloudException } from "../serve/exeption/cloud-exception.ts";
-import { InSpatialORM } from "../orm/inspatial-orm.ts";
+import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -49,12 +48,12 @@ export class InQueue extends InCloud {
         }
         break;
       default: {
-        if (!taskInfo.account) {
-          raiseCloudException(`task ${taskInfo.id} has no account`);
-        }
-        const orm = this.orm.withAccount(taskInfo.account);
-        const task = await orm.getEntry("inTask", taskInfo.id);
-        await task.runAction("runTask");
+        // if (!taskInfo.account) {
+        //   raiseCloudException(`task ${taskInfo.id} has no account`);
+        // }
+        // const orm = this.orm.withAccount(taskInfo.account);
+        // const task = await orm.getEntry("inTask", taskInfo.id);
+        // await task.runAction("runTask");
       }
     }
     await this.#runNextTask();
@@ -72,15 +71,18 @@ export class InQueue extends InCloud {
   }
   async loadTasks() {
     // load global tasks
-    const { rows: globalTasks } = await this.orm.getEntryList("inTaskGlobal", {
-      columns: ["id"],
-      filter: [{
-        field: "status",
-        op: "=",
-        value: "queued",
-      }],
-      limit: 0,
-    });
+    const { rows: globalTasks } = await this.globalOrm.getEntryList(
+      "inTaskGlobal",
+      {
+        columns: ["id"],
+        filter: [{
+          field: "status",
+          op: "=",
+          value: "queued",
+        }],
+        limit: 0,
+      },
+    );
     for (const task of globalTasks) {
       this.queue.push({
         id: task.id as string,
@@ -88,7 +90,7 @@ export class InQueue extends InCloud {
         account: "cloud_global",
       });
     }
-
+    return; // skip loading account tasks for now
     // load account tasks
     const { rows: accounts } = await this.orm.getEntryList("account", {
       columns: ["id"],
@@ -119,24 +121,6 @@ export class InQueue extends InCloud {
           account: account.id as string,
         });
       }
-    }
-
-    // load system tasks
-    const { rows: systemTasks } = await this.orm.getEntryList("inTaskGlobal", {
-      columns: ["id"],
-      filter: [{
-        field: "status",
-        op: "=",
-        value: "queued",
-      }],
-      limit: 0,
-    });
-    for (const task of systemTasks) {
-      this.queue.push({
-        id: task.id as string,
-        systemGlobal: true,
-        account: "cloud_global",
-      });
     }
   }
   startScheduler() {

@@ -29,6 +29,7 @@ export class EntryType<
 > extends BaseType<N> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
+  imageField?: InField<"ImageField">;
   defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
@@ -152,6 +153,16 @@ export class EntryType<
       this.statusField = field;
     }
 
+    if (config.imageField) {
+      const field = this.fields.get(config.imageField as string);
+      if (field?.type !== "ImageField") {
+        raiseORMException(
+          `Profile image field ${config.imageField.toString()} must be of type ImageField in EntryType ${this.name}`,
+        );
+      }
+      this.imageField = field;
+    }
+
     this.info = {
       config: this.config,
       actions: Array.from(this.actions.values()).filter((action) =>
@@ -160,6 +171,7 @@ export class EntryType<
       permission: this.permission,
       displayFields: Array.from(this.displayFields.values()),
       statusField: this.statusField,
+      imageField: this.imageField,
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
       ),

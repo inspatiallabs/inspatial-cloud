@@ -50,11 +50,6 @@ export const runTask: EntryActionDefinition<any> = {
   },
 };
 
-async function runEntryTask(inTask: InTask | InTaskGlobal, orm: InSpatialORM) {
-  const entry = await orm.getEntry(inTask.typeKey!, inTask.entryId!);
-  return await entry.runAction(inTask.actionName, inTask.taskData);
-}
-
 async function runSettingsTask(
   inTask: InTask | InTaskGlobal,
   orm: InSpatialORM,

@@ -37,6 +37,7 @@ import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
 import { handlePgError, isPgError } from "./db/postgres/pgError.ts";
 import type { Settings } from "./settings/settings.ts";
+import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -179,7 +180,7 @@ export class InSpatialORM {
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });
-    this.db.schema = this.systemGobalUser.accountId; // "cloud_global" default
+    // this.db.schema = this.systemGobalUser.accountId; // "cloud_global" default
     this.systemDb = this.db.withSchema("cloud_global");
     for (const entryType of options.entries) {
       adminRole.entryPermissions.set(entryType.name, {
@@ -522,11 +523,13 @@ export class InSpatialORM {
     fields: Array<string>;
     filter?: DBFilter;
     orFilter?: DBFilter;
+    groupBy?: Array<string>;
   }) {
     const entryTypeObj = this.getEntryType(entryType);
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
     const tableName = entryTypeObj.config.tableName;
-    const columns: string[] = [];
+    const sumColumns = new Set<string>();
+    const groupByColumns = new Set<string>();
     for (const field of options.fields) {
       const inField = entryTypeObj.fields.get(field);
       if (!inField) {
@@ -549,26 +552,56 @@ export class InSpatialORM {
             400,
           );
       }
-      columns.push(field);
+      sumColumns.add(field);
     }
+    for (const field of options.groupBy || []) {
+      if (sumColumns.has(field)) {
+        continue;
+      }
+      const inField = entryTypeObj.fields.get(field);
+      if (!inField) {
+        raiseORMException(
+          `Field with key ${field} does not exist in EntryType ${entryType}`,
+        );
+      }
 
+      groupByColumns.add(inField.key);
+    }
     return await db.sum(tableName, {
-      columns,
+      columns: Array.from(sumColumns),
       filter: options.filter,
       orFilter: options.orFilter,
+      groupBy: Array.from(groupByColumns),
     });
   }
   async count(
     entryType: string,
-    filter?: DBFilter,
-    groupBy?: Array<string>,
+    options?: {
+      filter?: DBFilter;
+      orFilter?: DBFilter;
+      groupBy?: Array<string>;
+    },
   ): Promise<number> {
     const entryTypeObj = this.getEntryType(entryType);
+    const { filter, orFilter, groupBy } = options || {};
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
     const tableName = entryTypeObj.config.tableName;
+    const groupByColumns = new Set<string>();
+    if (groupBy) {
+      for (const field of groupBy) {
+        const inField = entryTypeObj.fields.get(field);
+        if (!inField) {
+          raiseORMException(
+            `Field with key ${field} does not exist in EntryType ${entryType}`,
+          );
+        }
+        groupByColumns.add(inField.key);
+      }
+    }
     const result = await db.count(tableName, {
       filter,
-      groupBy,
+      orFilter,
+      groupBy: groupByColumns.size > 0 ? Array.from(groupByColumns) : undefined,
     });
     return result;
   }
@@ -665,7 +698,7 @@ export class InSpatialORM {
    * Synchronizes the ORM models with the database based on the output of the planMigration method.
    * The schema passed to this method is the account ID of the account/tenant to be migrated.
    */
-  async migrate(schema: IDValue): Promise<Array<string>> {
+  async migrate(schema: IDValue) {
     if (typeof schema !== "string") {
       schema = schema.toString();
     }
@@ -689,7 +722,6 @@ export class InSpatialORM {
       inLog.warn(response, {
         subject,
       });
-      Deno.exit(1);
     }
   }
   /**
@@ -742,5 +774,14 @@ export class InSpatialORM {
       generatedEntries,
       generatedSettings,
     };
+  }
+
+  generateClientInterfaces(): string {
+    const generatedSettings: string[] = [];
+    const adminRole = this.roles.getRole("systemAdmin");
+    const entryTypes = Array.from(adminRole.entryTypes.values());
+    const entriesInterfaces = generateClientEntryTypes(entryTypes);
+
+    return entriesInterfaces;
   }
 }

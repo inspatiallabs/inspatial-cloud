@@ -1,5 +1,6 @@
 import { CloudAPIGroup } from "../../api/cloud-group.ts";
 import {
+  count,
   createEntryAction,
   deleteEntryAction,
   getEntryAction,
@@ -13,6 +14,7 @@ import {
 import {
   entryTypesInfo,
   generateInterfaces,
+  getClientInterfaces,
   settingsTypesInfo,
 } from "./orm-group.ts";
 import {
@@ -34,6 +36,7 @@ export const entriesGroup = new CloudAPIGroup("entry", {
     deleteEntryAction,
     getEntryListAction,
     sum,
+    count,
   ],
 });
 
@@ -44,6 +47,7 @@ export const ormGroup = new CloudAPIGroup("orm", {
     entryTypesInfo,
     settingsTypesInfo,
     generateInterfaces,
+    getClientInterfaces,
   ],
 });
 

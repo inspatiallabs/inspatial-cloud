@@ -122,26 +122,23 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       value: this._parentId,
     }]);
 
-    await this.load(this._parentId);
+    this._data.clear();
+    this._newData.clear();
   }
   async deleteStaleRecords(): Promise<void> {
-    const dbRecords = await this._db.getRows<{ id: string }>(
+    const existingIds = Array.from(this._data.keys());
+    await this._db.deleteRows(
       this._tableName,
-      {
-        filter: [{
-          field: "parent",
-          op: "=",
-          value: this._parentId,
-        }],
-        columns: ["id"],
-      },
+      [{
+        field: "parent",
+        op: "=",
+        value: this._parentId,
+      }, {
+        field: "id",
+        op: "notInList",
+        value: existingIds,
+      }],
     );
-
-    for (const row of dbRecords.rows) {
-      if (!this._data.has(row.id)) {
-        await this._db.deleteRow(this._tableName, row.id);
-      }
-    }
   }
   update(data: Array<T>): void {
     const rowsToRemove = new Set(this._data.keys());

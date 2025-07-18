@@ -151,10 +151,8 @@ export class Entry<
       this.id,
       data,
     ).catch((e) => this.handlePGError(e));
-
     await this.saveChildren();
     await this.#afterUpdate();
-    // Reload the entry to get the updated values
     await this.load(this.id);
   }
 

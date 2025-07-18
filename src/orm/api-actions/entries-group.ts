@@ -233,12 +233,53 @@ export const sum = new CloudAPIAction("sum", {
     key: "fields",
     type: "ListField",
     required: true,
+  }, {
+    key: "groupBy",
+    type: "ListField",
+    required: false,
+    description: "The field to group the results by, if any",
   }],
-  async run({ orm, params: { entryType, fields, filter, orFilter } }) {
+  async run({ orm, params: { entryType, fields, filter, orFilter, groupBy } }) {
     return await orm.sum(entryType, {
       fields,
       filter: filter as DBFilter,
       orFilter: orFilter as DBFilter,
+      groupBy: groupBy,
     });
   },
+});
+
+export const count = new CloudAPIAction("count", {
+  async run({
+    orm,
+    params: {
+      entryType,
+      filter,
+      orFilter,
+      groupBy,
+    },
+  }) {
+    return await orm.count(entryType, {
+      filter: filter as DBFilter,
+      orFilter: orFilter as DBFilter,
+      groupBy,
+    });
+  },
+  params: [{
+    key: "entryType",
+    type: "DataField",
+    required: true,
+  }, {
+    key: "filter",
+    type: "JSONField",
+    required: false,
+  }, {
+    key: "orFilter",
+    type: "JSONField",
+    required: false,
+  }, {
+    key: "groupBy",
+    type: "ListField",
+    required: false,
+  }],
 });

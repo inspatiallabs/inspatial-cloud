@@ -48,7 +48,7 @@ export const inTaskFields: Array<InField> = [{
   type: "ChoicesField",
   defaultValue: "queued",
   required: true,
-  readOnly: true,
+  readOnly: false,
   choices: [{
     key: "queued",
     label: "Queued",

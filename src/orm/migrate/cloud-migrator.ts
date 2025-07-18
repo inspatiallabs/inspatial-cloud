@@ -24,6 +24,9 @@ export class InCloudMigrator extends InCloud {
       "account",
       {
         columns: ["id"],
+        filter: {
+          initialized: true,
+        },
         limit: 0,
       },
     );

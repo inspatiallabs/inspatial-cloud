@@ -1,10 +1,7 @@
 import { CloudExtension } from "~/extension/cloud-extension.ts";
 
 import { apiPathHandler } from "~/api/api-handler.ts";
-import {
-  inTask,
-  inTaskGlobal,
-} from "~/in-queue/entry-types/in-task/in-task.ts";
+import { inTaskGlobal } from "~/in-queue/entry-types/in-task/in-task.ts";
 import { staticFilesHandler } from "~/static/staticPathHandler.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import {
@@ -76,7 +73,6 @@ export const coreExtension = new CloudExtension("core", {
     userEntry,
     userSessionEntry,
     account,
-    inTask,
     inTaskGlobal,
     cloudFile,
     globalCloudFile,

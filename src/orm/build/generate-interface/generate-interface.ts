@@ -1,4 +1,3 @@
-import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import {
   formatInterfaceFile,
@@ -10,7 +9,6 @@ import {
 } from "~/orm/build/generate-interface/build-fields.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import convertString from "~/utils/convert-string.ts";
-import { InField } from "../../field/field-def-types.ts";
 
 export async function generateEntryInterface(
   entryType: EntryType,

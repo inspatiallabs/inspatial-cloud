@@ -3,8 +3,9 @@ import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 import type { User } from "~/auth/entries/user/_user.type.ts";
 import type { Account } from "~/auth/entries/account/_account.type.ts";
 
-export const createAccount = new CloudAPIAction("createAccount", {
-  label: "Create a New Account",
+export const registerAccount = new CloudAPIAction("registerAccount", {
+  label: "Register Account",
+  description: "Create a new acount and assign the given user as the owner.",
   authRequired: false,
   async run({ inCloud, orm, params, inRequest, inResponse }) {
     const { firstName, lastName, email, password } = params;

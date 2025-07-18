@@ -55,7 +55,6 @@ export const notifyDelete: GlobalHookFunction = (
 export const notifySettings: GlobalSettingsHookFunction = (
   { inCloud: { inLive }, settings },
 ) => {
-  console.log("nooidsoaht");
   if (settings._db.schema === undefined) {
     return;
   }
