@@ -11,7 +11,7 @@ interface RegisterFieldConfig {
   referencedFieldKey: FieldKey;
 }
 
-interface RegistryField {
+export interface RegistryField {
   targetEntryType: EntryTypeKey;
   targetIdField: FieldKey;
   targetValueField: FieldKey;

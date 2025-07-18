@@ -4,7 +4,7 @@ import {
   CloudAPIAction,
 } from "~/api/cloud-action.ts";
 import type { CloudParam } from "~/api/api-types.ts";
-import { raiseServerException } from "~/app/server-exception.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
 
 export class CloudAPIGroup<
   G extends string = string,

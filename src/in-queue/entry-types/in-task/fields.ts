@@ -11,9 +11,6 @@ export const inTaskFields: Array<InField> = [{
   }, {
     key: "settings",
     label: "Settings",
-  }, {
-    key: "app",
-    label: "App",
   }],
 }, {
   key: "typeKey",
@@ -51,7 +48,7 @@ export const inTaskFields: Array<InField> = [{
   type: "ChoicesField",
   defaultValue: "queued",
   required: true,
-  readOnly: true,
+  readOnly: false,
   choices: [{
     key: "queued",
     label: "Queued",
@@ -94,5 +91,9 @@ export const inTaskFields: Array<InField> = [{
   key: "resultData",
   label: "Result Data",
   type: "JSONField",
+  readOnly: true,
+}, {
+  key: "errorInfo",
+  type: "TextField",
   readOnly: true,
 }];

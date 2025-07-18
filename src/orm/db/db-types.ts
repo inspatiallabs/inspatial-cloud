@@ -50,6 +50,8 @@ export type PgDataType =
   | "jsonb"
   | "numeric"
   | "bigint"
+  | "time"
+  | "money"
   | "date";
 export interface PgDataTypeDefinition {
   dataType: PgDataType;
@@ -135,6 +137,7 @@ export interface ListOptions<T extends EntryBase = EntryBase> {
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
+  groupBy?: string | Array<string>;
 }
 
 export type DBFilter =
@@ -209,7 +212,7 @@ type FilterInList = {
 
 type FilterEqual = {
   op: EqualsOp;
-  value: string | number;
+  value: string | number | boolean;
 };
 type FilterBetween = {
   op: BetweenOps;

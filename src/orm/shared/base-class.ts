@@ -13,13 +13,16 @@ import type {
   InFieldMap,
   InFieldType,
 } from "~/orm/field/field-def-types.ts";
-import type { InCloud } from "~/cloud/cloud-common.ts";
-import type { SessionData } from "#extensions/auth/types.ts";
-import type { InTask } from "../../in-queue/entry-types/in-task/in-task.type.ts";
+import type { InCloud } from "~/in-cloud.ts";
+
+import type { InTask } from "~/in-queue/entry-types/in-task/_in-task.type.ts";
+import type { UserID } from "~/auth/types.ts";
+import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/_in-task-global.type.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
   _name: N;
+  _systemGlobal: boolean;
   _orm: InSpatialORM;
   _inCloud: InCloud;
   _db: InSpatialDB;
@@ -30,7 +33,7 @@ export class BaseClass<N extends string = string> {
   _changeableFields: Map<string, InField> = new Map();
   _childrenClasses: Map<string, typeof ChildEntryList> = new Map();
   _childrenData: Map<string, ChildEntryList> = new Map();
-  readonly _user?: SessionData;
+  readonly _user?: UserID;
   _actions: Map<string, EntryActionDefinition | SettingsActionDefinition> =
     new Map();
   _getFieldType<T extends keyof InFieldMap>(fieldType: T): ORMFieldConfig<T> {
@@ -54,18 +57,22 @@ export class BaseClass<N extends string = string> {
     return fieldDef as unknown as InFieldMap[T];
   }
 
-  constructor(
-    orm: InSpatialORM,
-    inCloud: InCloud,
-    name: N,
-    type: "settings" | "entry",
-    user?: SessionData,
-  ) {
+  constructor(config: {
+    systemGlobal?: boolean;
+    orm: InSpatialORM;
+    inCloud: InCloud;
+    name: N;
+    type: "settings" | "entry";
+    user: UserID;
+  }) {
+    const { systemGlobal, orm, inCloud, name, type, user } = config;
+    this._systemGlobal = systemGlobal || false;
     this._user = user;
     this._type = type;
     this._name = name;
     this._orm = orm;
-    this._inCloud = inCloud, this._db = orm.db;
+    this._inCloud = inCloud;
+    this._db = this._systemGlobal ? orm.systemDb : orm.db;
     this._data = new Map();
     this._childrenData = new Map();
   }
@@ -89,6 +96,7 @@ export class BaseClass<N extends string = string> {
     actionKey: string,
     data?: Record<string, any>,
   ): Promise<Record<string, any>> {
+    const taskEntryName = this._systemGlobal ? "inTaskGlobal" : "inTask";
     this.#getAndValidateAction(actionKey, data);
     data = data || {};
     const fields: Record<string, any> = {
@@ -100,13 +108,22 @@ export class BaseClass<N extends string = string> {
     if (this._type === "entry") {
       fields.entryId = this._data.get("id");
     }
-    const task = await this._orm.createEntry<InTask>("inTask", fields);
+    const task = await this._orm.createEntry<InTask | InTaskGlobal>(
+      taskEntryName,
+      fields,
+    );
+
+    this._inCloud.inQueue.send({
+      id: task.id,
+      systemGlobal: this._systemGlobal,
+      account: this._db._schema,
+    });
     return task.data;
   }
   _setupChildren(): void {
     this._childrenData.clear();
     for (const child of this._childrenClasses.values()) {
-      const childList = new child(this._orm);
+      const childList = new child(this._orm, this._db);
       this._childrenData.set(childList._name, childList);
     }
   }
@@ -118,9 +135,14 @@ export class BaseClass<N extends string = string> {
     }
     return this._childrenData.get(childName)!;
   }
-  async saveChildren(): Promise<void> {
+  async saveChildren(withParentId?: string): Promise<void> {
     for (const child of this._childrenData.values()) {
-      await child.save();
+      await child.save(withParentId);
+    }
+  }
+  async deleteChildren() {
+    for (const child of this._childrenData.values()) {
+      await child.clear();
     }
   }
   async loadChildren(parentId: string): Promise<void> {

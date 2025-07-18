@@ -16,9 +16,9 @@ const generateModels = new CloudAPIAction(
       required: false,
       label: "Path",
     }],
-    async run({ inCloud, params }) {
+    async run({ inCloud, orm, params }) {
       const modelsPath = params.path ||
-        `${inCloud.orm.generatedRoot}/flutter/models`;
+        `${orm.generatedRoot}/flutter/models`;
       await Deno.mkdir(`${modelsPath}/settings`, { recursive: true });
       await Deno.mkdir(`${modelsPath}/entries`, { recursive: true });
       const models: string[] = [];

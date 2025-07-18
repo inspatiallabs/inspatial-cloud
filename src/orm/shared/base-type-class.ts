@@ -11,7 +11,9 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 export class BaseType<N extends string = string> {
   name: N;
   label: string;
+  extension: string;
   dir?: string;
+  systemGlobal: boolean;
   description: string;
   fields: Map<string, InField> = new Map();
   displayFields: Map<string, InField> = new Map();
@@ -25,12 +27,15 @@ export class BaseType<N extends string = string> {
     config: {
       fields: Array<InField>;
       fieldGroups?: Array<FieldGroupConfig>;
+      systemGlobal?: boolean;
       label?: string;
       description?: string;
       children?: Array<ChildEntryType<any>>;
     },
   ) {
+    this.extension = "";
     this.name = this.#sanitizeName(name);
+    this.systemGlobal = config.systemGlobal || false;
     let label: string | undefined = config.label;
     if (!label) {
       label = convertString(this.name, "title", true);
@@ -47,8 +52,11 @@ export class BaseType<N extends string = string> {
         case "ImageField":
         case "FileField":
           field.connectionIdMode = "ulid";
-          field.entryType = "cloudFile";
+          field.entryType = this.systemGlobal ? "globalCloudFile" : "cloudFile";
           break;
+      }
+      if (!field.label) {
+        field.label = convertString(field.key, "title", true);
       }
       this.fields.set(field.key, field);
     }
@@ -57,7 +65,9 @@ export class BaseType<N extends string = string> {
     this.#addFieldGroups(config.fieldGroups);
     this.#baseInfo = {
       name: this.name,
+      extension: this.extension,
       label: this.label,
+      systemGlobal: this.systemGlobal,
       description: this.description,
       fields: Array.from(this.fields.values()),
       titleFields: Array.from(this.connectionTitleFields.values()),
@@ -94,6 +104,7 @@ export class BaseType<N extends string = string> {
       }
       child.config.parentEntryType = this.name;
       child.generateTableName();
+      child.systemGlobal = this.systemGlobal;
       this.children.set(child.name, child);
     }
     this.#baseInfo.children = Array.from(this.children.values()).map(

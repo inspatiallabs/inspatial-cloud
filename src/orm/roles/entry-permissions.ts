@@ -1,4 +1,4 @@
-import type { BasePermission } from "./shared-permissions.ts";
+import type { BasePermission } from "~/orm/roles/shared-permissions.ts";
 
 export interface EntryRole<FK extends PropertyKey = PropertyKey> {
   roleName: string;

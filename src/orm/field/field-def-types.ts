@@ -2,7 +2,7 @@ import type { Choice, IDMode, InValue } from "~/orm/field/types.ts";
 import type {
   FileTypes,
   ImageFileType,
-} from "#extensions/files/src/mime-types/file-types.ts";
+} from "~/files/mime-types/file-types.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
@@ -29,6 +29,7 @@ export type InFieldMap = {
   CurrencyField: CurrencyField;
   IDField: IDField;
   FileField: FileField;
+  TimeField: TimeField;
 };
 
 export type InFieldType = keyof InFieldMap;
@@ -58,13 +59,14 @@ type DependsOn<FK extends PropertyKey = PropertyKey> =
   }>;
 type BaseField<FK extends PropertyKey = PropertyKey> = {
   key: string;
-  label: string;
+  label?: string;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
   unique?: boolean;
   defaultValue?: any;
   hidden?: boolean;
+  placeholder?: string;
   /**
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */
@@ -130,6 +132,11 @@ export interface TimeStampField extends BaseField {
   showTime?: boolean;
 }
 
+export interface TimeField extends BaseField {
+  type: "TimeField";
+  defaultValue?: InValue<"TimeField">;
+}
+
 export interface BooleanField extends BaseField {
   type: "BooleanField";
   defaultValue?: InValue<"BooleanField">;
@@ -161,7 +168,7 @@ export interface ImageField extends BaseField {
   type: "ImageField";
   defaultValue?: InValue<"ImageField">;
   allowedImageTypes: Array<ImageFileType> | "all";
-  entryType?: "cloudFile";
+  entryType?: "cloudFile" | "globalCloudFile";
   connectionIdMode?: "ulid";
 }
 
@@ -212,4 +219,83 @@ export interface ListField extends BaseField {
 export interface CurrencyField extends BaseField {
   type: "CurrencyField";
   defaultValue?: InValue<"CurrencyField">;
+  currencyCode?: CurrencyCode;
+  currency?: Currency;
 }
+export type CurrencyCode = keyof typeof Currencies;
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+  symbolPosition?: "left" | "right";
+  decimalSeparator?: string;
+  thousandsSeparator?: string;
+  decimalPlaces?: number;
+}
+
+export const Currencies = {
+  USD: {
+    code: "USD",
+    symbol: "$",
+    name: "US Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  EUR: {
+    code: "EUR",
+    symbol: "€",
+    name: "Euro",
+    symbolPosition: "right",
+    decimalSeparator: ",",
+    thousandsSeparator: ".",
+    decimalPlaces: 2,
+  },
+  GBP: {
+    code: "GBP",
+    symbol: "£",
+    name: "British Pound",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  JPY: {
+    code: "JPY",
+    symbol: "¥",
+    name: "Japanese Yen",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 0,
+  },
+  AUD: {
+    code: "AUD",
+    symbol: "A$",
+    name: "Australian Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  CAD: {
+    code: "CAD",
+    symbol: "C$",
+    name: "Canadian Dollar",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  ILS: {
+    code: "ILS",
+    symbol: "₪",
+    name: "Israeli New Shekel",
+    symbolPosition: "left",
+    decimalSeparator: ".",
+    thousandsSeparator: ",",
+    decimalPlaces: 2,
+  },
+  // Add more currencies as needed
+} as const satisfies Record<string, Currency>;

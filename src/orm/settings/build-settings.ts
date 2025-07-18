@@ -4,11 +4,12 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 import { makeFields } from "~/orm/build/make-fields.ts";
 import type { SettingsActionDefinition } from "~/orm/settings/types.ts";
 import { buildChildren } from "~/orm/child-entry/build-children.ts";
-import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { UserID } from "~/auth/types.ts";
 
 export function buildSettings(
   settingsType: SettingsType,
-): typeof Settings {
+): typeof Settings<any> {
   const changeableFields = new Map<string, InField>();
   const fieldIds = new Map<string, string>();
   for (const field of settingsType.fields.values()) {
@@ -21,6 +22,7 @@ export function buildSettings(
   }
   const childrenClasses = buildChildren(settingsType);
   const settingsClass = class extends Settings<any> {
+    override _systemGlobal: boolean = settingsType.systemGlobal;
     override _fields: Map<string, InField> = settingsType.fields;
     override _changeableFields = changeableFields;
     override _fieldIds: Map<string, string> = fieldIds;
@@ -28,8 +30,14 @@ export function buildSettings(
       settingsType.actions;
     override readonly _settingsType = settingsType;
     override _childrenClasses = childrenClasses;
-    constructor(orm: any, inCloud: InCloud) {
-      super(orm, inCloud, settingsType.name);
+    constructor(config: { orm: any; inCloud: InCloud; user: UserID }) {
+      super({
+        systemGlobal: settingsType.systemGlobal,
+        orm: config.orm,
+        inCloud: config.inCloud,
+        name: settingsType.name,
+        user: config.user,
+      });
       this._setupChildren();
     }
   };

@@ -8,10 +8,21 @@ import type {
   ChildEntryType,
 } from "~/orm/child-entry/child-entry.ts";
 
-export function makeFields(
-  forType: "entry" | "settings" | "child",
-  typeClass: EntryType | SettingsType | ChildEntryType,
-  dataClass: typeof Entry | typeof Settings | typeof ChildEntry,
+interface ForTypeMap {
+  entry: EntryType;
+  settings: SettingsType;
+  child: ChildEntryType;
+}
+
+interface ForTypeMapWithData {
+  entry: typeof Entry<any>;
+  settings: typeof Settings<any>;
+  child: typeof ChildEntry<any>;
+}
+export function makeFields<ForType extends keyof ForTypeMap>(
+  forType: ForType,
+  typeClass: ForTypeMap[ForType],
+  dataClass: ForTypeMapWithData[ForType],
 ): void {
   const fields = typeClass.fields;
   const children = typeClass.children || [];

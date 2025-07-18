@@ -10,13 +10,13 @@ const inLogSmall = new InLog({
 });
 import { makeLogo } from "~/terminal/logo.ts";
 import { InLog } from "~/in-log/in-log.ts";
-import { getCoreCount } from "./multicore.ts";
-import { loadCloudConfigFile } from "./cloud-config.ts";
+import { getCoreCount } from "#cli/multicore.ts";
+import { loadCloudConfigFile } from "#cli/cloud-config.ts";
 import convertString from "~/utils/convert-string.ts";
 import { joinPath } from "~/utils/path-utils.ts";
 import { center } from "~/terminal/format-utils.ts";
 import ColorMe from "~/terminal/color-me.ts";
-import type { RunnerMode } from "./types.ts";
+import type { RunnerMode } from "#cli/types.ts";
 
 const logo = makeLogo({
   symbol: "alt2DownLeft",
@@ -53,7 +53,7 @@ export class RunManager {
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
   async init(): Promise<void> {
-    this.coreCount = await getCoreCount();
+    this.coreCount = await getCoreCount({ single: true }); // skip multicore at the moment
     await this.spawnInit();
     const result = loadCloudConfigFile(this.rootPath);
     if (!result) {
@@ -65,14 +65,23 @@ export class RunManager {
     }
     const { config, env } = result;
     this.env = env;
-    const { hostName, port, brokerPort, queuePort, cloudMode, name } =
-      config.cloud;
+    const {
+      hostName,
+      port,
+      brokerPort,
+      queuePort,
+      cloudMode,
+      name,
+      embeddedDb,
+      embeddedDbPort,
+      autoTypes,
+      autoMigrate,
+    } = config.core;
     this.appName = name || this.appName;
     this.appTitle = convertString(this.appName, "title", true);
     if (cloudMode == "development") {
       this.watch = true;
     }
-    const { embeddedDb, embeddedDbPort, autoTypes, autoMigrate } = config.orm;
 
     this.autoMigrate = autoMigrate;
     this.autoTypes = autoTypes;
@@ -101,7 +110,7 @@ export class RunManager {
     }
     if (!embeddedDb) {
       dbConnectionString = makeDBConnectionString(
-        config.orm,
+        config.core,
       );
     }
     const rows = [
@@ -123,7 +132,6 @@ export class RunManager {
       );
       this.setupWatcher();
     }
-    // Terminal.showCursor();
   }
   async setupWatcher() {
     const dirs = Deno.readDirSync(this.rootPath);

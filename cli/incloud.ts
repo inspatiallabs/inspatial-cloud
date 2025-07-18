@@ -1,7 +1,7 @@
 import { InLog } from "~/in-log/in-log.ts";
-import { RunManager } from "./src/run-manager.ts";
 import convertString from "~/utils/convert-string.ts";
 import { center } from "~/terminal/format-utils.ts";
+import { RunManager } from "#cli/run-manager.ts";
 
 const inLog = new InLog({
   consoleDefaultStyle: "full",

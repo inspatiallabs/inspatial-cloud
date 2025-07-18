@@ -18,7 +18,7 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { SettingsPermission } from "~/orm/roles/settings-permissions.ts";
-import type { SessionData } from "#extensions/auth/types.ts";
+
 import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type {
   GenericSettings,
@@ -28,7 +28,9 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 import type { Choice } from "~/orm/field/types.ts";
 import type { EntryConfig } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
-import { raiseCloudException } from "../../app/exeption/cloud-exception.ts";
+
+import type { UserID } from "~/auth/types.ts";
+import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 
 export class Role {
   readonly roleName: string;
@@ -58,6 +60,30 @@ export class Role {
     this.#settingsClasses = new Map();
     this.registry = new ConnectionRegistry();
   }
+  get globalEntryTypes(): Array<EntryType> {
+    return Array.from(this.entryTypes.values()).filter(
+      (et) => et.systemGlobal,
+    );
+  }
+
+  get accountEntryTypes(): Array<EntryType> {
+    return Array.from(this.entryTypes.values()).filter(
+      (et) => !et.systemGlobal,
+    );
+  }
+
+  get globalSettingsTypes(): Array<SettingsType> {
+    return Array.from(this.settingsTypes.values()).filter(
+      (st) => st.systemGlobal,
+    );
+  }
+
+  get accountSettingsTypes(): Array<SettingsType> {
+    return Array.from(this.settingsTypes.values()).filter(
+      (st) => !st.systemGlobal,
+    );
+  }
+
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
   ): T {
@@ -131,7 +157,7 @@ export class Role {
   getEntryInstance<E extends EntryBase = GenericEntry>(
     orm: InSpatialORM,
     entryType: string,
-    user?: SessionData,
+    user: UserID,
   ): E {
     const entryClass = this.#entryClasses.get(entryType);
     if (!entryClass) {
@@ -139,13 +165,13 @@ export class Role {
         `EntryType ${entryType} is not a valid entry type for role ${this.roleName}`,
       );
     }
-    return new entryClass(orm, orm._inCloud, entryType, user) as E;
+    return new entryClass({ orm, inCloud: orm._inCloud, user }) as E;
   }
 
   getSettingsInstance<S extends SettingsBase = GenericSettings>(
     orm: InSpatialORM,
     settingsType: string,
-    user?: SessionData,
+    user: UserID,
   ): S {
     const settingsClass = this.#settingsClasses.get(settingsType);
     if (!settingsClass) {
@@ -153,7 +179,12 @@ export class Role {
         `SettingsType ${settingsType} is not a valid settings type.`,
       );
     }
-    return new settingsClass(orm, orm._inCloud, settingsType, user) as S;
+    return new settingsClass({
+      orm,
+      inCloud: orm._inCloud,
+      name: settingsType,
+      user,
+    }) as S;
   }
 }
 
@@ -172,7 +203,7 @@ export class RoleManager {
 
   constructor() {
     this.roles = new Map();
-    this.defaultRole = "systemAdmin";
+    this.defaultRole = "accountOwner";
     this.#locked = false;
   }
   addRole(config: RoleConfig): void {
@@ -183,10 +214,12 @@ export class RoleManager {
     this.roles.set(role.roleName, role);
   }
   addEntryType(entryType: EntryType): void {
-    if (entryType.name === "user") {
-      const rolesField = entryType.fields.get(
-        "role",
-      )! as InField<"ChoicesField">;
+    if (entryType.name === "account") {
+      const usersChild = entryType.children!.get("users")!;
+      const roleField = usersChild.fields.get("role")! as InField<
+        "ChoicesField"
+      >;
+
       const roles: Array<Choice> = [];
       for (const role of this.roles.values()) {
         roles.push({
@@ -195,7 +228,7 @@ export class RoleManager {
           description: role.description,
         });
       }
-      rolesField.choices = roles;
+      roleField.choices = roles;
     }
     for (const role of this.roles.values()) {
       const permission = role.entryPermissions.get(entryType.name);
@@ -227,7 +260,7 @@ export class RoleManager {
   getEntryInstance<E extends EntryBase = GenericEntry>(
     orm: InSpatialORM,
     entryType: string,
-    user?: SessionData,
+    user: UserID,
   ): E {
     const role = this.getRole(user?.role || this.defaultRole);
     return role.getEntryInstance<E>(orm, entryType, user);
@@ -236,7 +269,7 @@ export class RoleManager {
   getSettingsInstance<S extends SettingsBase = GenericSettings>(
     orm: InSpatialORM,
     settingsType: string,
-    user?: SessionData,
+    user: UserID,
   ): S {
     const role = this.getRole(user?.role || this.defaultRole);
     return role.getSettingsInstance<S>(orm, settingsType, user);
@@ -251,23 +284,23 @@ export class RoleManager {
 
   getEntryType<T extends EntryType = EntryType>(
     entryType: string,
-    roleName?: string,
+    roleName: string,
   ): T {
-    const role = this.getRole(roleName || this.defaultRole);
+    const role = this.getRole(roleName);
     return role.getEntryType<T>(entryType);
   }
   getSettingsType<T extends SettingsType = SettingsType>(
     settingsType: string,
-    roleName?: string,
+    roleName: string,
   ): T {
-    const role = this.getRole(roleName || this.defaultRole);
+    const role = this.getRole(roleName);
     return role.getSettingsType<T>(settingsType);
   }
   getRegistry(
     entryType: string,
-    roleName?: string,
+    roleName: string,
   ): EntryTypeRegistry | undefined {
-    const role = this.getRole(roleName || this.defaultRole);
+    const role = this.getRole(roleName);
     return role.registry.getEntryTypeRegistry(entryType);
   }
   setup(): void {

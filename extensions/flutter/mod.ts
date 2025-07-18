@@ -1,4 +1,4 @@
-import { CloudExtension } from "~/app/cloud-extension.ts";
+import { CloudExtension } from "~/extension/cloud-extension.ts";
 import { CloudAPIGroup } from "~/api/cloud-group.ts";
 import generateModels from "./actions/generate-models.ts";
 

@@ -9,8 +9,8 @@ import type { SettingsMigrationPlan } from "~/orm/migrate/settings-type/settings
 import convertString from "~/utils/convert-string.ts";
 
 export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
-  orm: InSpatialORM;
   db: InSpatialDB;
+  orm: InSpatialORM;
   log: (message: string) => void;
   typeDef: SettingsType | EntryType | ChildEntryType;
   migrationPlan!: T extends SettingsType ? SettingsMigrationPlan
@@ -18,14 +18,16 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
 
   existingChildren: Map<string, any>;
   constructor(args: {
+    db: InSpatialDB;
     orm: InSpatialORM;
     onOutput: (message: string) => void;
     typeDef: EntryType | SettingsType;
   }) {
-    const { orm, onOutput } = args;
-    this.orm = orm;
-    this.db = orm.db;
+    const { db, orm, onOutput } = args;
+
+    this.db = db;
     this.log = onOutput;
+    this.orm = orm;
     this.typeDef = args.typeDef;
     this.existingChildren = new Map();
   }
@@ -65,6 +67,7 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
   ): Promise<EntryMigrationPlan> {
     const migrationPlan = new EntryTypeMigrator({
       entryType: child,
+      db: this.db,
       orm: this.orm,
       onOutput: this.log,
       isChild: true,

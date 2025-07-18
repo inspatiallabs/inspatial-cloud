@@ -21,7 +21,7 @@ import {
 import { AUTH } from "~/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "~/orm/db/postgres/scram.ts";
 import { convertString } from "~/utils/mod.ts";
-import { inLog } from "~/in-log/in-log.ts";
+import { inLog } from "#inLog";
 import { InPgConn } from "./in-pg/in-pg-conn.ts";
 
 export class PostgresClient {

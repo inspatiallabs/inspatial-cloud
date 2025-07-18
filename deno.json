@@ -26,6 +26,7 @@
   },
   "imports": {
     "~/": "./src/",
+    "#cli/": "./cli/src/",
     "#extensions/": "./extensions/",
     "#types/": "./src/types/",
     "#inLog": "./src/in-log/in-log.ts"
