@@ -625,6 +625,7 @@ export class InSpatialORM {
       orFilter,
       groupBy: groupByColumns.size > 0 ? Array.from(groupByColumns) : undefined,
     });
+
     return result;
   }
   // Special Operations

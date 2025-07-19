@@ -10,11 +10,12 @@ export class InCloudMigrator extends InCloud {
   }
 
   async #migrateGlobal() {
-    await this.orm.migrateGlobal();
+    const orm = this.orm.withUser(this.orm.systemGobalUser);
+    await orm.migrateGlobal();
     for (const migrateAction of this.extensionManager.afterMigrate.global) {
       await migrateAction.action({
         inCloud: this,
-        orm: this.orm,
+        orm,
       });
     }
   }

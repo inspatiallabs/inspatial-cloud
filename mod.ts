@@ -1,4 +1,12 @@
 import MimeTypes from "~/files/mime-types/mime-types.ts";
+export {
+  CloudException,
+  raiseCloudException,
+} from "~/serve/exeption/cloud-exception.ts";
+export {
+  raiseServerException,
+  ServerException,
+} from "~/serve/server-exception.ts";
 export { createInCloud } from "~/runner/in-cloud-runner.ts";
 
 export {

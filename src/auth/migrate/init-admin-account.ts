@@ -15,15 +15,17 @@ export async function initAdminAccount(
   if (!newAdminUser) {
     return;
   }
-  await orm.createEntry<Account>("account", {
+  const account = await orm.createEntry<Account>("account", {
     users: [{ user: newAdminUser.id }],
   });
+  await account.runAction("initialize");
   inLog.info("Admin account created successfully.");
 }
 
 async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
   // return;
   const userCount = await orm.count("user");
+
   const subject = "System Admin User";
   if (userCount > 0) {
     return;

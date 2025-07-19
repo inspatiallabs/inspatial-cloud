@@ -37,20 +37,12 @@ export const account = new EntryType<Account>("account", {
       description: "Users associated with this account",
     }),
   ],
-  hooks: {
-    afterCreate: [{
-      name: "createSchema",
-      async handler({ account }) {
-        await account.enqueueAction("initialize");
-      },
-    }],
-  },
 });
 
 account.addAction({
   key: "initialize",
   label: "Initialize Account",
-  private: false,
+  private: true,
   async action({ account, inCloud }) {
     if (account.initialized) return;
     const schemaId = account.id;

@@ -20,6 +20,7 @@ import { inLog } from "#inLog";
 import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 import { raiseORMException } from "../orm-exception.ts";
+import { generateId } from "../../utils/misc.ts";
 
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -146,12 +147,26 @@ export class InSpatialDB {
     if (!query.endsWith(";")) {
       throw new Error("Query must end with a semicolon (;)");
     }
-    this.debugMode && inLog.debug(`Query: ${query}`, {
-      compact: true,
-      subject: "DB",
-    });
+    let qid: string = "";
+    if (this.debugMode) {
+      qid = generateId(8);
+      this.debugMode && inLog.debug(query, {
+        compact: true,
+        subject: `DBQ [${qid}]: `,
+      });
+    }
     const result = await this.pool.query<T>(query);
     const columns = result.columns.map((column) => column.camelName);
+    if (this.debugMode) {
+      inLog.debug({
+        rowCount: result.rowCount,
+        columns,
+        rows: result.rows.slice(0, 2),
+      }, {
+        compact: true,
+        subject: `DBR [${qid}]: `,
+      });
+    }
     return {
       rowCount: result.rowCount,
       rows: result.rows,
@@ -647,6 +662,9 @@ export class InSpatialDB {
     }
     countQuery += ";";
     const countResult = await this.query<{ count: number }>(countQuery);
+    if (countResult.rowCount === 0) {
+      return 0;
+    }
     return countResult.rows[0].count;
   }
   /**

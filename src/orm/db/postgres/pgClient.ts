@@ -348,14 +348,14 @@ export class PostgresClient {
     writer.addCString(query);
     const message = writer.message;
     await this.conn.write(message);
-    let status;
+    let readyForQuery;
     const fields: ColumnDescription[] = [];
     const data: T[] = [];
     const errors: any[] = [];
     const notices: any[] = [];
     let gotDescription = false;
     let rowCount = 0;
-    while (!status) {
+    while (!readyForQuery) {
       await this.reader.nextMessage();
       const messageType = this.reader
         .messageType as keyof SimpleQueryResponse;
@@ -412,7 +412,7 @@ export class PostgresClient {
             const error = this.readError();
             errors.push(error);
           }
-
+          readyForQuery = true;
           break;
         }
         case QR_TYPE.ERROR_RESPONSE: {
@@ -421,25 +421,24 @@ export class PostgresClient {
           break;
         }
         case QR_TYPE.EMPTY_QUERY_RESPONSE: {
+          // this is a no-op, we don't need to do anything here. CHECK THIS
           break;
         }
         case QR_TYPE.PARSE_COMPLETE: {
-          status = "done";
+          // this is a no-op, we don't need to do anything here. CHECK THIS
           break;
         }
         case QR_TYPE.CLOSE_COMPLETE: {
-          status = "done";
+          // this is a no-op, we don't need to do anything here. CHECK THIS
           break;
         }
 
         case QR_TYPE.COMMAND_COMPLETE: {
-          const _message = this.reader.readAllBytes();
-
-          status = "done";
+          const _message = this.reader.readAllBytes(); // read the message. we don't need it since we are not parsing it or using it downstream but we need to read it to move the reader forward
           break;
         }
         case QR_TYPE.BLANK: {
-          status = "done";
+          // this is a no-op, we don't need to do anything here. CHECK THIS
           break;
         }
         case QR_TYPE.NOTICE_RESPONSE: {
@@ -450,11 +449,6 @@ export class PostgresClient {
         default: {
           await this.terminate();
         }
-      }
-      if (errors.length) {
-        throw new PgError(
-          { ...errors[0], query },
-        );
       }
     }
 

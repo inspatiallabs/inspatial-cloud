@@ -267,11 +267,15 @@ export const count = new CloudAPIAction("count", {
       groupBy,
     },
   }) {
-    return await orm.count(entryType, {
+    const result = await orm.count(entryType, {
       filter: filter as DBFilter,
       orFilter: orFilter as DBFilter,
       groupBy,
     });
+    if (typeof result === "number") {
+      return { count: result };
+    }
+    return result;
   },
   params: [{
     key: "entryType",
