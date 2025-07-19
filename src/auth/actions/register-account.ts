@@ -2,12 +2,21 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 import type { User } from "~/auth/entries/user/_user.type.ts";
 import type { Account } from "~/auth/entries/account/_account.type.ts";
+import { SystemSettings } from "../../extension/settings/_system-settings.type.ts";
 
 export const registerAccount = new CloudAPIAction("registerAccount", {
   label: "Register Account",
   description: "Create a new acount and assign the given user as the owner.",
   authRequired: false,
   async run({ inCloud, orm, params, inRequest, inResponse }) {
+    const { enableSignup } = await orm.getSettings<SystemSettings>(
+      "systemSettings",
+    );
+    if (!enableSignup) {
+      raiseCloudException("User signup is disabled", {
+        type: "warning",
+      });
+    }
     const { firstName, lastName, email, password } = params;
     const existingUser = await orm.findEntry<User>("user", [{
       field: "email",

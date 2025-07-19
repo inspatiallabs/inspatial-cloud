@@ -10,7 +10,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 import type { User } from "../../entries/user/_user.type.ts";
 import type { Account } from "../../entries/account/_account.type.ts";
 import { handleGoogleLogin } from "./handle-google-login.ts";
-import type { SystemSettings } from "@inspatial/cloud/types";
+import type { SystemSettings } from "../../../extension/settings/_system-settings.type.ts";
 
 export async function handleGoogleSignup(args: {
   accessToken: GoogleAccessTokenResponse;
