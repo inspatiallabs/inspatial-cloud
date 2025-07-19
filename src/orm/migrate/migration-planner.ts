@@ -1,17 +1,16 @@
 import type { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migration-plan.ts";
 import { EntryTypeMigrator } from "~/orm/migrate/entry-type/entry-type-migrator.ts";
-import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InSpatialDB } from "~/orm/db/inspatial-db.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import { SettingsTypeMigrator } from "~/orm/migrate/settings-type/settings-type-migrator.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
 import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
+import type { InSpatialORM } from "../inspatial-orm.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
   settingsTypes: Map<string, SettingsTypeMigrator>;
-  orm: InSpatialORM;
   db: InSpatialDB;
   migrationPlan: MigrationPlan;
   onOutput: (message: string) => void;
@@ -19,27 +18,27 @@ export class MigrationPlanner {
   constructor(config: {
     entryTypes: Array<EntryType>;
     settingsTypes: Array<SettingsType>;
+    db: InSpatialDB;
     orm: InSpatialORM;
     onOutput: (message: string) => void;
   }) {
-    const { entryTypes, settingsTypes, orm, onOutput } = config;
+    const { entryTypes, settingsTypes, onOutput, orm, db } = config;
     this.entryTypes = new Map();
     this.settingsTypes = new Map();
     this.migrationPlan = new MigrationPlan();
-    this.orm = orm;
-    this.db = orm.db;
+    this.db = db;
     this.onOutput = onOutput;
     this.#results = [];
     for (const entryType of entryTypes) {
       this.entryTypes.set(
         entryType.name,
-        new EntryTypeMigrator({ entryType, orm, onOutput }),
+        new EntryTypeMigrator({ entryType, orm, db, onOutput }),
       );
     }
     for (const settingsType of settingsTypes) {
       this.settingsTypes.set(
         settingsType.name,
-        new SettingsTypeMigrator({ settingsType, orm, onOutput }),
+        new SettingsTypeMigrator({ settingsType, orm, db, onOutput }),
       );
     }
   }
@@ -88,13 +87,19 @@ export class MigrationPlanner {
   }
 
   async migrate(): Promise<Array<string>> {
+    await this.#validateSchema();
     await this.createMigrationPlan();
     await this.#verifySettingsTable();
     await this.#migrateEntryTypes();
     await this.#migrateSettingsTypes();
     return this.#results;
   }
-
+  async #validateSchema(): Promise<void> {
+    const hasSchema = await this.db.hasSchema(this.db.schema);
+    if (!hasSchema) {
+      await this.db.createSchema(this.db.schema);
+    }
+  }
   async #migrateEntryTypes(): Promise<void> {
     await this.#createMissingTables();
     await this.#updateTablesDescriptions();

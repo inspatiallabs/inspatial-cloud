@@ -6,7 +6,7 @@ export const fieldTypeMap: Record<InFieldType, string> = {
   BooleanField: "boolean",
   ChoicesField: "string",
   ConnectionField: "string",
-  CurrencyField: "string",
+  CurrencyField: "number",
   DataField: "string",
   DateField: "string",
   DecimalField: "number",
@@ -23,4 +23,5 @@ export const fieldTypeMap: Record<InFieldType, string> = {
   RichTextField: "string",
   IDField: "string",
   FileField: "string",
+  TimeField: "string",
 };

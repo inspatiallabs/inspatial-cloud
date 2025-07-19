@@ -38,6 +38,12 @@ export function compareDataTypes(
   if ("characterMaximumLength" in to && !("dataType" in to)) {
     (to as PgDataTypeDefinition)["dataType"] = "character varying";
   }
+  if ("numericPrecision" in to && !("dataType" in to)) {
+    (to as PgDataTypeDefinition)["dataType"] = "numeric";
+  }
+  if ("numericScale" in to && !("dataType" in to)) {
+    (to as PgDataTypeDefinition)["dataType"] = "numeric";
+  }
   return {
     from: from as PgDataTypeDefinition,
     to: to as PgDataTypeDefinition,

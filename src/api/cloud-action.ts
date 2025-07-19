@@ -1,10 +1,12 @@
-import type { InRequest } from "~/app/in-request.ts";
-import type { InResponse } from "~/app/in-response.ts";
-import { raiseServerException } from "~/app/server-exception.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { CloudParam, ExtractParams } from "~/api/api-types.ts";
-import type { InCloud } from "../cloud/cloud-common.ts";
+import convertString from "~/utils/convert-string.ts";
+import type { SessionData } from "~/auth/types.ts";
+import type { InCloud } from "~/in-cloud.ts";
 
 export type ActionMethod<
   K extends PropertyKey = PropertyKey,
@@ -68,7 +70,8 @@ export class CloudAPIAction<
     this.#_run = config.run;
     this.actionName = actionName;
     this.raw = config.raw || false;
-    this.label = config.label || this.label;
+    this.label = config.label || this.label ||
+      convertString(actionName, "title", true);
     this.description = config.description || this.description;
     if (config.authRequired === false) {
       this.authRequired = false;
@@ -149,12 +152,19 @@ export class CloudAPIAction<
     inResponse: InResponse;
   }): Promise<any> {
     const validatedData = this.#validateParams(args.inCloud.orm, args.params);
-    return await this.#_run({
-      inCloud: args.inCloud,
+    const runObject = {
+      ...args,
+      params: validatedData,
       orm: args.inCloud.orm,
-      params: validatedData as any,
-      inRequest: args.inRequest,
-      inResponse: args.inResponse,
-    });
+    };
+    if (this.authRequired) {
+      const user = args.inRequest.context.get<SessionData>("user");
+      if (!user) {
+        raiseServerException(401, "User is not authenticated");
+      }
+      runObject.orm = args.inCloud.orm.withUser(user);
+    }
+
+    return await this.#_run(runObject);
   }
 }

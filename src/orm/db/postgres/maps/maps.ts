@@ -18,10 +18,12 @@ export const dataTypeMap: DataTypeMap = {
   30: "oidvector",
   114: "json",
   142: "xml",
+  1042: "bpchar",
   1043: "varchar",
   1114: "timestamp",
   1184: "timestamptz",
   1082: "date",
+  1083: "time",
   1700: "numeric",
   3802: "jsonb",
 };
@@ -88,6 +90,10 @@ export function convertToDataType(
       return JSON.parse(text);
     case "json":
       return JSON.parse(text);
+    case "bpchar":
+      return text;
+    case "time":
+      return text;
     default:
       return text;
   }

@@ -3,19 +3,19 @@ import type { ClientConnectionType, DBConfig } from "~/orm/db/db-types.ts";
 import type {
   EntryHooks,
   GlobalEntryHooks,
-  GlobalHookFunction,
+  GlobalSettingsHooks,
 } from "~/orm/orm-types.ts";
 
-import type { ExtensionManager } from "~/extension-manager/extension-manager.ts";
-import type { InCloud } from "~/cloud/cloud-common.ts";
+import type { ExtensionManager } from "~/extension/extension-manager.ts";
+import type { InCloud } from "~/in-cloud.ts";
 
 export function setupOrm(args: {
   inCloud: InCloud;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
   const { inCloud, extensionManager } = args;
-  const config = extensionManager.getExtensionConfig("orm");
-  const globalHooks: GlobalEntryHooks = {
+  const config = extensionManager.getExtensionConfig("core");
+  const globalEntryHooks: GlobalEntryHooks = {
     afterCreate: [],
     beforeCreate: [],
     beforeUpdate: [],
@@ -25,22 +25,35 @@ export function setupOrm(args: {
     beforeValidate: [],
     validate: [],
   };
-  for (const hookName of Object.keys(extensionManager.ormGlobalHooks)) {
-    const hooks = extensionManager.ormGlobalHooks[hookName as keyof EntryHooks];
+  const globalSettingsHooks: GlobalSettingsHooks = {
+    afterUpdate: [],
+    beforeUpdate: [],
+    beforeValidate: [],
+    validate: [],
+  };
+  for (const hookName of Object.keys(extensionManager.ormGlobalEntryHooks)) {
+    const hooks =
+      extensionManager.ormGlobalEntryHooks[hookName as keyof EntryHooks];
     for (const hook of hooks) {
-      const newHook: GlobalHookFunction = async (
-        { entry, entryType, orm },
-      ) => {
-        return await hook(inCloud, { entry, entryType, orm });
-      };
-      globalHooks[hookName as keyof GlobalEntryHooks].push(newHook);
+      globalEntryHooks[hookName as keyof GlobalEntryHooks].push(hook);
+    }
+  }
+  for (
+    const hookName of Object.keys(
+      extensionManager.ormGlobalSettingsHooks,
+    )
+  ) {
+    const hooks = extensionManager.ormGlobalSettingsHooks[
+      hookName as keyof GlobalSettingsHooks
+    ];
+    for (const hook of hooks) {
+      globalSettingsHooks[hookName as keyof GlobalSettingsHooks].push(hook);
     }
   }
   let connectionConfig: ClientConnectionType;
   const baseConnectionConfig = {
     user: config.dbUser || "postgres",
     database: config.dbName || "postgres",
-    schema: config.dbSchema || "public",
   };
 
   switch (config.dbConnectionType) {
@@ -98,7 +111,8 @@ export function setupOrm(args: {
   const orm = new InSpatialORM({
     entries: Array.from(extensionManager.entryTypes.values()),
     settings: Array.from(extensionManager.settingsTypes.values()),
-    globalEntryHooks: globalHooks,
+    globalEntryHooks,
+    globalSettingsHooks,
     dbConfig,
     inCloud,
   });

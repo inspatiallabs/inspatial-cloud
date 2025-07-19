@@ -6,8 +6,10 @@ import type { HookName } from "~/orm/orm-types.ts";
 import dateUtils from "~/utils/date-utils.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InValue } from "~/orm/field/types.ts";
-import type { InCloud } from "../../cloud/cloud-common.ts";
+import type { InCloud } from "~/in-cloud.ts";
 import { raiseORMException } from "../orm-exception.ts";
+import type { UserID } from "../../auth/types.ts";
+import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
 
 export class Settings<N extends string = string> extends BaseClass<N> {
   _fieldIds!: Map<string, string>;
@@ -23,8 +25,26 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     required: true,
   };
   readonly _settingsType!: SettingsType;
-  constructor(orm: any, inCloud: InCloud, name: N, user?: any) {
-    super(orm, inCloud, name, "settings", user);
+  constructor(
+    config: {
+      orm: any;
+      inCloud: InCloud;
+      user: UserID;
+      name?: N;
+      systemGlobal?: boolean;
+    },
+  ) {
+    if (!config.name) {
+      raiseCloudException("Settings name is required");
+    }
+    super({
+      orm: config.orm,
+      inCloud: config.inCloud,
+      name: config.name,
+      type: "settings",
+      user: config.user,
+      systemGlobal: config.systemGlobal,
+    });
   }
   get data(): Record<string, any> {
     this.assertViewPermission();
@@ -150,6 +170,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
   async #runHooks(hookName: HookName): Promise<void> {
     for (const hook of this._settingsType.hooks[hookName]) {
       await hook.handler({
+        inCloud: this._inCloud,
         orm: this._orm,
         settings: this as any,
         [this._name]: this as any,
@@ -160,15 +181,19 @@ export class Settings<N extends string = string> extends BaseClass<N> {
 
   async #beforeValidate(): Promise<void> {
     await this.#runHooks("beforeValidate");
+    await this._orm._runGlobalSettingsHooks("beforeValidate", this);
   }
   async #validate(): Promise<void> {
     await this.#runHooks("validate");
+    await this._orm._runGlobalSettingsHooks("validate", this);
   }
   async #beforeUpdate(): Promise<void> {
     await this.#runHooks("beforeUpdate");
+    await this._orm._runGlobalSettingsHooks("beforeUpdate", this);
   }
   async #afterUpdate(): Promise<void> {
     await this.#runHooks("afterUpdate");
+    await this._orm._runGlobalSettingsHooks("afterUpdate", this);
   }
   get canModify(): boolean {
     return this._settingsType.permission.modify;

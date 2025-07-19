@@ -10,6 +10,7 @@ import type {
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type { HookName } from "../orm-types.ts";
+import type { InCloud } from "@inspatial/cloud/types";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -34,10 +35,12 @@ export interface SettingsRow {
   updatedAt: number;
 }
 
-export type SettingsHookFunction<S extends SettingsBase> = {
+export type GlobalSettingsHook = () => void;
+export type SettingsHookFunction<S extends SettingsBase = SettingsBase> = {
   (
     hookParams:
       & {
+        inCloud: InCloud;
         orm: InSpatialORM;
       }
       & {

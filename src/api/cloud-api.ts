@@ -1,6 +1,6 @@
 import type { CloudAPIDocs, CloudAPIGroupDocs } from "~/api/api-types.ts";
 
-import { raiseServerException } from "~/app/server-exception.ts";
+import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { CloudAPIGroup } from "~/api/cloud-group.ts";

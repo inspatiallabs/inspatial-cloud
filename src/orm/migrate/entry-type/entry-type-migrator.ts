@@ -23,6 +23,7 @@ import { raiseORMException } from "~/orm/orm-exception.ts";
 import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
 import type { EntryIndex } from "~/orm/entry/types.ts";
 import { convertString } from "~/utils/mod.ts";
+import type { InSpatialDB } from "../../db/inspatial-db.ts";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {
@@ -57,6 +58,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   constructor(
     config: {
       entryType: T;
+      db: InSpatialDB;
       orm: InSpatialORM;
       onOutput: (message: string) => void;
       isChild?: boolean;
@@ -64,6 +66,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   ) {
     super({
       orm: config.orm,
+      db: config.db,
       onOutput: config.onOutput,
       typeDef: config.entryType as EntryType,
     });
@@ -96,18 +99,13 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     this.#loadTargetColumns();
     this.#loadTargetIndexes();
     await this.#loadExistingIndexes();
-    this.#validateIndexes();
-    if (this.migrationPlan.table.create) {
-      this.#checkForColumnsToCreate();
-
-      return this.migrationPlan;
+    if (!this.migrationPlan.table.create) {
+      await this.#loadExistingColumns();
+      await this.#loadExistingConstraints();
+      this.#checkForColumnsToDrop();
+      this.#checkForColumnsToModify();
     }
-    await this.#loadExistingColumns();
-    await this.#loadExistingConstraints();
-
-    this.#checkForColumnsToDrop();
     this.#checkForColumnsToCreate();
-    this.#checkForColumnsToModify();
 
     if (!this.isChild) {
       await this.loadExistingChildren();
@@ -200,7 +198,12 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
           break;
         case "ImageField":
         case "FileField":
-          connectionEntryType = this.orm.getEntryType("cloudFile");
+          if (!field.entryType) {
+            raiseORMException(
+              `Field ${field.key} in EntryType ${this.entryType.name} is a ${field.type} but does not have an entryType defined.`,
+            );
+          }
+          connectionEntryType = this.orm.getEntryType(field.entryType);
           break;
         default:
           continue;

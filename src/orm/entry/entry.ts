@@ -6,8 +6,10 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import ulid from "~/orm/utils/ulid.ts";
 
-import type { InCloud } from "../../cloud/cloud-common.ts";
-import type { EntryPermission } from "../roles/entry-permissions.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { UserID } from "~/auth/types.ts";
+import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
+import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 
 export class Entry<
   N extends string = string,
@@ -50,8 +52,26 @@ export class Entry<
     };
   }
 
-  constructor(orm: InSpatialORM, inCloud: InCloud, name: N, user?: any) {
-    super(orm, inCloud, name, "entry", user);
+  constructor(
+    config: {
+      systemGlobal?: boolean;
+      orm: InSpatialORM;
+      inCloud: InCloud;
+      name?: N;
+      user: UserID;
+    },
+  ) {
+    if (!config.name) {
+      raiseCloudException("Entry name is required");
+    }
+    super({
+      inCloud: config.inCloud,
+      name: config.name,
+      orm: config.orm,
+      type: "entry",
+      user: config.user,
+      systemGlobal: config.systemGlobal,
+    });
   }
   /**
    * Creates a new instance of this entry type, and sets all the fields to their default values.
@@ -131,10 +151,8 @@ export class Entry<
       this.id,
       data,
     ).catch((e) => this.handlePGError(e));
-
     await this.saveChildren();
     await this.#afterUpdate();
-    // Reload the entry to get the updated values
     await this.load(this.id);
   }
 
@@ -144,6 +162,8 @@ export class Entry<
   async delete(): Promise<boolean> {
     this.assertDeletePermission();
     await this.#beforeDelete();
+    // Delete all children first
+    await this.deleteChildren();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
     await this.#afterDelete();
     return true;
@@ -172,6 +192,10 @@ export class Entry<
     }
   }
 
+  isFieldModified(fieldName: string): boolean {
+    this.assertViewPermission();
+    return this._modifiedValues.has(fieldName);
+  }
   /* Lifecycle Hooks */
 
   async #runHooks(hookName: EntryHookName): Promise<void> {
@@ -187,12 +211,12 @@ export class Entry<
   }
   async #beforeValidate(): Promise<void> {
     await this.#runHooks("beforeValidate");
-    await this._orm._runGlobalHooks("beforeValidate", this);
+    await this._orm._runGlobalEntryHooks("beforeValidate", this);
   }
   async #validate(): Promise<void> {
     await this.#beforeValidate();
     await this.#runHooks("validate");
-    await this._orm._runGlobalHooks("validate", this);
+    await this._orm._runGlobalEntryHooks("validate", this);
   }
   async #beforeCreate(): Promise<void> {
     for (const field of this._fields.values()) {
@@ -206,11 +230,11 @@ export class Entry<
     await this.#validate();
     await this.#runHooks("beforeUpdate");
     await this.#runHooks("beforeCreate");
-    await this._orm._runGlobalHooks("beforeCreate", this);
+    await this._orm._runGlobalEntryHooks("beforeCreate", this);
   }
   async #afterCreate(): Promise<void> {
     await this.#runHooks("afterCreate");
-    await this._orm._runGlobalHooks("afterCreate", this);
+    await this._orm._runGlobalEntryHooks("afterCreate", this);
   }
   async #beforeUpdate(): Promise<void> {
     for (const field of this._fields.values()) {
@@ -223,20 +247,20 @@ export class Entry<
     }
     await this.#validate();
     await this.#runHooks("beforeUpdate");
-    await this._orm._runGlobalHooks("beforeUpdate", this);
+    await this._orm._runGlobalEntryHooks("beforeUpdate", this);
   }
   async #afterUpdate(): Promise<void> {
     await this.#syncReferences();
     await this.#runHooks("afterUpdate");
-    await this._orm._runGlobalHooks("afterUpdate", this);
+    await this._orm._runGlobalEntryHooks("afterUpdate", this);
   }
   async #beforeDelete(): Promise<void> {
     await this.#runHooks("beforeDelete");
-    await this._orm._runGlobalHooks("beforeDelete", this);
+    await this._orm._runGlobalEntryHooks("beforeDelete", this);
   }
   async #afterDelete(): Promise<void> {
     await this.#runHooks("afterDelete");
-    await this._orm._runGlobalHooks("afterDelete", this);
+    await this._orm._runGlobalEntryHooks("afterDelete", this);
   }
   /* End Lifecycle Hooks */
   async #insertNew(data: Record<string, any>): Promise<void> {
@@ -252,6 +276,8 @@ export class Entry<
     if (!result?.id) {
       return;
     }
+
+    await this.saveChildren(result.id);
     await this.load(result.id);
 
     await this.#afterCreate();
@@ -277,7 +303,6 @@ export class Entry<
   async #syncReferences() {
     const entryRegistry = this._orm.getEntryTypeRegistry(
       this._name,
-      this._user,
     );
     if (entryRegistry === undefined) {
       return;

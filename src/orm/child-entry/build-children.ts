@@ -4,6 +4,7 @@ import { ChildEntry, ChildEntryList } from "~/orm/child-entry/child-entry.ts";
 import { makeFields } from "~/orm/build/make-fields.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InSpatialDB } from "../db/inspatial-db.ts";
 
 export function buildChildren(
   entryOrSettingsType: EntryType | SettingsType,
@@ -32,8 +33,8 @@ export function buildChildren(
         override _titleFields: Map<string, InField> =
           child.connectionTitleFields;
 
-        constructor(orm: InSpatialORM) {
-          super(orm);
+        constructor(orm: InSpatialORM, db: InSpatialDB) {
+          super(orm, db);
         }
       };
 

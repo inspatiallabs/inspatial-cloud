@@ -2,13 +2,14 @@ import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { InCloud } from "../../../cloud/cloud-common.ts";
-import type { InTask } from "./in-task.type.ts";
+import type { InCloud } from "~/in-cloud.ts";
+import type { InTask } from "./_in-task.type.ts";
+import type { InTaskGlobal } from "./_in-task-global.type.ts";
 
-export const validateTask: EntryHookDefinition<InTask> = {
+export const validateTask: EntryHookDefinition<any> = {
   name: "validate entry or settings",
   description: "",
-  handler({ inTask, orm, inCloud }) {
+  handler({ entry: inTask, orm, inCloud }) {
     switch (inTask.taskType) {
       case "entry":
         validateEntryTask(inTask, orm);
@@ -22,7 +23,10 @@ export const validateTask: EntryHookDefinition<InTask> = {
   },
 };
 
-async function validateEntryTask(inTask: InTask, orm: InSpatialORM) {
+async function validateEntryTask(
+  inTask: InTaskGlobal,
+  orm: InSpatialORM,
+) {
   const entryTypeName = inTask.typeKey;
   if (!entryTypeName) {
     raiseORMException(`EntryType must be set on this task!`);
@@ -40,11 +44,18 @@ async function validateEntryTask(inTask: InTask, orm: InSpatialORM) {
   if (!entryId) {
     raiseORMException("Entry ID must be set for this task!");
   }
-  // Load the entry in order to trigget the not found exception if it doesn't exist
-  await orm.getEntry(entryTypeName, entryId);
+  const id = await orm.db.getValue(entryType.config.tableName, entryId, "id");
+  if (!id) {
+    raiseORMException(
+      `Entry with ID ${entryId} doesn't exist in Entry Type ${entryTypeName}!`,
+    );
+  }
 }
 
-function validateSettingsTask(inTask: InTask, orm: InSpatialORM) {
+function validateSettingsTask(
+  inTask: InTask | InTaskGlobal,
+  orm: InSpatialORM,
+) {
   const settingsName = inTask.typeKey;
   if (!settingsName) {
     raiseORMException(`Settings Name must be set on this task!`);
@@ -59,7 +70,7 @@ function validateSettingsTask(inTask: InTask, orm: InSpatialORM) {
   }
 }
 
-function validateAppTask(inTask: InTask, inCloud: InCloud) {
+function validateAppTask(inTask: InTask | InTaskGlobal, inCloud: InCloud) {
   const group = inTask.group;
   const actionName = inTask.actionName;
   if (!group) {

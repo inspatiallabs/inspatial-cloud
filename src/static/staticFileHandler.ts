@@ -1,14 +1,14 @@
-import type { InRequest } from "../app/in-request.ts";
-import type { InResponse } from "../app/in-response.ts";
-import { dateUtils } from "../utils/date-utils.ts";
-import { joinPath } from "../utils/path-utils.ts";
+import type { InRequest } from "~/serve/in-request.ts";
+import type { InResponse } from "~/serve/in-response.ts";
+import { dateUtils } from "~/utils/date-utils.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 import {
   faviconContent,
   getDefaultHome,
   logoContent,
   notFoundContent,
 } from "./content.ts";
-
+type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
 const CacheTime = {
   day: 86400, // 60 * 60 * 24 = 1 day
   week: 604800, // 60 * 60 * 24 * 7 =  1 week
@@ -48,6 +48,7 @@ export class StaticFileHandler {
   cache: Map<string, { content: Uint8Array<ArrayBufferLike>; time: number }> =
     new Map();
   spa?: boolean;
+  spaRootPaths: Set<string> = new Set();
   defaults: {
     favicon: string;
     notFound: string;
@@ -62,6 +63,15 @@ export class StaticFileHandler {
     };
     this.cacheTime = options?.cache ? CacheTime.week : 0;
   }
+  setSpa(options: {
+    enabled: boolean;
+    paths?: Set<string>;
+  }) {
+    this.spa = options.enabled;
+    if (options.paths) {
+      this.spaRootPaths = options.paths;
+    }
+  }
   setCach(enable: boolean) {
     if (enable) {
       this.cacheTime = CacheTime.week;
@@ -69,16 +79,16 @@ export class StaticFileHandler {
     }
     this.cacheTime = 0;
   }
-  async init(relativePath: string): Promise<void> {
-    await Deno.mkdir(this.staticFilesRoot, { recursive: true });
+  init(relativePath: string): void {
+    Deno.mkdirSync(this.staticFilesRoot, { recursive: true });
     try {
-      await Deno.stat(this.staticFilesRoot + "/index.html");
+      Deno.statSync(this.staticFilesRoot + "/index.html");
     } catch (e) {
       const content = getDefaultHome({
         publicPath: relativePath,
       });
       if (e instanceof Deno.errors.NotFound) {
-        await Deno.writeTextFile(
+        Deno.writeTextFileSync(
           joinPath(this.staticFilesRoot, "index.html"),
           content,
         );
@@ -91,18 +101,19 @@ export class StaticFileHandler {
     inRequest: InRequest,
     inResponse: InResponse,
   ): Promise<InResponse> {
-    let path = inRequest.path;
-    let fileName = inRequest.fileName || "index.html";
-    const endsWithSlash = path.match(/\/$/);
-    if (!inRequest.isFile) {
-      path = `${path}${endsWithSlash ? "" : "/"}index.html`;
-      if (this.spa) {
-        path = "/index.html";
-      }
+    const path = inRequest.path;
+    let fileName = inRequest.fileName || "";
+
+    let fileContent: string | Uint8Array<ArrayBufferLike> | null;
+    if (inRequest.isFile) {
+      fileContent = await this
+        .getFile(path);
+    } else {
+      // If the request is not for a file, we assume it's for a directory and try to find an index.html file in that directory.
+      fileName = "index.html";
+      fileContent = await this.getIndexFile(path);
     }
 
-    let fileContent: string | Uint8Array<ArrayBufferLike> | null = await this
-      .getFile(this.staticFilesRoot, path);
     if (!fileContent) {
       switch (fileName) {
         case "favicon.svg":
@@ -121,14 +132,39 @@ export class StaticFileHandler {
       content: fileContent,
     });
     inResponse.setCacheControl({
-      maxAge: CacheTime.week,
+      maxAge: this.cacheTime,
     });
     return inResponse;
   }
-  async getFile(
-    root: string,
+  async serveRootIndex(): Promise<MaybeNullFileContent> {
+    return await this.getFile("/index.html");
+  }
+  async getIndexFile(
     path: string,
-  ): Promise<Uint8Array<ArrayBufferLike> | null> {
+  ): Promise<MaybeNullFileContent> {
+    path = path.replace(/\/$/, ""); // Remove trailing slash
+
+    if (!this.spa || path === "") {
+      return await this.getFile(joinPath(path, "index.html"));
+    }
+    if (this.spaRootPaths.size === 0) {
+      return await this.serveRootIndex();
+    }
+    const match = path.match(/^\/(?<root>[^\/]+)/);
+    if (!match?.groups?.root) {
+      return await this.serveRootIndex();
+    }
+
+    if (!this.spaRootPaths.has(match.groups.root)) {
+      return await this.serveRootIndex();
+    }
+
+    return await this.getFile(joinPath(match.groups.root, "index.html"));
+  }
+
+  async getFile(
+    path: string,
+  ): Promise<MaybeNullFileContent> {
     if (this.cacheTime) {
       const cacheContent = this.cache.get(path);
 
@@ -140,7 +176,7 @@ export class StaticFileHandler {
       }
     }
     try {
-      const content = await Deno.readFile(joinPath(root, path));
+      const content = await Deno.readFile(joinPath(this.staticFilesRoot, path));
       if (this.cacheTime) {
         this.cache.set(path, {
           content,

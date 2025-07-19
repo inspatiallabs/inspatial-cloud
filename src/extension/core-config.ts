@@ -1,0 +1,38 @@
+import type { CurrencyCode } from "../orm/field/field-def-types.ts";
+
+export type CoreConfig = {
+  name: string;
+  cloudMode: "production" | "development";
+  logLevel: "info" | "debug" | "error" | "warn";
+  logTrace: boolean;
+  brokerPort: number;
+  queuePort: number;
+  hostName: string;
+  port: number;
+  autoConfig: boolean;
+  allowedOrigins: Set<string>;
+  publicRoot: string;
+  singlePageApp: boolean;
+  spaRootPaths: Set<string>;
+  cacheStatic: boolean;
+  autoTypes: boolean;
+  autoMigrate: boolean;
+  embeddedDb: boolean;
+  embeddedDbPort: number;
+  ormDebugMode: boolean;
+  dbConnectionType: "tcp" | "socket";
+  dbSocketPath: string;
+  dbName: string;
+  dbCurrency: "en_US.UTF-8" | "en_GB.UTF-8";
+  dbHost: string;
+  dbPort: number;
+  dbUser: string;
+  dbPassword: string;
+  dbAppName: string;
+  dbClientMode: "pool" | "single";
+  dbPoolSize: number;
+  dbMaxPoolSize: number;
+  dbIdleTimeout: number;
+  authAllowAll: boolean;
+  defaultCurrency: CurrencyCode;
+};

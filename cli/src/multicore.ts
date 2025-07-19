@@ -4,7 +4,11 @@
  * **Note:** This function is currently only implemented for Linux systems.
  * If you are using a different OS, it will return 1.
  */
-export async function getCoreCount(): Promise<number> {
+export async function getCoreCount(
+  config?: { single?: boolean },
+): Promise<number> {
+  const { single = false } = config || {};
+  if (single) return 1;
   if (Deno.build.os !== "linux") {
     return 1;
   }
