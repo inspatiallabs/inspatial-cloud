@@ -100,18 +100,11 @@ function buildActions(
   const actions = entryType.actions;
   const actionMap = `${className}ActionMap`;
   const paramsMap = `${className}ParamsActionMap`;
-  lines.push(...[
-    `runAction<N extends keyof ${actionMap}>(`,
-    "  actionName: N,",
-    `): ${actionMap}[N]["return"];`,
-    `runAction<N extends keyof ${paramsMap}>(`,
-    "  actionName: N,",
-    `  params: ${paramsMap}[N]["params"],`,
-    `): ${paramsMap}[N]["return"];`,
-  ]);
+
   const typeParamsLines: string[] = [`type ${className}ParamsActionMap = {`];
   const typeLines: string[] = [`type ${className}ActionMap = {`];
-
+  let hasParamsActions = false;
+  let hasNonParamsActions = false;
   for (const action of actions.values()) {
     const symbol = Deno.inspect(action.action);
     const isAsync = symbol.includes("Async");
@@ -122,6 +115,7 @@ function buildActions(
       return input;
     };
     if (action.params.length == 0) {
+      hasNonParamsActions = true;
       typeLines.push(...[
         `  ${action.key}: {`,
         `    return: ${returnType("any")};`,
@@ -129,6 +123,7 @@ function buildActions(
       ]);
       continue;
     }
+    hasParamsActions = true;
     const params: string[] = [];
     for (const param of action.params.values()) {
       const builtField = buildField(param);
@@ -145,7 +140,25 @@ function buildActions(
   }
   typeLines.push("}");
   typeParamsLines.push("}");
-  const types = typeLines.join("\n") + "\n" + typeParamsLines.join("\n");
+  let types: string = "";
+  if (hasNonParamsActions) {
+    lines.push(...[
+      `runAction<N extends keyof ${actionMap}>(`,
+      "  actionName: N,",
+      `): ${actionMap}[N]["return"];`,
+    ]);
+    types += typeLines.join("\n") + "\n";
+  }
+  if (hasParamsActions) {
+    lines.push(...[
+      `runAction<N extends keyof ${paramsMap}>(`,
+      "  actionName: N,",
+      `  params: ${paramsMap}[N]["params"],`,
+      `): ${paramsMap}[N]["return"];`,
+    ]);
+    types += typeParamsLines.join("\n") + "\n";
+  }
+
   return {
     property: lines.join("\n"),
     types,

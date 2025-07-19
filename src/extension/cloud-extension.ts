@@ -11,7 +11,7 @@ import type {
   ExtensionOptions,
 } from "~/serve/types.ts";
 import type { Middleware } from "~/serve/middleware.ts";
-import type { EntryHooks, GlobalSettingsHooks } from "~/orm/orm-types.ts";
+import type { GlobalSettingsHooks } from "~/orm/orm-types.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type {
   ConfigDefinition,
@@ -20,8 +20,7 @@ import type {
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import type { InCloud } from "../in-cloud.ts";
-import { GlobalEntryHooks } from "@inspatial/cloud/types";
-import { GlobalSettingsHook } from "../orm/settings/types.ts";
+import type { GlobalEntryHooks } from "@inspatial/cloud/types";
 export type CloudInstallFunction<R = any> = (
   inCloud: InCloud,
 ) => R;

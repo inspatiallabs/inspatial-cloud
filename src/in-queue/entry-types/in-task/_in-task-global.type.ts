@@ -84,14 +84,9 @@ export interface InTaskGlobal extends EntryBase {
   runAction<N extends keyof InTaskGlobalActionMap>(
     actionName: N,
   ): InTaskGlobalActionMap[N]["return"];
-  runAction<N extends keyof InTaskGlobalParamsActionMap>(
-    actionName: N,
-    params: InTaskGlobalParamsActionMap[N]["params"],
-  ): InTaskGlobalParamsActionMap[N]["return"];
 }
 type InTaskGlobalActionMap = {
   runTask: {
     return: Promise<any>;
   };
 };
-type InTaskGlobalParamsActionMap = {};

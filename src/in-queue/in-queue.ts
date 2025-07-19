@@ -92,36 +92,36 @@ export class InQueue extends InCloud {
     }
     return; // skip loading account tasks for now
     // load account tasks
-    const { rows: accounts } = await this.orm.getEntryList("account", {
-      columns: ["id"],
-      filter: [{
-        field: "initialized",
-        op: "=",
-        value: true,
-      }],
-      limit: 0,
-    });
+    // const { rows: accounts } = await this.orm.getEntryList("account", {
+    //   columns: ["id"],
+    //   filter: [{
+    //     field: "initialized",
+    //     op: "=",
+    //     value: true,
+    //   }],
+    //   limit: 0,
+    // });
 
-    for (const account of accounts) {
-      const orm = this.orm.withAccount(account.id as string);
+    // for (const account of accounts) {
+    //   const orm = this.orm.withAccount(account.id as string);
 
-      const { rows: accountTasks } = await orm.getEntryList("inTask", {
-        columns: ["id"],
-        filter: [{
-          field: "status",
-          op: "=",
-          value: "queued",
-        }],
-        limit: 0,
-      });
-      for (const task of accountTasks) {
-        this.queue.push({
-          id: task.id as string,
-          systemGlobal: false,
-          account: account.id as string,
-        });
-      }
-    }
+    //   const { rows: accountTasks } = await orm.getEntryList("inTask", {
+    //     columns: ["id"],
+    //     filter: [{
+    //       field: "status",
+    //       op: "=",
+    //       value: "queued",
+    //     }],
+    //     limit: 0,
+    //   });
+    //   for (const task of accountTasks) {
+    //     this.queue.push({
+    //       id: task.id as string,
+    //       systemGlobal: false,
+    //       account: account.id as string,
+    //     });
+    //   }
+    // }
   }
   startScheduler() {
     // this.checkAndRunTasks();

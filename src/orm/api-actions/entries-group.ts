@@ -1,6 +1,6 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { EntryTypeInfo } from "~/orm/entry/types.ts";
-import { DBFilter } from "../db/db-types.ts";
+import type { DBFilter } from "../db/db-types.ts";
 
 export const getEntryAction = new CloudAPIAction("getEntry", {
   label: "Get Entry",
@@ -240,6 +240,14 @@ export const sum = new CloudAPIAction("sum", {
     description: "The field to group the results by, if any",
   }],
   async run({ orm, params: { entryType, fields, filter, orFilter, groupBy } }) {
+    if (groupBy === undefined) {
+      return await orm.sum(entryType, {
+        fields,
+        filter: filter as DBFilter,
+        orFilter: orFilter as DBFilter,
+      });
+    }
+
     return await orm.sum(entryType, {
       fields,
       filter: filter as DBFilter,

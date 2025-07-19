@@ -80,7 +80,7 @@ export class AuthHandler {
     if (!authToken) {
       return null;
     }
-    let sessionData: SessionData = this.#inCloud.inCache.getValue(
+    const sessionData: SessionData = this.#inCloud.inCache.getValue(
       "authToken",
       authToken,
     );
@@ -166,17 +166,15 @@ export class AuthHandler {
 }
 
 async function makeSessiondata(user: User): Promise<SessionData> {
-  const accounts = await user.runAction<
-    Array<{ accountId: string; role: string }>
-  >("findAccounts");
+  const accounts = await user.runAction("findAccounts");
   const sessionData: SessionData = {
     userId: user.id,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
     systemAdmin: user.systemAdmin ?? false,
-    accountId: null,
-    role: null,
+    accountId: "",
+    role: "",
   };
   if (accounts.length > 0) {
     const { accountId, role } = accounts[0];

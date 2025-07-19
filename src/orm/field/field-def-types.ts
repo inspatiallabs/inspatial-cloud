@@ -222,7 +222,14 @@ export interface CurrencyField extends BaseField {
   currencyCode?: CurrencyCode;
   currency?: Currency;
 }
-export type CurrencyCode = keyof typeof Currencies;
+export type CurrencyCode =
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "JPY"
+  | "AUD"
+  | "CAD"
+  | "ILS";
 export interface Currency {
   code: string;
   symbol: string;
@@ -233,7 +240,7 @@ export interface Currency {
   decimalPlaces?: number;
 }
 
-export const Currencies = {
+export const Currencies: Record<CurrencyCode, Currency> = {
   USD: {
     code: "USD",
     symbol: "$",
@@ -298,4 +305,4 @@ export const Currencies = {
     decimalPlaces: 2,
   },
   // Add more currencies as needed
-} as const satisfies Record<string, Currency>;
+};

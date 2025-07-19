@@ -8,7 +8,7 @@ import {
   logoContent,
   notFoundContent,
 } from "./content.ts";
-
+type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
 const CacheTime = {
   day: 86400, // 60 * 60 * 24 = 1 day
   week: 604800, // 60 * 60 * 24 * 7 =  1 week
@@ -136,10 +136,12 @@ export class StaticFileHandler {
     });
     return inResponse;
   }
-  async serveRootIndex() {
+  async serveRootIndex(): Promise<MaybeNullFileContent> {
     return await this.getFile("/index.html");
   }
-  async getIndexFile(path: string) {
+  async getIndexFile(
+    path: string,
+  ): Promise<MaybeNullFileContent> {
     path = path.replace(/\/$/, ""); // Remove trailing slash
 
     if (!this.spa || path === "") {
@@ -162,7 +164,7 @@ export class StaticFileHandler {
 
   async getFile(
     path: string,
-  ): Promise<Uint8Array<ArrayBufferLike> | null> {
+  ): Promise<MaybeNullFileContent> {
     if (this.cacheTime) {
       const cacheContent = this.cache.get(path);
 

@@ -18,7 +18,7 @@ const login = new CloudAPIAction("login", {
     if (!user) {
       raiseServerException(401, "unauthorized");
     }
-    const isValid = await user.runAction<boolean>("validatePassword", {
+    const isValid = await user.runAction("validatePassword", {
       password,
     });
     if (!isValid) {

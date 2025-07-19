@@ -2,7 +2,7 @@ import type { ExceptionHandler } from "#types/serve-types.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { EntryType, InSpatialORM, SettingsType } from "~/orm/mod.ts";
-import type { EntryHooks, GlobalSettingsHooks } from "~/orm/orm-types.ts";
+import type { GlobalSettingsHooks } from "~/orm/orm-types.ts";
 import type { Middleware } from "./middleware.ts";
 import type { PathHandler } from "./path-handler.ts";
 import type { RequestLifecycle } from "./request-lifecycle.ts";
@@ -13,8 +13,7 @@ import type {
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { AfterMigrate } from "~/extension/cloud-extension.ts";
 import type { Account } from "../auth/entries/account/_account.type.ts";
-import { GlobalEntryHooks } from "@inspatial/cloud/types";
-import { GlobalSettingsHook } from "../orm/settings/types.ts";
+import type { GlobalEntryHooks } from "@inspatial/cloud/types";
 
 /**
  * Information about a {@link CloudExtension}

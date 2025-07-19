@@ -2,7 +2,7 @@ import type { Entry } from "~/orm/entry/entry.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { QueryResultFormatted } from "~/orm/db/db-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import { Settings } from "./settings/settings.ts";
+import type { Settings } from "./settings/settings.ts";
 
 export type GlobalHookFunction = (hookParams: {
   inCloud: InCloud;

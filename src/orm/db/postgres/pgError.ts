@@ -28,7 +28,7 @@ export function isPgError(error: unknown): error is PgError {
 
 export function handlePgError(error: PgError) {
   const response: Array<string> = [];
-  let subject = error.name;
+  const subject = error.name;
   switch (error.code) {
     case PGErrorCode.UndefinedColumn:
       response.push(`${

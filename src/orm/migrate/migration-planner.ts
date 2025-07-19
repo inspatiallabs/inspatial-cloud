@@ -97,7 +97,7 @@ export class MigrationPlanner {
   async #validateSchema(): Promise<void> {
     const hasSchema = await this.db.hasSchema(this.db.schema);
     if (!hasSchema) {
-      const result = await this.db.createSchema(this.db.schema);
+      await this.db.createSchema(this.db.schema);
     }
   }
   async #migrateEntryTypes(): Promise<void> {

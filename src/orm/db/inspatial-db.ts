@@ -548,6 +548,21 @@ export class InSpatialDB {
     columns: string[];
     filter?: DBFilter;
     orFilter?: DBFilter;
+  }): Promise<QueryResultFormatted<Record<string, number>>["rows"][number]>;
+  async sum(tableName: string, options: {
+    columns: string[];
+    filter?: DBFilter;
+    orFilter?: DBFilter;
+    groupBy: string[];
+  }): Promise<
+    QueryResultFormatted<
+      Record<string, string> & Record<string, number>
+    >["rows"]
+  >;
+  async sum(tableName: string, options: {
+    columns: string[];
+    filter?: DBFilter;
+    orFilter?: DBFilter;
     groupBy?: string[];
   }) {
     tableName = toSnake(tableName);
@@ -1043,13 +1058,13 @@ export class InSpatialDB {
   }
   makeOrFilter(
     filters: DBFilter,
-  ) {
+  ): string {
     const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" OR ");
   }
   makeAndFilter(
     filters: DBFilter,
-  ) {
+  ): string {
     const filterStrings = makeFilterQuery(filters);
     return filterStrings.join(" AND ");
   }

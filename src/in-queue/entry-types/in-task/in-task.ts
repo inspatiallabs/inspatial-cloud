@@ -1,13 +1,10 @@
 import { inTaskFields } from "~/in-queue/entry-types/in-task/fields.ts";
 
-import { runTask } from "~/in-queue/entry-types/in-task/actions.ts";
-import { validateTask } from "~/in-queue/entry-types/in-task/hooks.ts";
 import { EntryType } from "~/orm/entry/entry-type.ts";
-import type { InTask } from "./_in-task.type.ts";
+
 import type { InTaskGlobal } from "./_in-task-global.type.ts";
-import { raiseORMException } from "../../../orm/orm-exception.ts";
 import dateUtils from "../../../utils/date-utils.ts";
-import { InSpatialORM } from "../../../orm/inspatial-orm.ts";
+import type { InSpatialORM } from "../../../orm/inspatial-orm.ts";
 
 // export const inTask = new EntryType<InTask>("inTask", {
 //   label: "InTask",
@@ -88,12 +85,12 @@ inTaskGlobal.addAction({
     await inTask.save();
   },
 });
-async function runEntryTask(inTask: InTask | InTaskGlobal, orm: InSpatialORM) {
+async function runEntryTask(inTask: InTaskGlobal, orm: InSpatialORM) {
   const entry = await orm.getEntry(inTask.typeKey!, inTask.entryId!);
   return await entry.runAction(inTask.actionName, inTask.taskData);
 }
 async function runSettingsTask(
-  inTask: InTask | InTaskGlobal,
+  inTask: InTaskGlobal,
   orm: InSpatialORM,
 ) {
   const settings = await orm.getSettings(inTask.typeKey!);

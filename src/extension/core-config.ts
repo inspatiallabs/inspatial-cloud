@@ -1,4 +1,4 @@
-import { CurrencyCode } from "../orm/field/field-def-types.ts";
+import type { CurrencyCode } from "../orm/field/field-def-types.ts";
 
 export type CoreConfig = {
   name: string;

@@ -97,10 +97,6 @@ export interface Email extends EntryBase {
   runAction<N extends keyof EmailActionMap>(
     actionName: N,
   ): EmailActionMap[N]["return"];
-  runAction<N extends keyof EmailParamsActionMap>(
-    actionName: N,
-    params: EmailParamsActionMap[N]["params"],
-  ): EmailParamsActionMap[N]["return"];
 }
 type EmailActionMap = {
   enqueueSend: {
@@ -110,4 +106,3 @@ type EmailActionMap = {
     return: Promise<any>;
   };
 };
-type EmailParamsActionMap = {};

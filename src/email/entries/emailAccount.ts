@@ -259,8 +259,7 @@ emailAccountEntry.addAction({
         "Failed to refresh access token",
       );
     }
-    const { accessToken, refreshToken, expiresIn, tokenType, idToken, scope } =
-      response;
+    const { accessToken, refreshToken, expiresIn, tokenType } = response;
     const acquiredTime = dateUtils.nowTimestamp();
     emailAccount.accessToken = accessToken;
     emailAccount.acquiredTime = acquiredTime;

@@ -15,7 +15,7 @@ export class EmailManager {
     subject: string;
     body: string;
     now?: boolean;
-  }) {
+  }): Promise<any> {
     const orm = this.inCloud.orm;
     const email = await orm.createEntry<Email>("email", {
       senderName: this.inCloud.appName,

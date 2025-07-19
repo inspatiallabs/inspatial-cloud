@@ -95,14 +95,9 @@ export interface Account extends EntryBase {
   runAction<N extends keyof AccountActionMap>(
     actionName: N,
   ): AccountActionMap[N]["return"];
-  runAction<N extends keyof AccountParamsActionMap>(
-    actionName: N,
-    params: AccountParamsActionMap[N]["params"],
-  ): AccountParamsActionMap[N]["return"];
 }
 type AccountActionMap = {
   initialize: {
     return: Promise<any>;
   };
 };
-type AccountParamsActionMap = {};

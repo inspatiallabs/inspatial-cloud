@@ -523,6 +523,21 @@ export class InSpatialORM {
     fields: Array<string>;
     filter?: DBFilter;
     orFilter?: DBFilter;
+  }): Promise<Record<string, number>>;
+  async sum(entryType: string, options: {
+    fields: Array<string>;
+    filter?: DBFilter;
+    orFilter?: DBFilter;
+    groupBy: Array<string>;
+  }): Promise<
+    Array<
+      Record<string, string> & Record<string, number>
+    >
+  >;
+  async sum(entryType: string, options: {
+    fields: Array<string>;
+    filter?: DBFilter;
+    orFilter?: DBFilter;
     groupBy?: Array<string>;
   }) {
     const entryTypeObj = this.getEntryType(entryType);
@@ -566,6 +581,13 @@ export class InSpatialORM {
       }
 
       groupByColumns.add(inField.key);
+    }
+    if (groupByColumns.size === 0) {
+      return await db.sum(tableName, {
+        columns: Array.from(sumColumns),
+        filter: options.filter,
+        orFilter: options.orFilter,
+      });
     }
     return await db.sum(tableName, {
       columns: Array.from(sumColumns),
@@ -698,7 +720,7 @@ export class InSpatialORM {
    * Synchronizes the ORM models with the database based on the output of the planMigration method.
    * The schema passed to this method is the account ID of the account/tenant to be migrated.
    */
-  async migrate(schema: IDValue) {
+  async migrate(schema: IDValue): Promise<Array<string> | undefined> {
     if (typeof schema !== "string") {
       schema = schema.toString();
     }
@@ -777,7 +799,7 @@ export class InSpatialORM {
   }
 
   generateClientInterfaces(): string {
-    const generatedSettings: string[] = [];
+    // const generatedSettings: string[] = [];
     const adminRole = this.roles.getRole("systemAdmin");
     const entryTypes = Array.from(adminRole.entryTypes.values());
     const entriesInterfaces = generateClientEntryTypes(entryTypes);

@@ -3,7 +3,7 @@ import { SettingsMigrationPlan } from "~/orm/migrate/settings-type/settings-migr
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { SettingsRow } from "~/orm/settings/types.ts";
 import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
-import { InSpatialDB } from "../../db/inspatial-db.ts";
+import type { InSpatialDB } from "../../db/inspatial-db.ts";
 
 export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
   get settingsType(): SettingsType {

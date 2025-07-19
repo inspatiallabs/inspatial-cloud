@@ -15,7 +15,6 @@ import type {
 } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 
-import type { InTask } from "~/in-queue/entry-types/in-task/_in-task.type.ts";
 import type { UserID } from "~/auth/types.ts";
 import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/_in-task-global.type.ts";
 
@@ -96,7 +95,13 @@ export class BaseClass<N extends string = string> {
     actionKey: string,
     data?: Record<string, any>,
   ): Promise<Record<string, any>> {
-    const taskEntryName = this._systemGlobal ? "inTaskGlobal" : "inTask";
+    if (!this._systemGlobal) {
+      raiseORMException(
+        `Enqueueing actions is only allowed for system global entries`,
+        "InQueue",
+        400,
+      );
+    }
     this.#getAndValidateAction(actionKey, data);
     data = data || {};
     const fields: Record<string, any> = {
@@ -108,8 +113,8 @@ export class BaseClass<N extends string = string> {
     if (this._type === "entry") {
       fields.entryId = this._data.get("id");
     }
-    const task = await this._orm.createEntry<InTask | InTaskGlobal>(
-      taskEntryName,
+    const task = await this._orm.createEntry<InTaskGlobal>(
+      "inTaskGlobal",
       fields,
     );
 

@@ -35,7 +35,7 @@ export interface SettingsRow {
   updatedAt: number;
 }
 
-export type GlobalSettingsHook = () => {};
+export type GlobalSettingsHook = () => void;
 export type SettingsHookFunction<S extends SettingsBase = SettingsBase> = {
   (
     hookParams:

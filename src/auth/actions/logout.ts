@@ -3,7 +3,7 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 const logout = new CloudAPIAction("logout", {
   label: "Logout",
   description: "Logout user",
-  async run({ inCloud, orm, inRequest, inResponse }) {
+  async run({ inCloud, inRequest, inResponse }) {
     const sessionId = inRequest.context.get<string>("userSession");
     if (sessionId) {
       // use InCloud.orm to access entries that require admin privileges
