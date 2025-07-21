@@ -127,6 +127,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   }
   async deleteStaleRecords(): Promise<void> {
     const existingIds = Array.from(this._data.keys());
+    if (existingIds.length <= 0) {
+      return;
+    }
     await this._db.deleteRows(
       this._tableName,
       [{
