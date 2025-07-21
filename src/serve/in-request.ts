@@ -163,7 +163,9 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
     let upgrade = "";
     this.request.headers.forEach((value, key) => {
       if (key.toLowerCase() === "connection") {
-        connection = value.toLowerCase();
+        const connMatch = value.toLowerCase().match(/(upgrade)/);
+
+        connection = connMatch ? connMatch[1] : value.toLowerCase();
       }
       if (key.toLowerCase() === "upgrade") {
         upgrade = value.toLowerCase();
