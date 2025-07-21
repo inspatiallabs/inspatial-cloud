@@ -12,6 +12,7 @@ import type {
   SettingsPermission,
   SettingsRole,
 } from "../roles/settings-permissions.ts";
+import { getCallerPath, normalizePath } from "../../utils/path-utils.ts";
 
 /**
  * Defines a settings type for the ORM.
@@ -44,19 +45,7 @@ export class SettingsType<
   ) {
     super(name, config);
     if (!rm) {
-      try {
-        const matchPattern = /^\s+at\s(.+)\/[\w-_\s\d]+.ts:\d+:\d+/;
-        const callingFunction = new Error().stack?.split("\n")[2];
-        const match = callingFunction?.match(matchPattern);
-        if (match) {
-          const dir = new URL(match[1]);
-          if (dir.protocol === "file:") {
-            this.dir = dir.pathname;
-          }
-        }
-      } catch (_e) {
-        // silently ignore
-      }
+      this.dir = getCallerPath();
     }
     this.sourceConfig = {
       ...config,

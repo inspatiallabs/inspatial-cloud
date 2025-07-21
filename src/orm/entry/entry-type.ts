@@ -15,6 +15,7 @@ import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
+import { getCallerPath } from "../../utils/path-utils.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
@@ -54,20 +55,7 @@ export class EntryType<
     super(name, config);
 
     if (!rm) {
-      try {
-        const matchPattern = /^\s+at\s(.+)\/[\w-_\s\d]+.ts:\d+:\d+/;
-        const callingFunction = new Error().stack?.split("\n")[2];
-        const match = callingFunction?.match(matchPattern);
-        if (match) {
-          const dir = new URL(match[1]);
-          if (dir.protocol === "file:") {
-            this.dir = dir.pathname;
-          }
-        }
-      } catch (_e) {
-        console.log("Error while setting dir for EntryType:", _e);
-        // silently ignore
-      }
+      this.dir = getCallerPath();
     }
     this.sourceConfig = {
       ...config,
