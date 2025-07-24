@@ -1,11 +1,6 @@
-import { joinPath, normalizePath } from "~/utils/path-utils.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { ConfigDefinition } from "./config-types.ts";
-function getPath() {
-  return normalizePath(Deno.mainModule, {
-    toDirname: true,
-  });
-}
 /**
  * Checks for a cloud-config.json file in the current working directory and loads it to the environment variables.
  */
@@ -92,8 +87,7 @@ export function generateConfigSchema(
   inCloud: InCloud,
 ): void {
   const filePath = joinPath(
-    getPath(),
-    ".inspatial",
+    inCloud.inRoot,
     "cloud-config-schema.json",
   );
   const schema = {
@@ -114,7 +108,7 @@ export function generateConfigSchema(
   }
 
   const file = JSON.stringify(schema, null, 2);
-  Deno.mkdirSync(joinPath(getPath(), ".inspatial"), {
+  Deno.mkdirSync(inCloud.inRoot, {
     recursive: true,
   });
   Deno.writeTextFileSync(filePath, file);
