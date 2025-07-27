@@ -403,7 +403,15 @@ export class InSpatialORM {
   async countConnections<E extends EntryBase = GenericEntry>(
     entryName: E["_name"],
     id: string,
-  ) {
+  ): Promise<
+    Array<{
+      entryType: string;
+      label: string;
+      fieldKey: string;
+      fieldLabel: string;
+      count: number;
+    }>
+  > {
     const entryTypeObj = this.getEntryType(entryName);
     const results = [];
     for (const connection of entryTypeObj.connections) {
