@@ -213,6 +213,28 @@ export const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
   }],
 });
 
+export const countConnections = new CloudAPIAction("countConnections", {
+  label: "Count Entry Connections",
+  description:
+    "Count the total entries referencing the provided entry id, grouped by entry type",
+  params: [{
+    key: "entryType",
+    type: "DataField",
+    label: "Entry Type",
+    description: "The Entry Type to count connections for",
+    required: true,
+  }, {
+    key: "id",
+    type: "DataField",
+    label: "ID",
+    description: "The ID of the Entry to count connections for",
+    required: true,
+  }],
+  async run({ orm, params: { entryType, id } }) {
+    return await orm.countConnections(entryType, id);
+  },
+});
+
 export const sum = new CloudAPIAction("sum", {
   label: "Get the sum of the selected fields for a given Entry Type",
   params: [{

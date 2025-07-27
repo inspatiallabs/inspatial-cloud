@@ -38,6 +38,7 @@ export const googleFields: Array<InField> = [{
   key: "googleAuthStatus",
   type: "ChoicesField",
   label: "Google Auth Status",
+  readOnly: true,
   choices: [{
     key: "authenticated",
     label: "Authenticated",

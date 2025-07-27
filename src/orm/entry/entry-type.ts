@@ -3,6 +3,7 @@ import type {
   EntryActionConfig,
   EntryActionDefinition,
   EntryConfig,
+  EntryConnection,
   EntryHookDefinition,
   EntryIndex,
   EntryTypeConfig,
@@ -35,6 +36,7 @@ export class EntryType<
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
+  connections: Array<EntryConnection> = [];
   hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
     beforeUpdate: [],
     afterCreate: [],
@@ -163,6 +165,7 @@ export class EntryType<
       defaultListFields: Array.from(this.defaultListFields).map((f) =>
         this.fields.get(f)!
       ),
+      connections: Array.from(this.connections.values()),
     };
   }
   #setChildrenParent() {

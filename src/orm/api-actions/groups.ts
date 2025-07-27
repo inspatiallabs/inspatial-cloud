@@ -1,6 +1,7 @@
 import { CloudAPIGroup } from "../../api/cloud-group.ts";
 import {
   count,
+  countConnections,
   createEntryAction,
   deleteEntryAction,
   getEntryAction,
@@ -35,6 +36,7 @@ export const entriesGroup = new CloudAPIGroup("entry", {
     createEntryAction,
     deleteEntryAction,
     getEntryListAction,
+    countConnections,
     sum,
     count,
   ],
