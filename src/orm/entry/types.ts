@@ -164,3 +164,11 @@ export type EntryIndex<FK extends PropertyKey = PropertyKey> = {
   fields: Array<FK>;
   unique?: boolean;
 };
+
+export interface EntryConnection {
+  referencingEntry: string;
+  referencingEntryLabel: string;
+  referencingField: string;
+  referencingFieldLabel: string;
+  listFields: Array<InField>;
+}

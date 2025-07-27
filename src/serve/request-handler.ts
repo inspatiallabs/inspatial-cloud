@@ -5,6 +5,7 @@ import type { ExtensionManager } from "~/extension/extension-manager.ts";
 import { handleException } from "~/serve/exeption/handle-exception.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import { raiseServerException } from "./server-exception.ts";
+import { staticFilesHandler } from "../static/staticPathHandler.ts";
 
 export async function requestHandler(
   request: Request,
@@ -49,10 +50,8 @@ export async function requestHandler(
       }
     }
     if (!pathHandler) {
-      raiseServerException(
-        404,
-        `Not Found`,
-      );
+      // default to static files handler if no path handler matches
+      pathHandler = staticFilesHandler;
     }
     const response = await pathHandler.handler(
       inCloud,

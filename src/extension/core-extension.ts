@@ -81,7 +81,7 @@ export const coreExtension = new CloudExtension("core", {
     onboardingStep,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
-  pathHandlers: [apiPathHandler, staticFilesHandler],
+  pathHandlers: [apiPathHandler],
   requestLifecycle: {
     setup: [authLifecycle],
   },

@@ -18,6 +18,22 @@ export const userEntry = new EntryType<User>("user", {
     ...userFields,
     ...googleFields,
   ],
+  fieldGroups: [{
+    key: "personal",
+    label: "Personal Information",
+    description: "Basic information about the user",
+    fields: ["profilePicture", "firstName", "lastName", "fullName", "email"],
+  }, {
+    key: "security",
+    label: "Security",
+    description: "Security related information",
+    fields: ["systemAdmin", "apiToken"],
+  }, {
+    key: "google",
+    label: "Google Account",
+    description: "Google account information",
+    fields: ["googlePicture", "googleAuthStatus"],
+  }],
   actions: [
     setPassword,
     validatePassword,

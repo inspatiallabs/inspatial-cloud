@@ -160,7 +160,7 @@ export class BaseType<N extends string = string> {
     this.#info = info;
   }
 
-  get info(): BaseTypeInfo {
+  get info(): BaseTypeInfo & Record<string, any> {
     return {
       ...this.#baseInfo,
       ...this.#info,

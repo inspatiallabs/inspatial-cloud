@@ -400,6 +400,38 @@ export class InSpatialORM {
     return entry;
   }
 
+  async countConnections<E extends EntryBase = GenericEntry>(
+    entryName: E["_name"],
+    id: string,
+  ): Promise<
+    Array<{
+      entryType: string;
+      label: string;
+      fieldKey: string;
+      fieldLabel: string;
+      count: number;
+    }>
+  > {
+    const entryTypeObj = this.getEntryType(entryName);
+    const results = [];
+    for (const connection of entryTypeObj.connections) {
+      const count = await this.count(connection.referencingEntry, {
+        filter: [{
+          field: connection.referencingField,
+          op: "=",
+          value: id,
+        }],
+      });
+      results.push({
+        entryType: connection.referencingEntry,
+        label: connection.referencingEntryLabel,
+        fieldKey: connection.referencingField,
+        fieldLabel: connection.referencingFieldLabel,
+        count,
+      });
+    }
+    return results;
+  }
   async findEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     filter: DBFilter,

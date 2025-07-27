@@ -26,7 +26,7 @@ import type {
 } from "~/orm/settings/settings-base.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { Choice } from "~/orm/field/types.ts";
-import type { EntryConfig } from "~/orm/entry/types.ts";
+import type { EntryConfig, EntryConnection } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
 
 import type { UserID } from "~/auth/types.ts";
@@ -136,6 +136,37 @@ export class Role {
     for (const entryType of this.entryTypes.values()) {
       validateEntryType(this, entryType);
       registerFetchFields(this, entryType);
+    }
+    this.#setupEntryConnections();
+  }
+  #setupEntryConnections(): void {
+    const connections = new Map<string, Array<EntryConnection>>();
+    for (const entryType of this.entryTypes.values()) {
+      const connectionsFields = entryType.fields.values().filter((field) =>
+        field.type === "ConnectionField"
+      );
+      for (const field of connectionsFields) {
+        if (!connections.has(field.entryType)) {
+          connections.set(field.entryType, []);
+        }
+        // const connectionEntryType = this.getEntryType(field.entryType);
+        connections.get(field.entryType)!.push({
+          referencingEntry: entryType.name,
+          referencingEntryLabel: entryType.label,
+          referencingField: field.key,
+          referencingFieldLabel: field.label || field.key,
+          listFields: entryType.info.defaultListFields,
+        });
+      }
+    }
+    for (const [entryName, connectionFields] of connections.entries()) {
+      const entryType = this.getEntryType(entryName);
+
+      entryType.connections = connectionFields;
+      entryType.info = {
+        ...entryType.info,
+        connections: connectionFields,
+      };
     }
   }
   #setupSettingsTypes(): void {
