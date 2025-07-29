@@ -71,15 +71,15 @@ export class InLiveHandler {
    * Upgrade a request to a websocket connection
    */
   handleUpgrade(inRequest: InRequest): Response {
+    const user = inRequest.context.get<SessionData>("user");
+    if (!user) {
+      inLog.warn("No user session found for websocket connection.");
+      return new Response("Unauthorized", { status: 401 });
+    }
     if (inRequest.upgradeSocket) {
       const { socket, response } = Deno.upgradeWebSocket(
         inRequest.request,
       );
-      const user = inRequest.context.get<SessionData>("user");
-      if (!user) {
-        inLog.warn("No user session found for websocket connection.");
-        return new Response("Unauthorized", { status: 401 });
-      }
       this.#addClient(socket, user);
       return response;
     }
