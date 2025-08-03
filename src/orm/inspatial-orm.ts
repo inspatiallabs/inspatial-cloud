@@ -162,7 +162,7 @@ export class InSpatialORM {
       rootPath?: string;
       globalSettingsHooks?: GlobalSettingsHooks;
       globalEntryHooks?: GlobalEntryHooks;
-      dbConfig: DBConfig;
+      dbConfig: DBConfig | { query: (query: string) => Promise<any> };
       inCloud: InCloud;
     },
   ) {
@@ -177,6 +177,8 @@ export class InSpatialORM {
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
     }
+    const dbConfig = options.dbConfig;
+
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });

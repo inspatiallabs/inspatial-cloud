@@ -14,7 +14,10 @@ import type {
 import type { IDMode } from "~/orm/field/types.ts";
 import type { IDValue } from "~/orm/entry/types.ts";
 import { PostgresPool } from "~/orm/db/postgres/pgPool.ts";
-import type { PgClientConfig } from "~/orm/db/postgres/pgTypes.ts";
+import type {
+  PgClientConfig,
+  QueryResponse,
+} from "~/orm/db/postgres/pgTypes.ts";
 import convertString from "~/utils/convert-string.ts";
 import { inLog } from "#inLog";
 import { makeFilterQuery } from "~/orm/db/filters.ts";
@@ -29,11 +32,11 @@ export class InSpatialDB {
   /**
    * The configuration for the database
    */
-  config: DBConfig;
+  config?: DBConfig;
   /**
    * The name of the database to connect to
    */
-  dbName: string;
+  dbName?: string;
 
   _schema: string | undefined;
   /**
@@ -53,10 +56,11 @@ export class InSpatialDB {
     this._schema = value;
   }
 
+  _query: (query: string) => Promise<QueryResponse<any>>;
   /**
    * The Postgres client used to interact with the database
    */
-  pool: PostgresPool;
+  pool?: PostgresPool;
 
   /**
    * The version of the database
@@ -67,7 +71,11 @@ export class InSpatialDB {
   /**
    * InSpatialDB is an interface for interacting with a Postgres database
    */
-  constructor(config: DBConfig) {
+  constructor(config: DBConfig | { query: (query: string) => Promise<any> }) {
+    if ("query" in config) {
+      this._query = config.query;
+      return;
+    }
     this.config = config;
     if (config.debug) {
       this.debugMode = true;
@@ -114,6 +122,7 @@ export class InSpatialDB {
         });
         break;
     }
+    this._query = this.pool.query.bind(this.pool);
   }
   withSchema(schema: string): InSpatialDB {
     const clone = Object.create(this);
@@ -121,7 +130,7 @@ export class InSpatialDB {
     return clone;
   }
   async init(): Promise<void> {
-    await this.pool.initialized();
+    await this.pool?.initialized();
   }
   /**
    * Get the version number of the postgres database
@@ -155,7 +164,7 @@ export class InSpatialDB {
         subject: `DBQ [${qid}]: `,
       });
     }
-    const result = await this.pool.query<T>(query);
+    const result = await this._query(query);
     const columns = result.columns.map((column) => column.camelName);
     if (this.debugMode) {
       inLog.debug({
