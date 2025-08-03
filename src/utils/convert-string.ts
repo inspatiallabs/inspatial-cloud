@@ -171,7 +171,7 @@ function convertString(
 ): string {
   if (fromCamelCase) {
     // strip leading and trailing whitespace and delimiters
-    inputString = inputString.trim().replace(/[^a-zA-Z0-9_#]/g, "_");
+    inputString = inputString.trim().replace(/[^a-zA-Z0-9_]/g, "_");
     // substitute capital letters with underscore and lowercase
     inputString = inputString.replace(/(?<!^)(?=[A-Z])/g, "_").toLowerCase();
 

@@ -73,6 +73,7 @@ export class EntryType<
     this.fields.set("id", {
       key: "id",
       type: "IDField",
+      entryType: this.name,
       idMode: config.idMode || "ulid",
       label: config.label || "ID",
       readOnly: true,

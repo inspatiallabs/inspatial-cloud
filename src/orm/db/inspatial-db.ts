@@ -1042,6 +1042,17 @@ export class InSpatialDB {
     });
   }
 
+  async removeForeignKey(
+    tableName: string,
+    constraintName: string,
+  ) {
+    tableName = toSnake(tableName);
+    const query =
+      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${constraintName};`;
+    await this.query(query);
+    await this.dropIndex(tableName, `fki_${constraintName}`);
+  }
+
   /* End column operations */
 
   /**

@@ -1,17 +1,29 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
+import { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
-  params: [],
-  async run({ inCloud, orm, inRequest, inResponse }) {
+  params: [{
+    key: "global",
+    type: "BooleanField",
+  }],
+  async run({ inCloud, orm, inRequest, inResponse, params: { global } }) {
+    console.log({ global });
     const formData = await inRequest.request.formData();
     const file = formData.get("content") as File;
     const fileName = formData.get("fileName") as string;
-
-    const cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
+    let cloudFile: CloudFile | GlobalCloudFile;
+    switch (global) {
+      case true:
+        cloudFile = orm.getNewEntry<GlobalCloudFile>("globalCloudFile");
+        break;
+      default:
+        cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
+    }
+    cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
     cloudFile.fileName = fileName;
     cloudFile.fileSize = file.size;
     cloudFile.mimeType = file.type as any;

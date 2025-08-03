@@ -248,6 +248,24 @@ export class SysCalls {
       pgFile.file.truncateSync(length);
       return 0;
     });
+    this.add("__syscall_truncate64", "ipj", (ptr, length) => {
+      length = bigintToI53Checked(length);
+      if (isNaN(length)) {
+        return -ERRNO_CODES.EOVERFLOW;
+      }
+      let path = this.fm.getPtrPath(ptr);
+
+      path = this.fm.parsePath(path);
+      try {
+        this.fm.truncateFile(path, length);
+        return 0;
+      } catch (e) {
+        if (e instanceof Deno.errors.NotFound) {
+          return -ERRNO_CODES.ENOENT;
+        }
+        throw e;
+      }
+    });
 
     this.add("__syscall_getdents64", "iipp", (fd, dirp, count) => {
       const entries = this.fm.listDirFD(fd);

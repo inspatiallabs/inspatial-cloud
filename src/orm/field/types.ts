@@ -35,6 +35,7 @@ type InValueTypeMap = {
   ListField: string[];
   CurrencyField: number;
   TimeField: string;
+  CodeField: string;
 };
 
 export type IDMode = "uuid" | "ulid" | "auto";

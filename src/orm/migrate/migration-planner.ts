@@ -271,8 +271,9 @@ export class MigrationPlanner {
           );
         }
         if (drop) {
+          await this.db.removeForeignKey(tableName, drop);
           this.#logResult(
-            "Drop foreign key constraint not implemented yet",
+            `Dropped foreign key constraint ${drop} from column ${column.columnName}`,
           );
         }
       }

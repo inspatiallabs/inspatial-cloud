@@ -161,11 +161,22 @@ export class Role {
     }
     for (const [entryName, connectionFields] of connections.entries()) {
       const entryType = this.getEntryType(entryName);
+      entryType.connections = [];
+      for (const connection of connectionFields) {
+        entryType.connections.push({
+          ...connection,
+          listFields: [
+            ...connection.listFields.filter((field) =>
+              !(field.type === "ConnectionField" &&
+                field.entryType === entryName)
+            ),
+          ],
+        });
+      }
 
-      entryType.connections = connectionFields;
       entryType.info = {
         ...entryType.info,
-        connections: connectionFields,
+        connections: [...entryType.connections],
       };
     }
   }
