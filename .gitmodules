@@ -1,3 +1,0 @@
-[submodule "cloud-client"]
-	path = cloud-client
-	url = https://github.com/inspatiallabs/cloud-client.git
