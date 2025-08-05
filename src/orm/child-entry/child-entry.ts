@@ -288,6 +288,7 @@ export interface ChildEntryConfig extends BaseTypeConfig {
 
 export class ChildEntryType<N extends string = any> extends BaseType<N> {
   config: ChildEntryConfig;
+  readonly isChild: boolean = true;
   constructor(name: N, config: {
     description?: string;
     label?: string;

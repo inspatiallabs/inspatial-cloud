@@ -4,6 +4,8 @@ import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
+import { ChildEntry } from "@inspatial/cloud";
+import { RegisterFieldConfig } from "../registry/connection-registry.ts";
 
 export function buildConnectionFields(
   role: Role,
@@ -102,31 +104,57 @@ export function registerFetchFields(
   entryType: EntryType,
 ): void {
   for (const field of entryType.fields.values()) {
-    if (!field.fetchField) {
-      continue;
-    }
-    const fetchOptions = field.fetchField!;
-    const connectionIdField = entryType.fields.get(
-      fetchOptions.connectionField,
-    ) as InField<"ConnectionField">;
-    const referencedEntryType = role.getEntryType(connectionIdField.entryType);
-    const referencedField = referencedEntryType.fields.get(
-      fetchOptions.fetchField,
-    );
-
-    if (!referencedField) {
-      raiseORMException(
-        "InvalidField",
-        `Connection field ${fetchOptions.fetchField} does not exist on entry type ${referencedEntryType.name}`,
-      );
-    }
-    role.registry.registerField({
-      referencedEntryType: referencedEntryType.name,
-      referencedFieldKey: referencedField.key,
-      referencingEntryType: entryType.name,
-      referencingFieldKey: field.key,
-      referencingIdFieldKey: connectionIdField.key,
+    registerField(role, {
+      entryName: entryType.name,
+      childOrEntryType: entryType,
+      field,
     });
+  }
+  for (const child of entryType.children?.values() || []) {
+    for (const field of child.fields.values()) {
+      registerField(role, {
+        entryName: entryType.name,
+        childOrEntryType: child,
+        field,
+      });
+    }
+  }
+}
+
+function registerField(role: Role, args: {
+  entryName: string;
+  childOrEntryType: ChildEntryType | EntryType;
+  field: InField;
+}) {
+  const { field, entryName, childOrEntryType } = args;
+  if (!field.fetchField) {
+    return;
+  }
+  const fetchOptions = field.fetchField!;
+  const connectionIdField = childOrEntryType.fields.get(
+    fetchOptions.connectionField,
+  ) as InField<"ConnectionField">;
+  const referencedEntryType = role.getEntryType(connectionIdField.entryType);
+  const referencedField = referencedEntryType.fields.get(
+    fetchOptions.fetchField,
+  );
+
+  if (!referencedField) {
+    raiseORMException(
+      "InvalidField",
+      `Connection field ${fetchOptions.fetchField} does not exist on entry type ${referencedEntryType.name}`,
+    );
+  }
+  const config: RegisterFieldConfig = {
+    referencingEntryType: entryName,
+    referencingFieldKey: field.key,
+    referencingIdFieldKey: connectionIdField.key,
+    referencedEntryType: referencedEntryType.name,
+    referencedFieldKey: referencedField.key,
+  };
+  if ("isChild" in childOrEntryType && childOrEntryType.isChild) {
+    config.referencingChildFieldKey = childOrEntryType.name;
+    role.registry.registerField(config);
   }
 }
 function buildConnectionTitleField(

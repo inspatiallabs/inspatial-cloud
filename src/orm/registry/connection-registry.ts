@@ -3,16 +3,18 @@ type FieldKey = string;
 
 export type EntryTypeRegistry = Map<FieldKey, Array<RegistryField>>;
 
-interface RegisterFieldConfig {
+export interface RegisterFieldConfig {
   referencingEntryType: EntryTypeKey;
   referencingFieldKey: FieldKey;
   referencingIdFieldKey: FieldKey;
+  referencingChildFieldKey?: FieldKey;
   referencedEntryType: EntryTypeKey;
   referencedFieldKey: FieldKey;
 }
 
 export interface RegistryField {
   targetEntryType: EntryTypeKey;
+  targetChildField?: FieldKey;
   targetIdField: FieldKey;
   targetValueField: FieldKey;
 }
@@ -30,11 +32,15 @@ export class ConnectionRegistry {
       config.referencedEntryType,
       config.referencedFieldKey,
     );
-    registryFields.push({
+    const registryField: RegistryField = {
       targetEntryType: config.referencingEntryType,
       targetIdField: config.referencingIdFieldKey,
       targetValueField: config.referencingFieldKey,
-    });
+    };
+    if (config.referencingChildFieldKey) {
+      registryField.targetChildField = config.referencingChildFieldKey;
+    }
+    registryFields.push(registryField);
   }
 
   #ensureEntryType(entryType: EntryTypeKey): EntryTypeRegistry {

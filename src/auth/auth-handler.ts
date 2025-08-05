@@ -80,7 +80,7 @@ export class AuthHandler {
     if (!authToken) {
       return null;
     }
-    const sessionData: SessionData = this.#inCloud.inCache.getValue(
+    let sessionData: SessionData = this.#inCloud.inCache.getValue(
       "authToken",
       authToken,
     );
@@ -90,8 +90,10 @@ export class AuthHandler {
         op: "=",
         value: authToken,
       }]);
+
       if (user) {
-        const sessionData = await makeSessiondata(user);
+        sessionData = await makeSessiondata(user);
+
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
     }

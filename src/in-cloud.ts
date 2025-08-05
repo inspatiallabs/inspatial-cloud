@@ -83,7 +83,7 @@ export class InCloud {
     this.appName = appName;
     this.inLog = inLog;
     this.#config = config;
-    this.inLive = new InLiveHandler();
+    this.inLive = new InLiveHandler(this);
     this.inCache = new InCache();
     this.api = new CloudAPI();
     this.roles = new RoleManager();

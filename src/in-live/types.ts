@@ -11,7 +11,10 @@ export interface InLiveUser {
   /**
    * The name of the user.
    */
-  name?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePicture?: string;
 }
 
 /**

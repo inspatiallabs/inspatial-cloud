@@ -314,9 +314,18 @@ export class Entry<
 
       for (const registryField of registryFields) {
         registryField;
+        let field: string | { child: string; field: string } =
+          registryField.targetValueField;
+        if (registryField.targetChildField) {
+          field = {
+            child: registryField.targetChildField,
+            field: registryField.targetValueField,
+          };
+        }
+
         await this._orm.batchUpdateField(
           registryField.targetEntryType,
-          registryField.targetValueField,
+          field,
           this._modifiedValues.get(fieldKey)!.to,
           [{
             field: registryField.targetIdField,

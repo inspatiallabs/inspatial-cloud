@@ -40,6 +40,7 @@ import { ServerException } from "../serve/server-exception.ts";
 import { onboardingStep } from "../onboarding/ob-step.ts";
 import { onboardingSettings } from "../onboarding/ob-settings.ts";
 import { Currencies } from "../orm/field/field-def-types.ts";
+import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -83,7 +84,7 @@ export const coreExtension = new CloudExtension("core", {
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler],
   requestLifecycle: {
-    setup: [authLifecycle],
+    setup: [authLifecycle, inLiveLifecycle],
   },
   afterGlobalMigrate: {
     name: "initAdminAccount",

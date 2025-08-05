@@ -15,11 +15,12 @@ export function generateClientEntryTypes(entryTypes: Array<EntryType>) {
   }
   const outLines: string[] = [
     ...generatedEntries,
-    "",
-    "export type EntryMap = {",
+    "declare global {",
+    "  export interface EntryMap {",
     ...Array.from(entryTypeNames.entries()).map(
-      ([name, className]) => `  ${name}: ${className}`,
+      ([name, className]) => `    ${name}: ${className}`,
     ),
+    "  }",
     "}",
     "",
     "export type EntryName = keyof EntryMap;",
