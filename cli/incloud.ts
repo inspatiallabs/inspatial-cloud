@@ -2,7 +2,7 @@ import { InLog } from "~/in-log/in-log.ts";
 import convertString from "~/utils/convert-string.ts";
 import { center } from "~/terminal/format-utils.ts";
 import { RunManager } from "#cli/run-manager.ts";
-import { syncEntryInterface } from "#cli/sync-client/sync-entry-interface.ts";
+import { syncEntryInterface } from "#cli/sync-entry-interface.ts";
 
 export const cliLog: any = new InLog({
   consoleDefaultStyle: "full",

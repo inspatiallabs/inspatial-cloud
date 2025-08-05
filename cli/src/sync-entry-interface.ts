@@ -1,5 +1,5 @@
 import { InCloudClient, InLiveClient } from "@inspatial/cloud-client";
-import { cliLog } from "@inspatial/cloud/incloud";
+import { cliLog } from "../incloud.ts";
 import { joinPath } from "~/utils/path-utils.ts";
 interface BaseOptions {
   host?: string;
