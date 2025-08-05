@@ -51,13 +51,7 @@ export class MigrationPlanner {
 
   async createMigrationPlan(): Promise<MigrationPlan> {
     this.migrationPlan = new MigrationPlan();
-    if (!this.db.dbName) {
-      raiseORMException(
-        "Database name is not set. Please provide a valid database name.",
-        "MigrationPlanner",
-      );
-    }
-    this.migrationPlan.database = this.db.dbName;
+    this.migrationPlan.database = this.db.dbName || "";
     this.migrationPlan.schema = this.db.schema;
 
     for (const migrator of this.entryTypes.values()) {

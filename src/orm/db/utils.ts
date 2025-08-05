@@ -10,6 +10,7 @@ export function formatColumnName(column: string): string {
   const reservedWords = [
     "order",
     "user",
+    "primary",
     "group",
     "table",
     "column",

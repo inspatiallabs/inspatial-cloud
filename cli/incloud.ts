@@ -153,4 +153,6 @@ async function init() {
       Deno.exit(1);
   }
 }
-init();
+if (import.meta.main) {
+  init();
+}
