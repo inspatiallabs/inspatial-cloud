@@ -7,6 +7,7 @@ import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
 import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import type { InSpatialORM } from "../inspatial-orm.ts";
+import { raiseORMException } from "../orm-exception.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
@@ -50,6 +51,12 @@ export class MigrationPlanner {
 
   async createMigrationPlan(): Promise<MigrationPlan> {
     this.migrationPlan = new MigrationPlan();
+    if (!this.db.dbName) {
+      raiseORMException(
+        "Database name is not set. Please provide a valid database name.",
+        "MigrationPlanner",
+      );
+    }
     this.migrationPlan.database = this.db.dbName;
     this.migrationPlan.schema = this.db.schema;
 

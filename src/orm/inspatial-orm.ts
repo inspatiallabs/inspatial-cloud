@@ -347,7 +347,7 @@ export class InSpatialORM {
    */
   async createEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
-    data: EntryData<E>,
+    data: Record<string, any>,
   ): Promise<E> {
     const entry = this.getEntryInstance(entryType) as E;
     entry.create();

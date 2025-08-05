@@ -115,7 +115,7 @@ export class BaseClass<N extends string = string> {
     }
     const task = await this._orm.createEntry<InTaskGlobal>(
       "inTaskGlobal",
-      fields,
+      fields as any,
     );
 
     this._inCloud.inQueue.send({

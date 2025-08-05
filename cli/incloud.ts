@@ -4,7 +4,7 @@ import { center } from "~/terminal/format-utils.ts";
 import { RunManager } from "#cli/run-manager.ts";
 import { syncEntryInterface } from "#cli/sync-client/sync-entry-interface.ts";
 
-export const cliLog = new InLog({
+export const cliLog: any = new InLog({
   consoleDefaultStyle: "full",
   name: "InSpatial CLI",
   traceOffset: 1,

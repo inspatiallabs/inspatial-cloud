@@ -8,6 +8,6 @@ export function isEmpty(value: unknown): boolean {
   return value === null || value === undefined || value === "";
 }
 
-export function asyncPause(duration = 100) {
+export function asyncPause(duration = 100): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
