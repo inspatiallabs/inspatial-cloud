@@ -3,6 +3,7 @@ import type {
   FileTypes,
   ImageFileType,
 } from "~/files/mime-types/file-types.ts";
+import { InFilter } from "../db/db-types.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
@@ -30,6 +31,7 @@ export type InFieldMap = {
   IDField: IDField;
   FileField: FileField;
   TimeField: TimeField;
+  CodeField: CodeField;
 };
 
 export type InFieldType = keyof InFieldMap;
@@ -77,6 +79,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
 export interface IDField extends BaseField {
   type: "IDField";
   idMode: IDMode;
+  entryType: string;
 }
 
 export interface DataField extends BaseField {
@@ -198,6 +201,13 @@ export interface ConnectionField extends BaseField {
   entryType: string;
 
   connectionIdMode?: IDMode;
+  filter?: InFilter | Array<InFilter>;
+  /**
+   * filter the search results by matching the given key-value pairs.
+   * The key is referencing a field in the connected entry type.
+   * The value is the key of a field in this entry to pull the value from.
+   */
+  filterBy?: Record<string, string>;
 }
 
 export interface RichTextField extends BaseField {
@@ -214,6 +224,17 @@ export interface URLField extends BaseField {
 export interface ListField extends BaseField {
   type: "ListField";
   defaultValue?: InValue<"ListField">;
+}
+
+export interface CodeField extends BaseField {
+  type: "CodeField";
+  /**
+   * The non-editable code that will be displayed in the UI before and/or after the code input.
+   */
+  wrapWithCode?: {
+    start?: string;
+    end?: string;
+  };
 }
 
 export interface CurrencyField extends BaseField {

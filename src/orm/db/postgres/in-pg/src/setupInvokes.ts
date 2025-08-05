@@ -15,7 +15,6 @@ export function setupInvokeImports(inPg: InPG) {
     "__syscall_sendto",
     "__syscall_recvfrom",
     "__syscall_getsockname",
-    "__syscall_truncate64",
     "__syscall_symlinkat",
     "__syscall_connect",
     "__syscall_bind",

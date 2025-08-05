@@ -1,4 +1,7 @@
 import MimeTypes from "~/files/mime-types/mime-types.ts";
+import { requestHandler } from "~/serve/request-handler.ts";
+export { PostgresPool } from "~/orm/db/postgres/pgPool.ts";
+export { InCloud } from "~/in-cloud.ts";
 export {
   CloudException,
   raiseCloudException,
@@ -22,3 +25,7 @@ export { CloudExtension } from "~/extension/cloud-extension.ts";
 export { MimeTypes };
 
 export * from "~/orm/mod.ts";
+
+export const utils = {
+  requestHandler,
+};

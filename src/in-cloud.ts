@@ -77,13 +77,13 @@ export class InCloud {
   #config: CloudConfig;
   constructor(appName: string, config: CloudConfig, runMode: CloudRunnerMode) {
     this.runMode = runMode;
-    this.cloudRoot = normalizePath(Deno.cwd());
+    this.cloudRoot = normalizePath(config.projectRoot || Deno.cwd());
     this.inRoot = joinPath(this.cloudRoot, ".inspatial");
     this.filesPath = joinPath(this.inRoot, "files");
     this.appName = appName;
     this.inLog = inLog;
     this.#config = config;
-    this.inLive = new InLiveHandler();
+    this.inLive = new InLiveHandler(this);
     this.inCache = new InCache();
     this.api = new CloudAPI();
     this.roles = new RoleManager();
@@ -247,6 +247,7 @@ export class InCloud {
   #setupOrm() {
     this.orm = setupOrm({
       inCloud: this,
+      dbClientQuery: this.#config.dbClientQuery,
       extensionManager: this.extensionManager,
     });
   }

@@ -21,6 +21,7 @@ import urlField from "~/orm/field/fields/url-field.ts";
 import idField from "~/orm/field/fields/id-field.ts";
 import fileField from "~/orm/field/fields/file-field.ts";
 import timeField from "./fields/time-field.ts";
+import codeField from "./fields/code-field.ts";
 
 export const ormFields = [
   bigIntField,
@@ -46,4 +47,5 @@ export const ormFields = [
   idField,
   fileField,
   timeField,
+  codeField,
 ];

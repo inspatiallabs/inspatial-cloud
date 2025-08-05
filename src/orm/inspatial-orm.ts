@@ -30,7 +30,7 @@ import {
 import { ormFields } from "~/orm/field/fields.ts";
 import { inLog } from "#inLog";
 import type { InValue } from "~/orm/field/types.ts";
-import type { IDValue } from "./entry/types.ts";
+import type { EntryData, IDValue } from "./entry/types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
@@ -162,7 +162,7 @@ export class InSpatialORM {
       rootPath?: string;
       globalSettingsHooks?: GlobalSettingsHooks;
       globalEntryHooks?: GlobalEntryHooks;
-      dbConfig: DBConfig;
+      dbConfig: DBConfig | { query: (query: string) => Promise<any> };
       inCloud: InCloud;
     },
   ) {
@@ -177,6 +177,8 @@ export class InSpatialORM {
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
     }
+    const dbConfig = options.dbConfig;
+
     this.db = new InSpatialDB({
       ...options.dbConfig,
     });
@@ -381,7 +383,7 @@ export class InSpatialORM {
   async updateEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     id: string,
-    data: Record<string, any>,
+    data: Partial<EntryData<E>>,
   ): Promise<any> {
     const entry = await this.getEntry(entryType, id);
     entry.update(data);
@@ -722,31 +724,72 @@ export class InSpatialORM {
    */
   async batchUpdateField(
     entryType: string,
-    field: string,
+    fieldOrChildField: string | { child: string; field: string },
     value: InValue,
     filters: DBFilter,
   ): Promise<void> {
     const entryTypeDef = this.getEntryType(entryType);
-    if (!entryTypeDef.fields.has(field)) {
-      raiseORMException(
-        `EntryType ${entryType} doesn't have a field with key '${field}'`,
-      );
-    }
-    const inField = entryTypeDef.fields.get(field)!;
+    if (typeof fieldOrChildField === "string") {
+      const field = fieldOrChildField;
+      if (!entryTypeDef.fields.has(field)) {
+        raiseORMException(
+          `EntryType ${entryType} doesn't have a field with key '${field}'`,
+        );
+      }
+      const inField = entryTypeDef.fields.get(field)!;
 
-    const fieldType = this._getFieldType(inField.type);
-    value = fieldType.normalize(value, inField);
-    if (!fieldType.validate(value, inField)) {
-      raiseORMException("Value is not valid!");
+      const fieldType = this._getFieldType(inField.type);
+      value = fieldType.normalize(value, inField);
+      if (!fieldType.validate(value, inField)) {
+        raiseORMException("Value is not valid!");
+      }
+      value = fieldType.prepareForDB(value, inField);
+      const db = entryTypeDef.systemGlobal ? this.systemDb : this.db;
+      await db.batchUpdateColumn(
+        entryTypeDef.config.tableName,
+        field,
+        value,
+        filters,
+      );
+      return;
     }
-    value = fieldType.prepareForDB(value, inField);
-    const db = entryTypeDef.systemGlobal ? this.systemDb : this.db;
-    await db.batchUpdateColumn(
-      entryTypeDef.config.tableName,
-      field,
-      value,
-      filters,
-    );
+    if (typeof fieldOrChildField === "object" && "child" in fieldOrChildField) {
+      const { child, field } = fieldOrChildField;
+      const childEntryType = entryTypeDef.children?.get(child);
+      if (!childEntryType) {
+        raiseORMException(
+          `EntryType ${entryType} doesn't have a child with key '${child}'`,
+        );
+      }
+      if (!childEntryType.fields.has(field)) {
+        raiseORMException(
+          `Child EntryType ${childEntryType.name} doesn't have a field with key '${field}'`,
+        );
+      }
+      const inField = childEntryType.fields.get(field)!;
+      const fieldType = this._getFieldType(inField.type);
+      value = fieldType.normalize(value, inField);
+      if (!fieldType.validate(value, inField)) {
+        raiseORMException("Value is not valid!");
+      }
+      value = fieldType.prepareForDB(value, inField);
+      const db = entryTypeDef.systemGlobal ? this.systemDb : this.db;
+      if (!childEntryType.config.tableName) {
+        raiseORMException(
+          `Child EntryType ${childEntryType.name} does not have a table name defined.`,
+          "ORMField",
+          500,
+        );
+      }
+      await db.batchUpdateColumn(
+        childEntryType.config.tableName,
+        field,
+        value,
+        filters,
+      );
+
+      return;
+    }
   }
 
   /**

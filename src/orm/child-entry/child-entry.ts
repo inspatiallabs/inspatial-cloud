@@ -12,6 +12,7 @@ import type { ORMFieldConfig } from "~/orm/field/orm-field.ts";
 import ulid from "~/orm/utils/ulid.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import type { InSpatialDB } from "../db/inspatial-db.ts";
+import { DBFilter } from "../db/db-types.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
   [key: string]: any;
 }
@@ -24,6 +25,7 @@ export class ChildEntry<
   // updatedAt: number | undefined;
   // parent: string | undefined;
   _data: Map<string, T> = new Map();
+
   _getFieldDef: (fieldKey: string) => InField;
   _getFieldType: (fieldType: string) => ORMFieldConfig<any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
@@ -38,6 +40,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   _childClass: typeof ChildEntry = ChildEntry;
   _fields: Map<string, InField> = new Map();
   _titleFields: Map<string, InField> = new Map();
+  rowsToRemove: Set<string> = new Set();
   _changeableFields: Map<string, InField> = new Map();
   _db: InSpatialDB;
   _tableName: string = "";
@@ -127,21 +130,26 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   }
   async deleteStaleRecords(): Promise<void> {
     const existingIds = Array.from(this._data.keys());
-    if (existingIds.length <= 0) {
+    if (existingIds.length <= 0 && this.rowsToRemove.size <= 0) {
       return;
     }
-    await this._db.deleteRows(
-      this._tableName,
-      [{
-        field: "parent",
-        op: "=",
-        value: this._parentId,
-      }, {
+    const filters: DBFilter = [{
+      field: "parent",
+      op: "=",
+      value: this._parentId,
+    }];
+    if (existingIds.length > 0) {
+      filters.push({
         field: "id",
         op: "notInList",
         value: existingIds,
-      }],
+      });
+    }
+    await this._db.deleteRows(
+      this._tableName,
+      filters,
     );
+    this.rowsToRemove.clear();
   }
   update(data: Array<T>): void {
     const rowsToRemove = new Set(this._data.keys());
@@ -155,9 +163,11 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
           this.add(row);
       }
     }
+
     for (const rowId of rowsToRemove) {
       this._data.delete(rowId);
     }
+    this.rowsToRemove = rowsToRemove;
   }
   getChild(id: string): ChildEntry {
     const child = this._data.get(id);
@@ -278,6 +288,7 @@ export interface ChildEntryConfig extends BaseTypeConfig {
 
 export class ChildEntryType<N extends string = any> extends BaseType<N> {
   config: ChildEntryConfig;
+  readonly isChild: boolean = true;
   constructor(name: N, config: {
     description?: string;
     label?: string;
@@ -296,6 +307,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       key: "id",
       label: "ID",
       type: "IDField",
+      entryType: this.name,
       idMode: "ulid",
       readOnly: true,
       required: true,

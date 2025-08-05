@@ -168,6 +168,9 @@ export class FileManager {
     }
     return new MemFile(this.mem, type, this.debug);
   }
+  truncateFile(path: string, length: number) {
+    Deno.truncateSync(path, length);
+  }
   openTmpFile(path: string, options: Deno.OpenOptions) {
     if (this.postgresFiles.has(path)) {
       const pgFile = this.postgresFiles.get(path)!;

@@ -160,6 +160,13 @@ export type ExtractFieldKeys<T> = keyof {
   [K in keyof T as K extends keyof EntryBase ? never : K]: K;
 };
 
+export type EntryData<T> = {
+  [
+    K in keyof T as K extends keyof EntryBase ? never
+      : K
+  ]: T[K];
+};
+
 export type EntryIndex<FK extends PropertyKey = PropertyKey> = {
   fields: Array<FK>;
   unique?: boolean;

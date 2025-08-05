@@ -14,7 +14,9 @@ export const authMiddleware: Middleware = {
     let sessionData = await authHandler.loadUserSession(sessionId);
     if (!sessionData) {
       const authToken = inRequest.context.get("authToken");
-      sessionData = await authHandler.loadSessionFromToken(authToken);
+      sessionData = await authHandler.loadSessionFromToken(
+        authToken,
+      );
     }
     if (sessionData) {
       inRequest.context.update("user", sessionData);

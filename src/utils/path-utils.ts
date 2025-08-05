@@ -22,7 +22,7 @@ export function normalizePath(path: string, options?: {
    */
   toDirname?: boolean;
 }): string {
-  path = path.replace("/^file:\/\//", "");
+  path = path.replace(/^file:\/\//, "");
   path = decodeURIComponent(path);
   path = IS_WINDOWS
     ? path.replace(/\\/g, "/").replace(/^\/([A-Z]:)/, "$1")

@@ -11,6 +11,7 @@ import type { InCloud } from "~/in-cloud.ts";
 
 export function setupOrm(args: {
   inCloud: InCloud;
+  dbClientQuery?: (query: string) => Promise<any>;
   extensionManager: ExtensionManager;
 }): InSpatialORM {
   const { inCloud, extensionManager } = args;
@@ -113,7 +114,7 @@ export function setupOrm(args: {
     settings: Array.from(extensionManager.settingsTypes.values()),
     globalEntryHooks,
     globalSettingsHooks,
-    dbConfig,
+    dbConfig: args.dbClientQuery ? { query: args.dbClientQuery } : dbConfig,
     inCloud,
   });
   return orm;

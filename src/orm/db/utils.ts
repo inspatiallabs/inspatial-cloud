@@ -7,7 +7,15 @@ import convertString from "~/utils/convert-string.ts";
  */
 export function formatColumnName(column: string): string {
   column = toSnake(column);
-  const reservedWords = ["order", "user", "group", "table", "column", "to"];
+  const reservedWords = [
+    "order",
+    "user",
+    "group",
+    "table",
+    "column",
+    "to",
+    "unique",
+  ];
   if (reservedWords.includes(column)) {
     return `"${column}"`;
   }

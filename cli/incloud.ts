@@ -2,8 +2,9 @@ import { InLog } from "~/in-log/in-log.ts";
 import convertString from "~/utils/convert-string.ts";
 import { center } from "~/terminal/format-utils.ts";
 import { RunManager } from "#cli/run-manager.ts";
+import { syncEntryInterface } from "#cli/sync-client/sync-entry-interface.ts";
 
-const inLog = new InLog({
+export const cliLog: any = new InLog({
   consoleDefaultStyle: "full",
   name: "InSpatial CLI",
   traceOffset: 1,
@@ -48,26 +49,26 @@ createInCloud({
 }
 
 function doRun(rootPath: string, file?: string) {
-  inLog.info("Running InCloud project...");
+  cliLog.info("Running InCloud project...");
   const runner = new RunManager(rootPath, file);
   runner.init();
 }
 
 function doInit(_rootPath: string, projectName?: string) {
   if (!projectName) {
-    inLog.warn("Project name is required for initialization.");
+    cliLog.warn("Project name is required for initialization.");
     Deno.exit(1);
   }
   const folderName = convertString(projectName, "kebab", true);
   const name = convertString(folderName, "title", true);
-  inLog.warn(`Initializing project: ${name}`);
+  cliLog.warn(`Initializing project: ${name}`);
 
   // Create the project directory
   try {
     Deno.mkdirSync(folderName);
   } catch (e) {
     if (e instanceof Deno.errors.AlreadyExists) {
-      inLog.error(`Project directory ${folderName} already exists.`);
+      cliLog.error(`Project directory ${folderName} already exists.`);
       Deno.exit(1);
     }
   }
@@ -105,7 +106,7 @@ function doInit(_rootPath: string, projectName?: string) {
   proc.status.then((status) => {
     Deno.writeTextFileSync("main.ts", makeMainFile(projectName));
     if (status.success) {
-      inLog.info([
+      cliLog.info([
         `Project ${name} initialized successfully!`,
         "",
         "You can now run your project:",
@@ -113,23 +114,23 @@ function doInit(_rootPath: string, projectName?: string) {
         `incloud run main.ts`,
       ]);
     } else {
-      inLog.error(`Failed to initialize project ${name}.`);
+      cliLog.error(`Failed to initialize project ${name}.`);
       Deno.exit(1);
     }
   }).catch((err) => {
-    inLog.error(`Error initializing project: ${err.message}`);
+    cliLog.error(`Error initializing project: ${err.message}`);
     Deno.exit(1);
   });
 }
 
-function init() {
-  inLog.setConfig({
+async function init() {
+  cliLog.setConfig({
     logTrace: false,
   });
   const rootPath = Deno.cwd();
   const { command, file } = parseArgs();
   if (command === undefined) {
-    inLog.warn(
+    cliLog.warn(
       "No command provided. Please use 'incloud run <file>' or 'incloud init <project-name>'.",
       {
         compact: true,
@@ -143,11 +144,13 @@ function init() {
     case "init":
       doInit(rootPath, file);
       break;
+    case "syncClient":
+      await syncEntryInterface();
+      break;
 
     default:
       console.error(`Unknown command: ${command}`);
       Deno.exit(1);
   }
 }
-
 init();
