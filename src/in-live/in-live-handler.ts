@@ -13,6 +13,7 @@ import { BrokerClient } from "./broker-client.ts";
 
 import type { SessionData } from "../auth/types.ts";
 import type { InCloud } from "../in-cloud.ts";
+import { ORMException } from "../orm/orm-exception.ts";
 
 /**
  * Handles realtime websocket connections
@@ -377,6 +378,10 @@ export class InLiveHandler {
         }
       }
     } catch (e) {
+      if (e instanceof ORMException) {
+        this.inCloud.inLog.warn(`${e.name}: ${e.message}`, "InLive-Join");
+        return;
+      }
       inLog.error(e, "InLiveHandler#join");
       return;
     }
