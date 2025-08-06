@@ -8,7 +8,7 @@ export type CoreConfig = {
   brokerPort: number;
   queuePort: number;
   hostName: string;
-  port: number;
+  servePort: number;
   autoConfig: boolean;
   allowedOrigins: Set<string>;
   publicRoot: string;

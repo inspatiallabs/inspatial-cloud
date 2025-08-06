@@ -67,7 +67,7 @@ export class RunManager {
     this.env = env;
     const {
       hostName,
-      port,
+      servePort,
       brokerPort,
       queuePort,
       cloudMode,
@@ -86,7 +86,7 @@ export class RunManager {
     this.autoMigrate = autoMigrate;
     this.autoTypes = autoTypes;
     this.hostname = hostName || "localhost";
-    this.port = port || 8000;
+    this.port = servePort || 8000;
 
     if (embeddedDb) {
       this.spawnDB(embeddedDbPort);
