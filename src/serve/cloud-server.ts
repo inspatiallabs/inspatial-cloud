@@ -25,7 +25,7 @@ export class InCloudServer extends InCloud {
     return Deno.serve(
       {
         hostname: config.hostName,
-        port: config.port,
+        port: config.servePort,
         reusePort,
         onListen: (_addr) => {
           // Hide stdout message

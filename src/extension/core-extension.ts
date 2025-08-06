@@ -278,7 +278,7 @@ export const coreExtension = new CloudExtension("core", {
       type: "boolean",
       default: false,
     },
-    port: {
+    servePort: {
       description: "The port for the server",
       required: false,
       default: 8000,
