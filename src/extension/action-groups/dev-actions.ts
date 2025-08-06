@@ -13,3 +13,11 @@ devActions.addAction("generateConfig", {
     inCloud.generateConfigFile();
   },
 });
+
+devActions.addAction("clearStaticCache", {
+  description: "Clear the static files cache",
+  params: [],
+  run({ inCloud }) {
+    inCloud.static.cache.clear();
+  },
+});
