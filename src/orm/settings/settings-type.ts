@@ -102,4 +102,16 @@ export class SettingsType<
       ...hooks,
     };
   }
+  addAction(action: SettingsActionDefinition<S>) {
+    if (this.actions.has(action.key)) {
+      raiseORMException(
+        `Action with key ${action.key} already exists in SettingsType ${this.name}`,
+      );
+    }
+    this.actions.set(action.key, action);
+    this.info = {
+      ...this.info,
+      actions: Array.from(this.actions.values()).filter((a) => !a.private),
+    };
+  }
 }

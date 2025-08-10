@@ -3,6 +3,7 @@ import type { DevType, PGFile, PGFileMem } from "../../types.ts";
 import { ERRNO_CODES } from "../constants.ts";
 import { normalizeVirtualPath } from "../convert.ts";
 import type { PGMem } from "../pgMem.ts";
+import { ExceptionInfo } from "../utils.ts";
 import { MemFile, PostgresFile } from "./pg-file.ts";
 
 export class FileManager {
@@ -151,7 +152,7 @@ export class FileManager {
   }
   getFile(fd: number): PGFile | PGFileMem {
     if (!this.openFiles.has(fd)) {
-      this.raise(`no file with file descriptor ${fd}`);
+      throw ERRNO_CODES.EBADFD;
     }
     return this.openFiles.get(fd)!;
   }

@@ -4,8 +4,7 @@ import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
-import { ChildEntry } from "@inspatial/cloud";
-import { RegisterFieldConfig } from "../registry/connection-registry.ts";
+import type { RegisterFieldConfig } from "../registry/connection-registry.ts";
 
 export function buildConnectionFields(
   role: Role,

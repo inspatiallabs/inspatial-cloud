@@ -75,7 +75,7 @@ export const onboardingStep = new EntryType<OnboardingStep>("onboardingStep", {
           key: "TimeField",
           label: "Time",
         }, {
-          key: "DateTimeField",
+          key: "TimeStampField",
           label: "Date and Time",
         }, {
           key: "BooleanField",

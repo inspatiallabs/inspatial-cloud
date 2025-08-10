@@ -73,7 +73,7 @@ export interface OnboardingStep extends EntryBase {
     description?: string;
     /**
      * **Type** (ChoicesField)
-     * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'DateTimeField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
+     * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'TimeStampField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
      * @required true
      */
     type:
@@ -85,7 +85,7 @@ export interface OnboardingStep extends EntryBase {
       | "URLField"
       | "DateField"
       | "TimeField"
-      | "DateTimeField"
+      | "TimeStampField"
       | "BooleanField"
       | "ChoicesField"
       | "MultiChoiceField"
