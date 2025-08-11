@@ -108,7 +108,6 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       this.#getFieldId(fieldKey),
       "value",
     );
-    console.log({ dbValue });
     return fieldType.parseDbValue(dbValue.value, fieldDef);
   }
   update(data: Record<string, any>): void {
