@@ -8,4 +8,11 @@ export interface SystemSettings extends SettingsBase {
    * @type {boolean}
    */
   enableSignup?: boolean;
+  /**
+   * **Server Host** (URLField)
+   * @description The host URL of the server. This is used for generating links and API endpoints.
+   * @type {string}
+   * @required true
+   */
+  serverHost: string;
 }

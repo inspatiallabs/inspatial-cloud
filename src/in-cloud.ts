@@ -56,7 +56,6 @@ export class InCloud {
 
   // Functionality
   orm!: InSpatialORM;
-  systemOrm!: InSpatialORM;
   api!: CloudAPI;
   roles: RoleManager;
   inLog: InLog;
