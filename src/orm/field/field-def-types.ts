@@ -173,6 +173,7 @@ export interface ImageField extends BaseField {
   allowedImageTypes: Array<ImageFileType> | "all";
   entryType?: "cloudFile" | "globalCloudFile";
   connectionIdMode?: "ulid";
+  publicFile?: boolean;
 }
 
 export interface FileField extends BaseField {
@@ -181,6 +182,7 @@ export interface FileField extends BaseField {
   allowedFileTypes: Partial<FileTypes> | Array<keyof FileTypes> | "all";
   entryType?: "cloudFile";
   connectionIdMode?: "ulid";
+  publicFile?: boolean;
 }
 
 export interface JSONField extends BaseField {

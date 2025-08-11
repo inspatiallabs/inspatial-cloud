@@ -55,6 +55,13 @@ const config = {
     hidden: true,
     readOnly: true,
     required: true,
+  }, {
+    key: "publicFile",
+    type: "BooleanField",
+    label: "Public File",
+    readOnly: true,
+    description:
+      "If enabled, this file can be accessed publicly without authentication.",
   }],
   hooks: {
     afterDelete: [{

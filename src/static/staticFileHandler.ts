@@ -8,6 +8,7 @@ import {
   logoContent,
   notFoundContent,
 } from "./content.ts";
+import { raiseServerException } from "../serve/server-exception.ts";
 type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
 const CacheTime = {
   day: 86400, // 60 * 60 * 24 = 1 day
@@ -96,6 +97,34 @@ export class StaticFileHandler {
       }
       throw e;
     }
+  }
+  async serveFromPath(
+    filePath: string,
+    inResponse: InResponse,
+  ): Promise<InResponse> {
+    const fileName = filePath.split("/").pop();
+    if (!fileName) {
+      raiseServerException(
+        404,
+        "File not found",
+      );
+    }
+    const fileContent = await this
+      .getFile(filePath);
+    if (!fileContent) {
+      raiseServerException(
+        404,
+        "File not found",
+      );
+    }
+    inResponse.setFile({
+      fileName,
+      content: fileContent,
+    });
+    inResponse.setCacheControl({
+      maxAge: this.cacheTime,
+    });
+    return inResponse;
   }
   async serveFile(
     inRequest: InRequest,

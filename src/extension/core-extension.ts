@@ -41,6 +41,7 @@ import { onboardingStep } from "../onboarding/ob-step.ts";
 import { onboardingSettings } from "../onboarding/ob-settings.ts";
 import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
+import { publicFilesHandler } from "../files/public-files-handler.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -82,7 +83,7 @@ export const coreExtension = new CloudExtension("core", {
     onboardingStep,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
-  pathHandlers: [apiPathHandler],
+  pathHandlers: [apiPathHandler, publicFilesHandler],
   requestLifecycle: {
     setup: [authLifecycle, inLiveLifecycle],
   },

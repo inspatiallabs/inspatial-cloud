@@ -118,6 +118,12 @@ export interface CloudFile extends EntryBase {
    */
   filePath: string;
   /**
+   * **Public File** (BooleanField)
+   * @description If enabled, this file can be accessed publicly without authentication.
+   * @type {boolean}
+   */
+  publicFile?: boolean;
+  /**
    * **File** (IDField)
    * @type {string}
    * @required true

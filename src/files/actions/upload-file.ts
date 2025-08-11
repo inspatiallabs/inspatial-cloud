@@ -2,6 +2,7 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 import { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
+import { joinPath } from "@inspatial/cloud/utils";
 
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
@@ -9,9 +10,13 @@ export const uploadFile = new CloudAPIAction("upload", {
   params: [{
     key: "global",
     type: "BooleanField",
+  }, {
+    key: "publicFile",
+    type: "BooleanField",
   }],
-  async run({ inCloud, orm, inRequest, inResponse, params: { global } }) {
-    console.log({ global });
+  async run(
+    { inCloud, orm, inRequest, inResponse, params: { global, publicFile } },
+  ) {
     const formData = await inRequest.request.formData();
     const file = formData.get("content") as File;
     const fileName = formData.get("fileName") as string;
@@ -23,10 +28,10 @@ export const uploadFile = new CloudAPIAction("upload", {
       default:
         cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
     }
-    cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
     cloudFile.fileName = fileName;
     cloudFile.fileSize = file.size;
     cloudFile.mimeType = file.type as any;
+    cloudFile.publicFile = publicFile;
     const extensionInfo = MimeTypes.getExtensionsByMimeType(file.type);
     if (extensionInfo) {
       cloudFile.fileType = extensionInfo.category;
@@ -39,7 +44,10 @@ export const uploadFile = new CloudAPIAction("upload", {
     const extension = fileName.split(".").pop();
     const newFileName = `${id}.${extension}`;
     const stream = file.stream();
-    const path = `${inCloud.filesPath}/${newFileName}`;
+    let path = joinPath(inCloud.filesPath, newFileName);
+    if (publicFile) {
+      path = joinPath(inCloud.publicFilesPath, newFileName);
+    }
     await Deno.writeFile(path, stream, {
       create: true,
     });
