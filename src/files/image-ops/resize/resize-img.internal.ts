@@ -49,6 +49,22 @@ export function resize_image(input: Uint8Array, width: number, height: number, f
 }
 
 /**
+ * @param {Uint8Array} input
+ * @param {number} width
+ * @param {number} height
+ * @param {number} filter
+ * @returns {Uint8Array}
+ */
+export function resize_image_to_jpg(input: Uint8Array, width: number, height: number, filter: number=4): Uint8Array {
+  const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+  const len0 = WASM_VECTOR_LEN;
+  const ret = wasm.resize_image_to_jpg(ptr0, len0, width, height, filter);
+  var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+  wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+  return v2;
+}
+
+/**
  * Chroma subsampling format
  * @enum {0 | 1 | 2 | 3}
  */
