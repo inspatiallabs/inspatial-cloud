@@ -174,6 +174,10 @@ export interface ImageField extends BaseField {
   entryType?: "cloudFile" | "globalCloudFile";
   connectionIdMode?: "ulid";
   publicFile?: boolean;
+  optimize?: {
+    width?: number;
+    height?: number;
+  };
 }
 
 export interface FileField extends BaseField {

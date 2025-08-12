@@ -3,7 +3,7 @@ import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "~/utils/path-utils.ts";
-
+import { resize_image } from "../image-ops/resize/resize-img.ts";
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
@@ -13,9 +13,30 @@ export const uploadFile = new CloudAPIAction("upload", {
   }, {
     key: "publicFile",
     type: "BooleanField",
+  }, {
+    key: "optimizeImage",
+    type: "BooleanField",
+  }, {
+    key: "optimizeWidth",
+    type: "IntField",
+  }, {
+    key: "optimizeHeight",
+    type: "IntField",
   }],
   async run(
-    { inCloud, orm, inRequest, inResponse, params: { global, publicFile } },
+    {
+      inCloud,
+      orm,
+      inRequest,
+      inResponse,
+      params: {
+        global,
+        publicFile,
+        optimizeImage,
+        optimizeHeight,
+        optimizeWidth,
+      },
+    },
   ) {
     const formData = await inRequest.request.formData();
     const file = formData.get("content") as File;
@@ -56,10 +77,28 @@ export const uploadFile = new CloudAPIAction("upload", {
     await Deno.mkdir(accountFolder, {
       recursive: true,
     });
-    await Deno.writeFile(path, stream, {
-      create: true,
-    });
     cloudFile.filePath = path;
+    console.log({
+      optimizeImage,
+      optimizeWidth,
+      optimizeHeight,
+    });
+    if (optimizeImage) {
+      const { done, value } = await stream.getReader().read();
+      if (value) {
+        const defaultSize = 1000;
+        const width = optimizeWidth || defaultSize;
+        const height = optimizeHeight || defaultSize;
+        const resized = resize_image(value, width, height);
+        await Deno.writeFile(path, resized, {
+          create: true,
+        });
+      }
+    } else {
+      await Deno.writeFile(path, stream, {
+        create: true,
+      });
+    }
     await cloudFile.save();
     inResponse.setContent({
       file: cloudFile.data,
