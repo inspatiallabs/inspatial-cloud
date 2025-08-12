@@ -118,6 +118,12 @@ export interface GlobalCloudFile extends EntryBase {
    */
   filePath: string;
   /**
+   * **Public File** (BooleanField)
+   * @description If enabled, this file can be accessed publicly without authentication.
+   * @type {boolean}
+   */
+  publicFile?: boolean;
+  /**
    * **System File** (IDField)
    * @type {string}
    * @required true

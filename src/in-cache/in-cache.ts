@@ -41,7 +41,7 @@ export class InCache {
   init(brokerPort: number): void {
     this.channel.connect(brokerPort);
   }
-  getValue(namespace: string, key: string): any {
+  getValue<T = any>(namespace: string, key: string): T | undefined {
     const cache = this.#cache.get(namespace);
     if (!cache) {
       return undefined;

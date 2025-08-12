@@ -14,6 +14,7 @@ import type { InCloud } from "@inspatial/cloud/types";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
+  actions?: Array<SettingsActionDefinition>;
 }
 
 export interface SettingsTypeConfig extends BaseTypeConfig {
@@ -62,6 +63,7 @@ export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
     actionParams:
       & {
         orm: InSpatialORM;
+        inCloud: InCloud;
       }
       & { [K in S["_name"] | "settings"]: S }
       & {

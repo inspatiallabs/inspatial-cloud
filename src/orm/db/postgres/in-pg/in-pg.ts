@@ -210,7 +210,7 @@ export class InPG {
       const value = match[2];
       pgConf.set(key, value);
     }
-    pgConf.set("shared_buffers", "128kb");
+    pgConf.set("shared_buffers", "128MB");
     pgConf.set("max_connections", "5");
     const config = Array.from(pgConf.entries()).map(([key, value]) =>
       `${key} = ${value}`

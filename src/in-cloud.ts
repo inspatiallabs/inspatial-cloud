@@ -15,6 +15,7 @@ import {
 import { ORMException } from "~/orm/orm-exception.ts";
 import type { CloudAPIGroup } from "~/api/cloud-group.ts";
 import { InLiveHandler } from "~/in-live/in-live-handler.ts";
+
 import type { CloudExtensionInfo } from "~/serve/types.ts";
 import {
   generateCloudConfigFile,
@@ -55,11 +56,12 @@ export class InCloud {
 
   // Functionality
   orm!: InSpatialORM;
-  systemOrm!: InSpatialORM;
   api!: CloudAPI;
   roles: RoleManager;
   inLog: InLog;
   static: StaticFileHandler;
+  publicFiles: StaticFileHandler;
+  privateFiles: StaticFileHandler;
   auth: AuthHandler;
   inLive: InLiveHandler;
   inCache: InCache;
@@ -74,12 +76,14 @@ export class InCloud {
    */
   inRoot: string;
   filesPath: string;
+  publicFilesPath: string;
   #config: CloudConfig;
   constructor(appName: string, config: CloudConfig, runMode: CloudRunnerMode) {
     this.runMode = runMode;
     this.cloudRoot = normalizePath(config.projectRoot || Deno.cwd());
     this.inRoot = joinPath(this.cloudRoot, ".inspatial");
     this.filesPath = joinPath(this.inRoot, "files");
+    this.publicFilesPath = joinPath(this.inRoot, "public-files");
     this.appName = appName;
     this.inLog = inLog;
     this.#config = config;
@@ -88,6 +92,14 @@ export class InCloud {
     this.api = new CloudAPI();
     this.roles = new RoleManager();
     this.static = new StaticFileHandler();
+    this.publicFiles = new StaticFileHandler({
+      staticFilesRoot: this.publicFilesPath,
+      cache: true,
+    });
+    this.privateFiles = new StaticFileHandler({
+      staticFilesRoot: this.filesPath,
+      cache: true,
+    });
     this.emailManager = new EmailManager(this);
     this.roles.addRole({
       roleName: "systemAdmin",
@@ -200,6 +212,7 @@ export class InCloud {
   #setupFS() {
     const config = this.getExtensionConfig("core");
     Deno.mkdirSync(this.filesPath, { recursive: true });
+    Deno.mkdirSync(this.publicFilesPath, { recursive: true });
     try {
       const path = Deno.realPathSync(config.publicRoot);
       this.static.staticFilesRoot = normalizePath(path);

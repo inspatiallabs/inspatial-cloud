@@ -80,7 +80,7 @@ export class AuthHandler {
     if (!authToken) {
       return null;
     }
-    let sessionData: SessionData = this.#inCloud.inCache.getValue(
+    let sessionData: SessionData | undefined = this.#inCloud.inCache.getValue(
       "authToken",
       authToken,
     );

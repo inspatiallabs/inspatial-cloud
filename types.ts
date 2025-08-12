@@ -26,7 +26,7 @@ export type { SettingsBase } from "~/orm/settings/settings-base.ts";
 export type { SessionData } from "~/auth/types.ts";
 
 export type ChildList<T extends Record<string, unknown>> = ChildEntryList<T>;
-
+export type { PathHandler } from "~/serve/path-handler.ts";
 export type { User } from "~/auth/entries/user/_user.type.ts";
 export type { UserSession } from "~/auth/entries/user-session/_user-session.type.ts";
 export type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";

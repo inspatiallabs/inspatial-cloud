@@ -1,7 +1,8 @@
-import { addLeadingZeros } from "~/utils/convert-string.ts";
-
 function now(): Date {
   return new Date();
+}
+function padZeros(number: number, length?: number) {
+  return number.toString().padStart(length || 2, "0");
 }
 
 function nowTimestamp(): number {
@@ -9,7 +10,7 @@ function nowTimestamp(): number {
 }
 
 function nowFormatted(format: DateFormat, showSeconds?: boolean): string {
-  return getPrettyDate(nowTimestamp(), { format, showSeconds });
+  return getPrettyDate(nowTimestamp(), { format, showSeconds }) as string;
 }
 function isToday(date: Date, now?: Date): boolean {
   const today = now || new Date();
@@ -32,27 +33,61 @@ export type DateFormat =
   | "date"
   | "datetime"
   | "compact"
-  | "y/m/d";
+  | "y/m/d"
+  | "full"
+  | "dd.mm.yy";
 
-function getPrettyDate(value: string | number, options?: {
+function formatTime(value: string | undefined, options: {
+  showSeconds?: boolean;
+  clockType?: "12" | "24";
+}): string {
+  if (!value) {
+    return "";
+  }
+  const match = value.match(
+    /(?<hour>\d{2}):(?<minute>\d{2}):{0,1}(?<second>\d{2}){0,1}/,
+  );
+  if (!match) {
+    return "";
+  }
+  const groups = match.groups!;
+  const hour = parseInt(groups.hour);
+  const minute = parseInt(groups.minute).toString().padStart(2, "0");
+  const second = parseInt(groups.second);
+  if (options?.clockType === "12") {
+    let hourString;
+    let ampm = hour < 12 ? "AM" : "PM";
+    hourString = hour % 12 || 12;
+    return `${hourString}:${minute}${
+      options.showSeconds ? `:${second}` : ""
+    } ${ampm}`;
+  }
+  return `${hour.toString().padStart(2, "0")}:${minute}${
+    options.showSeconds ? `:${second}` : ""
+  }`;
+}
+function getPrettyDate(value: string | number | undefined, options?: {
   format?: DateFormat;
   showSeconds?: boolean;
+  showTime?: boolean;
 }): string {
+  if (!value) return "";
   const date = new Date(value);
-
+  // convert to local time
+  // date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   if (isNaN(date.getTime())) {
-    return value as string;
+    return `${value}`;
   }
   const formatPretty = (date: Date) => {
     const now = new Date();
 
     let title = "";
-    let dateStr = date.toLocaleTimeString(
+    let timeStr = date.toLocaleTimeString(
       undefined,
       { hour: "2-digit", minute: "2-digit" },
     );
     if (options?.showSeconds) {
-      dateStr = date.toLocaleTimeString(undefined, {
+      timeStr = date.toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -61,7 +96,7 @@ function getPrettyDate(value: string | number, options?: {
     if (now.toLocaleDateString() == date.toLocaleDateString()) {
       title = "Today at";
 
-      return `${title} ${dateStr}`;
+      return `${title} ${timeStr}`;
     }
     if (now.getFullYear() == date.getFullYear()) {
       if (
@@ -69,31 +104,36 @@ function getPrettyDate(value: string | number, options?: {
           now.getMonth().toString() + now.getDay().toString()
       ) {
         title = "Yesterday at";
-        return `${title} ${dateStr}`;
+        return `${title} ${timeStr}`;
       }
     }
-    let response = date.toString().substring(0, 15);
+
+    let response = date.toString().substring(4, 15);
+    if (options?.showTime) {
+      response += ` at ${timeStr}`;
+    }
     if (options?.showSeconds) {
-      response = date.toString().substring(0, 21);
+      response += `:${padZeros(date.getSeconds())}`;
     }
     return response;
   };
-  const formatDate = (date: Date, separator?: string) => {
-    separator = separator || "-";
-    const day = addLeadingZeros(date.getDate());
-    const month = addLeadingZeros(date.getMonth() + 1);
+  const formatDate = (date: Date) => {
+    const day = padZeros(date.getDate());
+    const month = padZeros(date.getMonth() + 1);
     const year = date.getFullYear();
-    return `${year}${separator}${month}${separator}${day}`;
+    return `${day}/${month}/${year}`;
   };
   const formatCompact = (date: Date) => {
     const now = new Date();
     const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
 
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
 
-    let title = `${addLeadingZeros(day)}/${addLeadingZeros(month + 1)}`;
+    let title = `${padZeros(day)}/${padZeros(month + 1)}`;
 
     if (currentYear != year) {
       title = `${title}/${year}`;
@@ -121,23 +161,32 @@ function getPrettyDate(value: string | number, options?: {
       return formatCompact(date);
     case "time":
       return date.toLocaleTimeString();
-    case "y/m/d":
-      return formatDate(date, "/");
-    case "datetime":
-      return date.toLocaleString();
+    case "full":
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    case "dd.mm.yy":
+      return date.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+      }).replace(/\//g, ".");
     default: {
-      const day = addLeadingZeros(date.getDate());
-      const month = addLeadingZeros(date.getMonth() + 1);
+      const day = padZeros(date.getDate());
+      const month = padZeros(date.getMonth() + 1);
       const year = date.getFullYear();
-      const hours = addLeadingZeros(date.getHours());
-      const minutes = addLeadingZeros(date.getMinutes());
-      const seconds = addLeadingZeros(date.getSeconds());
-      return `${day}-${month}-${year} ${hours}:${minutes}${
+      const hours = padZeros(date.getHours());
+      const minutes = padZeros(date.getMinutes());
+      const seconds = padZeros(date.getSeconds());
+      return `${day}/${month}/${year} ${hours}:${minutes}${
         options?.showSeconds ? `:${seconds}` : ""
       }`;
     }
   }
 }
+
 export default {
   now,
   nowTimestamp,

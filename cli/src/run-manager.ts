@@ -292,7 +292,7 @@ export class RunManager {
     env: Record<string, string> = {},
   ): Deno.ChildProcess {
     const cmd = new Deno.Command(Deno.execPath(), {
-      args: ["run", "-A", ...flags, this.moduleName],
+      args: ["run", "-A", ...flags, "--unstable-raw-imports", this.moduleName],
       cwd: this.rootPath,
       env: {
         CLOUD_RUNNER_MODE: mode,
