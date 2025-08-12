@@ -76,7 +76,7 @@ function getPrettyDate(value: string | number | undefined, options?: {
   // convert to local time
   // date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   if (isNaN(date.getTime())) {
-    return value;
+    return `${value}`;
   }
   const formatPretty = (date: Date) => {
     const now = new Date();
