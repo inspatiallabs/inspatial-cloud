@@ -1,8 +1,8 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
-import { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
-import { joinPath } from "@inspatial/cloud/utils";
+import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
+import { joinPath } from "~/utils/path-utils.ts";
 
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
