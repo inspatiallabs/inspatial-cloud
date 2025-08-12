@@ -61,6 +61,7 @@ export class InCloud {
   inLog: InLog;
   static: StaticFileHandler;
   publicFiles: StaticFileHandler;
+  privateFiles: StaticFileHandler;
   auth: AuthHandler;
   inLive: InLiveHandler;
   inCache: InCache;
@@ -93,6 +94,10 @@ export class InCloud {
     this.static = new StaticFileHandler();
     this.publicFiles = new StaticFileHandler({
       staticFilesRoot: this.publicFilesPath,
+      cache: true,
+    });
+    this.privateFiles = new StaticFileHandler({
+      staticFilesRoot: this.filesPath,
       cache: true,
     });
     this.emailManager = new EmailManager(this);

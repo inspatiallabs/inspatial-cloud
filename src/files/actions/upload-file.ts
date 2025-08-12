@@ -21,9 +21,11 @@ export const uploadFile = new CloudAPIAction("upload", {
     const file = formData.get("content") as File;
     const fileName = formData.get("fileName") as string;
     let cloudFile: CloudFile | GlobalCloudFile;
+    let accountId = orm._user!.accountId;
     switch (global) {
       case true:
         cloudFile = orm.getNewEntry<GlobalCloudFile>("globalCloudFile");
+        accountId = "global";
         break;
       default:
         cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
@@ -43,11 +45,17 @@ export const uploadFile = new CloudAPIAction("upload", {
     const id = cloudFile.id;
     const extension = fileName.split(".").pop();
     const newFileName = `${id}.${extension}`;
+
     const stream = file.stream();
-    let path = joinPath(inCloud.filesPath, newFileName);
+    let accountFolder = joinPath(inCloud.filesPath, accountId);
+    let path = joinPath(accountFolder, newFileName);
     if (publicFile) {
-      path = joinPath(inCloud.publicFilesPath, newFileName);
+      accountFolder = joinPath(inCloud.publicFilesPath, accountId);
+      path = joinPath(accountFolder, newFileName);
     }
+    await Deno.mkdir(accountFolder, {
+      recursive: true,
+    });
     await Deno.writeFile(path, stream, {
       create: true,
     });

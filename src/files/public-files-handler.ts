@@ -1,21 +1,27 @@
 import type { PathHandler } from "../serve/path-handler.ts";
 import { raiseServerException } from "../serve/server-exception.ts";
+import { joinPath } from "../utils/path-utils.ts";
 
 export const publicFilesHandler: PathHandler = {
   name: "publicFiles",
   description: "Serve files that were uploaded as public files",
   match: /^\/files\/(.+)$/,
   async handler(inCloud, inRequest, inResponse) {
-    const fileId = inRequest.path.replace(/^\/files\//, "");
-    if (!fileId) {
+    const accountAndFileId = inRequest.path.replace(/^\/files\//, "");
+    if (!accountAndFileId) {
       raiseServerException(404, "File not found");
     }
-    let filePath = inCloud.inCache.getValue("publicFiles", fileId);
+    let filePath = inCloud.inCache.getValue("publicFiles", accountAndFileId);
     if (!filePath) {
-      for await (const item of Deno.readDir(inCloud.publicFilesPath)) {
+      const [accountId, fileId] = accountAndFileId.split("/");
+      const accontFolder = joinPath(inCloud.publicFilesPath, accountId);
+      if (!accountId || !fileId) {
+        raiseServerException(404, "File not found");
+      }
+      for await (const item of Deno.readDir(accontFolder)) {
         if (item.isFile && item.name.startsWith(fileId)) {
-          filePath = item.name;
-          inCloud.inCache.setValue("publicFiles", fileId, filePath);
+          filePath = joinPath(accountId, item.name);
+          inCloud.inCache.setValue("publicFiles", accountAndFileId, filePath);
           break;
         }
       }
