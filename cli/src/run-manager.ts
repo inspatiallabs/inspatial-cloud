@@ -163,29 +163,22 @@ export class RunManager {
     if (this.dbProc && this.dbProc.pid) {
       this.dbProc.kill(signal);
     }
-    const results: string[] = [];
     for (const proc of this.serveProcs.values()) {
-      const procStatus = await proc.status;
-      results.push(JSON.stringify(procStatus, null, 2));
+      await proc.status;
     }
     if (this.queueProc) {
-      const status = await this.queueProc.status;
-      results.push(JSON.stringify(status, null, 2));
+      await this.queueProc.status;
     }
     if (this.brokerProc) {
-      const status = await this.brokerProc.status;
-      results.push(JSON.stringify(status, null, 2));
+      await this.brokerProc.status;
     }
     if (this.dbProc) {
-      const status = await this.dbProc.status;
-      results.push(JSON.stringify(status, null, 2));
+      await this.dbProc.status;
     }
-    console.log("Processes status:");
-    results.forEach((result) => {
-      console.log(result);
-    });
-    console.log("All processes have been shut down.");
-    console.log("Shutdown complete.");
+    inLogSmall.info(
+      "All processes have been shut down.",
+      this.appTitle,
+    );
     Deno.exit(0);
   }
   async setupWatcher() {
