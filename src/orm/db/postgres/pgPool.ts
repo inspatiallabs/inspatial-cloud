@@ -59,6 +59,7 @@ export class PostgresPool {
   private readonly clientConfig: PgClientConfig;
   private readonly maxWait: number;
   private readonly maxClients: number;
+  #shuttingDown: boolean = false;
   constructor(config: PgPoolConfig) {
     const { pool, clientConfig } = config;
 
@@ -95,6 +96,19 @@ export class PostgresPool {
       await client.connect();
     }
   }
+
+  async shutdown(): Promise<void> {
+    this.#shuttingDown = true;
+    let clientCount =
+      this.clients.filter((client) => !!client.client.conn).length;
+    while (clientCount > 0) {
+      const client = await this.getClient();
+      await client.client.shutdown();
+      clientCount = this.clients.filter(
+        (client) => !!client.client.conn,
+      ).length;
+    }
+  }
   private async getClient(): Promise<PostgresPoolClient> {
     let client: PostgresPoolClient | undefined;
     const start = Date.now();
@@ -124,6 +138,12 @@ export class PostgresPool {
   async query<T extends Record<string, any>>(
     query: string,
   ): Promise<QueryResponse<T>> {
+    if (this.#shuttingDown) {
+      throw new PgError({
+        message: "System is shutting down, cannot execute query",
+        name: "shutdown",
+      });
+    }
     const client = await this.getClient();
     const result = await client.query<T>(query);
 

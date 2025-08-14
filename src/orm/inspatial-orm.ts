@@ -35,9 +35,10 @@ import type { InCloud } from "~/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
-import { handlePgError, isPgError } from "./db/postgres/pgError.ts";
+import { handlePgError, isPgError, PgError } from "./db/postgres/pgError.ts";
 import type { Settings } from "./settings/settings.ts";
 import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
+import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
 
 export class InSpatialORM {
   db: InSpatialDB;
@@ -398,7 +399,14 @@ export class InSpatialORM {
     id: string,
   ): Promise<any> {
     const entry = await this.getEntry(entryType, id);
-    await entry.delete();
+    try {
+      await entry.delete();
+    } catch (e) {
+      if (!isPgError(e)) {
+        throw e;
+      }
+      return this.handlePgError(e);
+    }
     return entry;
   }
 
@@ -881,5 +889,31 @@ export class InSpatialORM {
     const entriesInterfaces = generateClientEntryTypes(entryTypes);
 
     return entriesInterfaces;
+  }
+  handlePgError(e: PgError) {
+    const { info, response, subject } = handlePgError(e);
+    const code = info.code as PGErrorCode;
+    switch (code) {
+      case PGErrorCode.ForeignKeyViolation: {
+        const table = info.table as string;
+        const id = info.id as string;
+        const parts = table.split("_");
+        const firstPart = parts[0];
+        switch (firstPart) {
+          case "entry": {
+            break;
+          }
+          case "child": {
+            break;
+          }
+        }
+        raiseORMException(
+          `Cannot delete entry with id ${id} because it is referenced by another entry (${table}). Please delete the referencing entries first.`,
+          "ORMForeignKeyViolation",
+          400,
+        );
+      }
+    }
+    throw e;
   }
 }

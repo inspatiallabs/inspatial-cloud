@@ -13,7 +13,7 @@ import { InLog } from "~/in-log/in-log.ts";
 import { getCoreCount } from "#cli/multicore.ts";
 import { loadCloudConfigFile } from "#cli/cloud-config.ts";
 import convertString from "~/utils/convert-string.ts";
-import { joinPath } from "~/utils/path-utils.ts";
+import { IS_WINDOWS, joinPath } from "~/utils/path-utils.ts";
 import { center } from "~/terminal/format-utils.ts";
 import ColorMe from "~/terminal/color-me.ts";
 import type { RunnerMode } from "#cli/types.ts";
@@ -53,6 +53,7 @@ export class RunManager {
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
   async init(): Promise<void> {
+    this.addSignalListeners();
     this.coreCount = await getCoreCount({ single: true }); // skip multicore at the moment
     await this.spawnInit();
     const result = loadCloudConfigFile(this.rootPath);
@@ -133,6 +134,57 @@ export class RunManager {
       this.setupWatcher();
     }
   }
+  addSignalListeners() {
+    Deno.addSignalListener("SIGINT", async () => {
+      await this.shutdown("SIGINT");
+    });
+    if (IS_WINDOWS) {
+      return;
+    }
+    Deno.addSignalListener("SIGTERM", async () => {
+      await this.shutdown("SIGTERM");
+    });
+  }
+  async shutdown(signal: Deno.Signal): Promise<void> {
+    inLogSmall.warn(
+      `Shutting down gracefully...`,
+      {
+        compact: true,
+        subject: this.appTitle,
+      },
+    );
+    this.serveProcs.forEach((proc) => {
+      if (proc.pid) {
+        proc.kill(signal);
+      }
+    });
+    if (this.queueProc && this.queueProc.pid) {
+      this.queueProc.kill(signal);
+    }
+    if (this.brokerProc && this.brokerProc.pid) {
+      this.brokerProc.kill(signal);
+    }
+    if (this.dbProc && this.dbProc.pid) {
+      this.dbProc.kill(signal);
+    }
+    for (const proc of this.serveProcs.values()) {
+      await proc.status;
+    }
+    if (this.queueProc) {
+      await this.queueProc.status;
+    }
+    if (this.brokerProc) {
+      await this.brokerProc.status;
+    }
+    if (this.dbProc) {
+      await this.dbProc.status;
+    }
+    inLogSmall.info(
+      "All processes have been shut down.",
+      this.appTitle,
+    );
+    Deno.exit(0);
+  }
   async setupWatcher() {
     const dirs = Deno.readDirSync(this.rootPath);
     const paths = [];
@@ -163,7 +215,6 @@ export class RunManager {
       }
     }
   }
-
   handleWatchEvent(event: Deno.FsEvent) {
     for (const path of event.paths) {
       if (path.endsWith(".type.ts")) {
@@ -189,12 +240,15 @@ export class RunManager {
     this.isReloading = true;
     this.serveProcs.forEach((proc) => {
       if (proc.pid) {
-        proc.kill("SIGTERM");
+        proc.kill("SIGINT");
+        proc.status.then((_status) => {
+          this.serveProcs.delete(proc.pid);
+        });
       }
     });
 
     if (this.queueProc && this.queueProc.pid) {
-      this.queueProc.kill("SIGTERM");
+      this.queueProc.kill("SIGINT");
     }
     this.queueProc = undefined;
     this.spawnMigrator().then((success) => {

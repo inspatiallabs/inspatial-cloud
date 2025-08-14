@@ -1,10 +1,10 @@
 import type { AppMode, CloudConfig } from "#types/mod.ts";
 import { CloudAPI } from "~/api/cloud-api.ts";
 
-import { type InLog, inLog } from "#inLog";
+import { InLog, inLog } from "#inLog";
 import type { LogLevel } from "~/in-log/types.ts";
 import type { InSpatialORM } from "~/orm/mod.ts";
-import { joinPath, normalizePath } from "~/utils/path-utils.ts";
+import { IS_WINDOWS, joinPath, normalizePath } from "~/utils/path-utils.ts";
 
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import { setupOrm } from "~/orm/setup-orm.ts";
@@ -78,6 +78,7 @@ export class InCloud {
   filesPath: string;
   publicFilesPath: string;
   #config: CloudConfig;
+  #shutdownCallbacks: Array<() => void | Promise<void>> = [];
   constructor(appName: string, config: CloudConfig, runMode: CloudRunnerMode) {
     this.runMode = runMode;
     this.cloudRoot = normalizePath(config.projectRoot || Deno.cwd());
@@ -108,6 +109,68 @@ export class InCloud {
     });
     this.auth = new AuthHandler(this);
     this.inQueue = new InQueueClient();
+    this.#setupSignalListener();
+  }
+  #setupSignalListener() {
+    let signalReceived = false;
+    const shutdown = async (signal: string) => {
+      if (signalReceived) {
+        return; // Prevent multiple signals from triggering shutdown
+      }
+      signalReceived = true;
+      const subject = `${signal}: ${this.runMode}`;
+      const print = (message: string) => {
+        if (signal === "SIGINT") {
+          return;
+        }
+        inLog.warn(message, {
+          subject,
+          compact: true,
+        });
+      };
+      print(
+        `Received ${signal} signal. Shutting down gracefully...`,
+      );
+
+      let currentCallback = 0;
+      for (const callback of this.#shutdownCallbacks) {
+        currentCallback++;
+        print(
+          `Running shutdown callback ${currentCallback} of ${this.#shutdownCallbacks.length}`,
+        );
+
+        try {
+          await callback();
+        } catch (e) {
+          inLog.error(
+            "Error during shutdown callback: " + e,
+            {
+              subject,
+            },
+          );
+          continue;
+        }
+        print(
+          `Shutdown callback ${currentCallback} completed successfully`,
+        );
+      }
+      await this.#stop();
+      print(`${this.appDisplayName} has shut down successfully.`);
+
+      Deno.exit(0);
+    };
+    Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
+    if (IS_WINDOWS) {
+      return; // Windows does not support Deno.addSignalListener for SIGTERM
+    }
+
+    Deno.addSignalListener("SIGTERM", async () => await shutdown("SIGTERM"));
+  }
+  onShutdown(callback: () => void | Promise<void>): void {
+    this.#shutdownCallbacks.push(callback);
+  }
+  async #stop() {
+    await this.orm.db.pool?.shutdown();
   }
   init() {
     // Extension manager initialization
