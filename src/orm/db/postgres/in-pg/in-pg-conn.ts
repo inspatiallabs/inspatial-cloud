@@ -116,7 +116,7 @@ export class InPgConn implements Deno.Conn<Deno.NetAddr> {
   }
 
   close(): void {
-    throw new Error("Method not implemented.");
+    this.stop();
   }
 
   closeWrite(): Promise<void> {

@@ -163,7 +163,6 @@ export class RunManager {
       }
     }
   }
-
   handleWatchEvent(event: Deno.FsEvent) {
     for (const path of event.paths) {
       if (path.endsWith(".type.ts")) {

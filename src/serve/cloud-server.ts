@@ -4,6 +4,7 @@ import { requestHandler } from "~/serve/request-handler.ts";
 
 export class InCloudServer extends InCloud {
   instanceNumber: string;
+  server: Deno.HttpServer<Deno.NetAddr> | undefined;
   constructor(
     appName: string,
     config: CloudConfig,
@@ -15,7 +16,10 @@ export class InCloudServer extends InCloud {
 
   override async run() {
     await super.run();
-    this.#serve();
+    this.server = this.#serve();
+    this.onShutdown(async () => {
+      await this.server?.shutdown();
+    });
   }
 
   #serve(): Deno.HttpServer<Deno.NetAddr> {

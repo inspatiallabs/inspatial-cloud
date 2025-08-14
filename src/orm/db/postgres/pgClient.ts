@@ -255,6 +255,15 @@ export class PostgresClient {
       message: "Unknown message type",
     });
   }
+  async shutdown(): Promise<void> {
+    this.writer.reset();
+    this.writer.setMessageType("X");
+
+    await this.conn.write(this.writer.message);
+    this.conn.close();
+    this.conn = null as any;
+    this.status = "notConnected";
+  }
   async reset(): Promise<void> {
     this.writer.reset();
     await this.reader.clearBuffer();
