@@ -190,6 +190,7 @@ function getPrettyDate(value: string | number | undefined, options?: {
 export default {
   now,
   nowTimestamp,
+  formatTime,
   nowFormatted,
   isToday,
   isYesterday,
@@ -206,6 +207,7 @@ const dateUtils = {
 
 export {
   dateUtils,
+  formatTime,
   getPrettyDate,
   isToday,
   isYesterday,

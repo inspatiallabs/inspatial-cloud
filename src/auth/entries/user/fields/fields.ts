@@ -29,6 +29,10 @@ export const userFields = [{
   key: "profilePicture",
   type: "ImageField",
   label: "Profile Picture",
+  optimize: {
+    width: 500,
+    height: 500,
+  },
   allowedImageTypes: ["png", "jpeg", "svg+xml", "png"],
   description: "The user's profile picture",
 }, {

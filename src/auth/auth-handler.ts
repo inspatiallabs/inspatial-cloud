@@ -175,6 +175,7 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     firstName: user.firstName,
     lastName: user.lastName,
     systemAdmin: user.systemAdmin ?? false,
+    profilePicture: user.profilePicture,
     accountId: "",
     role: "",
   };

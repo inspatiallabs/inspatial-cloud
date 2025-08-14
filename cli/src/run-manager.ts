@@ -41,6 +41,8 @@ export class RunManager {
   autoMigrate?: boolean;
   autoTypes?: boolean;
   moduleName: string;
+  usingEmbeddedDb = false;
+  embeddedDbPort: number | undefined = undefined;
   env: Record<string, string> = {};
 
   constructor(rootPath: string, moduleName?: string) {
@@ -90,6 +92,8 @@ export class RunManager {
     this.port = servePort || 8000;
 
     if (embeddedDb) {
+      this.usingEmbeddedDb = true;
+      this.embeddedDbPort = embeddedDbPort;
       this.spawnDB(embeddedDbPort);
     }
     this.spawnBroker(brokerPort);
@@ -271,7 +275,7 @@ export class RunManager {
   }
 
   spawnServers(): number {
-    if (this.serveProcs.size >= this.coreCount) {
+    if (this.serveProcs.size > this.coreCount) {
       throw new Error(
         `Cannot spawn more servers than the core count (${this.coreCount}).`,
       );
@@ -308,6 +312,8 @@ export class RunManager {
   async spawnMigrator(): Promise<boolean> {
     const proc = this.spawnProcess("migrator", [], this.env);
     const status = await proc.status;
+    if (!status.success) {
+    }
     return status.success;
   }
   spawnServer(config?: {
@@ -365,6 +371,24 @@ export class RunManager {
           if (mode === "server" || mode === "queue") {
             return; // Ignore SIGTERM for server and queue processes, it's a fs watcher restart
           }
+          break;
+        case 174: // SIGSEGV
+          if (mode === "migrator" && this.usingEmbeddedDb) {
+            if (this.dbProc?.pid) {
+              this.dbProc.kill("SIGINT");
+              this.dbProc.status.then(() => {
+                inLogSmall.error(
+                  "Database process was killed due to a segmentation fault.",
+                  `${this.appTitle}: ${mode}`,
+                );
+              });
+            }
+            if (this.embeddedDbPort) {
+              this.spawnDB(this.embeddedDbPort);
+            }
+            this.reload();
+          }
+          return;
       }
       const message = ColorMe.standard();
       message.content("Exit code ").color("white").content(

@@ -1,57 +1,10 @@
 {
-  "lsp": {
-    "deno": {
-      "settings": {
-        "deno": {
-          "enable": true,
-          "suggest": {
-            "completeFunctionCalls": true,
-            "names": {
-              "enabled": true
-            },
-            "paths": {
-              "enabled": true
-            },
-            "autoImports": {
-              "enabled": true
-            },
-            "imports": {
-              "autoDiscover": true
-            }
-          },
-          "inlayHints": {
-            "parameterNames": {
-              "enabled": "all"
-            },
-            "parameterTypes": {
-              "enabled": true
-            },
-            "variableTypes": {
-              "enabled": true
-            },
-            "propertyDeclarationTypes": {
-              "enabled": true
-            },
-            "functionLikeReturnTypes": {
-              "enabled": true
-            },
-            "enumMemberValues": {
-              "enabled": true
-            }
-          }
-        }
-      }
-    }
-  },
   "languages": {
     "TypeScript": {
-      "language_servers": ["deno"],
-      "formatter": "language_server"
+      "language_servers": ["deno"]
     },
     "JavaScript": {
-      "language_servers": ["deno"],
-      "formatter": "language_server"
-      // "prettier": null
+      "language_servers": ["deno"]
     }
   }
 }

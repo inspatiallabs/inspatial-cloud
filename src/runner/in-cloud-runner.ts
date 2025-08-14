@@ -10,6 +10,8 @@ import { InCloudInit } from "~/runner/cloud-init.ts";
 import type { CloudRunnerMode } from "#cli/types.ts";
 import { InCloudMigrator } from "~/orm/migrate/cloud-migrator.ts";
 import { CloudExtension } from "~/extension/cloud-extension.ts";
+import { isPgError } from "../orm/db/postgres/pgError.ts";
+import { PGErrorCode } from "../orm/db/postgres/maps/errorMap.ts";
 
 class InCloudRunner {
   #mode?: CloudRunnerMode;
@@ -112,8 +114,19 @@ class InCloudRunner {
     }
     // await inCloud.boot();
     if (autoMigrate) {
-      await inCloud.orm.init();
-      await inCloud.migrate();
+      try {
+        await inCloud.orm.init();
+        await inCloud.migrate();
+      } catch (e) {
+        if (!isPgError(e)) {
+          throw e;
+        }
+        // If the error is OutOfMemory, exit
+        if (e.code === PGErrorCode.OutOfMemory) {
+          Deno.exit(174); // SIGSEGV
+        }
+        throw e;
+      }
     }
     if (autoTypes) {
       await inCloud.orm.generateInterfaces();
