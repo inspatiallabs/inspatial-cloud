@@ -13,7 +13,7 @@ import { InLog } from "~/in-log/in-log.ts";
 import { getCoreCount } from "#cli/multicore.ts";
 import { loadCloudConfigFile } from "#cli/cloud-config.ts";
 import convertString from "~/utils/convert-string.ts";
-import { joinPath } from "~/utils/path-utils.ts";
+import { IS_WINDOWS, joinPath } from "~/utils/path-utils.ts";
 import { center } from "~/terminal/format-utils.ts";
 import ColorMe from "~/terminal/color-me.ts";
 import type { RunnerMode } from "#cli/types.ts";
@@ -53,6 +53,7 @@ export class RunManager {
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
   async init(): Promise<void> {
+    this.addSignalListeners();
     this.coreCount = await getCoreCount({ single: true }); // skip multicore at the moment
     await this.spawnInit();
     const result = loadCloudConfigFile(this.rootPath);
@@ -132,6 +133,60 @@ export class RunManager {
       );
       this.setupWatcher();
     }
+  }
+  addSignalListeners() {
+    Deno.addSignalListener("SIGINT", async () => {
+      await this.shutdown("SIGINT");
+    });
+    if (IS_WINDOWS) {
+      return;
+    }
+    Deno.addSignalListener("SIGTERM", async () => {
+      await this.shutdown("SIGTERM");
+    });
+  }
+  async shutdown(signal: Deno.Signal): Promise<void> {
+    inLogSmall.warn(
+      `Received ${signal}. Shutting down gracefully...`,
+    );
+    this.serveProcs.forEach((proc) => {
+      if (proc.pid) {
+        proc.kill(signal);
+      }
+    });
+    if (this.queueProc && this.queueProc.pid) {
+      this.queueProc.kill(signal);
+    }
+    if (this.brokerProc && this.brokerProc.pid) {
+      this.brokerProc.kill(signal);
+    }
+    if (this.dbProc && this.dbProc.pid) {
+      this.dbProc.kill(signal);
+    }
+    const results: string[] = [];
+    for (const proc of this.serveProcs.values()) {
+      const procStatus = await proc.status;
+      results.push(JSON.stringify(procStatus, null, 2));
+    }
+    if (this.queueProc) {
+      const status = await this.queueProc.status;
+      results.push(JSON.stringify(status, null, 2));
+    }
+    if (this.brokerProc) {
+      const status = await this.brokerProc.status;
+      results.push(JSON.stringify(status, null, 2));
+    }
+    if (this.dbProc) {
+      const status = await this.dbProc.status;
+      results.push(JSON.stringify(status, null, 2));
+    }
+    console.log("Processes status:");
+    results.forEach((result) => {
+      console.log(result);
+    });
+    console.log("All processes have been shut down.");
+    console.log("Shutdown complete.");
+    Deno.exit(0);
   }
   async setupWatcher() {
     const dirs = Deno.readDirSync(this.rootPath);

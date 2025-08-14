@@ -112,18 +112,15 @@ export class InCloud {
     this.#setupSignalListener();
   }
   #setupSignalListener() {
-    if (IS_WINDOWS) {
-      return; // Windows does not support Deno.addSignalListener for SIGTERM
-    }
     let signalReceived = false;
-    Deno.addSignalListener("SIGTERM", async () => {
+    const shutdown = async (signal: string) => {
       if (signalReceived) {
         return; // Prevent multiple signals from triggering shutdown
       }
       signalReceived = true;
-      const subject = `SIGTERM: ${this.runMode}`;
+      const subject = `${signal}: ${this.runMode}`;
       inLog.warn(
-        "Received SIGTERM signal. Shutting down gracefully...",
+        `Received ${signal} signal. Shutting down gracefully...`,
         {
           subject,
           compact: true,
@@ -150,7 +147,7 @@ export class InCloud {
           );
           continue;
         }
-        inLog.warn(
+        inLog.info(
           `Shutdown callback ${currentCallback} completed successfully`,
           {
             subject,
@@ -159,8 +156,21 @@ export class InCloud {
         );
       }
       await this.#stop();
+      inLog.info(
+        `${this.appDisplayName} has shut down successfully.`,
+        {
+          subject,
+          compact: true,
+        },
+      );
       Deno.exit(0);
-    });
+    };
+    Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
+    if (IS_WINDOWS) {
+      return; // Windows does not support Deno.addSignalListener for SIGTERM
+    }
+
+    Deno.addSignalListener("SIGTERM", async () => await shutdown("SIGTERM"));
   }
   onShutdown(callback: () => void | Promise<void>): void {
     this.#shutdownCallbacks.push(callback);
