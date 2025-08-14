@@ -236,12 +236,15 @@ export class RunManager {
     this.isReloading = true;
     this.serveProcs.forEach((proc) => {
       if (proc.pid) {
-        proc.kill("SIGTERM");
+        proc.kill("SIGINT");
+        proc.status.then((status) => {
+          this.serveProcs.delete(proc.pid);
+        });
       }
     });
 
     if (this.queueProc && this.queueProc.pid) {
-      this.queueProc.kill("SIGTERM");
+      this.queueProc.kill("SIGINT");
     }
     this.queueProc = undefined;
     this.spawnMigrator().then((success) => {

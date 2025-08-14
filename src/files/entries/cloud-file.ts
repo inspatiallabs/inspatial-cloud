@@ -74,7 +74,7 @@ const config = {
           await Deno.remove(path);
         } catch (e) {
           if (e instanceof Deno.errors.NotFound) {
-            console.warn("File not found for deletion:", path);
+            // noop
             return;
           }
           throw e;

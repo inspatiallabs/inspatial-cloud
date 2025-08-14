@@ -29,6 +29,8 @@ export function isPgError(error: unknown): error is PgError {
 export function handlePgError(error: PgError) {
   const response: Array<string> = [];
   const subject = error.name;
+  const info = new Map<string, any>();
+  info.set("code", error.code);
   switch (error.code) {
     case PGErrorCode.UndefinedColumn:
       response.push(`${
@@ -38,10 +40,18 @@ export function handlePgError(error: PgError) {
         )
       } field does not exist in the database. You may need to run a migration`);
       break;
-    case PGErrorCode.ForeignKeyViolation:
+    case PGErrorCode.ForeignKeyViolation: {
       response.push(error.detail);
+      const match = error.detail.match(
+        /\(id\)=\((?<id>[\w\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
+      );
+      if (match?.groups) {
+        info.set("id", match.groups.id);
+        info.set("table", match.groups.table);
+      }
 
       break;
+    }
     case PGErrorCode.InvalidCatalogName:
       response.push(
         `Database ${error.message} does not exist. Please check your database configuration`,
@@ -73,5 +83,5 @@ export function handlePgError(error: PgError) {
       console.log(error);
       throw error;
   }
-  return { subject, response };
+  return { subject, response, info: Object.fromEntries(info) };
 }

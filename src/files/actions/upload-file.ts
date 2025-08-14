@@ -3,7 +3,7 @@ import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "~/utils/path-utils.ts";
-import { resize_image_to_jpg } from "../image-ops/resize/resize-img.ts";
+import { resize_image_to_jpg } from "../image-ops/resize/img-resize.ts";
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
