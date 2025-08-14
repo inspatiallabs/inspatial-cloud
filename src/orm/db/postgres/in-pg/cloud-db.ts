@@ -1,8 +1,10 @@
+import { IS_WINDOWS } from "../../../../utils/path-utils.ts";
 import { InPG } from "./in-pg.ts";
 
 export class CloudDB {
   inPg: InPG;
-
+  shuttingDown: boolean = false;
+  server: Deno.HttpServer | undefined;
   constructor(pgDataRoot: string) {
     this.inPg = new InPG({
       env: {
@@ -32,16 +34,36 @@ export class CloudDB {
       ],
     });
   }
-
+  async shutdown() {
+    if (this.shuttingDown) {
+      return;
+    }
+    this.shuttingDown = true;
+    await this.server?.shutdown();
+    await this.server?.finished;
+    Deno.exit(0);
+  }
+  setupSignals() {
+    Deno.addSignalListener("SIGINT", async () => {
+      await this.shutdown();
+    });
+    if (IS_WINDOWS) {
+      return;
+    }
+    Deno.addSignalListener("SIGTERM", async () => {
+      await this.shutdown();
+    });
+  }
   async start(
     port: number,
     statusCallback?: (status: "starting" | "running") => void,
   ) {
+    this.setupSignals();
     if (statusCallback) {
       statusCallback("starting");
     }
     await this.inPg.run();
-    Deno.serve({
+    this.server = Deno.serve({
       hostname: "127.0.0.1",
       port,
       onListen: (_addr) => {

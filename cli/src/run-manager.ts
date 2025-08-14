@@ -147,7 +147,11 @@ export class RunManager {
   }
   async shutdown(signal: Deno.Signal): Promise<void> {
     inLogSmall.warn(
-      `Received ${signal}. Shutting down gracefully...`,
+      `Shutting down gracefully...`,
+      {
+        compact: true,
+        subject: this.appTitle,
+      },
     );
     this.serveProcs.forEach((proc) => {
       if (proc.pid) {
@@ -237,7 +241,7 @@ export class RunManager {
     this.serveProcs.forEach((proc) => {
       if (proc.pid) {
         proc.kill("SIGINT");
-        proc.status.then((status) => {
+        proc.status.then((_status) => {
           this.serveProcs.delete(proc.pid);
         });
       }

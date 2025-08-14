@@ -119,23 +119,26 @@ export class InCloud {
       }
       signalReceived = true;
       const subject = `${signal}: ${this.runMode}`;
-      inLog.warn(
-        `Received ${signal} signal. Shutting down gracefully...`,
-        {
+      const print = (message: string) => {
+        if (signal === "SIGINT") {
+          return;
+        }
+        inLog.warn(message, {
           subject,
           compact: true,
-        },
+        });
+      };
+      print(
+        `Received ${signal} signal. Shutting down gracefully...`,
       );
+
       let currentCallback = 0;
       for (const callback of this.#shutdownCallbacks) {
         currentCallback++;
-        inLog.warn(
+        print(
           `Running shutdown callback ${currentCallback} of ${this.#shutdownCallbacks.length}`,
-          {
-            subject,
-            compact: true,
-          },
         );
+
         try {
           await callback();
         } catch (e) {
@@ -147,22 +150,13 @@ export class InCloud {
           );
           continue;
         }
-        inLog.info(
+        print(
           `Shutdown callback ${currentCallback} completed successfully`,
-          {
-            subject,
-            compact: true,
-          },
         );
       }
       await this.#stop();
-      inLog.info(
-        `${this.appDisplayName} has shut down successfully.`,
-        {
-          subject,
-          compact: true,
-        },
-      );
+      print(`${this.appDisplayName} has shut down successfully.`);
+
       Deno.exit(0);
     };
     Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));

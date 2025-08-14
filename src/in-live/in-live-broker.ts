@@ -44,14 +44,17 @@ export class InLiveBroker {
     if (this.shuttingDown) {
       return;
     }
-    const subject = `${signal}: broker`;
-    inLog.warn(
-      `InLiveBroker is shutting down due to signal: ${signal}.`,
-      {
-        subject,
+    const print = (message: string) => {
+      if (signal === "SIGINT") {
+        return;
+      }
+      inLog.warn(message, {
+        subject: `${signal}: broker`,
         compact: true,
-      },
-    );
+      });
+    };
+    print(`InLiveBroker is shutting down due to signal: ${signal}.`);
+
     this.shuttingDown = true;
     for (const socket of this.clients.values()) {
       if (socket.readyState === WebSocket.OPEN) {
@@ -61,10 +64,7 @@ export class InLiveBroker {
     this.clients.clear();
     this.server?.shutdown();
     await this.server?.finished;
-    inLog.info(`InLiveBroker has shut down successfully.`, {
-      subject,
-      compact: true,
-    });
+    print(`InLiveBroker has shut down successfully.`);
     Deno.exit(0);
   }
 
