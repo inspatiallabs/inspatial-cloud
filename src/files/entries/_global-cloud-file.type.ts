@@ -16,9 +16,10 @@ export interface GlobalCloudFile extends EntryBase {
   fileSize: number;
   /**
    * **File Type** (ChoicesField)
-   * @type {'audio' | 'image' | 'video' | 'document' | 'application' | 'code' | 'text' | 'font' | 'archive'}
+   * @type {'audio' | 'image' | 'video' | 'document' | 'application' | 'code' | 'text' | 'font' | 'archive' | 'unknown'}
+   * @required true
    */
-  fileType?:
+  fileType:
     | "audio"
     | "image"
     | "video"
@@ -27,7 +28,8 @@ export interface GlobalCloudFile extends EntryBase {
     | "code"
     | "text"
     | "font"
-    | "archive";
+    | "archive"
+    | "unknown";
   /**
    * **File Extension** (ChoicesField)
    * @type {'aac' | 'apng' | 'avif' | 'avi' | 'azw' | 'bin' | 'bmp' | 'csh' | 'css' | 'csv' | 'doc' | 'docx' | 'eot' | 'epub' | 'gz' | 'gif' | 'htm' | 'html' | 'ico' | 'ics' | 'jar' | 'jpeg' | 'jpg' | 'js' | 'json' | 'jsonld' | 'mid' | 'midi' | 'mjs' | 'mp3' | 'mp4' | 'mpeg' | 'mpkg' | 'odp' | 'ods' | 'odt' | 'oga' | 'ogv' | 'ogx' | 'opus' | 'otf' | 'png' | 'pdf' | 'php' | 'ppt' | 'pptx' | 'rar' | 'rtf' | 'sh' | 'svg' | 'tar' | 'tif' | 'tiff' | 'ts' | 'ttf' | 'txt' | 'wav' | 'weba' | 'webm' | 'webp' | 'woff' | 'woff2' | 'xhtml' | 'xls' | 'xlsx' | 'xml' | 'zip' | 'arc'}
