@@ -7,7 +7,13 @@ import MimeTypes from "../mime-types/mime-types.ts";
 const config = {
   label: "File",
   titleField: "fileName",
-  defaultListFields: ["fileName", "fileType", "fileSize"],
+  defaultListFields: [
+    "fileName",
+    "fileType",
+    "fileSize",
+    "publicFile",
+    "fileExtension",
+  ],
   fields: [{
     key: "fileName",
     label: "File Name",
@@ -24,11 +30,19 @@ const config = {
     key: "fileType",
     label: "File Type",
     readOnly: true,
+    required: true,
+    defaultValue: "unknown",
     type: "ChoicesField",
-    choices: MimeTypes.categoryNames.map((category) => ({
-      key: category,
-      label: convertString(category, "title"),
-    })),
+    choices: [
+      ...MimeTypes.categoryNames.map((category) => ({
+        key: category,
+        label: convertString(category, "title"),
+      })),
+      {
+        key: "unknown",
+        label: "Unknown",
+      },
+    ],
   }, {
     key: "fileExtension",
     label: "File Extension",
@@ -74,7 +88,7 @@ const config = {
           await Deno.remove(path);
         } catch (e) {
           if (e instanceof Deno.errors.NotFound) {
-            // noop
+            console.warn("File not found for deletion:", path);
             return;
           }
           throw e;
