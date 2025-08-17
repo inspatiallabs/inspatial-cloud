@@ -2,7 +2,6 @@ import { CloudExtension } from "~/extension/cloud-extension.ts";
 
 import { apiPathHandler } from "~/api/api-handler.ts";
 import { inTaskGlobal } from "~/in-queue/entry-types/in-task/in-task.ts";
-import { staticFilesHandler } from "~/static/staticPathHandler.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import {
   notifyCreate,

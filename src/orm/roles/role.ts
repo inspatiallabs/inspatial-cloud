@@ -258,6 +258,10 @@ export class RoleManager {
   addEntryType(entryType: EntryType): void {
     if (entryType.name === "account") {
       const usersChild = entryType.children!.get("users")!;
+      const addUserAction = entryType.actions.get("addUser")!;
+      const actionRoleField = addUserAction.params.find((field) =>
+        field.key === "role"
+      ) as InField<"ChoicesField">;
       const roleField = usersChild.fields.get("role")! as InField<
         "ChoicesField"
       >;
@@ -271,6 +275,7 @@ export class RoleManager {
         });
       }
       roleField.choices = roles;
+      actionRoleField.choices = roles;
     }
     for (const role of this.roles.values()) {
       const permission = role.entryPermissions.get(entryType.name);

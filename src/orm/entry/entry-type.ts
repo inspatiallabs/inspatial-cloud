@@ -189,6 +189,7 @@ export class EntryType<
           `Action with key ${action.key} already exists in EntryType ${this.name}`,
         );
       }
+      setupAction(action);
       this.actions.set(action.key, action);
     }
   }
@@ -230,6 +231,7 @@ export class EntryType<
         `Action with key ${action.key} already exists in EntryType ${this.name}`,
       );
     }
+    setupAction(action);
     this.actions.set(action.key, action as any);
     this.info = {
       ...this.info,
@@ -237,5 +239,16 @@ export class EntryType<
         !action.private
       ),
     };
+  }
+}
+
+function setupAction(action: EntryActionConfig<any, any, any>): void {
+  if (!action.label) {
+    action.label = convertString(action.key, "title", true);
+  }
+  for (const param of action.params) {
+    if (!param.label) {
+      param.label = convertString(param.key, "title", true);
+    }
   }
 }

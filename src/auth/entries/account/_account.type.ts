@@ -3,6 +3,21 @@ import type { ChildList, EntryBase } from "@inspatial/cloud/types";
 export interface Account extends EntryBase {
   _name: "account";
   /**
+   * **Account Owner** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @description The user who owns this account. Only one user can be the owner.
+   * @type {string}
+   */
+  owner?: string;
+  /**
+   * **Account Name** (DataField)
+   * @description The name of the account
+   * @type {string}
+   * @required true
+   */
+  name: string;
+  /**
    * **Onboarding Complete** (BooleanField)
    * @type {boolean}
    */
@@ -37,20 +52,35 @@ export interface Account extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  /**
+   * **Account Owner Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  owner__title?: string;
   users: ChildList<{
     /**
      * **User** (ConnectionField)
      *
      * **EntryType** `user`
      * @type {string}
-     * @required true
      */
-    user: string;
+    user?: string;
     /**
      * **Role** (ChoicesField)
-     * @type {'systemAdmin' | 'accountOwner'}
+     * @type {'systemAdmin' | 'accountOwner' | 'organisationAdmin' | 'organisationManager' | 'organisationStaff'}
      */
-    role?: "systemAdmin" | "accountOwner";
+    role?:
+      | "systemAdmin"
+      | "accountOwner"
+      | "organisationAdmin"
+      | "organisationManager"
+      | "organisationStaff";
+    /**
+     * **Is Owner** (BooleanField)
+     * @type {boolean}
+     */
+    isOwner?: boolean;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -91,13 +121,59 @@ export interface Account extends EntryBase {
      * @type {string}
      */
     user__title?: string;
+    /**
+     * **Parent Title** (DataField)
+     * @description The name of the account
+     * @type {string}
+     */
+    parent__title?: string;
   }>;
   runAction<N extends keyof AccountActionMap>(
     actionName: N,
   ): AccountActionMap[N]["return"];
+  runAction<N extends keyof AccountParamsActionMap>(
+    actionName: N,
+    params: AccountParamsActionMap[N]["params"],
+  ): AccountParamsActionMap[N]["return"];
 }
 type AccountActionMap = {
   initialize: {
+    return: Promise<any>;
+  };
+};
+type AccountParamsActionMap = {
+  addUser: {
+    params: {
+      /**
+       * **First Name** (DataField)
+       * @type {string}
+       * @required true
+       */
+      firstName: string;
+      /**
+       * **Last Name** (DataField)
+       * @type {string}
+       * @required true
+       */
+      lastName: string;
+      /**
+       * **Email** (DataField)
+       * @type {string}
+       * @required true
+       */
+      email: string;
+      /**
+       * **Role** (ChoicesField)
+       * @type {'systemAdmin' | 'accountOwner' | 'organisationAdmin' | 'organisationManager' | 'organisationStaff'}
+       * @required true
+       */
+      role:
+        | "systemAdmin"
+        | "accountOwner"
+        | "organisationAdmin"
+        | "organisationManager"
+        | "organisationStaff";
+    };
     return: Promise<any>;
   };
 };
