@@ -139,6 +139,7 @@ export class InResponse {
   setCacheControl(
     cacheControl: string,
   ): void {
+    return;
     this.#headers.set("Cache-Control", cacheControl);
   }
   /**
