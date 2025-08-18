@@ -173,13 +173,14 @@ export function createInCloud(appName: string): void;
 
 /**
  * Creates an InCloud instance with the specified configuration and runs it.
- * @param config - The configuration for the cloud instance.
+ * @param extension - An object containing the configuration for the cloud application.
+ * @param extension.name - The name of the cloud application.
  */
 export function createInCloud(extension: ExtensionOptions): void;
 /**
  * Creates an InCloud instance with the specified app name and configuration, and runs it.
  * @param appName - The name of the cloud application.
- * @param config - The configuration for the cloud instance.
+ * @param extensions - An array of CloudExtension objects to be included in the cloud application.
  */
 export function createInCloud(
   appName: string,

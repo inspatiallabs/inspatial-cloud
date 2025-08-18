@@ -46,6 +46,7 @@ export class StaticFileHandler {
   staticFilesRoot: string;
   notFoundPage?: string;
   cacheTime: number;
+  cacheHeader: string = "";
   cache: Map<string, { content: Uint8Array<ArrayBufferLike>; time: number }> =
     new Map();
   spa?: boolean;
@@ -75,10 +76,12 @@ export class StaticFileHandler {
   }
   setCach(enable: boolean) {
     if (enable) {
-      this.cacheTime = CacheTime.week;
+      this.cacheTime = CacheTime.day;
+      this.cacheHeader = `max-age=${this.cacheTime}, immutable`;
       return;
     }
     this.cacheTime = 0;
+    this.cacheHeader = "no-cache, no-store, must-revalidate";
   }
   init(relativePath: string): void {
     Deno.mkdirSync(this.staticFilesRoot, { recursive: true });
@@ -121,9 +124,9 @@ export class StaticFileHandler {
       fileName,
       content: fileContent,
     });
-    inResponse.setCacheControl({
-      maxAge: this.cacheTime,
-    });
+    inResponse.setCacheControl(
+      this.cacheHeader,
+    );
     return inResponse;
   }
   async serveFile(
@@ -137,10 +140,14 @@ export class StaticFileHandler {
     if (inRequest.isFile) {
       fileContent = await this
         .getFile(path);
+      inResponse.setCacheControl(
+        this.cacheHeader,
+      );
     } else {
       // If the request is not for a file, we assume it's for a directory and try to find an index.html file in that directory.
       fileName = "index.html";
       fileContent = await this.getIndexFile(path);
+      inResponse.setCacheControl("no-store");
     }
 
     if (!fileContent) {
@@ -160,9 +167,7 @@ export class StaticFileHandler {
       fileName,
       content: fileContent,
     });
-    inResponse.setCacheControl({
-      maxAge: this.cacheTime,
-    });
+
     return inResponse;
   }
   async serveRootIndex(): Promise<MaybeNullFileContent> {

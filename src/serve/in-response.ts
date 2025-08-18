@@ -2,6 +2,7 @@ import type { HandlerResponse } from "~/serve/path-handler.ts";
 import { inLog } from "#inLog";
 import MimeTypes from "~/files/mime-types/mime-types.ts";
 import type { FileType } from "~/files/mime-types/file-types.ts";
+import { CacheControlResponseOptions } from "./types.ts";
 
 interface CookieOptions {
   maxAge?: number;
@@ -136,25 +137,8 @@ export class InResponse {
    */
 
   setCacheControl(
-    options: {
-      maxAge: number;
-      public?: boolean;
-      noCache?: boolean;
-      noStore?: boolean;
-    },
+    cacheControl: string,
   ): void {
-    let cacheControl = `max-age=${options.maxAge}`;
-    if (options?.public) {
-      cacheControl += ", public";
-    } else {
-      cacheControl += ", private";
-    }
-    if (options?.noCache) {
-      cacheControl += ", no-cache";
-    }
-    if (options?.noStore) {
-      cacheControl += ", no-store";
-    }
     this.#headers.set("Cache-Control", cacheControl);
   }
   /**

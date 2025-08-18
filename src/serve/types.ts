@@ -61,6 +61,32 @@ export interface CloudExtensionInfo {
   accountMigrate: DetailInfo[];
 }
 
+export interface CacheControlResponseOptions {
+  maxAge?: number;
+  sMaxAge?: number;
+  noCache?: boolean;
+  mustRevalidate?: boolean;
+  proxyRevalidate?: boolean;
+  noStore?: boolean;
+  private?: boolean;
+  public?: boolean;
+  mustUnderstand?: boolean;
+  noTransform?: boolean;
+  immutable?: boolean;
+  staleWhileRevalidate?: number;
+  staleIfError?: number;
+}
+
+export interface CacheControlRequestParams {
+  noCache: boolean;
+  noStore: boolean;
+  maxAge: number;
+  maxStale: number;
+  minFresh: number;
+  noTransform: boolean;
+  onlyIfCached: boolean;
+  staleIfError: number;
+}
 /**
  * A generic detail info object with a name and description.
  */
