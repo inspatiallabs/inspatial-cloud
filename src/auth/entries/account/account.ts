@@ -99,6 +99,7 @@ export const account = new EntryType<Account>("account", {
       handler({ account }) {
         const userIds = new Set<string>();
         for (const { user, user__title } of account.users.data) {
+          if (!user) continue; // Skip if user is not set
           if (userIds.has(user)) {
             raiseORMException(
               `User with ID ${user} is already associated with this account.`,
