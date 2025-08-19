@@ -1,33 +1,41 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { raiseServerException } from "~/serve/server-exception.ts";
+import { inLog } from "#inLog";
 
 export const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
   label: "Reset Password",
   async run({ inCloud, orm, inRequest, params }) {
-    const { email } = params;
+    const { email, resetUrl } = params;
     const user = await orm.findEntry("user", [{
       field: "email",
       op: "=",
       value: email,
     }]);
     if (!user) {
-      raiseServerException(
-        404,
-        `Oops! It seems like there is no user with the email ${email}`,
-      );
+      return {
+        status: 404,
+        type: "error",
+        title: "User not found",
+        error: true,
+        message: `Oops! It seems like there is no user with the email ${email}`,
+      };
     }
     await user.runAction("generateResetToken");
     const token = user.resetPasswordToken as string;
-    const resetLink = `${inRequest.origin}/admin/reset-password?token=${token}`;
+    const resetLink = resetUrl || `${inRequest.origin}/reset-password`;
+    const searchParams = new URLSearchParams();
+    searchParams.set("token", token);
+    searchParams.set("email", email);
+    const resetString = `${resetLink}?${searchParams.toString()}`;
 
     const emailContent = `
       <p>Hi ${user.firstName},</p>
       <p>We received a request to reset your password.</p>
       <p><b>Click the link below to reset your password:<b></p>
-      <a href="${resetLink}" target="_blank">${resetLink}</a>
+      <a href="${resetString}" target="_blank">${resetString}</a>
       <p>If you didn't request a password reset, you can ignore this email.</p>
       <p>Thanks!</p>
       <p>${inCloud.appDisplayName}</p>
@@ -38,13 +46,23 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
         subject: "Reset your password",
         body: emailContent,
       });
-      return { message: "Password reset link has been sent to your email" };
+      return {
+        status: 200,
+        type: "success",
+        title: "Password reset email sent",
+        error: false,
+        message: "Password reset link has been sent to your email",
+      };
     } catch (_e) {
-      console.error("Failed to send reset password email:", _e);
-      raiseServerException(
-        500,
-        "Failed to send email",
-      );
+      inLog.error(_e, "Failed to send reset password email");
+      return {
+        status: 500,
+        type: "error",
+        title: "Failed to send reset password email",
+        error: true,
+        message:
+          "There was an error sending the reset password email. Please try again later.",
+      };
     }
   },
   params: [
@@ -54,6 +72,13 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
       description: "Email of the user to reset password",
       type: "EmailField",
       required: true,
+    },
+    {
+      key: "resetUrl",
+      label: "Reset URL",
+      description: "URL to redirect user to reset password",
+      type: "URLField",
+      required: false,
     },
   ],
 });

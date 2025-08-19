@@ -48,7 +48,6 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
         "acquiredTime",
       ],
       description: "OAuth settings for Gmail",
-      // dependsOn: "useGmailOauth",
     },
   ],
   fields: [
@@ -149,7 +148,7 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       key: "accessToken",
       label: "Access Token",
       type: "TextField",
-      hidden: true,
+      hidden: false,
       readOnly: true,
     },
     {
@@ -157,7 +156,7 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       label: "Expire Time",
       type: "TimeStampField",
       showTime: true,
-      hidden: true,
+      hidden: false,
       readOnly: true,
     },
     {
@@ -165,60 +164,75 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       label: "Acquired Time",
       type: "TimeStampField",
       showTime: true,
-      hidden: true,
+      hidden: false,
       readOnly: true,
     },
     {
       key: "refreshToken",
       label: "Refresh Token",
       type: "TextField",
-      hidden: true,
+      hidden: false,
       readOnly: true,
     },
     {
       key: "tokenType",
       label: "Token Type",
       type: "DataField",
-      hidden: true,
+      hidden: false,
       readOnly: true,
     },
   ],
   hooks: {
-    beforeUpdate: [
-      {
-        name: "generateAuthUrl",
-        description: "Generate the authorization URL for Gmail OAuth",
-        async handler({ orm, emailAccount }) {
-          if (!emailAccount.useGmailOauth) {
-            return;
-          }
-          const oauthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-          const authSettings = await orm.getSettings<AuthSettings>(
-            "authSettings",
-          );
-
-          if (!authSettings.googleClientId) {
-            raiseServerException(
-              400,
-              "Google auth: Client ID not set in settings",
-            );
-          }
-          const url = new URL(oauthEndpoint);
-          url.searchParams.append("client_id", authSettings.googleClientId);
-          url.searchParams.append(
-            "redirect_uri",
-            `${authSettings.hostname}/api?group=email&action=redirect`,
-          );
-          url.searchParams.append("response_type", "code");
-          url.searchParams.append("include_granted_scopes", "true");
-          url.searchParams.append("scope", "https://mail.google.com/");
-          url.searchParams.append("access_type", "offline");
-          url.searchParams.append("prompt", "consent");
-          url.searchParams.append("state", emailAccount.id);
-          emailAccount.authUrl = url.toString();
-        },
+    beforeUpdate: [{
+      name: "setGoogleAuthDefaults",
+      description: "Set default values for Google OAuth fields",
+      handler({ emailAccount }) {
+        if (!emailAccount.useGmailOauth) {
+          return;
+        }
+        if (!emailAccount.smtpHost) {
+          emailAccount.smtpHost = "smtp.gmail.com";
+        }
+        if (!emailAccount.smtpPort) {
+          emailAccount.smtpPort = 587;
+        }
+        if (!emailAccount.smtpUser) {
+          emailAccount.smtpUser = emailAccount.emailAccount;
+        }
       },
-    ],
+    }, {
+      name: "generateAuthUrl",
+      description: "Generate the authorization URL for Gmail OAuth",
+      async handler({ orm, emailAccount }) {
+        if (!emailAccount.useGmailOauth) {
+          return;
+        }
+        const oauthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        const authSettings = await orm.getSettings<AuthSettings>(
+          "authSettings",
+        );
+
+        if (!authSettings.googleClientId) {
+          raiseServerException(
+            400,
+            "Google auth: Client ID not set in settings",
+          );
+        }
+        const url = new URL(oauthEndpoint);
+        url.searchParams.append("client_id", authSettings.googleClientId);
+        url.searchParams.append(
+          "redirect_uri",
+          `${authSettings.hostname}/api?group=email&action=redirect`,
+        );
+        url.searchParams.append("response_type", "code");
+        url.searchParams.append("include_granted_scopes", "true");
+        url.searchParams.append("scope", "https://mail.google.com/");
+        url.searchParams.append("access_type", "offline");
+        url.searchParams.append("prompt", "consent");
+        url.searchParams.append("state", emailAccount.id);
+        emailAccount.authUrl = url.toString();
+      },
+    }],
   },
 });
 
