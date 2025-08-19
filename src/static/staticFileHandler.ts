@@ -9,13 +9,15 @@ import {
   notFoundContent,
 } from "./content.ts";
 import { raiseServerException } from "../serve/server-exception.ts";
+import { CacheControlResponseOptions } from "../serve/types.ts";
 type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
-const CacheTime = {
+export const CacheTime = {
+  none: 0, // No caching
   day: 86400, // 60 * 60 * 24 = 1 day
   week: 604800, // 60 * 60 * 24 * 7 =  1 week
   month: 18144000, //  60 * 60 * 24 * 30 = 1 month
   year: 31536000, // 60 * 60 * 24 * 365 = 1 year
-};
+} as const;
 /**
  * Options for the static files handler
  *
@@ -25,7 +27,7 @@ const CacheTime = {
  */
 export interface StaticFilesOptions {
   /**
-   * Whether to cache files or not *Default*: `true`
+   * Whether to internally cache files or not *Default*: `false`
    */
   cache?: boolean;
 
@@ -40,12 +42,14 @@ export interface StaticFilesOptions {
    *  ```
    */
   staticFilesRoot: string;
+
+  cacheHeader?: CacheControlResponseOptions;
 }
 
 export class StaticFileHandler {
   staticFilesRoot: string;
   notFoundPage?: string;
-  cacheTime: number;
+  cacheTime: typeof CacheTime[keyof typeof CacheTime] = 0;
   cacheHeader: string = "";
   cache: Map<string, { content: Uint8Array<ArrayBufferLike>; time: number }> =
     new Map();
@@ -64,6 +68,24 @@ export class StaticFileHandler {
       notFound: notFoundContent,
     };
     this.cacheTime = options?.cache ? CacheTime.week : 0;
+    this.cacheHeader = this.#parseCacheOptions(
+      options?.cacheHeader,
+    );
+  }
+  #parseCacheOptions(options?: CacheControlResponseOptions) {
+    const { immutable, maxAge } = options || {};
+    const cacheParts: string[] = [];
+
+    if (maxAge) {
+      cacheParts.push(`max-age=${maxAge}`);
+    }
+    if (immutable) {
+      cacheParts.push("immutable");
+    }
+    if (cacheParts.length > 0) {
+      return cacheParts.join(", ");
+    }
+    return "no-store, must-revalidate";
   }
   setSpa(options: {
     enabled: boolean;
@@ -74,14 +96,16 @@ export class StaticFileHandler {
       this.spaRootPaths = options.paths;
     }
   }
-  setCach(enable: boolean) {
+  setCache(args: {
+    enable?: boolean;
+    cacheTime?: typeof CacheTime[keyof typeof CacheTime];
+    cacheHeader?: CacheControlResponseOptions;
+  }) {
+    const { enable, cacheTime, cacheHeader } = args || {};
     if (enable) {
-      this.cacheTime = CacheTime.day;
-      this.cacheHeader = `max-age=${this.cacheTime}, immutable`;
-      return;
+      this.cacheTime = cacheTime || CacheTime.week;
     }
-    this.cacheTime = 0;
-    this.cacheHeader = "no-cache, no-store, must-revalidate";
+    this.cacheHeader = this.#parseCacheOptions(cacheHeader);
   }
   init(relativePath: string): void {
     Deno.mkdirSync(this.staticFilesRoot, { recursive: true });
@@ -140,14 +164,10 @@ export class StaticFileHandler {
     if (inRequest.isFile) {
       fileContent = await this
         .getFile(path);
-      inResponse.setCacheControl(
-        this.cacheHeader,
-      );
     } else {
       // If the request is not for a file, we assume it's for a directory and try to find an index.html file in that directory.
       fileName = "index.html";
       fileContent = await this.getIndexFile(path);
-      inResponse.setCacheControl("no-store");
     }
 
     if (!fileContent) {
@@ -162,6 +182,9 @@ export class StaticFileHandler {
           fileContent = this.defaults.notFound;
       }
     }
+    inResponse.setCacheControl(
+      this.#getCacheHeader(inRequest),
+    );
 
     inResponse.setFile({
       fileName,
@@ -169,6 +192,19 @@ export class StaticFileHandler {
     });
 
     return inResponse;
+  }
+  #getCacheHeader(inRequest: InRequest): string {
+    if (!inRequest.isFile) {
+      return "no-store, must-revalidate";
+    }
+    if (this.spa) {
+      const regex = /\/assets\/[\w\d_-]+\.{0,1}[\w\d_-]*\.(?:js|css)$/;
+      if (regex.test(inRequest.path)) {
+        return this.cacheHeader;
+      }
+      return "no-store, must-revalidate";
+    }
+    return this.cacheHeader;
   }
   async serveRootIndex(): Promise<MaybeNullFileContent> {
     return await this.getFile("/index.html");

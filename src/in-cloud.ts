@@ -29,7 +29,7 @@ import type {
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
 import { RoleManager } from "~/orm/roles/role.ts";
-import { StaticFileHandler } from "~/static/staticFileHandler.ts";
+import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
 import type { CloudRunnerMode } from "#cli/types.ts";
@@ -95,11 +95,18 @@ export class InCloud {
     this.static = new StaticFileHandler();
     this.publicFiles = new StaticFileHandler({
       staticFilesRoot: this.publicFilesPath,
-      cache: true,
+      cacheHeader: {
+        immutable: true,
+        maxAge: CacheTime.day,
+        public: true,
+      },
     });
     this.privateFiles = new StaticFileHandler({
-      staticFilesRoot: this.filesPath,
-      cache: true,
+      staticFilesRoot: this.inRoot,
+      cacheHeader: {
+        immutable: true,
+        maxAge: CacheTime.day,
+      },
     });
     this.emailManager = new EmailManager(this);
     this.roles.addRole({
@@ -298,7 +305,14 @@ export class InCloud {
       enabled: config.singlePageApp,
       paths: config.spaRootPaths || [],
     });
-    this.static.setCach(config.cacheStatic);
+    this.static.setCache({
+      enable: config.cacheStatic,
+      cacheTime: CacheTime.week,
+      cacheHeader: {
+        immutable: true,
+        maxAge: CacheTime.day,
+      },
+    });
 
     this.static.init(
       this.static.staticFilesRoot.replace(this.cloudRoot, "."),
