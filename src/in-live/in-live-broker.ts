@@ -53,7 +53,7 @@ export class InLiveBroker {
       if (signal === "SIGINT") {
         return;
       }
-      inLog.warn(message, {
+      this.inLog.warn(message, {
         subject: `${signal}: broker`,
         compact: true,
       });
