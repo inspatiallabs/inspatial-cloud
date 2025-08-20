@@ -43,48 +43,8 @@ export class GoogleOAuth {
       );
     }
     const data = await result.json();
-    const dataMap = new Map<string, any>();
-    const expectedKeys = ["accessToken", "expiresIn", "tokenType"];
-    const _optionalKeys = ["refresh_token", "scope", "id_token"];
-
-    Object.entries(data).forEach(([key, value]) => {
-      dataMap.set(convertString(key, "camel"), value);
-    });
-    for (const key of expectedKeys) {
-      if (!dataMap.has(key)) {
-        getInLog("cloud").error(
-          `Failed to get access token: ${key} not found in response`,
-        );
-        raiseServerException(
-          400,
-          `Google auth: Failed to get access token: ${key} not found in response`,
-        );
-      }
-    }
-    if (dataMap.has("idToken")) {
-      const idToken = dataMap.get("idToken");
-      const parsedIdToken = this.#parseIdToken(idToken);
-      dataMap.set("idToken", parsedIdToken);
-    }
-
-    return Object.fromEntries(dataMap) as GoogleAccessTokenResponse;
+    return this.#parseTokenResponse(data);
   }
-  #parseIdToken(token: string) {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64).split("").map((c) => {
-        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(""),
-    );
-    const data = JSON.parse(jsonPayload);
-    const responseData: Record<string, any> = {};
-    Object.entries(data).forEach(([key, value]) => {
-      responseData[convertString(key, "camel")] = value;
-    });
-    return responseData as GoogleIdToken;
-  }
-
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<GoogleAccessTokenResponse | null> {
@@ -112,8 +72,59 @@ export class GoogleOAuth {
       );
     }
     const data = await result.json();
-    return data as GoogleAccessTokenResponse;
+
+    return this.#parseTokenResponse(data);
   }
+  #parseIdToken(token: string) {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64).split("").map((c) => {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(""),
+    );
+    const data = JSON.parse(jsonPayload);
+    const responseData: Record<string, any> = {};
+    Object.entries(data).forEach(([key, value]) => {
+      responseData[convertString(key, "camel")] = value;
+    });
+    return responseData as GoogleIdToken;
+  }
+  #parseTokenResponse(data: Record<string, any>): GoogleAccessTokenResponse {
+    if (data.error) {
+      getInLog("cloud").error(
+        `Failed to refresh access token: ${data.error} ${data.error_description}`,
+      );
+      raiseServerException(
+        400,
+        `Google auth: Failed to refresh access token: ${data.error} ${data.error_description}`,
+      );
+    }
+    const dataMap = new Map<string, any>();
+    const expectedKeys = ["accessToken", "expiresIn", "tokenType"];
+    const _optionalKeys = ["refresh_token", "scope", "id_token"];
+    Object.entries(data).forEach(([key, value]) => {
+      dataMap.set(convertString(key, "camel"), value);
+    });
+    for (const key of expectedKeys) {
+      if (!dataMap.has(key)) {
+        getInLog("cloud").error(
+          `Failed to parse token response: ${key} not found in response`,
+        );
+        raiseServerException(
+          400,
+          `Google auth: Failed to parse token response: ${key} not found in response`,
+        );
+      }
+    }
+    if (dataMap.has("idToken")) {
+      const idToken = dataMap.get("idToken");
+      const parsedIdToken = this.#parseIdToken(idToken);
+      dataMap.set("idToken", parsedIdToken);
+    }
+    return Object.fromEntries(dataMap) as GoogleAccessTokenResponse;
+  }
+
   async getUserInfo(
     accessToken: string,
   ): Promise<GoogleUserInfo | void> {

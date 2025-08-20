@@ -79,6 +79,10 @@ inTaskGlobal.addAction({
       inTask.status = "completed";
     } catch (e) {
       inTask.errorInfo = Deno.inspect(e);
+      inCloud.inLog.error(e, {
+        subject: `${inTask.typeKey} ${inTask.entryId} - ${inTask.actionName}`,
+        stackTrace: e instanceof Error ? e.stack : undefined,
+      });
       inTask.status = "failed";
     }
     inTask.endTime = dateUtils.nowTimestamp();
