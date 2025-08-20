@@ -1,8 +1,7 @@
 import type { HandlerResponse } from "~/serve/path-handler.ts";
-import { inLog } from "#inLog";
 import MimeTypes from "~/files/mime-types/mime-types.ts";
 import type { FileType } from "~/files/mime-types/file-types.ts";
-import { CacheControlResponseOptions } from "./types.ts";
+import { getInLog } from "#inLog";
 
 interface CookieOptions {
   maxAge?: number;
@@ -85,7 +84,9 @@ export class InResponse {
    */
   set errorStatus(status: number) {
     if (this.#errorStatus) {
-      inLog.warn(`Error status already set to ${this.#errorStatus}`);
+      getInLog("cloud").warn(
+        `Error status already set to ${this.#errorStatus}`,
+      );
       return;
     }
     this.#errorStatus = status;
@@ -103,7 +104,7 @@ export class InResponse {
    */
   set errorStatusText(statusText: string) {
     if (this.#errorStatusText) {
-      inLog.warn(
+      getInLog("cloud").warn(
         `Error status text already set to ${this.#errorStatusText}`,
       );
       return;

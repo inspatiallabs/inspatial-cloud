@@ -1,13 +1,14 @@
 import { InResponse } from "~/serve/in-response.ts";
 import type { ExceptionHandler } from "#types/serve-types.ts";
 import { isServerException } from "~/serve/server-exception.ts";
-import { inLog } from "~/in-log/in-log.ts";
+import { getInLog } from "#inLog";
 
 export async function handleException(
   err: unknown,
   inResponse: InResponse,
   exceptionHandlers: Map<string, ExceptionHandler>,
 ): Promise<Response> {
+  const inLog = getInLog("cloud");
   inResponse = inResponse || new InResponse();
   const clientMessages: Array<Record<string, any> | string> = [];
   let handled = false;

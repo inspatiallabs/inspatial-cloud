@@ -28,7 +28,7 @@ import {
   generateSettingsInterfaces,
 } from "~/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "~/orm/field/fields.ts";
-import { inLog } from "#inLog";
+
 import type { InValue } from "~/orm/field/types.ts";
 import type { EntryData, IDValue } from "./entry/types.ts";
 import type { InCloud } from "~/in-cloud.ts";
@@ -39,8 +39,10 @@ import { handlePgError, isPgError, PgError } from "./db/postgres/pgError.ts";
 import type { Settings } from "./settings/settings.ts";
 import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
+import { InLog } from "#inLog";
 
 export class InSpatialORM {
+  inLog: InLog;
   db: InSpatialDB;
   systemDb: InSpatialDB;
   fieldTypes: Map<InFieldType, ORMFieldConfig<any>>;
@@ -174,6 +176,7 @@ export class InSpatialORM {
     const basicRole = this.roles.getRole("accountOwner");
 
     this._inCloud = options.inCloud;
+    this.inLog = this._inCloud.inLog;
     this.fieldTypes = new Map();
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
@@ -815,7 +818,7 @@ export class InSpatialORM {
       orm: this,
       db: this.db.withSchema(schema),
       onOutput: (message) => {
-        inLog.info(message);
+        this.inLog.info(message);
       },
     });
     try {
@@ -825,7 +828,7 @@ export class InSpatialORM {
         throw e;
       }
       const { response, subject } = handlePgError(e);
-      inLog.warn(response, {
+      this.inLog.warn(response, {
         subject,
       });
     }
@@ -842,7 +845,7 @@ export class InSpatialORM {
       orm: this,
       db: this.systemDb,
       onOutput: (message) => {
-        inLog.info(message);
+        this.inLog.info(message);
       },
     });
     try {
@@ -852,7 +855,7 @@ export class InSpatialORM {
         throw e;
       }
       const { response, subject } = handlePgError(e);
-      inLog.warn(response, {
+      this.inLog.warn(response, {
         subject,
       });
       Deno.exit(1);

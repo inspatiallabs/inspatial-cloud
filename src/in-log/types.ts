@@ -93,4 +93,14 @@ export interface LoggerConfig {
    * The default style for console logging
    */
   consoleDefaultStyle: "compact" | "full";
+
+  logFile?: ServerLogConfig;
+}
+
+export interface ServerLogConfig {
+  logName: string;
+  logPath: string;
+  maxSize?: number; // in bytes
+  maxFiles?: number; // number of files to keep
+  callBack?: (logType: LogType, message: string) => void;
 }

@@ -1,5 +1,4 @@
 import type { ValueType } from "~/orm/db/db-types.ts";
-import { inLog } from "#inLog";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 /**
@@ -87,11 +86,7 @@ export function formatDbValue<Join extends boolean>(
           Join
         >;
       } catch (_e) {
-        inLog.error(`Error formatting value: ${value}`);
-        raiseORMException(
-          `Error formatting value for database: ${value.toString()}`,
-          "InSpatialDB",
-        );
+        // no-op, fall through to default case
       }
       break;
     default:

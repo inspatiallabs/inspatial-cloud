@@ -1,8 +1,5 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
-import { raiseServerException } from "~/serve/server-exception.ts";
-import { inLog } from "#inLog";
-
 export const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
@@ -54,7 +51,7 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
         message: "Password reset link has been sent to your email",
       };
     } catch (_e) {
-      inLog.error(_e, "Failed to send reset password email");
+      inCloud.inLog.error(_e, "Failed to send reset password email");
       return {
         status: 500,
         type: "error",

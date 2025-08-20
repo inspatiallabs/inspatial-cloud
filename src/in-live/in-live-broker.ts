@@ -1,15 +1,20 @@
 import { generateId } from "~/utils/misc.ts";
 import { IS_WINDOWS } from "../utils/path-utils.ts";
-import { inLog } from "#inLog";
+import { createInLog, type InLog } from "#inLog";
 
 export class InLiveBroker {
   clients: Map<string, WebSocket>;
   port: number;
   server: Deno.HttpServer | undefined;
   shuttingDown: boolean = false;
+  inLog: InLog;
   constructor(port: number) {
     this.port = port;
     this.clients = new Map();
+    this.inLog = createInLog("inLive", {
+      consoleDefaultStyle: "compact",
+      name: "InLiveBroker",
+    });
   }
 
   run() {

@@ -1,6 +1,5 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { User } from "../entries/user/_user.type.ts";
-import { inLog } from "#inLog";
 import { center } from "../../terminal/format-utils.ts";
 import type { Account } from "../entries/account/_account.type.ts";
 
@@ -19,7 +18,7 @@ export async function initAdminAccount(
     users: [{ user: newAdminUser.id }],
   });
   await account.runAction("initialize");
-  inLog.info("Admin account created successfully.");
+  orm.inLog.info("Admin account created successfully.");
 }
 
 async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
@@ -44,7 +43,7 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     `Password: ${password}`,
     `Role: ${role}`,
   ];
-  inLog.warn(
+  orm.inLog.warn(
     info.map((line) => center(line)).join("\n"),
     subject,
   );
@@ -61,6 +60,6 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
   user.systemAdmin = true;
   await user.save();
   await user.runAction("setPassword", { password });
-  inLog.info("Admin user created successfully.");
+  orm.inLog.info("Admin user created successfully.");
   return user;
 }

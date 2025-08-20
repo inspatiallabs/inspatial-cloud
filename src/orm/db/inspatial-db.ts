@@ -19,11 +19,11 @@ import type {
   QueryResponse,
 } from "~/orm/db/postgres/pgTypes.ts";
 import convertString from "~/utils/convert-string.ts";
-import { inLog } from "#inLog";
 import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import { generateId } from "../../utils/misc.ts";
+import { getInLog, InLog } from "#inLog";
 
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -68,10 +68,12 @@ export class InSpatialDB {
   #version: string | undefined;
 
   debugMode: boolean = false;
+  inLog: InLog;
   /**
    * InSpatialDB is an interface for interacting with a Postgres database
    */
   constructor(config: DBConfig | { query: (query: string) => Promise<any> }) {
+    this.inLog = getInLog("cloud");
     if ("query" in config) {
       this._query = config.query;
       return;
@@ -79,7 +81,7 @@ export class InSpatialDB {
     this.config = config;
     if (config.debug) {
       this.debugMode = true;
-      inLog.debug("InSpatialDB debug mode enabled");
+      this.inLog.debug("InSpatialDB debug mode enabled");
     }
     this.dbName = config.connection.database;
     const poolOptions = {
@@ -159,7 +161,7 @@ export class InSpatialDB {
     let qid: string = "";
     if (this.debugMode) {
       qid = generateId(8);
-      this.debugMode && inLog.debug(query, {
+      this.debugMode && this.inLog.debug(query, {
         compact: true,
         subject: `DBQ [${qid}]: `,
       });
@@ -167,7 +169,7 @@ export class InSpatialDB {
     const result = await this._query(query);
     const columns = result.columns.map((column) => column.camelName);
     if (this.debugMode) {
-      inLog.debug({
+      this.inLog.debug({
         rowCount: result.rowCount,
         columns,
         rows: result.rows.slice(0, 2),
@@ -191,7 +193,7 @@ export class InSpatialDB {
 
   async createSchema(schema: string): Promise<any> {
     if (await this.hasSchema(schema)) {
-      inLog.warn(`Schema ${schema} already exists`);
+      this.inLog.warn(`Schema ${schema} already exists`);
       return;
     }
     const query = `CREATE SCHEMA IF NOT EXISTS "${schema}";`;

@@ -21,7 +21,6 @@ import {
 import { AUTH } from "~/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "~/orm/db/postgres/scram.ts";
 import { convertString } from "~/utils/mod.ts";
-import { inLog } from "#inLog";
 import { InPgConn } from "./in-pg/in-pg-conn.ts";
 
 export class PostgresClient {
@@ -464,9 +463,7 @@ export class PostgresClient {
     if (errors.length) {
       throw new PgError({ ...errors[0], query });
     }
-    if (notices.length) {
-      inLog.debug(notices, "PostgresClient NOTICE");
-    }
+
     return {
       rowCount: data.length,
       rows: data,

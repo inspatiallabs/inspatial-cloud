@@ -4,6 +4,7 @@ import type {
   LogMessage,
   LogOptions,
   LogType,
+  ServerLogConfig,
   StackFrame,
 } from "~/in-log/types.ts";
 import {
@@ -13,6 +14,8 @@ import {
 import { type BasicFgColor, ColorMe } from "~/terminal/color-me.ts";
 import printUtils from "~/terminal/print-utils.ts";
 import formatUtils from "~/terminal/format-utils.ts";
+import { joinPath, normalizePath } from "../utils/path-utils.ts";
+import { raiseCloudException } from "@inspatial/cloud";
 
 const colorMap: Record<LogType, BasicFgColor> = {
   info: "brightGreen",
@@ -22,19 +25,74 @@ const colorMap: Record<LogType, BasicFgColor> = {
   message: "white",
 };
 export class ServeFileLogger {
-  environment: "development" | "production";
-  logPath: string;
-
-  constructor() {
-    this.environment = "development";
-    this.logPath = "./logs";
+  #logFileName: string;
+  #maxFiles: number;
+  #maxSize: number;
+  /** default max read size is 300kb  */
+  defaultReadSize: number = 300 * 1024; // 300KB
+  #logPath: string;
+  #logsPaths: Map<LogType, string> = new Map();
+  callback?: (logType: LogType, message: string) => void;
+  constructor(config: ServerLogConfig) {
+    const { logName, logPath, maxFiles, maxSize, callBack } = config;
+    this.callback = callBack;
+    this.#maxFiles = maxFiles || 10;
+    this.#maxSize = maxSize || 1024 * 1024 * 5; // 5MB
+    this.#logFileName = logName;
+    this.#logPath = normalizePath(logPath);
+    for (const type of ["info", "debug", "warning", "error"] as LogType[]) {
+      this.#logsPaths.set(
+        type,
+        joinPath(this.#logPath, `${this.#logFileName}.${type}.log`),
+      );
+    }
     this.validateLogPath();
   }
 
   private validateLogPath(): void {
-    Deno.mkdirSync(this.logPath, { recursive: true });
+    Deno.mkdirSync(this.#logPath, { recursive: true });
   }
+  async clearLog(type: LogType) {
+    const logPath = this.#logsPaths.get(type);
+    if (!logPath) {
+      throw new Error(`Log type ${type} does not exist.`);
+    }
+    try {
+      await Deno.truncate(logPath, 0);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        return;
+      }
+      throw error;
+    }
+  }
+  async getLog(type: LogType, bytesSize?: number) {
+    try {
+      const file = await Deno.open(this.#logsPaths.get(type)!, {
+        read: true,
+        write: false,
+      });
+      const { size } = await file.stat();
+      let readSize = this.defaultReadSize;
+      if (bytesSize) {
+        readSize = bytesSize;
+      }
+      if (readSize > size) {
+        readSize = size;
+      }
+      const buffer = new Uint8Array(size);
 
+      await file.seek(size * -1, Deno.SeekMode.End);
+      const bytesRead = await file.read(buffer);
+      file.close();
+      return new TextDecoder().decode(buffer.subarray(0, bytesRead!));
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        return "";
+      }
+      throw error;
+    }
+  }
   private saveLogEntry(options: {
     content: string;
     type: LogType;
@@ -42,11 +100,10 @@ export class ServeFileLogger {
   }): void {
     const { content, type, subject } = options;
     const time = new Date().toISOString();
-    const logPath = `${this.logPath}/${type}.log`;
-    const logEntry = `[${time}] ${type.toUpperCase()} ${subject}: ${
-      this.sanitize(content)
-    }`;
-    Deno.writeTextFileSync(logPath, logEntry + "\n", { append: true });
+    const logPath = this.#logsPaths.get(type)!;
+    const logEntry = `[${time}] | [${subject}] | ${content}\n`;
+    this.callback?.(type, logEntry);
+    Deno.writeTextFileSync(logPath, logEntry, { append: true });
   }
 
   private sanitize(str: string): string {
@@ -57,9 +114,6 @@ export class ServeFileLogger {
     type: LogType;
     subject: string;
   }): void {
-    if (typeof options.content !== "string") {
-      options.content = String(options.content);
-    }
     this.saveLogEntry(options);
   }
 }
@@ -68,6 +122,7 @@ export class ServeFileLogger {
  * A logger for InSpatial Cloud
  */
 export class InLog {
+  fileLogger?: ServeFileLogger;
   /**
    * The name of the logger
    */
@@ -100,6 +155,13 @@ export class InLog {
     this.name = config.name || "";
     this.#lineChar = printUtils.symbol.box.horizontal;
     this.#loadEnv();
+    this.#setupLogger();
+  }
+  #setupLogger() {
+    if (!this.config.logFile) {
+      return;
+    }
+    this.fileLogger = new ServeFileLogger(this.config.logFile);
   }
   setConfig(config: {
     logLevel?: LogLevel;
@@ -278,6 +340,15 @@ export class InLog {
       compact: options?.compact ||
         this.config.consoleDefaultStyle === "compact",
     };
+    if (this.fileLogger) {
+      logMessage.content.forEach((c) => {
+        this.fileLogger?.log({
+          content: Deno.inspect(c, { depth: 5 }),
+          type,
+          subject: logMessage.subject,
+        });
+      });
+    }
     const formatted = this.#formatLogMessage(logMessage);
     console.log(formatted);
   }
@@ -390,8 +461,37 @@ export class InLog {
   }
 }
 
-export const inLog = new InLog({
-  consoleDefaultStyle: "full",
-  name: "InSpatial Cloud",
-  traceOffset: 1,
-});
+declare global {
+  var __INSPATIAL_CLOUD_LOGS__: Map<string, InLog>;
+}
+if (!globalThis.__INSPATIAL_CLOUD_LOGS__) {
+  globalThis.__INSPATIAL_CLOUD_LOGS__ = new Map();
+}
+export function createInLog(name: string, config: LoggerConfig): InLog {
+  if (!globalThis.__INSPATIAL_CLOUD_LOGS__) {
+    globalThis.__INSPATIAL_CLOUD_LOGS__ = new Map();
+  }
+  if (globalThis.__INSPATIAL_CLOUD_LOGS__.has(name)) {
+    raiseCloudException(
+      `Logger with name "${name}" already exists. Use a different name or get the existing logger.`,
+      {
+        type: "warning",
+      },
+    );
+  }
+  const inLog = new InLog(config);
+  globalThis.__INSPATIAL_CLOUD_LOGS__.set(name, inLog);
+  return inLog;
+}
+
+export function getInLog(name: string): InLog {
+  if (!globalThis.__INSPATIAL_CLOUD_LOGS__.has(name)) {
+    raiseCloudException(
+      `Logger with name "${name}" does not exist. Create a new logger with this name or use a different name.`,
+      {
+        type: "warning",
+      },
+    );
+  }
+  return globalThis.__INSPATIAL_CLOUD_LOGS__.get(name)!;
+}

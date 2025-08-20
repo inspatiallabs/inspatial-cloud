@@ -1,4 +1,4 @@
-import { inLog } from "#inLog";
+import { getInLog } from "#inLog";
 import type { ConnectionStatus, TaskInfo } from "./types.ts";
 
 export class InQueueClient {
@@ -87,7 +87,7 @@ export class InQueueClient {
   }
   send(message: TaskInfo) {
     if (!this.connected) {
-      inLog.debug("Queue is not connected");
+      getInLog("cloud").debug("Queue is not connected");
       return;
     }
     this.#socket!.send(JSON.stringify(message));

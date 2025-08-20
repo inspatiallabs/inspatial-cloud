@@ -1,6 +1,6 @@
 import { InContext } from "~/serve/in-context.ts";
 import type { RequestMethod } from "#types/serve-types.ts";
-import { inLog } from "#inLog";
+import { getInLog } from "#inLog";
 
 /**
  * InRequest is a class that wraps the incoming request object and parses it,
@@ -240,7 +240,7 @@ export class InRequest<CTX extends Record<string, any> = Record<string, any>> {
         return;
       }
       if (Error.isError(e)) {
-        inLog.error(e.message, {
+        getInLog("cloud").error(e.message, {
           subject: e.name,
           stackTrace: e.stack,
         });

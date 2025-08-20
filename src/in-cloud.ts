@@ -1,7 +1,7 @@
 import type { AppMode, CloudConfig } from "#types/mod.ts";
 import { CloudAPI } from "~/api/cloud-api.ts";
 
-import { InLog, inLog } from "#inLog";
+import { createInLog, getInLog, type InLog } from "#inLog";
 import type { LogLevel } from "~/in-log/types.ts";
 import type { InSpatialORM } from "~/orm/mod.ts";
 import { IS_WINDOWS, joinPath, normalizePath } from "~/utils/path-utils.ts";
@@ -87,7 +87,7 @@ export class InCloud {
     this.filesPath = joinPath(this.inRoot, "files");
     this.publicFilesPath = joinPath(this.inRoot, "public-files");
     this.appName = appName;
-    this.inLog = inLog;
+
     this.#config = config;
     this.inLive = new InLiveHandler(this);
     this.inCache = new InCache();
@@ -117,6 +117,26 @@ export class InCloud {
     });
     this.auth = new AuthHandler(this);
     this.inQueue = new InQueueClient();
+    this.inLog = createInLog("cloud", {
+      consoleDefaultStyle: "full",
+      traceOffset: 1,
+      name: "incloud",
+      logFile: {
+        logName: "incloud",
+        logPath: joinPath(this.inRoot, "logs"),
+        callBack: (logType, message) => {
+          this.inLive.notify({
+            roomName: "system:dev",
+            event: "log",
+            data: {
+              type: logType,
+              content: message,
+              subject: "InCloud Log",
+            },
+          });
+        },
+      },
+    });
     this.#setupSignalListener();
   }
   #setupSignalListener() {
@@ -126,7 +146,7 @@ export class InCloud {
         return; // Prevent multiple signals from triggering shutdown
       }
       const timeout = setTimeout(() => {
-        inLog.warn(
+        this.inLog.warn(
           `Shutdown timeout reached for ${signal}. Forcing exit.`,
           {
             subject: `${signal}: ${this.runMode}`,
@@ -140,7 +160,7 @@ export class InCloud {
         if (signal === "SIGINT") {
           return;
         }
-        inLog.warn(message, {
+        this.inLog.warn(message, {
           subject,
           compact: true,
         });
@@ -159,7 +179,7 @@ export class InCloud {
         try {
           await callback();
         } catch (e) {
-          inLog.error(
+          this.inLog.error(
             "Error during shutdown callback: " + e,
             {
               subject,
@@ -278,7 +298,7 @@ export class InCloud {
     }
     for (const [key, value] of env.entries()) {
       if (this.#customEnv.has(key)) {
-        inLog.warn(
+        this.inLog.warn(
           `Custom property ${key} is already set. Overriding with new value.`,
           "Custom Property Override",
         );

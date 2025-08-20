@@ -2,7 +2,6 @@ import { dateUtils } from "~/utils/date-utils.ts";
 import { EntryType } from "~/orm/entry/entry-type.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
 import type { SMTPOptions } from "../smtp/smtpTypes.ts";
-import { inLog } from "#inLog";
 import { SMTPClient } from "../smtp/smtpClient.ts";
 
 import type { EmailSettings } from "~/email/settings/_email-settings.type.ts";
@@ -253,13 +252,13 @@ emailEntry.addAction({
 
       const addError = (message: string) => {
         errors.push(message);
-        inLog.error(message);
+        orm.inLog.error(message);
       };
       smtpClient.onError = (code, message) => {
         addError(`Email Error ${code}: ${message}`);
       };
       smtpClient.onStateChange = (_state, _message) => {
-        inLog.debug(`Email State Change: ${_state} - ${_message}`);
+        orm.inLog.debug(`Email State Change: ${_state} - ${_message}`);
       };
       const sendDate = new Date();
       // const attachments = [];
@@ -293,7 +292,7 @@ emailEntry.addAction({
       if (errors.length > 0) {
         email.status = "failed";
         await email.save();
-        inLog.error(errors.join("\n"));
+        orm.inLog.error(errors.join("\n"));
         return;
       }
 
@@ -301,8 +300,8 @@ emailEntry.addAction({
       // Send the email
       email.status = "sent";
       await email.save();
-    } catch (_e) {
-      console.log(_e);
+    } catch (e) {
+      orm.inLog.error(e, "Failed to send email");
       email.status = "failed";
       await email.save();
     }

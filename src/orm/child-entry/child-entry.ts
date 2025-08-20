@@ -1,6 +1,5 @@
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import type { InField, InFieldMap } from "~/orm/field/field-def-types.ts";
-import { inLog } from "~/in-log/in-log.ts";
 import type {
   BaseTypeConfig,
   BaseTypeInfo,
@@ -12,7 +11,8 @@ import type { ORMFieldConfig } from "~/orm/field/orm-field.ts";
 import ulid from "~/orm/utils/ulid.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import type { InSpatialDB } from "../db/inspatial-db.ts";
-import { DBFilter } from "../db/db-types.ts";
+import type { DBFilter } from "../db/db-types.ts";
+import { getInLog } from "#inLog";
 export interface ChildEntry<T extends Record<string, unknown>> {
   [key: string]: any;
 }
@@ -296,7 +296,9 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
   }) {
     if ("children" in config) {
       delete config.children;
-      inLog.warn(`ChildEntryType ${name} should not have children, ignoring`);
+      getInLog("cloud").warn(
+        `ChildEntryType ${name} should not have children, ignoring`,
+      );
     }
     super(name, config);
     this.config = {

@@ -81,7 +81,7 @@ export type InLiveClientMessage<
 export type InLiveBroadcastMessage<
   T extends Record<string, any> = Record<string, any>,
 > = {
-  accountId: string;
+  accountId?: string;
   /**
    * The name of the room to broadcast to.
    */

@@ -8,12 +8,12 @@ import type {
 import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import { InLiveRoom } from "~/in-live/in-live-room.ts";
-import { inLog } from "#inLog";
 import { BrokerClient } from "./broker-client.ts";
 
 import type { SessionData } from "../auth/types.ts";
 import type { InCloud } from "../in-cloud.ts";
 import { ORMException } from "../orm/orm-exception.ts";
+import type { InLog } from "#inLog";
 
 /**
  * Handles realtime websocket connections
@@ -23,9 +23,10 @@ export class InLiveHandler {
   #shuttingDown: boolean = false;
   #channel: BrokerClient<InLiveBroadcastMessage>;
   #rooms: Map<string, InLiveRoom> = new Map();
+  inLog: InLog;
 
   #handleError(...args: any) {
-    inLog.error(args, "InLiveHandler");
+    this.inLog.error(args, "InLiveHandler");
   }
   #roomHandlers: Map<
     string,
@@ -42,7 +43,7 @@ export class InLiveHandler {
 
   shutdown() {
     this.#shuttingDown = true;
-    inLog.info("Shutting down InLiveHandler...");
+    this.inLog.info("Shutting down InLiveHandler...");
     this.#channel.stop();
     this.#clients.forEach((client) => {
       if (client.socket.readyState === WebSocket.OPEN) {
@@ -51,7 +52,7 @@ export class InLiveHandler {
     });
     this.#clients.clear();
     this.#rooms.clear();
-    inLog.info("InLiveHandler shutdown complete.");
+    this.inLog.info("InLiveHandler shutdown complete.");
   }
 
   /**
@@ -65,7 +66,7 @@ export class InLiveHandler {
   globalSettingsTypes: Set<string> = new Set();
   constructor(inCloud: InCloud) {
     this.inCloud = inCloud;
-
+    this.inLog = inCloud.inLog;
     this.#roomHandlers = new Map();
     this.#clients = new Map();
     this.#channel = new BrokerClient<InLiveBroadcastMessage>("in-live");
@@ -97,12 +98,14 @@ export class InLiveHandler {
    */
   handleUpgrade(inRequest: InRequest): Response {
     if (this.#shuttingDown) {
-      inLog.warn("InLiveHandler is shutting down, refusing new connections.");
+      this.inLog.warn(
+        "InLiveHandler is shutting down, refusing new connections.",
+      );
       return new Response("Service Unavailable", { status: 503 });
     }
     const user = inRequest.context.get<SessionData>("user");
     if (!user) {
-      inLog.warn("No user session found for websocket connection.");
+      this.inLog.warn("No user session found for websocket connection.");
       return new Response("Unauthorized", { status: 401 });
     }
     if (inRequest.upgradeSocket) {
@@ -139,7 +142,7 @@ export class InLiveHandler {
       try {
         data = JSON.parse(event.data);
       } catch (_e) {
-        inLog.warn("Error parsing JSON data from client", event.data);
+        this.inLog.warn("Error parsing JSON data from client", event.data);
         return;
       }
       try {
@@ -188,14 +191,21 @@ export class InLiveHandler {
   /**
    * Handle a new connection. Currently does nothing...
    */
-  #handleConnection(_client: InLiveClient) {
+  #handleConnection(client: InLiveClient) {
+    if (
+      client.user.systemAdmin
+    ) {
+      this.#join("system:dev", client, true);
+    }
   }
 
   #getRoom({ roomName, accountId }: {
     roomName: string;
-    accountId: string;
+    accountId?: string;
   }): InLiveRoom {
-    const room = this.#rooms.get(`${accountId}:${roomName}`);
+    const room = this.#rooms.get(
+      `${accountId ? accountId + ":" : ""}${roomName}`,
+    );
     if (!room) {
       raiseServerException(404, `Room ${roomName} not found`);
     }
@@ -204,8 +214,9 @@ export class InLiveHandler {
   #leave(
     roomName: string,
     client: InLiveClient,
+    global?: boolean,
   ): void {
-    let accountId = client.user.accountId;
+    let accountId = global ? undefined : client.user.accountId;
     const [prefix, name] = roomName.split(":");
     try {
       switch (prefix) {
@@ -229,7 +240,7 @@ export class InLiveHandler {
         }
       }
     } catch (e) {
-      inLog.error(e, "InLiveHandler#join");
+      this.inLog.error(e, "InLiveHandler#join");
       return;
     }
 
@@ -295,9 +306,9 @@ export class InLiveHandler {
   }
   #validateRoom({ roomName, accountId }: {
     roomName: string;
-    accountId: string;
+    accountId?: string;
   }) {
-    const name = `${accountId}:${roomName}`;
+    const name = `${accountId ? accountId + ":" : ""}${roomName}`;
     if (!this.#rooms.has(name)) {
       this.addRoom({
         roomName: name,
@@ -353,8 +364,8 @@ export class InLiveHandler {
     }
   }
 
-  #join(roomName: string, client: InLiveClient): void {
-    let accountId = client.user.accountId;
+  #join(roomName: string, client: InLiveClient, global?: boolean): void {
+    let accountId = global ? undefined : client.user.accountId;
     const [prefix, name] = roomName.split(":");
     try {
       switch (prefix) {
@@ -382,7 +393,7 @@ export class InLiveHandler {
         this.inCloud.inLog.warn(`${e.name}: ${e.message}`, "InLive-Join");
         return;
       }
-      inLog.error(e, "InLiveHandler#join");
+      this.inLog.error(e, "InLiveHandler#join");
       return;
     }
     this.#validateRoom({
@@ -456,6 +467,10 @@ export class InLiveHandler {
     const rooms = this.#clients.get(client.id)?.rooms;
     if (rooms) {
       for (const room of rooms) {
+        if (room === "system:dev") {
+          this.#leave(room, client, true);
+          continue;
+        }
         this.#leave(room, client);
       }
     }
