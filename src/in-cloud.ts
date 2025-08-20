@@ -53,6 +53,7 @@ export class InCloud {
   extensionManager!: ExtensionManager;
   extensionObjects: Map<string, object> = new Map();
   customProperties: Map<string, unknown> = new Map();
+  #customEnv: Map<string, any> = new Map();
 
   // Functionality
   orm!: InSpatialORM;
@@ -124,6 +125,15 @@ export class InCloud {
       if (signalReceived) {
         return; // Prevent multiple signals from triggering shutdown
       }
+      const timeout = setTimeout(() => {
+        inLog.warn(
+          `Shutdown timeout reached for ${signal}. Forcing exit.`,
+          {
+            subject: `${signal}: ${this.runMode}`,
+          },
+        );
+        Deno.exit(1);
+      }, 5000); // 5 seconds timeout
       signalReceived = true;
       const subject = `${signal}: ${this.runMode}`;
       const print = (message: string) => {
@@ -162,10 +172,12 @@ export class InCloud {
         );
       }
       await this.#stop();
+      clearTimeout(timeout);
       print(`${this.appDisplayName} has shut down successfully.`);
 
       Deno.exit(0);
     };
+
     Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
     if (IS_WINDOWS) {
       return; // Windows does not support Deno.addSignalListener for SIGTERM
@@ -180,6 +192,7 @@ export class InCloud {
     await this.orm.db.pool?.shutdown();
   }
   init() {
+    this.#setCustomConfig();
     // Extension manager initialization
     this.extensionManager = new ExtensionManager();
     this.extensionManager.registerExtension(coreExtension);
@@ -202,6 +215,76 @@ export class InCloud {
       this.extensionManager.extensions.values(),
     );
     return installedExtensions.map((extension) => extension.info);
+  }
+  get customEnv(): Record<string, any> {
+    return Object.fromEntries(this.#customEnv);
+  }
+
+  getCustomEnvProperty<T = any>(key: string): T {
+    if (!this.#customEnv.has(key)) {
+      raiseServerException(
+        500,
+        `Custom environment variable ${key} not found`,
+      );
+    }
+    return this.#customEnv.get(key) as T;
+  }
+
+  #setCustomConfig() {
+    const keyRegex = /^IN_([A-Z_]+)/;
+    const valueRegex = /^\*(?<kind>[a-z]+)\*(?<value>.+)/;
+    const parseNumber = (value: string) => {
+      if (/^\d+(?:\.\d+){0,1}$/.test(value)) {
+        return parseFloat(value);
+      }
+      if (/^\d+$/.test(value)) {
+        return parseInt(value, 10);
+      }
+    };
+    const envObject = Deno.env.toObject();
+
+    const env = new Map();
+    for (const [envKey, envValue] of Object.entries(envObject || {})) {
+      const match = keyRegex.exec(envKey);
+
+      if (!match) {
+        continue;
+      }
+
+      const key = convertString(match[1], "camel");
+      const valueMatch = valueRegex.exec(envValue);
+
+      if (!valueMatch) {
+        continue;
+      }
+      const { kind, value } = valueMatch.groups!;
+      switch (kind) {
+        case "string":
+          env.set(key, value);
+          break;
+        case "number":
+          env.set(key, parseNumber(value));
+          break;
+        case "boolean":
+          env.set(key, value === "true");
+          break;
+        case "array":
+          env.set(key, value.split(",").map((v) => v.trim()));
+          break;
+        default:
+          env.set(key, value);
+          break;
+      }
+    }
+    for (const [key, value] of env.entries()) {
+      if (this.#customEnv.has(key)) {
+        inLog.warn(
+          `Custom property ${key} is already set. Overriding with new value.`,
+          "Custom Property Override",
+        );
+      }
+      this.#customEnv.set(key, value);
+    }
   }
   #setDefaultHandler() {
     if (this.extensionManager.exceptionHandlers.size === 0) {

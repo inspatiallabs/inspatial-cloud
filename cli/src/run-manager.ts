@@ -66,7 +66,7 @@ export class RunManager {
       );
       Deno.exit(1);
     }
-    const { config, env } = result;
+    const { config, env, customConfig: _customConfig } = result;
     this.env = env;
     const {
       hostName,
@@ -313,6 +313,7 @@ export class RunManager {
     const proc = this.spawnProcess("migrator", [], this.env);
     const status = await proc.status;
     if (!status.success) {
+      // Migration failed, handle it
     }
     return status.success;
   }

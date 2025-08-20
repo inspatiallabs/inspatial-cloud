@@ -1,32 +1,6 @@
 import { joinPath } from "~/utils/path-utils.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { ConfigDefinition } from "./config-types.ts";
-/**
- * Checks for a cloud-config.json file in the current working directory and loads it to the environment variables.
- */
-export function loadCloudConfigFile(
-  cloudRoot: string,
-): boolean {
-  try {
-    const filePath = joinPath(cloudRoot, "cloud-config.json");
-    const file = Deno.readTextFileSync(filePath);
-    const config = JSON.parse(file);
-
-    for (const key in config) {
-      const extensionConfig = config[key];
-      for (const subKey in extensionConfig) {
-        const value = extensionConfig[subKey];
-        Deno.env.set(subKey, value);
-      }
-    }
-  } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
-      return false;
-    }
-    throw e;
-  }
-  return true;
-}
 
 /**
  * Generates a cloud-config_generated.json file in the current working directory based on the installed extensions.

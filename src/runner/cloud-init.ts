@@ -1,7 +1,4 @@
-import {
-  generateConfigSchema,
-  loadCloudConfigFile,
-} from "../cloud-config/cloud-config.ts";
+import { generateConfigSchema } from "../cloud-config/cloud-config.ts";
 import { InCloud } from "~/in-cloud.ts";
 import { joinPath } from "../utils/path-utils.ts";
 import type { CloudExtensionInfo } from "../serve/types.ts";
@@ -13,9 +10,18 @@ export class InCloudInit extends InCloud {
     super(appName, config, "init");
   }
   validateConfig() {
-    const config = loadCloudConfigFile(this.cloudRoot);
+    const filePath = joinPath(this.cloudRoot, "cloud-config.json");
+    let hasConfig = false;
+    try {
+      Deno.statSync(filePath);
+      hasConfig = true;
+    } catch (e) {
+      if (!(e instanceof Deno.errors.NotFound)) {
+        throw e;
+      }
+    }
     this.init();
-    if (!config) {
+    if (!hasConfig) {
       generateConfigSchema(this);
       const filePath = joinPath(this.cloudRoot, "cloud-config.json");
       const masterConfig = new Map<string, Record<string, any>>();
