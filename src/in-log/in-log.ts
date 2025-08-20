@@ -66,7 +66,7 @@ export class ServeFileLogger {
       throw error;
     }
   }
-  async getLog(type: LogType, bytesSize?: number) {
+  async getLog(type: LogType, bytesSize?: number): Promise<string> {
     try {
       const file = await Deno.open(this.#logsPaths.get(type)!, {
         read: true,
@@ -92,6 +92,7 @@ export class ServeFileLogger {
       }
       throw error;
     }
+    return "";
   }
   private saveLogEntry(options: {
     content: string;
@@ -461,17 +462,14 @@ export class InLog {
   }
 }
 
-declare global {
-  var __INSPATIAL_CLOUD_LOGS__: Map<string, InLog>;
-}
-if (!globalThis.__INSPATIAL_CLOUD_LOGS__) {
-  globalThis.__INSPATIAL_CLOUD_LOGS__ = new Map();
+if (!(globalThis as any).__INSPATIAL_CLOUD_LOGS__) {
+  (globalThis as any).__INSPATIAL_CLOUD_LOGS__ = new Map();
 }
 export function createInLog(name: string, config: LoggerConfig): InLog {
-  if (!globalThis.__INSPATIAL_CLOUD_LOGS__) {
-    globalThis.__INSPATIAL_CLOUD_LOGS__ = new Map();
+  if (!(globalThis as any).__INSPATIAL_CLOUD_LOGS__) {
+    (globalThis as any).__INSPATIAL_CLOUD_LOGS__ = new Map();
   }
-  if (globalThis.__INSPATIAL_CLOUD_LOGS__.has(name)) {
+  if ((globalThis as any).__INSPATIAL_CLOUD_LOGS__.has(name)) {
     raiseCloudException(
       `Logger with name "${name}" already exists. Use a different name or get the existing logger.`,
       {
@@ -480,12 +478,12 @@ export function createInLog(name: string, config: LoggerConfig): InLog {
     );
   }
   const inLog = new InLog(config);
-  globalThis.__INSPATIAL_CLOUD_LOGS__.set(name, inLog);
+  (globalThis as any).__INSPATIAL_CLOUD_LOGS__.set(name, inLog);
   return inLog;
 }
 
 export function getInLog(name: string): InLog {
-  if (!globalThis.__INSPATIAL_CLOUD_LOGS__.has(name)) {
+  if (!(globalThis as any).__INSPATIAL_CLOUD_LOGS__.has(name)) {
     raiseCloudException(
       `Logger with name "${name}" does not exist. Create a new logger with this name or use a different name.`,
       {
@@ -493,5 +491,5 @@ export function getInLog(name: string): InLog {
       },
     );
   }
-  return globalThis.__INSPATIAL_CLOUD_LOGS__.get(name)!;
+  return (globalThis as any).__INSPATIAL_CLOUD_LOGS__.get(name)!;
 }
