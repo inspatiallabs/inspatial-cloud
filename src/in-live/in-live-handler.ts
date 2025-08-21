@@ -26,7 +26,7 @@ export class InLiveHandler {
   inLog: InLog;
 
   #handleError(...args: any) {
-    this.inLog.error(args, "InLiveHandler");
+    this.inLog?.error(args, "InLiveHandler");
   }
   #roomHandlers: Map<
     string,
