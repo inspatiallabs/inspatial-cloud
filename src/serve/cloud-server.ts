@@ -5,6 +5,8 @@ import { requestHandler } from "~/serve/request-handler.ts";
 export class InCloudServer extends InCloud {
   instanceNumber: string;
   server: Deno.HttpServer<Deno.NetAddr> | undefined;
+  signal: AbortSignal | undefined;
+  abortController: AbortController | undefined;
   constructor(
     appName: string,
     config: CloudConfig,
@@ -12,13 +14,22 @@ export class InCloudServer extends InCloud {
   ) {
     super(appName, config, "server");
     this.instanceNumber = instanceNumber || "_";
+    this.abortController = new AbortController();
+    this.signal = this.abortController.signal;
   }
 
   override async run() {
     await super.run();
     this.server = this.#serve();
     this.onShutdown(async () => {
-      await this.server?.shutdown();
+      this.server?.shutdown();
+      setTimeout(() => {
+        if (this.server?.finished) {
+          return;
+        }
+        this.abortController?.abort();
+      }, 5000);
+      await this.server?.finished;
     });
   }
 
@@ -31,6 +42,7 @@ export class InCloudServer extends InCloud {
         hostname: config.hostName,
         port: config.servePort,
         reusePort,
+        signal: this.signal,
         onListen: (_addr) => {
           // Hide stdout message
         },

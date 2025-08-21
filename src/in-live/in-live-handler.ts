@@ -13,7 +13,7 @@ import { BrokerClient } from "./broker-client.ts";
 import type { SessionData } from "../auth/types.ts";
 import type { InCloud } from "../in-cloud.ts";
 import { ORMException } from "../orm/orm-exception.ts";
-import type { InLog } from "#inLog";
+import { getInLog } from "#inLog";
 
 /**
  * Handles realtime websocket connections
@@ -23,11 +23,7 @@ export class InLiveHandler {
   #shuttingDown: boolean = false;
   #channel: BrokerClient<InLiveBroadcastMessage>;
   #rooms: Map<string, InLiveRoom> = new Map();
-  inLog: InLog;
 
-  #handleError(...args: any) {
-    this.inLog?.error(args, "InLiveHandler");
-  }
   #roomHandlers: Map<
     string,
     Array<(client: InLiveClient, message: InLiveMessage) => void>
@@ -41,20 +37,6 @@ export class InLiveHandler {
     rooms: [],
   };
 
-  shutdown() {
-    this.#shuttingDown = true;
-    this.inLog.info("Shutting down InLiveHandler...");
-    this.#channel.stop();
-    this.#clients.forEach((client) => {
-      if (client.socket.readyState === WebSocket.OPEN) {
-        client.socket.close(0, "Server is shutting down");
-      }
-    });
-    this.#clients.clear();
-    this.#rooms.clear();
-    this.inLog.info("InLiveHandler shutdown complete.");
-  }
-
   /**
    * Create a new RealtimeHandler
    */
@@ -66,18 +48,40 @@ export class InLiveHandler {
   globalSettingsTypes: Set<string> = new Set();
   constructor(inCloud: InCloud) {
     this.inCloud = inCloud;
-    this.inLog = inCloud.inLog;
     this.#roomHandlers = new Map();
     this.#clients = new Map();
     this.#channel = new BrokerClient<InLiveBroadcastMessage>("in-live");
     this.#channel.onMessageReceived((message) => this.#sendToRoom(message));
   }
 
+  #handleError(...args: any) {
+    getInLog("cloud").error(args, "InLiveHandler");
+  }
   init(brokerPort: number) {
     this.globalAccountId = this.inCloud.orm.systemGobalUser.accountId;
     this.#channel.connect(brokerPort);
   }
 
+  shutdown() {
+    const inLog = getInLog("cloud");
+    this.#shuttingDown = true;
+    inLog.debug("Shutting down InLiveHandler...", {
+      compact: true,
+      subject: "InLiveHandler",
+    });
+    this.#channel.stop();
+    this.#clients.forEach((client) => {
+      if (client.socket.readyState === WebSocket.OPEN) {
+        client.socket.close(0, "Server is shutting down");
+      }
+    });
+    this.#clients.clear();
+    this.#rooms.clear();
+    inLog.debug("InLiveHandler shutdown complete.", {
+      compact: true,
+      subject: "InLiveHandler",
+    });
+  }
   /**
    * Add a handler to the specified room
    * @param roomName The name of the room to add the handler to
@@ -97,15 +101,20 @@ export class InLiveHandler {
    * Upgrade a request to a websocket connection
    */
   handleUpgrade(inRequest: InRequest): Response {
+    const inLog = getInLog("cloud");
     if (this.#shuttingDown) {
-      this.inLog.warn(
+      inLog.debug(
         "InLiveHandler is shutting down, refusing new connections.",
+        {
+          compact: true,
+          subject: "InLiveHandler",
+        },
       );
       return new Response("Service Unavailable", { status: 503 });
     }
     const user = inRequest.context.get<SessionData>("user");
     if (!user) {
-      this.inLog.warn("No user session found for websocket connection.");
+      inLog.warn("No user session found for websocket connection.");
       return new Response("Unauthorized", { status: 401 });
     }
     if (inRequest.upgradeSocket) {
@@ -133,6 +142,7 @@ export class InLiveHandler {
     return client.id;
   }
   #addListeners(client: InLiveClient) {
+    const inLog = getInLog("cloud");
     client.socket.onopen = () => {
       this.#clients.set(client.id, client);
       this.#handleConnection(client);
@@ -142,7 +152,7 @@ export class InLiveHandler {
       try {
         data = JSON.parse(event.data);
       } catch (_e) {
-        this.inLog.warn("Error parsing JSON data from client", event.data);
+        inLog.warn("Error parsing JSON data from client", event.data);
         return;
       }
       try {
@@ -240,7 +250,7 @@ export class InLiveHandler {
         }
       }
     } catch (e) {
-      this.inLog.error(e, "InLiveHandler#join");
+      getInLog("cloud").error(e, "InLiveHandler#join");
       return;
     }
 
@@ -393,7 +403,7 @@ export class InLiveHandler {
         this.inCloud.inLog.warn(`${e.name}: ${e.message}`, "InLive-Join");
         return;
       }
-      this.inLog.error(e, "InLiveHandler#join");
+      getInLog("cloud").error(e, "InLiveHandler#join");
       return;
     }
     this.#validateRoom({

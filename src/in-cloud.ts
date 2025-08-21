@@ -1,7 +1,7 @@
 import type { AppMode, CloudConfig } from "#types/mod.ts";
 import { CloudAPI } from "~/api/cloud-api.ts";
 
-import { createInLog, getInLog, type InLog } from "#inLog";
+import { createInLog, type InLog } from "#inLog";
 import type { LogLevel } from "~/in-log/types.ts";
 import type { InSpatialORM } from "~/orm/mod.ts";
 import { IS_WINDOWS, joinPath, normalizePath } from "~/utils/path-utils.ts";
@@ -150,14 +150,19 @@ export class InCloud {
           `Shutdown timeout reached for ${signal}. Forcing exit.`,
           {
             subject: `${signal}: ${this.runMode}`,
+            compact: true,
           },
         );
-        Deno.exit(1);
-      }, 5000); // 5 seconds timeout
+        Deno.exit(0);
+      }, 10000); // 10 seconds timeout
       signalReceived = true;
       const subject = `${signal}: ${this.runMode}`;
       const print = (message: string) => {
         if (signal === "SIGINT") {
+          this.inLog.debug(message, {
+            subject,
+            compact: true,
+          });
           return;
         }
         this.inLog.warn(message, {
@@ -168,6 +173,8 @@ export class InCloud {
       print(
         `Received ${signal} signal. Shutting down gracefully...`,
       );
+
+      this.inLive.shutdown();
 
       let currentCallback = 0;
       for (const callback of this.#shutdownCallbacks) {

@@ -1,13 +1,3 @@
-const inLog = new InLog({
-  consoleDefaultStyle: "full",
-  name: "InSpatial Cloud",
-  traceOffset: 1,
-});
-const inLogSmall = new InLog({
-  consoleDefaultStyle: "compact",
-  name: "InSpatial Cloud",
-  traceOffset: 1,
-});
 import { makeLogo } from "~/terminal/logo.ts";
 import { InLog } from "~/in-log/in-log.ts";
 import { getCoreCount } from "#cli/multicore.ts";
@@ -44,8 +34,26 @@ export class RunManager {
   usingEmbeddedDb = false;
   embeddedDbPort: number | undefined = undefined;
   env: Record<string, string> = {};
+  inLogSmall: InLog;
+  inLog: InLog;
 
   constructor(rootPath: string, moduleName?: string) {
+    const logOptions = {
+      name: "InSpatial Cloud",
+      traceOffset: 1,
+      logFile: {
+        logName: "cli-run",
+        logPath: joinPath(rootPath, ".inspatial", "logs"),
+      },
+    };
+    this.inLogSmall = new InLog({
+      consoleDefaultStyle: "compact",
+      ...logOptions,
+    });
+    this.inLog = new InLog({
+      consoleDefaultStyle: "full",
+      ...logOptions,
+    });
     this.serveProcs = new Map();
     this.brokerProc = undefined;
     this.queueProc = undefined;
@@ -60,7 +68,7 @@ export class RunManager {
     await this.spawnInit();
     const result = loadCloudConfigFile(this.rootPath);
     if (!result) {
-      inLog.error(
+      this.inLog.error(
         "No cloud-config.json file found. Please run `in init` to create one.",
         convertString(this.appName, "title", true),
       );
@@ -131,7 +139,7 @@ export class RunManager {
     this.printInfo(rows);
 
     if (this.watch) {
-      inLog.info(
+      this.inLog.info(
         "Watching for file changes. Press Ctrl+C to stop.",
         this.appTitle,
       );
@@ -150,7 +158,7 @@ export class RunManager {
     });
   }
   async shutdown(signal: Deno.Signal): Promise<void> {
-    inLogSmall.warn(
+    this.inLogSmall.warn(
       `Shutting down gracefully...`,
       {
         compact: true,
@@ -183,7 +191,7 @@ export class RunManager {
     if (this.dbProc) {
       await this.dbProc.status;
     }
-    inLogSmall.info(
+    this.inLogSmall.info(
       "All processes have been shut down.",
       this.appTitle,
     );
@@ -230,7 +238,7 @@ export class RunManager {
           return;
         }
         this.isReloading = true;
-        inLogSmall.warn(
+        this.inLogSmall.warn(
           `File change detected, reloading...`,
           this.appTitle,
         );
@@ -258,7 +266,7 @@ export class RunManager {
     this.spawnMigrator().then((success) => {
       if (!success) {
         this.isReloading = false;
-        // inLog.error(
+        //this.inLog.error(
         //   "Migration failed. Please check the logs for details.",
         //   convertString(this.appName, "title", true),
         // );
@@ -267,7 +275,7 @@ export class RunManager {
       this.spawnServers();
       this.spawnQueue();
       this.isReloading = false;
-      inLogSmall.info(
+      this.inLogSmall.info(
         "Reloaded successfully.",
         this.appTitle,
       );
@@ -299,7 +307,7 @@ export class RunManager {
     return true;
   }
   spawnDB(port: number) {
-    inLog.warn(
+    this.inLog.warn(
       "Starting the embedded database....",
       convertString(this.appName, "title", true),
     );
@@ -378,7 +386,7 @@ export class RunManager {
             if (this.dbProc?.pid) {
               this.dbProc.kill("SIGINT");
               this.dbProc.status.then(() => {
-                inLogSmall.error(
+                this.inLogSmall.error(
                   "Database process was killed due to a segmentation fault.",
                   `${this.appTitle}: ${mode}`,
                 );
@@ -398,7 +406,7 @@ export class RunManager {
       if (status.signal) {
         message.content(` (${status.signal})`).color("brightYellow");
       }
-      inLogSmall.error(
+      this.inLogSmall.error(
         message.end(),
         `${this.appTitle}: ${mode}`,
       );
@@ -437,7 +445,7 @@ export class RunManager {
         },
       ),
     ];
-    inLog.info(
+    this.inLog.info(
       output.join("\n"),
       convertString(this.appName, "title", true),
     );
