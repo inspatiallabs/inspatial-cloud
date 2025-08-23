@@ -73,6 +73,7 @@ export type InLiveClientMessage<
    * The data of the message.
    */
   data: T;
+  global?: boolean;
 };
 
 /**

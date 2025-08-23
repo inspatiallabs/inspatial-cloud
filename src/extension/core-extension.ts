@@ -1,7 +1,10 @@
 import { CloudExtension } from "~/extension/cloud-extension.ts";
 
 import { apiPathHandler } from "~/api/api-handler.ts";
-import { inTaskGlobal } from "~/in-queue/entry-types/in-task/in-task.ts";
+import {
+  inTask,
+  inTaskGlobal,
+} from "~/in-queue/entry-types/in-task/in-task.ts";
 import type { ExceptionHandlerResponse } from "#types/serve-types.ts";
 import {
   notifyCreate,
@@ -75,6 +78,7 @@ export const coreExtension = new CloudExtension("core", {
     userSessionEntry,
     account,
     inTaskGlobal,
+    inTask,
     cloudFile,
     globalCloudFile,
     emailEntry,

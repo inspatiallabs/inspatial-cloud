@@ -226,6 +226,9 @@ export class InLiveHandler {
     client: InLiveClient,
     global?: boolean,
   ): void {
+    if (global && !client.user.systemAdmin) {
+      return;
+    }
     let accountId = global ? undefined : client.user.accountId;
     const [prefix, name] = roomName.split(":");
     try {
@@ -375,6 +378,9 @@ export class InLiveHandler {
   }
 
   #join(roomName: string, client: InLiveClient, global?: boolean): void {
+    if (global && !client.user.systemAdmin) {
+      return;
+    }
     let accountId = global ? undefined : client.user.accountId;
     const [prefix, name] = roomName.split(":");
     try {
@@ -425,6 +431,7 @@ export class InLiveHandler {
       firstName: client.user.firstName,
       lastName: client.user.lastName,
       email: client.user.email,
+      profilePicture: client.user.profilePicture,
     };
     room.users.set(client.id, inLiveUser);
     client.rooms.add(roomName);
@@ -458,10 +465,10 @@ export class InLiveHandler {
     this.#assertClientMessage(message);
     switch (message.type) {
       case "join":
-        this.#join(message.roomName, client);
+        this.#join(message.roomName, client, message.global);
         return;
       case "leave":
-        this.#leave(message.roomName, client);
+        this.#leave(message.roomName, client, message.global);
         return;
       default:
         break;

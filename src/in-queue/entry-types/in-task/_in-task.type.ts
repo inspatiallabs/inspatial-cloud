@@ -1,7 +1,7 @@
 import type { EntryBase } from "@inspatial/cloud/types";
 
-export interface InTaskGlobal extends EntryBase {
-  _name: "inTaskGlobal";
+export interface InTask extends EntryBase {
+  _name: "inTask";
   /**
    * **Title** (DataField)
    * @type {string}
@@ -68,7 +68,7 @@ export interface InTaskGlobal extends EntryBase {
    */
   errorInfo?: string;
   /**
-   * **InTask Global** (IDField)
+   * **InTask** (IDField)
    * @type {string}
    * @required true
    */
@@ -87,11 +87,11 @@ export interface InTaskGlobal extends EntryBase {
    * @required true
    */
   updatedAt: number;
-  runAction<N extends keyof InTaskGlobalActionMap>(
+  runAction<N extends keyof InTaskActionMap>(
     actionName: N,
-  ): InTaskGlobalActionMap[N]["return"];
+  ): InTaskActionMap[N]["return"];
 }
-type InTaskGlobalActionMap = {
+type InTaskActionMap = {
   runTask: {
     return: Promise<any>;
   };

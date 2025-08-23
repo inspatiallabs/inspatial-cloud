@@ -1,6 +1,11 @@
 import type { InField } from "~/orm/field/field-def-types.ts";
 
 export const inTaskFields: Array<InField> = [{
+  key: "title",
+  type: "DataField",
+  required: true,
+  defaultValue: "",
+}, {
   key: "taskType",
   label: "Task Type",
   type: "ChoicesField",
@@ -48,7 +53,7 @@ export const inTaskFields: Array<InField> = [{
   type: "ChoicesField",
   defaultValue: "queued",
   required: true,
-  readOnly: false,
+  readOnly: true,
   choices: [{
     key: "queued",
     label: "Queued",

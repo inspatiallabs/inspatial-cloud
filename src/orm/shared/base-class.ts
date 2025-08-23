@@ -95,13 +95,6 @@ export class BaseClass<N extends string = string> {
     actionKey: string,
     data?: Record<string, any>,
   ): Promise<Record<string, any>> {
-    if (!this._systemGlobal) {
-      raiseORMException(
-        `Enqueueing actions is only allowed for system global entries`,
-        "InQueue",
-        400,
-      );
-    }
     this.#getAndValidateAction(actionKey, data);
     data = data || {};
     const fields: Record<string, any> = {
@@ -113,16 +106,27 @@ export class BaseClass<N extends string = string> {
     if (this._type === "entry") {
       fields.entryId = this._data.get("id");
     }
-    const task = await this._orm.createEntry<InTaskGlobal>(
-      "inTaskGlobal",
+    const taskEntryType = this._systemGlobal ? "inTaskGlobal" : "inTask";
+    const task = await this._orm.createEntry(
+      taskEntryType,
       fields as any,
     );
+    const info = {
+      id: task.id as string,
+      title: task.data.title,
+    } as const;
+    if (this._systemGlobal) {
+      this._inCloud.inQueue.addTask({
+        ...info,
+        systemGlobal: true,
+      });
+    } else {
+      this._inCloud.inQueue.addTask({
+        ...info,
+        account: this._db.schema,
+      });
+    }
 
-    this._inCloud.inQueue.send({
-      id: task.id,
-      systemGlobal: this._systemGlobal,
-      account: this._db._schema,
-    });
     return task.data;
   }
   _setupChildren(): void {

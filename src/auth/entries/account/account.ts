@@ -113,7 +113,16 @@ export const account = new EntryType<Account>("account", {
     }],
   },
 });
-
+account.addAction({
+  key: "queueInitialize",
+  label: "Schedule Account Initialization",
+  private: false,
+  async action({ account }) {
+    if (account.initialized) return;
+    await account.enqueueAction("initialize");
+  },
+  params: [],
+});
 account.addAction({
   key: "initialize",
   label: "Initialize Account",

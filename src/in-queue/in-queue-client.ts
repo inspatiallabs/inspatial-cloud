@@ -1,10 +1,15 @@
 import { getInLog } from "#inLog";
-import type { ConnectionStatus, TaskInfo } from "./types.ts";
+import type {
+  ConnectionStatus,
+  QueueCommand,
+  QueueMessage,
+  TaskInfo,
+} from "./types.ts";
 
 export class InQueueClient {
   #stop: boolean = false;
   #socket: WebSocket | null = null;
-  onMessage: (message: Record<string, unknown>) => void = () => {
+  onMessage: (message: QueueMessage) => void = () => {
     console.log("Default onMessage handler called");
   };
   port: number = 11354;
@@ -71,7 +76,7 @@ export class InQueueClient {
       }, 2000);
       this.#socket!.onopen = () => {
         this.#socket!.onmessage = (event) => {
-          const data = JSON.parse(event.data) as Record<string, unknown>;
+          const data = JSON.parse(event.data) as QueueMessage;
 
           this.onMessage(data);
         };
@@ -82,14 +87,21 @@ export class InQueueClient {
       };
     });
   }
-  onMessageReceived(callback: (message: Record<string, unknown>) => void) {
+  onMessageReceived(callback: (message: QueueMessage) => void) {
     this.onMessage = callback;
   }
-  send(message: TaskInfo) {
+  send(queueCommand: QueueCommand) {
     if (!this.connected) {
       getInLog("cloud").debug("Queue is not connected");
       return;
     }
-    this.#socket!.send(JSON.stringify(message));
+    this.#socket!.send(JSON.stringify(queueCommand));
+  }
+
+  addTask(taskInfo: TaskInfo) {
+    this.send({
+      command: "addTask",
+      data: taskInfo,
+    });
   }
 }

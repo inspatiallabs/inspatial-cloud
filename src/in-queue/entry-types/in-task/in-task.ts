@@ -5,30 +5,10 @@ import { EntryType } from "~/orm/entry/entry-type.ts";
 import type { InTaskGlobal } from "./_in-task-global.type.ts";
 import dateUtils from "../../../utils/date-utils.ts";
 import type { InSpatialORM } from "../../../orm/inspatial-orm.ts";
+import { convertString } from "@inspatial/cloud/utils";
 
-// export const inTask = new EntryType<InTask>("inTask", {
-//   label: "InTask",
-//   description: "A task in the task queue",
-//   systemGlobal: false,
-//   defaultListFields: [
-//     "status",
-//     "taskType",
-//     "typeKey",
-//     "entryId",
-//     "group",
-//     "actionName",
-//   ],
-//   fields: inTaskFields,
-//   actions: [runTask],
-//   hooks: {
-//     validate: [validateTask],
-//   },
-// });
-
-export const inTaskGlobal = new EntryType<InTaskGlobal>("inTaskGlobal", {
-  label: "InTask Global",
-  description: "A task in the global task queue",
-  systemGlobal: true,
+const config = {
+  titleField: "title",
   defaultListFields: [
     "status",
     "taskType",
@@ -38,65 +18,114 @@ export const inTaskGlobal = new EntryType<InTaskGlobal>("inTaskGlobal", {
     "actionName",
   ],
   fields: inTaskFields,
-});
-
-inTaskGlobal.addAction({
-  key: "runTask",
-  params: [],
-  async action({
-    inTaskGlobal,
-    inCloud,
-  }) {
-    const inTask = inTaskGlobal;
-    let results;
-    switch (inTask.status) {
-      case "queued":
-      case "failed":
-        break;
-      default:
-        return;
-    }
-    const orm = inCloud.orm.withAccount(inCloud.orm.systemGobalUser.accountId);
-    inTask.status = "running";
-    inTask.startTime = dateUtils.nowTimestamp();
-    await inTask.save();
-    try {
-      switch (inTask.taskType) {
-        case "entry":
-          results = await runEntryTask(inTask, orm);
-          break;
-        case "settings":
-          results = await runSettingsTask(inTask, orm);
-          break;
-          // case "app":
-          //   results = await runAppTask(inTask, inCloud);
-          //   break;
-      }
-
-      inTask.resultData = {
-        result: results,
-      };
-      inTask.status = "completed";
-    } catch (e) {
-      inTask.errorInfo = Deno.inspect(e);
-      inCloud.inLog.error(e, {
-        subject: `${inTask.typeKey} ${inTask.entryId} - ${inTask.actionName}`,
-        stackTrace: e instanceof Error ? e.stack : undefined,
-      });
-      inTask.status = "failed";
-    }
-    inTask.endTime = dateUtils.nowTimestamp();
-    await inTask.save();
+  hooks: {
+    beforeCreate: [{
+      name: "setTitle",
+      handler({ entry }: { entry: any }) {
+        let title = `${convertString(entry.taskType, "title")}: `;
+        if (entry.typeKey) {
+          title += `${convertString(entry.typeKey, "title")}`;
+        }
+        title += ` - ${entry.actionName}`;
+        entry.title = title;
+      },
+    }],
   },
+  actions: [{
+    key: "runTask",
+    params: [],
+    async action({ entry, inCloud, orm }: {
+      entry: any;
+      inCloud: any;
+      orm: InSpatialORM;
+    }) {
+      let results;
+      switch (entry.status) {
+        case "queued":
+        case "failed":
+          break;
+        default:
+          return;
+      }
+      // const orm = inCloud.orm.withAccount(
+      //   inCloud.orm.systemGobalUser.accountId,
+      // );
+      entry.status = "running";
+      entry.startTime = dateUtils.nowTimestamp();
+      await entry.save();
+      try {
+        switch (entry.taskType) {
+          case "entry":
+            results = await runEntryTask({
+              actionName: entry.actionName,
+              entryType: entry.typeKey!,
+              id: entry.entryId!,
+              taskData: entry.taskData,
+              orm,
+            });
+            break;
+          case "settings":
+            results = await runSettingsTask({
+              actionName: entry.actionName,
+              settings: entry.typeKey!,
+              taskData: entry.taskData,
+              orm,
+            });
+            break;
+            // case "app":
+            //   results = await runAppTask(inTask, inCloud);
+            //   break;
+        }
+
+        entry.resultData = {
+          result: results,
+        };
+        entry.status = "completed";
+      } catch (e) {
+        entry.errorInfo = Deno.inspect(e);
+        inCloud.inLog.error(e, {
+          subject: `${entry.typeKey} ${entry.entryId} - ${entry.actionName}`,
+          stackTrace: e instanceof Error ? e.stack : undefined,
+        });
+        entry.status = "failed";
+      }
+      entry.endTime = dateUtils.nowTimestamp();
+      await entry.save();
+    },
+  }],
+} as any;
+export const inTaskGlobal = new EntryType<InTaskGlobal>("inTaskGlobal", {
+  ...config,
+  label: "InTask Global",
+  description: "A task in the global task queue",
+  systemGlobal: true,
 });
-async function runEntryTask(inTask: InTaskGlobal, orm: InSpatialORM) {
-  const entry = await orm.getEntry(inTask.typeKey!, inTask.entryId!);
-  return await entry.runAction(inTask.actionName, inTask.taskData);
+export const inTask = new EntryType("inTask", {
+  ...config,
+  label: "InTask",
+  description: "A task in the account task queue",
+});
+
+async function runEntryTask(args: {
+  entryType: string;
+  id: string;
+  actionName: string;
+  taskData?: Record<string, any>;
+  orm: InSpatialORM;
+}) {
+  const { entryType, id, actionName, taskData, orm } = args;
+  const entry = await orm.getEntry(entryType, id);
+  return await entry.runAction(actionName, taskData);
 }
 async function runSettingsTask(
-  inTask: InTaskGlobal,
-  orm: InSpatialORM,
+  args: {
+    settings: string;
+    actionName: string;
+    taskData?: Record<string, any>;
+    orm: InSpatialORM;
+  },
 ) {
-  const settings = await orm.getSettings(inTask.typeKey!);
-  return await settings.runAction(inTask.actionName, inTask.taskData);
+  const { settings: settingsKey, actionName, taskData, orm } = args;
+  const settings = await orm.getSettings(settingsKey);
+  return await settings.runAction(actionName, taskData);
 }

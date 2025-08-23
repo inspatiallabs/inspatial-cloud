@@ -1,6 +1,11 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { InCloud } from "~/in-cloud.ts";
 import { requestHandler } from "~/serve/request-handler.ts";
+import type {
+  QueueMessage,
+  QueueStatus,
+  QueueTaskStatus,
+} from "../in-queue/types.ts";
 
 export class InCloudServer extends InCloud {
   instanceNumber: string;
@@ -17,9 +22,58 @@ export class InCloudServer extends InCloud {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
+  handleQueueMessage(message: QueueMessage) {
+    switch (message.type) {
+      case "status":
+        this.handleQueueStatus(message);
+        break;
+      case "taskStatus":
+        this.handleQueueTaskMessage(message);
+        break;
+      default:
+        return;
+    }
+  }
+  handleQueueStatus(message: QueueStatus) {
+    const { status } = message;
+    this.inLive.notify({
+      roomName: "globalTaskQueue",
+      event: "status",
+      data: { status },
+    });
+  }
 
+  handleQueueTaskMessage(message: QueueTaskStatus) {
+    const accountId = message.global ? undefined : message.accountId;
+    const roomName = message.global ? "globalTaskQueue" : "accountTaskQueue";
+    this.inLive.notify({
+      accountId,
+      roomName,
+      event: "taskStatus",
+      data: {
+        ...message,
+        accountId,
+      },
+    });
+  }
   override async run() {
     await super.run();
+    this.inQueue.onMessageReceived((message) => {
+      switch (message.type) {
+        case "status":
+          this.handleQueueStatus(message);
+          break;
+        case "taskStatus":
+          this.handleQueueTaskMessage(message);
+          break;
+        default:
+          return;
+      }
+      this.inLog.debug(message, {
+        compact: true,
+        subject: "Queue Message",
+      });
+    });
     this.server = this.#serve();
     this.onShutdown(async () => {
       this.server?.shutdown();
