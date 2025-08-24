@@ -5,7 +5,7 @@ import { EntryType } from "~/orm/entry/entry-type.ts";
 import type { InTaskGlobal } from "./_in-task-global.type.ts";
 import dateUtils from "../../../utils/date-utils.ts";
 import type { InSpatialORM } from "../../../orm/inspatial-orm.ts";
-import { convertString } from "@inspatial/cloud/utils";
+import { convertString } from "~/utils/mod.ts";
 
 const config = {
   titleField: "title",
