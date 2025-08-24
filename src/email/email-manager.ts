@@ -1,7 +1,8 @@
 import type { InCloud } from "@inspatial/cloud/types";
 import type { Email } from "./entries/_email.type.ts";
 import type { EmailTemplate } from "./entries/_email-template.type.ts";
-import { InFilter } from "../orm/db/db-types.ts";
+import type { InFilter } from "../orm/db/db-types.ts";
+import type { GetListResponse } from "../orm/orm-types.ts";
 interface SendEmailOptions {
   recipientEmail: string;
   subject: string;
@@ -22,7 +23,7 @@ export class EmailManager {
     account: string;
     entryType?: string;
     entryId?: string;
-  }) {
+  }): Promise<GetListResponse<Email>> {
     const orm = this.inCloud.orm;
 
     const filters: InFilter[] = [{
@@ -66,7 +67,7 @@ export class EmailManager {
     params: Record<string, any>;
     now?: boolean;
     link: EmailLink;
-  }) {
+  }): Promise<any> {
     const { recipientEmail, templateId, params, now, link } = args;
     const orm = this.inCloud.orm;
     const template = await orm.getEntry<EmailTemplate>(
