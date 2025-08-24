@@ -3,10 +3,10 @@ import { generateId } from "~/utils/misc.ts";
 import { InCloud } from "~/in-cloud.ts";
 import type { QueueCommand, QueueMessage, TaskInfo } from "./types.ts";
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
-import { dateUtils } from "@inspatial/cloud/utils";
+import { dateUtils } from "~/utils/date-utils.ts";
 import { createInLog } from "#inLog";
 import type { InTaskGlobal } from "./entry-types/in-task/_in-task-global.type.ts";
-import { EntryBase, GenericEntry } from "../orm/entry/entry-base.ts";
+import type { GenericEntry } from "../orm/entry/entry-base.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
