@@ -50,138 +50,119 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       description: "OAuth settings for Gmail",
     },
   ],
-  fields: [
-    {
-      key: "emailAccount",
-      type: "EmailField",
-      label: "Email Account",
-      description: "The email account to send emails from",
+  fields: [{
+    key: "emailAccount",
+    type: "EmailField",
+    label: "Email Account",
+    description: "The email account to send emails from",
 
-      required: true,
+    required: true,
+  }, {
+    key: "senderName",
+    type: "DataField",
+    label: "Sender's Name",
+    description: "The name to use when sending emails",
+  }, {
+    key: "useGmailOauth",
+    type: "BooleanField",
+    label: "Use Gmail OAuth",
+    description: "Use OAuth to authenticate with Gmail",
+  }, {
+    key: "authUrl",
+    type: "URLField",
+    label: "Authorize Gmail",
+    description: "The URL to authorize this email account with Gmail",
+    readOnly: true,
+    urlType: "button",
+  }, {
+    key: "sendEmails",
+    type: "BooleanField",
+    label: "Send Emails",
+    description: "Whether this email account can send emails",
+    hidden: true,
+  }, {
+    key: "receiveEmails",
+    type: "BooleanField",
+    label: "Receive Emails",
+    description: "Whether this email account can receive emails",
+    hidden: true,
+  }, {
+    key: "smtpHost",
+    type: "TextField",
+    label: "SMTP Host",
+    description: "The host of the SMTP server. smtp.gmail.com for Gmail",
+  }, {
+    key: "smtpPort",
+    type: "IntField",
+    label: "SMTP Port",
+    description: "The port of the SMTP server. 587 for Gmail",
+  }, {
+    key: "smtpUser",
+    type: "DataField",
+    label: "SMTP User",
+    description:
+      "The user to authenticate with the SMTP server. This is usually the email address",
+  }, {
+    key: "smtpPassword",
+    type: "PasswordField",
+    label: "SMTP Password",
+    description:
+      "The password to authenticate with the SMTP server. Not required if using Gmail OAuth",
+    dependsOn: {
+      field: "useGmailOauth",
+      value: false,
     },
-    {
-      key: "senderName",
-      type: "DataField",
-      label: "Sender's Name",
-      description: "The name to use when sending emails",
-    },
-    {
-      key: "useGmailOauth",
-      type: "BooleanField",
-      label: "Use Gmail OAuth",
-      description: "Use OAuth to authenticate with Gmail",
-    },
-    {
-      key: "authUrl",
-      type: "URLField",
-      label: "Authorize Gmail",
-      description: "The URL to authorize this email account with Gmail",
-      readOnly: true,
-      urlType: "button",
-    },
-    {
-      key: "sendEmails",
-      type: "BooleanField",
-      label: "Send Emails",
-      description: "Whether this email account can send emails",
-      hidden: true,
-    },
-    {
-      key: "receiveEmails",
-      type: "BooleanField",
-      label: "Receive Emails",
-      description: "Whether this email account can receive emails",
-      hidden: true,
-    },
-
-    {
-      key: "smtpHost",
-      type: "TextField",
-      label: "SMTP Host",
-      description: "The host of the SMTP server. smtp.gmail.com for Gmail",
-    },
-    {
-      key: "smtpPort",
-      type: "IntField",
-      label: "SMTP Port",
-      description: "The port of the SMTP server. 587 for Gmail",
-    },
-    {
-      key: "smtpUser",
-      type: "DataField",
-      label: "SMTP User",
-      description:
-        "The user to authenticate with the SMTP server. This is usually the email address",
-    },
-
-    {
-      key: "smtpPassword",
-      type: "PasswordField",
-      label: "SMTP Password",
-      description:
-        "The password to authenticate with the SMTP server. Not required if using Gmail OAuth",
-      dependsOn: {
-        field: "useGmailOauth",
-        value: false,
+  }, {
+    key: "authStatus",
+    label: "Auth Status",
+    type: "ChoicesField",
+    defaultValue: "unauthorized",
+    readOnly: true,
+    choices: [
+      {
+        key: "unauthorized",
+        label: "Unauthorized",
+        color: "error",
       },
-    },
-    {
-      key: "authStatus",
-      label: "Auth Status",
-      type: "ChoicesField",
-      defaultValue: "unauthorized",
-      readOnly: true,
-      choices: [
-        {
-          key: "unauthorized",
-          label: "Unauthorized",
-          color: "error",
-        },
-        {
-          key: "authorized",
-          label: "Authorized",
-          color: "success",
-        },
-      ],
-    },
-    {
-      key: "accessToken",
-      label: "Access Token",
-      type: "TextField",
-      hidden: false,
-      readOnly: true,
-    },
-    {
-      key: "expireTime",
-      label: "Expire Time",
-      type: "TimeStampField",
-      showTime: true,
-      hidden: false,
-      readOnly: true,
-    },
-    {
-      key: "acquiredTime",
-      label: "Acquired Time",
-      type: "TimeStampField",
-      showTime: true,
-      hidden: false,
-      readOnly: true,
-    },
-    {
-      key: "refreshToken",
-      label: "Refresh Token",
-      type: "TextField",
-      hidden: false,
-      readOnly: true,
-    },
-    {
-      key: "tokenType",
-      label: "Token Type",
-      type: "DataField",
-      hidden: false,
-      readOnly: true,
-    },
-  ],
+      {
+        key: "authorized",
+        label: "Authorized",
+        color: "success",
+      },
+    ],
+  }, {
+    key: "accessToken",
+    label: "Access Token",
+    type: "TextField",
+    hidden: false,
+    readOnly: true,
+  }, {
+    key: "expireTime",
+    label: "Expire Time",
+    type: "TimeStampField",
+    showTime: true,
+    hidden: false,
+    readOnly: true,
+  }, {
+    key: "acquiredTime",
+    label: "Acquired Time",
+    type: "TimeStampField",
+    showTime: true,
+    hidden: false,
+    readOnly: true,
+  }, {
+    key: "refreshToken",
+    label: "Refresh Token",
+    type: "TextField",
+    hidden: false,
+    readOnly: true,
+  }, {
+    key: "tokenType",
+    label: "Token Type",
+    type: "DataField",
+    hidden: false,
+    readOnly: true,
+  }],
   hooks: {
     beforeUpdate: [{
       name: "setGoogleAuthDefaults",

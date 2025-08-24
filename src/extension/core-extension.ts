@@ -44,6 +44,7 @@ import { onboardingSettings } from "../onboarding/ob-settings.ts";
 import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
+import { emailTemplate } from "../email/entries/emailTemplate.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -83,6 +84,7 @@ export const coreExtension = new CloudExtension("core", {
     globalCloudFile,
     emailEntry,
     emailAccountEntry,
+    emailTemplate,
     onboardingStep,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
@@ -115,6 +117,12 @@ export const coreExtension = new CloudExtension("core", {
         delete: false,
       },
       onboardingStep: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      emailTemplate: {
         view: true,
         modify: false,
         create: false,

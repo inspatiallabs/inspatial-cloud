@@ -53,6 +53,13 @@ export interface Email extends EntryBase {
    */
   htmlBody?: string;
   /**
+   * **Link Account** (ConnectionField)
+   *
+   * **EntryType** `account`
+   * @type {string}
+   */
+  linkAccount?: string;
+  /**
    * **Link Entry** (DataField)
    * @type {string}
    */
@@ -62,6 +69,12 @@ export interface Email extends EntryBase {
    * @type {string}
    */
   linkId?: string;
+  /**
+   * **Link Title** (TextField)
+   * @description The title of the linked entry
+   * @type {string}
+   */
+  linkTitle?: string;
   /**
    * **Status** (ChoicesField)
    * @description The status of the email
@@ -94,6 +107,12 @@ export interface Email extends EntryBase {
    * @type {string}
    */
   emailAccount__title?: string;
+  /**
+   * **Link Account Title** (DataField)
+   * @description The name of the account
+   * @type {string}
+   */
+  linkAccount__title?: string;
   runAction<N extends keyof EmailActionMap>(
     actionName: N,
   ): EmailActionMap[N]["return"];

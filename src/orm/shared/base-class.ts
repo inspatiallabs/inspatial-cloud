@@ -107,10 +107,13 @@ export class BaseClass<N extends string = string> {
       fields.entryId = this._data.get("id");
     }
     const taskEntryType = this._systemGlobal ? "inTaskGlobal" : "inTask";
-    const task = await this._orm.createEntry(
+    const task = this._orm.getNewEntry(
       taskEntryType,
-      fields as any,
     );
+    for (const [key, value] of Object.entries(fields)) {
+      (task as any)[key] = value;
+    }
+    await task.save();
     const info = {
       id: task.id as string,
       title: task.data.title,

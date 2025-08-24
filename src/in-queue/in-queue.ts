@@ -75,7 +75,6 @@ export class InQueue extends InCloud {
     this.isRunning = true;
     this.ready = new Promise((resolve) => {
       this.makeReady = () => {
-        console.log("making ready!");
         resolve();
       };
     });

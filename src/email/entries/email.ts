@@ -71,15 +71,22 @@ export const emailEntry = new EntryType<Email>("email", {
     description: "The HTML body of the email",
     readOnly: true,
   }, {
+    key: "linkAccount",
+    type: "ConnectionField",
+    entryType: "account",
+  }, {
     key: "linkEntry",
     type: "DataField",
     label: "Link Entry",
-    hidden: true,
   }, {
     key: "linkId",
     type: "DataField",
     label: "Link Id",
-    hidden: true,
+  }, {
+    key: "linkTitle",
+    type: "TextField",
+    label: "Link Title",
+    description: "The title of the linked entry",
   }, {
     key: "status",
     type: "ChoicesField",
@@ -115,6 +122,29 @@ export const emailEntry = new EntryType<Email>("email", {
         }
         if (email.contentType === "html") {
           email.htmlBody = email.body;
+        }
+      },
+    }],
+    afterUpdate: [{
+      name: "notifyAccount",
+      handler({ email, inCloud }) {
+        if (email.linkAccount) {
+          inCloud.inLive.notify({
+            accountId: email.linkAccount,
+            roomName: "linkedEmail",
+            event: "emailStatus",
+            data: email.data,
+          });
+          if (email.linkEntry && email.linkId) {
+            const id = email.linkId!;
+            const entry = email.linkEntry!;
+            inCloud.inLive.notify({
+              accountId: email.linkAccount,
+              roomName: `linkedEmail:${entry}:${id}`,
+              event: "emailStatus",
+              data: email.data,
+            });
+          }
         }
       },
     }],
@@ -185,8 +215,8 @@ emailEntry.addAction({
         break;
     }
     email.status = "queued";
-    await email.enqueueAction("send");
     await email.save();
+    await email.enqueueAction("send");
     return {
       message: "Email has been queued for sending.",
       type: "success",
