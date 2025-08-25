@@ -77,11 +77,13 @@ export const uploadFile = new CloudAPIAction("upload", {
       accountFolder = joinPath(inCloud.publicFilesPath, accountId);
       path = joinPath(accountFolder, newFileName);
     }
-    await Deno.mkdir(accountFolder, {
+    const originalFolder = joinPath(accountFolder, "original");
+    await Deno.mkdir(originalFolder, {
       recursive: true,
     });
     cloudFile.filePath = path;
     if (optimizeImage) {
+      path = joinPath(originalFolder, newFileName);
       const defaultSize = 1000;
       cloudFile.optimizeImage = true;
       cloudFile.optimizeWidth = optimizeWidth || defaultSize;

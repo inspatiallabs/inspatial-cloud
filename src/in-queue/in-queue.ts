@@ -9,7 +9,6 @@ import type {
   OptimizeImageTaskData,
   QueueCommand,
   QueueMessage,
-  QueueThumb,
   TaskInfo,
 } from "./types.ts";
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
@@ -18,11 +17,10 @@ import { createInLog } from "#inLog";
 import type { InTaskGlobal } from "./entry-types/in-task/_in-task-global.type.ts";
 import type { GenericEntry } from "../orm/entry/entry-base.ts";
 import { ImageOps } from "../files/image-ops/image-ops.ts";
-import { CloudFile } from "../files/entries/_cloud-file.type.ts";
-import { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
+import type { CloudFile } from "../files/entries/_cloud-file.type.ts";
+import type { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
-import { InTask } from "./entry-types/in-task/_in-task.type.ts";
-import { ListOptions } from "@inspatial/cloud-client/types";
+import type { InTask } from "./entry-types/in-task/_in-task.type.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -196,6 +194,7 @@ export class InQueue extends InCloud {
       this.broadcastEnd("completed", startTime, message);
       return;
     }
+
     this.broadcastEnd("failed", startTime, message);
   }
 
@@ -243,7 +242,9 @@ export class InQueue extends InCloud {
       this.broadcastEnd("completed", startTime, message);
       return;
     }
-
+    this.inLog.error(result, {
+      subject: "Image optimization failed",
+    });
     this.broadcastEnd("failed", startTime, message);
   }
   async runInTask(taskInfo: TaskInfo) {

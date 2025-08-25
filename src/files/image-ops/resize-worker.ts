@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 
+import { joinPath } from "../../utils/path-utils.ts";
 import type {
   ErrorResult,
   ImageMessageEvent,
@@ -68,9 +69,12 @@ const commandHandlers: {
   },
   async optimize(msg) {
     const { filePath, width, height, format } = msg;
-    const fileData = await Deno.readFile(filePath);
     let resized: Uint8Array | null = null;
-
+    const pathParts = filePath.split("/");
+    const fileName = pathParts.pop()!;
+    const originalsDir = joinPath(...pathParts, "original");
+    const originalPath = joinPath(originalsDir, fileName);
+    const fileData = await Deno.readFile(originalPath);
     switch (format) {
       case "jpeg":
         resized = resizeImage.toJpg(fileData, width, height);
@@ -101,19 +105,18 @@ const commandHandlers: {
     }
     const outputFilePath = filePath.replace(
       /\.[^.]+$/,
-      `-resized.${format === "jpeg" ? "jpg" : "png"}`,
+      `.${format === "jpeg" ? "jpg" : "png"}`,
     );
-    const newFilePath = outputFilePath.replace(/-resized\./, ".");
+
     await Deno.writeFile(outputFilePath, resized);
-    await Deno.remove(filePath);
-    await Deno.rename(outputFilePath, newFilePath);
+    await Deno.remove(originalPath);
 
     return {
       command: "optimize",
       id: msg.id,
       success: true,
       fileSize: resized.byteLength,
-      newFilePath,
+      newFilePath: outputFilePath,
       thumbnailPath: thumbnail ? thumbPath : "",
       thumbnailSize: thumbnail ? thumbnail.byteLength : 0,
     };
