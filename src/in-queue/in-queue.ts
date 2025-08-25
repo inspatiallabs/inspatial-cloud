@@ -1,17 +1,33 @@
 import type { CloudConfig } from "#types/mod.ts";
 import { generateId } from "~/utils/misc.ts";
 import { InCloud } from "~/in-cloud.ts";
-import type { QueueCommand, QueueMessage, TaskInfo } from "./types.ts";
+import type {
+  AddTaskCommand,
+  GenerateThumbnailCommand,
+  GenerateThumbnailTaskData,
+  OptimizeImageCommand,
+  OptimizeImageTaskData,
+  QueueCommand,
+  QueueMessage,
+  QueueThumb,
+  TaskInfo,
+} from "./types.ts";
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import { createInLog } from "#inLog";
 import type { InTaskGlobal } from "./entry-types/in-task/_in-task-global.type.ts";
 import type { GenericEntry } from "../orm/entry/entry-base.ts";
+import { ImageOps } from "../files/image-ops/image-ops.ts";
+import { CloudFile } from "../files/entries/_cloud-file.type.ts";
+import { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
+import MimeTypes from "../files/mime-types/mime-types.ts";
+import { InTask } from "./entry-types/in-task/_in-task.type.ts";
+import { ListOptions } from "@inspatial/cloud-client/types";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
   isRunning: boolean = false;
-  queue: TaskInfo[] = [];
+  queue: Array<QueueCommand> = [];
   globalOrm!: InSpatialORM;
   ready: Promise<void> = Promise.resolve();
   maxConcurrentTasks: number = 3;
@@ -19,6 +35,7 @@ export class InQueue extends InCloud {
   taskQueueReady: Promise<void> = Promise.resolve();
   makeTaskQueueReady: () => void = () => {};
   runningTaskCount: number = 0;
+  images: ImageOps;
   constructor(appName: string, config: CloudConfig) {
     super(appName, config, "queue");
     this.inLog = createInLog("in-queue", {
@@ -26,6 +43,7 @@ export class InQueue extends InCloud {
       name: "in-queue",
       traceOffset: 1,
     });
+    this.images = new ImageOps();
   }
   override async run() {
     this.init();
@@ -33,6 +51,7 @@ export class InQueue extends InCloud {
     const { brokerPort } = this.getExtensionConfig(
       "core",
     );
+    this.images.init();
     this.inLive.init(brokerPort);
     this.inCache.init(brokerPort);
     this.globalOrm = this.orm.withAccount("cloud_global");
@@ -42,24 +61,41 @@ export class InQueue extends InCloud {
     }
     this.#start(port);
   }
-  addTask(task: TaskInfo) {
-    this.queue.push(task);
-    const message = {
-      type: "taskStatus",
-      status: "queued",
+  addTask(taskCommand: AddTaskCommand) {
+    this.queue.push(taskCommand);
+    const task = taskCommand.data;
+    this.broadcastQueued("taskStatus", {
       title: task.title,
       taskId: task.id,
       time: dateUtils.nowTimestamp(),
-    } as const;
-    if (task.systemGlobal) {
-      this.broadcast(
-        { ...message, global: true },
-      );
-    } else {
-      this.broadcast(
-        { ...message, accountId: task.account },
-      );
+    }, task.account);
+    if (this.isRunning) {
+      this.#runNextTask();
+      return;
     }
+    this.#processQueue();
+  }
+  addImageTask(taskCommand: OptimizeImageCommand) {
+    this.queue.push(taskCommand);
+    const task = taskCommand.data;
+    this.broadcastQueued("optimizeImage", {
+      title: task.title,
+      fileId: task.fileId,
+    }, task.accountId);
+
+    if (this.isRunning) {
+      this.#runNextTask();
+      return;
+    }
+    this.#processQueue();
+  }
+  addThumbTask(taskCommand: GenerateThumbnailCommand) {
+    this.queue.push(taskCommand);
+    const task = taskCommand.data;
+    this.broadcastQueued("thumbnail", {
+      title: task.title,
+      fileId: task.fileId,
+    }, task.accountId);
     if (this.isRunning) {
       this.#runNextTask();
       return;
@@ -84,93 +120,43 @@ export class InQueue extends InCloud {
     this.broadcast({ type: "status", status: "ready" });
   }
   async #runNextTask() {
-    this.inLog.debug(
-      `Running next task. ${this.queue.length} tasks remaining.`,
-    );
     if (this.runningTaskCount >= this.maxConcurrentTasks) {
-      this.inLog.debug(
-        `Maximum concurrent tasks reached (${this.runningTaskCount}). Waiting...`,
-      );
       this.taskQueueReady = new Promise((resolve) => {
         this.makeTaskQueueReady = () => {
-          console.log("making task queue ready!");
           resolve();
         };
       });
       await this.taskQueueReady;
-      this.inLog.debug(
-        `Resuming task processing. ${this.runningTaskCount} tasks still running.`,
-      );
     }
-    const taskInfo = this.getNextTask();
+    const queueCommand = this.getNextTask();
 
-    if (!taskInfo) {
+    if (!queueCommand) {
       return;
     }
-    this.#runNextTask();
-    const tastEntryType = taskInfo.systemGlobal
-      ? "inTaskGlobal"
-      : "inTask" as const;
-    switch (tastEntryType) {
-      case "inTaskGlobal": {
-        const task = await this.globalOrm.getEntry<InTaskGlobal>(
-          "inTaskGlobal",
-          taskInfo.id,
-        );
-        const startTime = dateUtils.nowTimestamp();
-        const message = {
-          type: "taskStatus",
-          status: "running",
-          startTime,
-          taskId: taskInfo.id,
-          global: true,
-          title: task.title,
-        } as const;
-        this.broadcast(message);
-        await task.runAction("runTask");
-        const endTime = dateUtils.nowTimestamp();
-        const duration = endTime - startTime;
-        this.broadcast({
-          ...message,
-          status: "completed",
-          endTime,
-          duration,
-        });
-        break;
-      }
-      case "inTask": {
-        if (taskInfo.systemGlobal) {
-          break;
-        }
 
-        const orm = this.orm.withAccount(taskInfo.account);
-        const task = await orm.getEntry("inTask", taskInfo.id);
-        const startTime = dateUtils.nowTimestamp();
-        const message = {
-          type: "taskStatus",
-          status: "running",
-          startTime,
-          taskId: taskInfo.id,
-          accountId: taskInfo.account,
-          title: task.title,
-        } as const;
-        this.broadcast(message);
-        await task.runAction("runTask");
-        const endTime = dateUtils.nowTimestamp();
-        const duration = endTime - startTime;
-        this.broadcast({
-          ...message,
-          status: "completed",
-          endTime,
-          duration,
+    this.#runNextTask();
+    const handleError = (e: unknown) => {
+      console.log("failed", e);
+      if (Error.isError(e)) {
+        this.inLog.error(e, {
+          stackTrace: e.stack,
         });
-        break;
       }
+    };
+    switch (queueCommand.command) {
+      case "optimizeImage":
+        await this.runOptimizeTask(queueCommand.data).catch(handleError);
+        break;
+      case "addTask":
+        await this.runInTask(queueCommand.data).catch(handleError);
+        break;
+      case "thumbnail":
+        await this.runThumbTask(queueCommand.data).catch(handleError);
+        break;
     }
-    this.inLog.debug(`Task ${taskInfo.id} completed.`);
-    this.inLog.debug(`${this.runningTaskCount} tasks still running.`);
+
     this.runningTaskCount--;
-    this.inLog.debug(`${this.runningTaskCount} tasks still running.`);
+
     if (this.runningTaskCount === 0 && this.queue.length === 0) {
       this.makeReady();
     }
@@ -178,12 +164,161 @@ export class InQueue extends InCloud {
       this.makeTaskQueueReady();
     }
   }
-  getNextTask(): TaskInfo | undefined {
+  async getFile(
+    fileId: string,
+    accountId?: string,
+  ): Promise<CloudFile | GlobalCloudFile> {
+    if (!accountId) {
+      return await this.globalOrm.getEntry("globalCloudFile", fileId);
+    }
+    return await this.orm.withAccount(accountId!).getEntry("cloudFile", fileId);
+  }
+  async runThumbTask(taskInfo: GenerateThumbnailTaskData) {
+    const { fileId, inputFilePath, title, accountId } = taskInfo;
+    const message = this.buildMessage({
+      type: "thumbnail",
+      title,
+      fileId,
+    }, accountId);
+    const fileEntry = await this.getFile(fileId, accountId);
+
+    const startTime = this.broadcastStart(message);
+    const result = await this.images.generateThumbnail({
+      command: "thumbnail",
+      filePath: inputFilePath,
+      size: 200,
+    });
+    if (result.success) {
+      fileEntry.thumbnailSize = result.fileSize;
+      fileEntry.hasThumbnail = true;
+      fileEntry.thumbnailPath = result.outputFilePath;
+      await fileEntry.save();
+      this.broadcastEnd("completed", startTime, message);
+      return;
+    }
+    this.broadcastEnd("failed", startTime, message);
+  }
+
+  async runOptimizeTask(taskInfo: OptimizeImageTaskData) {
+    const {
+      format,
+      height,
+      inputFilePath,
+      width,
+      title,
+      withThumbnail,
+      accountId,
+      fileId,
+    } = taskInfo;
+    const message = this.buildMessage({
+      type: "optimizeImage",
+      fileId,
+      title,
+    }, accountId);
+    const fileEntry = await this.getFile(fileId, accountId);
+
+    const startTime = this.broadcastStart(message);
+    const result = await this.images.optimizeImage({
+      command: "optimize",
+      withThumbnail,
+      filePath: inputFilePath,
+      height,
+      width,
+      format,
+    });
+
+    if (result.success) {
+      fileEntry.filePath = result.newFilePath;
+      if (result.thumbnailSize) {
+        fileEntry.thumbnailSize = result.thumbnailSize;
+      }
+      if (result.thumbnailPath) {
+        fileEntry.thumbnailPath = result.thumbnailPath;
+      }
+      fileEntry.fileSize = result.fileSize;
+      fileEntry.fileExtension = format;
+      fileEntry.optimized = true;
+      fileEntry.mimeType = MimeTypes.getMimeTypeByExtension(format);
+      await fileEntry.save();
+      this.broadcastEnd("completed", startTime, message);
+      return;
+    }
+
+    this.broadcastEnd("failed", startTime, message);
+  }
+  async runInTask(taskInfo: TaskInfo) {
+    const message = this.buildMessage({
+      type: "taskStatus",
+      taskId: taskInfo.id,
+      title: taskInfo.title,
+    }, taskInfo.account);
+    const startTime = this.broadcastStart(message);
+    let task;
+    if (taskInfo.systemGlobal) {
+      task = await this.globalOrm.getEntry<InTaskGlobal>(
+        "inTaskGlobal",
+        taskInfo.id,
+      );
+    } else {
+      task = await this.orm.withAccount(taskInfo.account).getEntry<InTask>(
+        "inTask",
+        taskInfo.id,
+      );
+    }
+    await task.runAction("runTask");
+    this.broadcastEnd("completed", startTime, message);
+  }
+  getNextTask(): QueueCommand | undefined {
     const task = this.queue.shift();
     if (task) {
       this.runningTaskCount++;
     }
     return task;
+  }
+  buildMessage(input: Record<string, any>, accountId?: string) {
+    if (accountId) {
+      return {
+        ...input,
+        accountId,
+      };
+    }
+    return {
+      ...input,
+      global: true,
+    };
+  }
+  broadcastQueued(
+    type: QueueMessage["type"],
+    message: Record<string, any>,
+    accountId?: string,
+  ) {
+    message.type = type;
+    message.status = "queued";
+    if (accountId) {
+      message.accountId = accountId;
+    } else {
+      message.global = true;
+    }
+
+    this.broadcast(message as any);
+  }
+  broadcastStart(message: Record<string, any>): number {
+    const startTime = dateUtils.nowTimestamp();
+    message.startTime = startTime;
+    message.status = "running";
+    return startTime;
+  }
+  broadcastEnd(
+    status: "failed" | "completed",
+    startTime: number,
+    message: Record<string, any>,
+  ) {
+    message.startTime = startTime;
+    const endTime = dateUtils.nowTimestamp();
+    message.status = status;
+    message.endTime = endTime;
+    message.duration = endTime - message.startTime;
+    this.broadcast(message as any);
   }
   broadcast(message: QueueMessage): void {
     for (const client of this.clients.values()) {
@@ -211,11 +346,50 @@ export class InQueue extends InCloud {
     );
     for (const task of globalTasks) {
       this.queue.push({
-        id: task.id as string,
-        systemGlobal: true,
-        title: task.title,
+        command: "addTask",
+        data: {
+          id: task.id as string,
+          systemGlobal: true,
+          title: task.title,
+        },
       });
     }
+    const optimizeOptions = {
+      columns: [
+        "id",
+        "filePath",
+        "fileName",
+        "optimizeFormat",
+        "optimizeHeight",
+        "optimizeWidth",
+        "hasThumbnail",
+      ],
+      filter: {
+        fileType: "image",
+        optimizeImage: true,
+        optimized: false,
+      },
+    };
+
+    const { rows: globalOptimizeFiles } = await this.globalOrm.getEntryList(
+      "globalCloudFile",
+      optimizeOptions,
+    );
+    for (const file of globalOptimizeFiles) {
+      this.queue.push({
+        command: "optimizeImage",
+        data: {
+          fileId: file.id as string,
+          format: file.optimizeFormat || "jpeg",
+          height: file.optimizeHeight || 1000,
+          withThumbnail: !file.hasThumbnail,
+          width: file.optimizeWidth || 1000,
+          inputFilePath: file.filePath,
+          title: file.fileName,
+        },
+      });
+    }
+
     // load account tasks
 
     const { rows: accounts } = await this.orm.getEntryList("account", {
@@ -235,11 +409,35 @@ export class InQueue extends InCloud {
         "inTask",
         listOptions,
       );
+
       for (const task of accountTasks) {
         this.queue.push({
-          id: task.id as string,
-          title: task.title,
-          account: account.id as string,
+          command: "addTask",
+          data: {
+            id: task.id as string,
+            title: task.title,
+            account: account.id as string,
+          },
+        });
+      }
+
+      const { rows: optimizeFiles } = await orm.getEntryList(
+        "cloudFile",
+        optimizeOptions,
+      );
+      for (const file of optimizeFiles) {
+        this.queue.push({
+          command: "optimizeImage",
+          data: {
+            fileId: file.id as string,
+            format: file.optimizeFormat || "jpeg",
+            height: file.optimizeHeight || 1000,
+            width: file.optimizeWidth || 1000,
+            inputFilePath: file.filePath,
+            title: file.fileName,
+            withThumbnail: !file.hasThumbnail,
+            accountId: account.id as string,
+          },
         });
       }
     }
@@ -352,7 +550,14 @@ export class InQueue extends InCloud {
     const { command, data } = eventData;
     switch (command) {
       case "addTask":
-        this.addTask(data);
+        this.addTask(eventData);
+        break;
+      case "optimizeImage":
+        this.addImageTask(eventData);
+        break;
+      case "thumbnail":
+        this.addThumbTask(eventData);
+        break;
     }
   }
 }

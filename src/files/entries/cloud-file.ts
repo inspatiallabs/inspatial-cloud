@@ -4,6 +4,9 @@ import { convertString } from "~/utils/mod.ts";
 import type { CloudFile } from "./_cloud-file.type.ts";
 import type { EntryConfig } from "~/orm/entry/types.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
+import { GlobalCloudFile } from "./_global-cloud-file.type.ts";
+import { InCloud } from "../../in-cloud.ts";
+import { InSpatialORM } from "../../orm/mod.ts";
 const config = {
   label: "File",
   titleField: "fileName",
@@ -66,7 +69,7 @@ const config = {
     key: "filePath",
     label: "File Path",
     type: "TextField",
-    hidden: true,
+    hidden: false,
     readOnly: true,
     required: true,
   }, {
@@ -76,31 +79,105 @@ const config = {
     readOnly: true,
     description:
       "If enabled, this file can be accessed publicly without authentication.",
+  }, {
+    key: "optimizeImage",
+    type: "BooleanField",
+    description: "If enabled, images will be optimized",
+  }, {
+    key: "optimized",
+    type: "BooleanField",
+    label: "Optimized",
+    readOnly: true,
+    description: "Indicates if the image has been optimized.",
+  }, {
+    key: "optimizeWidth",
+    type: "IntField",
+  }, {
+    key: "optimizeHeight",
+    type: "IntField",
+  }, {
+    key: "optimizeFormat",
+    type: "ChoicesField",
+    choices: [
+      { key: "jpeg", label: "JPEG" },
+      { key: "png", label: "PNG" },
+    ],
+  }, {
+    key: "hasThumbnail",
+    type: "BooleanField",
+    readOnly: true,
+  }, {
+    key: "thumbnailSize",
+    type: "IntField",
+    format: "fileSize",
+    readOnly: true,
+  }, {
+    key: "thumbnailPath",
+    type: "TextField",
+    hidden: true,
+    readOnly: true,
   }],
   hooks: {
     afterDelete: [{
       name: "deleteFile",
       async handler({
-        cloudFile,
+        entry,
+        inCloud,
+      }: {
+        entry: CloudFile | GlobalCloudFile;
+        inCloud: InCloud;
       }) {
-        const path = cloudFile.filePath;
+        const path = entry.filePath;
         try {
           await Deno.remove(path);
         } catch (e) {
           if (e instanceof Deno.errors.NotFound) {
-            console.warn("File not found for deletion:", path);
+            inCloud.inLog.warn(["File not found for deletion:", path]);
             return;
           }
           throw e;
         }
       },
     }],
+    afterUpdate: [{
+      name: "optimizeImage",
+      handler({
+        entry,
+        inCloud,
+        orm,
+      }: {
+        entry: CloudFile | GlobalCloudFile;
+        orm: InSpatialORM;
+        inCloud: InCloud;
+      }) {
+        if (entry.isFieldModified("optimizeImage") && entry.optimizeImage) {
+          inCloud.inQueue.send({
+            command: "optimizeImage",
+            data: {
+              format: entry.optimizeFormat || "jpeg",
+              height: entry.optimizeHeight || 1000,
+              width: entry.optimizeWidth || 1000,
+              inputFilePath: entry.filePath,
+              fileId: entry.id,
+              title: entry.fileName,
+              withThumbnail: true,
+              accountId: entry._entryType.systemGlobal
+                ? undefined
+                : orm._accountId,
+            },
+          });
+        }
+      },
+    }],
   },
-} as EntryConfig<CloudFile>;
+} as any;
 export const cloudFile = new EntryType<CloudFile>("cloudFile", config);
-export const globalCloudFile = new EntryType<CloudFile>("globalCloudFile", {
-  ...config,
-  label: "System File",
-  description: "A shared system file",
-  systemGlobal: true,
-});
+export const globalCloudFile = new EntryType<GlobalCloudFile>(
+  "globalCloudFile",
+  {
+    ...config,
+    label: "System File",
+    description: "A shared system file",
+    systemGlobal: true,
+  },
+);

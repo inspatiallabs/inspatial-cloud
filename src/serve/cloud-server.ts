@@ -2,7 +2,7 @@ import type { CloudConfig } from "#types/mod.ts";
 import { InCloud } from "~/in-cloud.ts";
 import { requestHandler } from "~/serve/request-handler.ts";
 import type {
-  QueueMessage,
+  QueueImageOptimize,
   QueueStatus,
   QueueTaskStatus,
 } from "../in-queue/types.ts";
@@ -22,18 +22,6 @@ export class InCloudServer extends InCloud {
     this.abortController = new AbortController();
     this.signal = this.abortController.signal;
   }
-  handleQueueMessage(message: QueueMessage) {
-    switch (message.type) {
-      case "status":
-        this.handleQueueStatus(message);
-        break;
-      case "taskStatus":
-        this.handleQueueTaskMessage(message);
-        break;
-      default:
-        return;
-    }
-  }
   handleQueueStatus(message: QueueStatus) {
     const { status } = message;
     this.inLive.notify({
@@ -43,13 +31,13 @@ export class InCloudServer extends InCloud {
     });
   }
 
-  handleQueueTaskMessage(message: QueueTaskStatus) {
+  handleQueueTaskMessage(message: QueueTaskStatus | QueueImageOptimize) {
     const accountId = message.global ? undefined : message.accountId;
     const roomName = message.global ? "globalTaskQueue" : "accountTaskQueue";
     this.inLive.notify({
       accountId,
       roomName,
-      event: "taskStatus",
+      event: message.type,
       data: {
         ...message,
         accountId,
@@ -64,6 +52,7 @@ export class InCloudServer extends InCloud {
           this.handleQueueStatus(message);
           break;
         case "taskStatus":
+        case "optimizeImage":
           this.handleQueueTaskMessage(message);
           break;
         default:

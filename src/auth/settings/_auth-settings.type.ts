@@ -20,4 +20,9 @@ export interface AuthSettings extends SettingsBase {
    * @type {string}
    */
   hostname?: string;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof AuthSettings as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
 }

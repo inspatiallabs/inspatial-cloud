@@ -38,6 +38,11 @@ export interface EmailTemplate extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof EmailTemplate as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   runAction<N extends keyof EmailTemplateParamsActionMap>(
     actionName: N,
     params: EmailTemplateParamsActionMap[N]["params"],

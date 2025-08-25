@@ -119,6 +119,11 @@ export interface User extends EntryBase {
    * @type {string}
    */
   profilePicture__title?: string;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof User as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   runAction<N extends keyof UserActionMap>(
     actionName: N,
   ): UserActionMap[N]["return"];

@@ -50,4 +50,9 @@ export interface UserSession extends EntryBase {
    * @type {string}
    */
   user__title?: string;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof UserSession as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
 }

@@ -113,6 +113,11 @@ export interface EmailAccount extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof EmailAccount as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   runAction<N extends keyof EmailAccountActionMap>(
     actionName: N,
   ): EmailAccountActionMap[N]["return"];

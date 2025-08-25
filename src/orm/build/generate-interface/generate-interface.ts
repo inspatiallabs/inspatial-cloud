@@ -28,6 +28,7 @@ export async function generateEntryInterface(
 
   const fields = buildFields(entryType.fields);
   outLines.push(...fields);
+  outLines.push(...buildOthers(className));
   for (const child of entryType.children?.values() || []) {
     const childFields = buildFields(child.fields);
     outLines.push(
@@ -57,17 +58,16 @@ export async function generateSettingsInterfaces(
     convertString(settingsType.name, "kebab", true)
   }.type.ts`;
   const filePath = `${settingsPath}/${fileName}`;
-
+  const interfaceName = convertString(settingsType.name, "pascal", true);
   const outLines: string[] = [
     'import type { SettingsBase }from "@inspatial/cloud/types";\n',
-    `export interface ${
-      convertString(settingsType.name, "pascal", true)
-    } extends SettingsBase {`,
+    `export interface ${interfaceName} extends SettingsBase {`,
     ` _name:"${convertString(settingsType.name, "camel", true)}"`,
   ];
 
   const fields = buildFields(settingsType.fields);
   outLines.push(...fields);
+  outLines.push(...buildOthers(interfaceName));
   for (const child of settingsType.children?.values() || []) {
     const childFields = buildFields(child.fields);
     outLines.push(
@@ -82,7 +82,13 @@ export async function generateSettingsInterfaces(
   await writeInterfaceFile(filePath, outLines.join("\n"));
   await formatInterfaceFile(filePath);
 }
-
+function buildOthers(interfaceName: string) {
+  return [`isFieldModified(
+    fieldKey: keyof {
+      [K in keyof ${interfaceName} as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;`];
+}
 function buildActions(
   entryType: EntryType,
   className: string,

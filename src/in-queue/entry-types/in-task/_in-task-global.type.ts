@@ -87,6 +87,11 @@ export interface InTaskGlobal extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof InTaskGlobal as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   runAction<N extends keyof InTaskGlobalActionMap>(
     actionName: N,
   ): InTaskGlobalActionMap[N]["return"];

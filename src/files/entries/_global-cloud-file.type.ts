@@ -126,6 +126,48 @@ export interface GlobalCloudFile extends EntryBase {
    */
   publicFile?: boolean;
   /**
+   * **Optimize Image** (BooleanField)
+   * @description If enabled, images will be optimized
+   * @type {boolean}
+   */
+  optimizeImage?: boolean;
+  /**
+   * **Optimized** (BooleanField)
+   * @description Indicates if the image has been optimized.
+   * @type {boolean}
+   */
+  optimized?: boolean;
+  /**
+   * **Optimize Width** (IntField)
+   * @type {number}
+   */
+  optimizeWidth?: number;
+  /**
+   * **Optimize Height** (IntField)
+   * @type {number}
+   */
+  optimizeHeight?: number;
+  /**
+   * **Optimize Format** (ChoicesField)
+   * @type {'jpeg' | 'png'}
+   */
+  optimizeFormat?: "jpeg" | "png";
+  /**
+   * **Has Thumbnail** (BooleanField)
+   * @type {boolean}
+   */
+  hasThumbnail?: boolean;
+  /**
+   * **Thumbnail Size** (IntField)
+   * @type {number}
+   */
+  thumbnailSize?: number;
+  /**
+   * **Thumbnail Path** (TextField)
+   * @type {string}
+   */
+  thumbnailPath?: string;
+  /**
    * **System File** (IDField)
    * @type {string}
    * @required true
@@ -145,4 +187,9 @@ export interface GlobalCloudFile extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof GlobalCloudFile as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
 }

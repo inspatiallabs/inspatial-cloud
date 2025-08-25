@@ -39,6 +39,11 @@ export interface OnboardingStep extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof OnboardingStep as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   onboardingField: ChildList<{
     /**
      * **Key** (DataField)

@@ -58,6 +58,11 @@ export interface Account extends EntryBase {
    * @type {string}
    */
   owner__title?: string;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof Account as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
   users: ChildList<{
     /**
      * **User** (ConnectionField)

@@ -3,6 +3,7 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "../../utils/path-utils.ts";
+import { raiseServerException } from "@inspatial/cloud";
 
 export const getFile = new CloudAPIAction("getFile", {
   params: [{
@@ -19,18 +20,34 @@ export const getFile = new CloudAPIAction("getFile", {
     key: "download",
     label: "Download",
     type: "BooleanField",
+  }, {
+    key: "thumbnail",
+    label: "Thumbnail",
+    type: "BooleanField",
   }],
   async run({ inCloud, orm, params, inResponse }) {
-    const { fileId, global } = params;
+    const { fileId, global, thumbnail } = params;
     const accountId = global ? "global" : `${orm._accountId}`;
-    const accountAndFileId = `${accountId}/${fileId}`;
+    const accountAndFileId = `${accountId}/${
+      thumbnail ? "thumb-" : ""
+    }${fileId}`;
     let filePath = inCloud.inCache.getValue("getFileFiles", accountAndFileId);
     if (!filePath) {
       const file = await orm.getEntry<CloudFile | GlobalCloudFile>(
         global ? "globalCloudFile" : "cloudFile",
         fileId,
       );
-      const fileName = file.filePath.split("/").pop() || "";
+      let fileName = "";
+      if (thumbnail) {
+        fileName = file.thumbnailPath
+          ? file.thumbnailPath.split("/").pop() || ""
+          : "";
+        if (!file.thumbnailPath) {
+          raiseServerException(404, "Thumbnail not found");
+        }
+      } else {
+        fileName = file.filePath.split("/").pop() || "";
+      }
 
       filePath = joinPath(
         file.publicFile ? "public-files" : "files",

@@ -3,7 +3,6 @@ import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "~/utils/path-utils.ts";
-import { resize_image_to_jpg } from "../image-ops/resize/img-resize.ts";
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
@@ -22,6 +21,9 @@ export const uploadFile = new CloudAPIAction("upload", {
   }, {
     key: "optimizeHeight",
     type: "IntField",
+  }, {
+    key: "optimizeFormat",
+    type: "DataField",
   }],
   async run(
     {
@@ -35,6 +37,7 @@ export const uploadFile = new CloudAPIAction("upload", {
         optimizeImage,
         optimizeHeight,
         optimizeWidth,
+        optimizeFormat,
       },
     },
   ) {
@@ -79,26 +82,19 @@ export const uploadFile = new CloudAPIAction("upload", {
     });
     cloudFile.filePath = path;
     if (optimizeImage) {
-      const { done, value } = await stream.getReader().read();
-      if (value) {
-        const defaultSize = 1000;
-        const width = optimizeWidth || defaultSize;
-        const height = optimizeHeight || defaultSize;
-        const resized = resize_image_to_jpg(value, width, height);
-        cloudFile.mimeType = "image/jpeg";
-        cloudFile.fileName = fileName.replace(/\.[^.]+$/, ".jpg");
-        cloudFile.fileExtension = "jpg";
-        cloudFile.fileType = "image";
-        cloudFile.fileSize = resized.byteLength;
-        await Deno.writeFile(path, resized, {
-          create: true,
-        });
+      const defaultSize = 1000;
+      cloudFile.optimizeImage = true;
+      cloudFile.optimizeWidth = optimizeWidth || defaultSize;
+      cloudFile.optimizeHeight = optimizeHeight || defaultSize;
+      cloudFile.optimizeFormat = "jpeg";
+      cloudFile.optimized = false;
+      if (optimizeFormat && ["jpeg", "png"].includes(optimizeFormat)) {
+        cloudFile.optimizeFormat = optimizeFormat as "jpeg" | "png";
       }
-    } else {
-      await Deno.writeFile(path, stream, {
-        create: true,
-      });
     }
+    await Deno.writeFile(path, stream, {
+      create: true,
+    });
     await cloudFile.save();
     inResponse.setContent({
       file: cloudFile.data,

@@ -8,4 +8,9 @@ export interface Onboarding extends SettingsBase {
    * @type {boolean}
    */
   enabled?: boolean;
+  isFieldModified(
+    fieldKey: keyof {
+      [K in keyof Onboarding as K extends keyof EntryBase ? never : K]: K;
+    },
+  ): boolean;
 }

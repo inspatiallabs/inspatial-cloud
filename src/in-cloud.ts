@@ -145,6 +145,7 @@ export class InCloud {
       if (signalReceived) {
         return; // Prevent multiple signals from triggering shutdown
       }
+
       const timeout = setTimeout(() => {
         this.inLog.warn(
           `Shutdown timeout reached for ${signal}. Forcing exit.`,
