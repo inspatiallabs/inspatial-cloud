@@ -28,7 +28,7 @@ export async function generateEntryInterface(
 
   const fields = buildFields(entryType.fields);
   outLines.push(...fields);
-  outLines.push(...buildOthers(className));
+  outLines.push(...buildOthers("entry", className));
   for (const child of entryType.children?.values() || []) {
     const childFields = buildFields(child.fields);
     outLines.push(
@@ -67,7 +67,7 @@ export async function generateSettingsInterfaces(
 
   const fields = buildFields(settingsType.fields);
   outLines.push(...fields);
-  outLines.push(...buildOthers(interfaceName));
+  outLines.push(...buildOthers("settings", interfaceName));
   for (const child of settingsType.children?.values() || []) {
     const childFields = buildFields(child.fields);
     outLines.push(
@@ -82,10 +82,12 @@ export async function generateSettingsInterfaces(
   await writeInterfaceFile(filePath, outLines.join("\n"));
   await formatInterfaceFile(filePath);
 }
-function buildOthers(interfaceName: string) {
+function buildOthers(forType: "entry" | "settings", interfaceName: string) {
   return [`isFieldModified(
     fieldKey: keyof {
-      [K in keyof ${interfaceName} as K extends keyof EntryBase ? never : K]: K;
+      [K in keyof ${interfaceName} as K extends keyof ${
+    forType === "entry" ? "EntryBase" : "SettingsBase"
+  } ? never : K]: K;
     },
   ): boolean;`];
 }

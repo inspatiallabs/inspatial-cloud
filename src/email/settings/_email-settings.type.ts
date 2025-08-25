@@ -24,7 +24,7 @@ export interface EmailSettings extends SettingsBase {
   defaultSendAccount__title?: string;
   isFieldModified(
     fieldKey: keyof {
-      [K in keyof EmailSettings as K extends keyof EntryBase ? never : K]: K;
+      [K in keyof EmailSettings as K extends keyof SettingsBase ? never : K]: K;
     },
   ): boolean;
 }
