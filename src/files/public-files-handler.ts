@@ -7,7 +7,11 @@ export const publicFilesHandler: PathHandler = {
   description: "Serve files that were uploaded as public files",
   match: /^\/files\/(.+)$/,
   async handler(inCloud, inRequest, inResponse) {
-    const accountAndFileId = inRequest.path.replace(/^\/files\//, "");
+    const thumbnail = inRequest.params.get("thumbnail");
+    const accountAndFileId = inRequest.path.replace(/^\/files\//, "") +
+        thumbnail
+      ? "/thumb"
+      : "";
     if (!accountAndFileId) {
       raiseServerException(404, "File not found");
     }
@@ -19,7 +23,10 @@ export const publicFilesHandler: PathHandler = {
         raiseServerException(404, "File not found");
       }
       for await (const item of Deno.readDir(accontFolder)) {
-        if (item.isFile && item.name.startsWith(fileId)) {
+        if (
+          item.isFile &&
+          item.name.startsWith(`${fileId}${thumbnail ? "-thumb" : ""}.`)
+        ) {
           filePath = joinPath(accountId, item.name);
           inCloud.inCache.setValue("publicFiles", accountAndFileId, filePath);
           break;
