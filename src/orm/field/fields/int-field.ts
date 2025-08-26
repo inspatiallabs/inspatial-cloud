@@ -14,6 +14,13 @@ export default new ORMFieldConfig("IntField", {
     return true;
   },
   dbSave(value, _fieldDef) {
+    if (value !== null && value !== undefined) {
+      value = parseInt(value, 10);
+      if (isNaN(value)) {
+        value = null;
+      }
+    }
+
     return value;
   },
 });
