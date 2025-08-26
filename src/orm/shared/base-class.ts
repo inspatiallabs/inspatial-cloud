@@ -215,9 +215,24 @@ export class BaseClass<N extends string = string> {
         break;
       }
       case PGErrorCode.UniqueViolation: {
-        const fieldKey = convertString(e.fullMessage.columnName, "camel");
+        const { tableName, detail } = e.fullMessage;
+        if (detail) {
+          const match = detail.match(
+            /\((?<column>.+)\)=\((?<value>.+)\)/,
+          );
+          if (match?.groups) {
+            const fieldKey = convertString(match.groups.column, "camel");
+            const fieldValue = match.groups.value;
+            raiseORMException(
+              `Field "${fieldKey}" with value "${fieldValue}" must be unique for "${this._name}"`,
+              "UniqueField",
+              400,
+            );
+          }
+          break;
+        }
         raiseORMException(
-          `Field ${fieldKey} must be unique for ${this._name}`,
+          `Unique constraint violation on ${tableName} for ${this._name}`,
           "UniqueField",
           400,
         );
@@ -226,5 +241,6 @@ export class BaseClass<N extends string = string> {
       default:
         throw e;
     }
+    throw e;
   }
 }
