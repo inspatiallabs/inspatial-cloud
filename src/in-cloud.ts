@@ -80,6 +80,15 @@ export class InCloud {
   publicFilesPath: string;
   #config: CloudConfig;
   #shutdownCallbacks: Array<() => void | Promise<void>> = [];
+  async getServerHost(): Promise<string> {
+    let serverHost = this.inCache.getValue("systemSettings", "serverHost");
+    if (!serverHost) {
+      serverHost = await this.orm.withUser(this.orm.systemGobalUser)
+        .getSettingsValue("systemSettings", "serverHost");
+      this.inCache.setValue("systemSettings", "serverHost", serverHost);
+    }
+    return serverHost;
+  }
   constructor(appName: string, config: CloudConfig, runMode: CloudRunnerMode) {
     this.runMode = runMode;
     this.cloudRoot = normalizePath(config.projectRoot || Deno.cwd());
