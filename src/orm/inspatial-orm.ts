@@ -30,12 +30,16 @@ import {
 import { ormFields } from "~/orm/field/fields.ts";
 
 import type { InValue } from "~/orm/field/types.ts";
-import type { EntryData, IDValue } from "./entry/types.ts";
+import type { IDValue, NewEntry, UpdateEntry } from "./entry/types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { RoleManager } from "./roles/role.ts";
 import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
-import { handlePgError, isPgError, PgError } from "./db/postgres/pgError.ts";
+import {
+  handlePgError,
+  isPgError,
+  type PgError,
+} from "./db/postgres/pgError.ts";
 import type { Settings } from "./settings/settings.ts";
 import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
@@ -351,7 +355,7 @@ export class InSpatialORM {
    */
   async createEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
-    data: Record<string, any>,
+    data: NewEntry<E>,
   ): Promise<E> {
     const entry = this.getEntryInstance(entryType) as E;
     entry.create();
@@ -387,11 +391,12 @@ export class InSpatialORM {
   async updateEntry<E extends EntryBase = GenericEntry>(
     entryType: E["_name"],
     id: string,
-    data: Partial<EntryData<E>>,
-  ): Promise<any> {
+    data: UpdateEntry<E>,
+  ): Promise<E> {
     const entry = await this.getEntry(entryType, id);
     entry.update(data);
     await entry.save();
+    return entry;
   }
 
   /**

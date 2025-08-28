@@ -47,7 +47,7 @@ export const account = new EntryType<Account>("account", {
         label: "User",
         type: "ConnectionField",
         entryType: "user",
-        required: false,
+        required: true,
       }, {
         key: "role",
         label: "Role",

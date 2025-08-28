@@ -69,8 +69,9 @@ export interface Account extends EntryBase {
      *
      * **EntryType** `user`
      * @type {string}
+     * @required true
      */
-    user?: string;
+    user: string;
     /**
      * **Role** (ChoicesField)
      * @type {'systemAdmin' | 'accountOwner'}

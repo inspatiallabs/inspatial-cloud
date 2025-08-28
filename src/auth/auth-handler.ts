@@ -141,6 +141,7 @@ export class AuthHandler {
     const session = await this.orm.createEntry<UserSession>(
       "userSession",
       {
+        sessionId: "",
         user: user.id,
         sessionData,
       },
