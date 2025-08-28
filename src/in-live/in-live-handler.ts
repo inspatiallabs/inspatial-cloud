@@ -114,7 +114,6 @@ export class InLiveHandler {
     }
     const user = inRequest.context.get<SessionData>("user");
     if (!user) {
-      inLog.warn("No user session found for websocket connection.");
       return new Response("Unauthorized", { status: 401 });
     }
     if (inRequest.upgradeSocket) {
