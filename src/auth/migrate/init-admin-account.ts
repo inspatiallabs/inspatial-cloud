@@ -16,7 +16,7 @@ export async function initAdminAccount(
   }
   const account = await orm.createEntry<Account>("account", {
     name: "Admin Account",
-    users: [{ user: newAdminUser.id }],
+    users: [{ user: newAdminUser.id, isOwner: true, role: "accountOwner" }],
   });
   await account.runAction("initialize");
   orm.inLog.info("Admin account created successfully.");
