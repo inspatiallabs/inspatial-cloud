@@ -26,6 +26,7 @@ import { MigrationPlanner } from "~/orm/migrate/migration-planner.ts";
 import {
   generateEntryInterface,
   generateSettingsInterfaces,
+  getBaseInterfaces,
 } from "~/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "~/orm/field/fields.ts";
 
@@ -44,6 +45,8 @@ import type { Settings } from "./settings/settings.ts";
 import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
 import { InLog } from "#inLog";
+import { joinPath } from "../utils/path-utils.ts";
+import convertString from "../utils/convert-string.ts";
 
 export class InSpatialORM {
   inLog: InLog;
@@ -875,15 +878,36 @@ export class InSpatialORM {
   > {
     const generatedEntries: string[] = [];
     const generatedSettings: string[] = [];
+    const interfacesData: string[] = [getBaseInterfaces()];
+
     const adminRole = this.roles.getRole("systemAdmin");
     for (const entryType of adminRole.entryTypes.values()) {
-      await generateEntryInterface(entryType);
+      const result = await generateEntryInterface(entryType);
+      if (result) {
+        interfacesData.push(result);
+      }
       generatedEntries.push(entryType.name);
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      await generateSettingsInterfaces(settingsType);
+      const result = await generateSettingsInterfaces(settingsType);
+      if (result) {
+        interfacesData.push(result);
+      }
+
       generatedSettings.push(settingsType.name);
     }
+    interfacesData.push(
+      `
+      interface EntryMap {
+      ${
+        generatedEntries.map((e) => e + ": " + convertString(e, "pascal", true))
+          .join("\n")
+      }
+      }
+      `,
+    );
+    const typesPath = joinPath(this._inCloud.inRoot, "cloud-types.d.ts");
+    await Deno.writeTextFile(typesPath, interfacesData.join("\n\n"));
     return {
       generatedEntries,
       generatedSettings,
