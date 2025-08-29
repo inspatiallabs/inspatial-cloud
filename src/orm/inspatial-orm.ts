@@ -37,7 +37,10 @@ import type { EntryTypeRegistry } from "./registry/connection-registry.ts";
 import type { UserContext, UserID } from "../auth/types.ts";
 import { handlePgError, isPgError, PgError } from "./db/postgres/pgError.ts";
 import type { Settings } from "./settings/settings.ts";
-import { generateClientEntryTypes } from "./build/generate-interface/generate-client-interface.ts";
+import {
+  generateClientEntryTypes,
+  generateClientSettingsTypes,
+} from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
 import { InLog } from "#inLog";
 
@@ -890,8 +893,14 @@ export class InSpatialORM {
     const adminRole = this.roles.getRole("systemAdmin");
     const entryTypes = Array.from(adminRole.entryTypes.values());
     const entriesInterfaces = generateClientEntryTypes(entryTypes);
+    const settingsTypes = Array.from(
+      adminRole.settingsTypes.values(),
+    );
+    const settingsInterfaces = generateClientSettingsTypes(
+      settingsTypes,
+    );
 
-    return entriesInterfaces;
+    return entriesInterfaces + "\n\n" + settingsInterfaces;
   }
   handlePgError(e: PgError) {
     const { info, response, subject } = handlePgError(e);

@@ -23,6 +23,8 @@ export class CloudDB {
       },
       debug: false,
       args: [
+        "--locale",
+        "en_US.UTF-8",
         "--single",
         "postgres",
         "--",
