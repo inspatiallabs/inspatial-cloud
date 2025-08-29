@@ -151,7 +151,7 @@ export class Entry<
       this.id,
       data,
     ).catch((e) => this.handlePGError(e));
-    await this.saveChildren();
+    await this.saveChildren().catch((e) => this.handlePGError(e));
     await this.#afterUpdate();
     await this.load(this.id);
   }

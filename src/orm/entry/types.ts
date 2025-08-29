@@ -9,6 +9,7 @@ import type {
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
+import { ChildEntryList } from "@inspatial/cloud";
 
 /* Hooks */
 type EntryHookFunction<
@@ -160,12 +161,46 @@ export type ExtractFieldKeys<T> = keyof {
   [K in keyof T as K extends keyof EntryBase ? never : K]: K;
 };
 
-export type EntryData<T> = {
-  [
-    K in keyof T as K extends keyof EntryBase ? never
-      : K
-  ]: T[K];
+export type UpdateEntry<T> = {
+  [K in keyof T as K extends BannedFieldKeys ? never : K]?:
+    ExtractUpdateChildList<T[K]>;
 };
+export type NewEntry<T> = {
+  [K in keyof T as K extends BannedFieldKeys ? never : K]: ExtractNewChildList<
+    T[K]
+  >;
+};
+
+type BannedFieldKeys =
+  | keyof EntryBase
+  | `${string}__title`;
+
+type BannedChildFields =
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "parent"
+  | "order"
+  | `${string}__title`;
+
+type NewChild<T> = {
+  [K in keyof T as K extends BannedChildFields ? never : K]: T[K];
+};
+type UpdateChild<T> = {
+  [K in keyof T as K extends BannedChildFields ? never : K]?: T[K];
+};
+
+type SafeKeys<T> = keyof {
+  [K in keyof T as K extends BannedFieldKeys ? never : K]: K;
+};
+
+export type ExtractNewChildList<T> = T extends ChildEntryList<infer U>
+  ? Array<NewChild<U>>
+  : T;
+
+type ExtractUpdateChildList<T> = T extends ChildEntryList<infer U>
+  ? Array<UpdateChild<U>>
+  : T;
 
 export type EntryIndex<FK extends PropertyKey = PropertyKey> = {
   fields: Array<FK>;

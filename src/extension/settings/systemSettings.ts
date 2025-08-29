@@ -21,5 +21,17 @@ export const systemSettings = new SettingsType<SystemSettings>(
       defaultValue: "http://localhost:8000",
       required: true,
     }],
+    hooks: {
+      afterUpdate: [{
+        name: "cacheSettings",
+        handler({ inCloud, systemSettings }) {
+          inCloud.inCache.setValue(
+            "systemSettings",
+            "serverHost",
+            systemSettings.serverHost,
+          );
+        },
+      }],
+    },
   },
 );

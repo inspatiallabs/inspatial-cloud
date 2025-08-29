@@ -75,6 +75,8 @@ export async function handleGoogleSignup(args: {
   user.googleAuthStatus = "authenticated";
   await user.save();
   await orm.createEntry<Account>("account", {
+    name: `${givenName} ${familyName}`.trim() || email,
+    initialized: true,
     users: [{
       user: user.id,
     }],

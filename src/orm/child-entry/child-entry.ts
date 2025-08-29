@@ -95,6 +95,8 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       this._tableName,
       {
         columns: "*",
+        orderBy: "order",
+        order: "asc",
         filter: [{
           field: "parent",
           op: "=",
