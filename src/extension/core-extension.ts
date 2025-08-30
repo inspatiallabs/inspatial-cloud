@@ -141,6 +141,10 @@ export const coreExtension = new CloudExtension("core", {
             view: false,
             modify: false,
           },
+          enabled: {
+            view: false,
+            modify: false,
+          },
           firstName: {
             modify: true,
             view: true,

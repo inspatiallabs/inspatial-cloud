@@ -38,7 +38,14 @@ export class Entry<
   get permission(): EntryPermission {
     return this._entryType.permission;
   }
-
+  get clientData(): Record<string, any> {
+    this.assertViewPermission();
+    const data = this.data;
+    for (const fieldName of this._entryType.hiddenClientFields) {
+      delete data[fieldName];
+    }
+    return data;
+  }
   get data(): Record<string, any> {
     this.assertViewPermission();
     const data = Object.fromEntries(this._data.entries());

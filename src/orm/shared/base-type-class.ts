@@ -20,6 +20,7 @@ export class BaseType<N extends string = string> {
   fieldGroups: Map<string, FieldGroup> = new Map();
   connectionTitleFields: Map<string, InField> = new Map();
   children?: Map<string, ChildEntryType<any>>;
+  hiddenClientFields: Set<string> = new Set();
   #baseInfo: BaseTypeInfo;
   #info: Record<string, any> = {};
   constructor(
@@ -59,6 +60,9 @@ export class BaseType<N extends string = string> {
         field.label = convertString(field.key, "title", true);
       }
       this.fields.set(field.key, field);
+      if (field.hidden) {
+        this.hiddenClientFields.add(field.key);
+      }
     }
 
     this.#setDisplayFields();

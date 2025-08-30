@@ -54,6 +54,12 @@ export interface User extends EntryBase {
    */
   systemAdmin?: boolean;
   /**
+   * **Enabled** (BooleanField)
+   * @description Is the user account enabled? Disabled accounts cannot log in.
+   * @type {boolean}
+   */
+  enabled?: boolean;
+  /**
    * **API Token** (PasswordField)
    * @description The user's API token
    * @type {string}

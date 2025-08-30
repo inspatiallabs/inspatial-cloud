@@ -46,6 +46,14 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       systemGlobal: config.systemGlobal,
     });
   }
+  get clientData(): Record<string, any> {
+    this.assertViewPermission();
+    const data = this.data;
+    for (const fieldName of this._settingsType.hiddenClientFields) {
+      delete data[fieldName];
+    }
+    return data;
+  }
   get data(): Record<string, any> {
     this.assertViewPermission();
     const data = Object.fromEntries(this._data.entries());

@@ -8,7 +8,7 @@ export const getEntryAction = new CloudAPIAction("getEntry", {
   async run({ orm, params }) {
     const { entryType, id } = params;
     const entry = await orm.getEntry(entryType, id);
-    return entry.data;
+    return entry.clientData;
   },
   params: [{
     key: "entryType",
@@ -32,7 +32,7 @@ export const newEntryAction = new CloudAPIAction("getNewEntry", {
   run({ orm, params }) {
     const { entryType } = params;
     const entry = orm.getNewEntry(entryType);
-    return entry.data;
+    return entry.clientData;
   },
   params: [{
     key: "entryType",
@@ -52,7 +52,7 @@ export const updateEntryAction = new CloudAPIAction("updateEntry", {
     const entry = await orm.getEntry(entryType, id);
     entry.update(data);
     await entry.save();
-    return entry.data;
+    return entry.clientData;
   },
   params: [{
     key: "entryType",
@@ -81,7 +81,7 @@ export const createEntryAction = new CloudAPIAction("createEntry", {
   async run({ orm, params }) {
     const { entryType, data } = params;
     const entry = await orm.createEntry(entryType, data);
-    return entry.data;
+    return entry.clientData;
   },
   params: [{
     key: "entryType",
@@ -179,7 +179,22 @@ export const getEntryListAction = new CloudAPIAction("getEntryList", {
   description: "Get a list of entries for a given Entry Type",
   async run({ orm, params }) {
     const { entryType, options } = params;
-    const entryList = await orm.getEntryList(entryType, options);
+    const entryTypeDef = orm.getEntryType(entryType);
+    // entryTypeDef.hiddenClientFields
+    const defaultListFields = Array.from(entryTypeDef.defaultListFields);
+    const fields = new Set(
+      options?.columns as string[] | undefined || defaultListFields,
+    );
+    for (const field of fields) {
+      if (entryTypeDef.hiddenClientFields.has(field)) {
+        fields.delete(field);
+      }
+    }
+    const newOptions = {
+      ...options,
+      columns: Array.from(fields),
+    };
+    const entryList = await orm.getEntryList(entryType, newOptions);
     return entryList;
   },
   params: [{

@@ -56,6 +56,13 @@ export const userFields = [{
   description:
     "Is the user a system administrator? (admin users have access to all parts of the system)",
 }, {
+  key: "enabled",
+  label: "Enabled",
+  type: "BooleanField",
+  readOnly: false,
+  description: "Is the user account enabled? Disabled accounts cannot log in.",
+  default: true,
+}, {
   key: "apiToken",
   label: "API Token",
   type: "PasswordField",

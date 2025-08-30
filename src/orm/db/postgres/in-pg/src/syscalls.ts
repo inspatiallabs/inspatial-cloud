@@ -347,7 +347,6 @@ export class SysCalls {
       "iipi",
       (_dirfd, pathPointer, _mode) => {
         const path = this.fm.getPtrPath(pathPointer);
-
         return this.fm.mkdir(path);
       },
     );

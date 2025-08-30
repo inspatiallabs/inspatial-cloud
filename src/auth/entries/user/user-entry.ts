@@ -27,7 +27,7 @@ export const userEntry = new EntryType<User>("user", {
     key: "security",
     label: "Security",
     description: "Security related information",
-    fields: ["systemAdmin", "apiToken"],
+    fields: ["systemAdmin", "apiToken", "enabled"],
   }, {
     key: "google",
     label: "Google Account",

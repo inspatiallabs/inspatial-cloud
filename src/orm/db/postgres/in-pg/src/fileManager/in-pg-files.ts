@@ -368,8 +368,8 @@ export class FileManager {
   mkdir(path: string) {
     path = this.parsePath(path);
     if (
-      path.includes("/tmp") ||
-      path.includes("/dev") ||
+      path.startsWith("/tmp") ||
+      path.startsWith("/dev") ||
       path === "/"
     ) {
       return -ERRNO_CODES.EEXIST;
@@ -378,6 +378,7 @@ export class FileManager {
       return -ERRNO_CODES.EEXIST;
     }
     Deno.mkdirSync(path);
+    return 0;
   }
   join(...parts: string[]) {
     return parts.join("/").replaceAll("\\", "/");
