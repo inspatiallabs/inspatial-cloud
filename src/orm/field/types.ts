@@ -38,4 +38,7 @@ type InValueTypeMap = {
   CodeField: string;
 };
 
-export type IDMode = "uuid" | "ulid" | "auto";
+export type IDMode = "uuid" | "ulid" | "auto" | {
+  type: "field";
+  field: string;
+};

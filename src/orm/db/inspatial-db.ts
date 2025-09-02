@@ -333,7 +333,8 @@ export class InSpatialDB {
         query += ` UUID`;
         break;
       case "manual":
-        query += ` CHAR(255)`;
+      default:
+        query += ` VARCHAR(255)`;
     }
     query += ` PRIMARY KEY );`;
     await this.query(query);

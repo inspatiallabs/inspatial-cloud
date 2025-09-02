@@ -80,6 +80,26 @@ export class EntryType<
       required: true,
     });
 
+    if (
+      config.idMode && typeof config.idMode === "object" &&
+      config.idMode.type === "field"
+    ) {
+      const field = config.idMode.field;
+      const fieldDef = this.fields.get(field);
+      if (!fieldDef) {
+        raiseORMException(
+          `ID field ${field.toString()} does not exist in EntryType ${this.name}`,
+        );
+      }
+      if (fieldDef.type !== "DataField") {
+        raiseORMException(
+          `ID field ${field.toString()} must be of type 'DataField' in EntryType ${this.name}`,
+        );
+      }
+      fieldDef.unique = true;
+      fieldDef.required = true;
+    }
+
     this.fields.set("createdAt", {
       key: "createdAt",
       label: "Created At",

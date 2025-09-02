@@ -45,6 +45,10 @@ import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
+import { userRole } from "../auth/entries/user-role/user-role.ts";
+import { entryMeta } from "../core/entryMeta.ts";
+import { extensionMeta } from "../core/extensionMeta.ts";
+
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -86,6 +90,9 @@ export const coreExtension = new CloudExtension("core", {
     emailAccountEntry,
     emailTemplate,
     onboardingStep,
+    userRole,
+    entryMeta,
+    extensionMeta,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],

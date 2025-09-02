@@ -74,9 +74,14 @@ export interface Account extends EntryBase {
     user: string;
     /**
      * **Role** (ChoicesField)
-     * @type {'systemAdmin' | 'accountOwner'}
+     * @type {'systemAdmin' | 'accountOwner' | 'organisationAdmin' | 'organisationManager' | 'organisationStaff'}
      */
-    role?: "systemAdmin" | "accountOwner";
+    role?:
+      | "systemAdmin"
+      | "accountOwner"
+      | "organisationAdmin"
+      | "organisationManager"
+      | "organisationStaff";
     /**
      * **Is Owner** (BooleanField)
      * @type {boolean}
@@ -168,10 +173,15 @@ type AccountParamsActionMap = {
       email: string;
       /**
        * **Role** (ChoicesField)
-       * @type {'systemAdmin' | 'accountOwner'}
+       * @type {'systemAdmin' | 'accountOwner' | 'organisationAdmin' | 'organisationManager' | 'organisationStaff'}
        * @required true
        */
-      role: "systemAdmin" | "accountOwner";
+      role:
+        | "systemAdmin"
+        | "accountOwner"
+        | "organisationAdmin"
+        | "organisationManager"
+        | "organisationStaff";
     };
     return: Promise<any>;
   };

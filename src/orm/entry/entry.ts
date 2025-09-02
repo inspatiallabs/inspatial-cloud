@@ -222,6 +222,18 @@ export class Entry<
   }
   async #validate(): Promise<void> {
     await this.#beforeValidate();
+    if (!this.#isNew) {
+      const idMode = this._entryType.config.idMode;
+      if (typeof idMode === "object" && idMode.type === "field") {
+        if (this._modifiedValues.has(idMode.field)) {
+          raiseORMException(
+            `The id field ${idMode.field} cannot be modified.`,
+            "ValidationError",
+            400,
+          );
+        }
+      }
+    }
     await this.#runHooks("validate");
     await this._orm._runGlobalEntryHooks("validate", this);
   }
@@ -302,6 +314,23 @@ export class Entry<
         id = crypto.randomUUID();
         break;
       default:
+        if (typeof idMode === "object" && idMode.type === "field") {
+          const field = this._getFieldDef(idMode.field);
+          if (!field) {
+            raiseORMException(
+              `Field ${idMode.field} does not exist on entry type ${this._entryType.name}`,
+            );
+          }
+          const value = this._data.get(field.key);
+          if (!value) {
+            raiseORMException(
+              `Field ${idMode.field} is not set on entry type ${this._entryType.name}`,
+            );
+          }
+          console.log({ value });
+          id = value as string;
+          break;
+        }
         raiseORMException(`Invalid idMode ${idMode}`);
     }
     return id;
