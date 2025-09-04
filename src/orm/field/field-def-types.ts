@@ -3,7 +3,7 @@ import type {
   FileTypes,
   ImageFileType,
 } from "~/files/mime-types/file-types.ts";
-import { InFilter } from "../db/db-types.ts";
+import type { InFilter } from "../db/db-types.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
@@ -32,6 +32,7 @@ export type InFieldMap = {
   FileField: FileField;
   TimeField: TimeField;
   CodeField: CodeField;
+  ArrayField: ArrayField;
 };
 
 export type InFieldType = keyof InFieldMap;
@@ -230,6 +231,11 @@ export interface URLField extends BaseField {
 export interface ListField extends BaseField {
   type: "ListField";
   defaultValue?: InValue<"ListField">;
+}
+
+export interface ArrayField extends BaseField {
+  type: "ArrayField";
+  arrayType: keyof Pick<InFieldMap, "IntField" | "DataField">;
 }
 
 export interface CodeField extends BaseField {

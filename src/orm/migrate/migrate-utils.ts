@@ -20,6 +20,7 @@ export function compareDataTypes(
     "datetimePrecision",
     "intervalType",
     "intervalPrecision",
+    "array",
   ];
   const from: Record<string, any> = {};
   const to: Record<string, any> = {};

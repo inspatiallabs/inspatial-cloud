@@ -38,6 +38,12 @@ export interface EmailTemplate extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Email Template
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
   isFieldModified(
     fieldKey: keyof {
       [K in keyof EmailTemplate as K extends keyof EntryBase ? never : K]: K;

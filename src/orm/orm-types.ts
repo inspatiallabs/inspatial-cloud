@@ -50,3 +50,8 @@ export type EntryHookFunction = (app: InCloud, hookParams: {
 export type UniqueArray<T> = T extends ReadonlyArray<infer U>
   ? U[] & { __unique: never }
   : never;
+
+export type Tag = {
+  id: string;
+  name: string;
+};

@@ -45,6 +45,7 @@ import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
+import { tagsGroup } from "../orm/api-actions/tags-group.ts";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -67,6 +68,7 @@ export const coreExtension = new CloudExtension("core", {
     devActions,
     filesGroup,
     emailGroup,
+    tagsGroup,
   ],
   settingsTypes: [
     systemSettings,

@@ -102,6 +102,12 @@ export interface Email extends EntryBase {
    */
   updatedAt: number;
   /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Email
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+  /**
    * **From Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}

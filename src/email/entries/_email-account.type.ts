@@ -113,6 +113,12 @@ export interface EmailAccount extends EntryBase {
    * @required true
    */
   updatedAt: number;
+  /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Email Account
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
   isFieldModified(
     fieldKey: keyof {
       [K in keyof EmailAccount as K extends keyof EntryBase ? never : K]: K;

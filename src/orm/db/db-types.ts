@@ -44,9 +44,11 @@ export interface DBConfig {
 export type PgDataType =
   | "boolean"
   | "text"
+  | "text[]"
   | "character varying"
   | "timestamp with time zone"
   | "integer"
+  | "integer[]"
   | "jsonb"
   | "numeric"
   | "bigint"
@@ -55,6 +57,7 @@ export type PgDataType =
   | "date";
 export interface PgDataTypeDefinition {
   dataType: PgDataType;
+  array?: boolean;
   characterMaximumLength?: number | null;
   characterOctetLength?: number | null;
   numericPrecision?: number | null;
@@ -197,13 +200,17 @@ type BetweenOps = "between" | "notBetween";
 type EmptyOps = "isEmpty" | "isNotEmpty";
 type ListOps = "notInList" | "inList";
 type ContainsOps = "contains" | "notContains" | "startsWith" | "endsWith";
+
+type ArrayOps = "arrayContains" | "arrayNotContains" | "arrayContainsAny";
+
 export type FilterOps =
   | EqualsOp
   | ComparisonOp
   | BetweenOps
   | EmptyOps
   | ListOps
-  | ContainsOps;
+  | ContainsOps
+  | ArrayOps;
 
 type FilterInList = {
   op: ListOps;
@@ -232,13 +239,19 @@ type FilterContains = {
   value: string;
   caseSensitive?: boolean;
 };
+
+type FilterArray = {
+  op: ArrayOps;
+  value: string | number | Array<string> | Array<number>;
+};
 export type FilterAll =
   | FilterInList
   | FilterEqual
   | FilterBetween
   | FilterEmpty
   | FilterCompare
-  | FilterContains;
+  | FilterContains
+  | FilterArray;
 
 export type InFilter =
   | FilterAll

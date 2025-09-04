@@ -7,6 +7,7 @@ import type {
   GetListResponse,
   GlobalEntryHooks,
   GlobalSettingsHooks,
+  Tag,
 } from "~/orm/orm-types.ts";
 import type { Entry } from "~/orm/entry/entry.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
@@ -46,7 +47,7 @@ import {
   generateClientSettingsTypes,
 } from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
-import { InLog } from "#inLog";
+import type { InLog } from "#inLog";
 
 export class InSpatialORM {
   inLog: InLog;
@@ -572,6 +573,65 @@ export class InSpatialORM {
     const result = await db.getRows(tableName, dbOptions);
     return result as GetListResponse<E>;
   }
+
+  /** Tags Section **/
+
+  async getTags(): Promise<Array<Tag>> {
+    const { rows } = await this.db.getRows<Tag>("inTag");
+    return rows;
+  }
+  async hasTag(tagId: number): Promise<boolean> {
+    const result = await this.db.getRow("inTag", tagId);
+    return !!result;
+  }
+  async getTagByName(tagName: string): Promise<
+    {
+      id: number;
+      name: string;
+    } | null
+  > {
+    tagName = tagName.trim().toLowerCase();
+    const result = await this.db.getRows<{
+      id: number;
+      name: string;
+    }>("inTag", {
+      columns: ["id", "name"],
+      filter: { name: tagName },
+      limit: 1,
+    });
+    if (result.rowCount === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+  async addTag(tagName: string): Promise<{
+    id: number;
+    name: string;
+  }> {
+    tagName = tagName.trim().toLowerCase();
+    try {
+      const tag = await this.db.insertRow<{
+        id: number;
+        name: string;
+      }>("inTag", { name: tagName });
+      return tag;
+    } catch (e) {
+      if (!isPgError(e)) {
+        throw e;
+      }
+      if (e.code === PGErrorCode.UniqueViolation) {
+        raiseORMException(
+          `Tag with name '${tagName}' already exists.`,
+          "ORMTag",
+          400,
+        );
+      }
+      throw e;
+    }
+  }
+
+  /** End Tags section **/
+
   async sum(entryType: string, options: {
     fields: Array<string>;
     filter?: DBFilter;
@@ -927,6 +987,14 @@ export class InSpatialORM {
         raiseORMException(
           `Cannot delete entry with id ${id} because it is referenced by another entry (${table}). Please delete the referencing entries first.`,
           "ORMForeignKeyViolation",
+          400,
+        );
+        break;
+      }
+      case PGErrorCode.UniqueViolation: {
+        raiseORMException(
+          `Cannot create or update entry because it would violate a unique constraint. ${response}`,
+          "ORMUniqueViolation",
           400,
         );
       }
