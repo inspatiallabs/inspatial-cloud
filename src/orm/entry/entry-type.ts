@@ -96,6 +96,18 @@ export class EntryType<
       description: "The date and time this entry was last updated",
       required: true,
     });
+    this.fields.set("in__tags", {
+      key: "in__tags",
+      label: "Tags",
+      type: "ArrayField",
+      arrayType: "IntField",
+      readOnly: true,
+      description: `Tags associated with this ${this.label}`,
+      required: false,
+    });
+    if (config.taggable) {
+      this.defaultListFields.add("in__tags");
+    }
     const searchFields = new Set<PropertyKey>(config.searchFields);
     searchFields.add("id");
     if (config.titleField) {
@@ -108,6 +120,7 @@ export class EntryType<
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
       searchFields: Array.from(searchFields),
+      taggable: config.taggable || false,
       description: this.description ||
         `${this.label} entry type for InSpatial ORM`,
     };

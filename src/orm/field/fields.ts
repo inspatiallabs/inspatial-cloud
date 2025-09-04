@@ -22,7 +22,7 @@ import idField from "~/orm/field/fields/id-field.ts";
 import fileField from "~/orm/field/fields/file-field.ts";
 import timeField from "./fields/time-field.ts";
 import codeField from "./fields/code-field.ts";
-
+import arrayField from "./fields/array-field.ts";
 export const ormFields = [
   bigIntField,
   booleanField,
@@ -48,4 +48,5 @@ export const ormFields = [
   fileField,
   timeField,
   codeField,
+  arrayField,
 ];

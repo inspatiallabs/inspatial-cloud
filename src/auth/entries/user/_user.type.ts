@@ -121,6 +121,12 @@ export interface User extends EntryBase {
    */
   updatedAt: number;
   /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this User
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+  /**
    * **Profile Picture Title** (DataField)
    * @type {string}
    */

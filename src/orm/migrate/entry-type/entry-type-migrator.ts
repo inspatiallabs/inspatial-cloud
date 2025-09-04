@@ -236,6 +236,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
     }
   }
+
   #checkForColumnsToCreate(): void {
     for (const column of this.targetColumns.values()) {
       if (!this.existingColumns.has(column.columnName)) {

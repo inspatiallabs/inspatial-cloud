@@ -417,6 +417,7 @@ const flutterTypeMap: Record<InFieldType, string> = {
   FileField: "FileField",
   TimeField: "DateTime",
   CodeField: "String",
+  ArrayField: "List<dynamic>",
 };
 
 async function writeModelFile(

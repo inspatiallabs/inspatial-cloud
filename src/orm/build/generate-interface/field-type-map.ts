@@ -25,4 +25,5 @@ export const fieldTypeMap: Record<InFieldType, string> = {
   FileField: "string",
   TimeField: "string",
   CodeField: "string",
+  ArrayField: "Array<any>",
 };
