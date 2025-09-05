@@ -18,6 +18,9 @@ export const dataTypeMap: DataTypeMap = {
   30: "oidvector",
   114: "json",
   142: "xml",
+  1007: "int4[]",
+  1009: "text[]",
+  1015: "varchar[]",
   1042: "bpchar",
   1043: "varchar",
   1114: "timestamp",
@@ -94,6 +97,17 @@ export function convertToDataType(
       return text;
     case "time":
       return text;
+    case "int4[]": {
+      if (text === "{}") return [];
+      return text.replace(/^{|}$/g, "").split(",").map((v) => parseInt(v)) ||
+        [];
+    }
+    case "text[]":
+    case "varchar[]":
+      if (text === "{}") return [];
+      return text.replace(/^{|}$/g, "").split(",").map((v) =>
+        v === '""' ? "" : v.replace(/^"|"$/g, "").replace(/\\"/g, '"') || []
+      );
     default:
       return text;
   }

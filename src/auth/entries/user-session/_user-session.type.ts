@@ -45,6 +45,12 @@ export interface UserSession extends EntryBase {
    */
   updatedAt: number;
   /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this User Session
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+  /**
    * **User Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}

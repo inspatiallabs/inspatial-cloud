@@ -17,7 +17,13 @@ export class Entry<
   get id(): IDValue {
     return this._data.get("id");
   }
-
+  get tags(): Array<number> {
+    this.assertViewPermission();
+    if (!this._entryType.config.taggable) {
+      return [];
+    }
+    return this._data.get("in__tags") || [];
+  }
   get #isNew(): boolean {
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
@@ -124,7 +130,50 @@ export class Entry<
 
     await this.loadChildren(this.id as string);
   }
-
+  async addTagByName(tagName: string) {
+    this.assertModifyPermission();
+    if (!this._entryType.config.taggable) {
+      raiseORMException(
+        `Entry type ${this._entryType.config.label} is not taggable`,
+      );
+    }
+    let tag = await this._orm.getTagByName(tagName);
+    if (!tag) {
+      tag = await this._orm.addTag(tagName);
+    }
+    const tags = new Set(this.tags);
+    tags.add(tag.id);
+    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    await this.save();
+  }
+  async addTag(tagId: number) {
+    this.assertModifyPermission();
+    if (!this._entryType.config.taggable) {
+      raiseORMException(
+        `Entry type ${this._entryType.config.label} is not taggable`,
+      );
+    }
+    const hasTag = await this._orm.hasTag(tagId);
+    if (!hasTag) {
+      raiseORMException(`Tag with id ${tagId} does not exist`);
+    }
+    const tags = new Set(this.tags);
+    tags.add(tagId);
+    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    await this.save();
+  }
+  async removeTag(tagId: number) {
+    this.assertModifyPermission();
+    if (!this._entryType.config.taggable) {
+      raiseORMException(
+        `Entry type ${this._entryType.config.label} is not taggable`,
+      );
+    }
+    const tags = new Set(this.tags);
+    tags.delete(tagId);
+    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    await this.save();
+  }
   async save(): Promise<void> {
     if (this.#isNew) {
       this.assertCreatePermission();

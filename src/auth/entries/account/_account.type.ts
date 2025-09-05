@@ -53,6 +53,12 @@ export interface Account extends EntryBase {
    */
   updatedAt: number;
   /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Account
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+  /**
    * **Account Owner Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}

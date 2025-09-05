@@ -7,6 +7,7 @@ import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
 import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import type { InSpatialORM } from "../inspatial-orm.ts";
+import { setupTagsTable } from "../../tags/tags.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
@@ -89,6 +90,7 @@ export class MigrationPlanner {
   async migrate(): Promise<Array<string>> {
     await this.#validateSchema();
     await this.createMigrationPlan();
+    await this.#verifyTagsTable();
     await this.#verifySettingsTable();
     await this.#migrateEntryTypes();
     await this.#migrateSettingsTypes();
@@ -99,6 +101,9 @@ export class MigrationPlanner {
     if (!hasSchema) {
       await this.db.createSchema(this.db.schema);
     }
+  }
+  async #verifyTagsTable(): Promise<void> {
+    await setupTagsTable(this.db);
   }
   async #migrateEntryTypes(): Promise<void> {
     await this.#createMissingTables();

@@ -47,6 +47,9 @@ export interface DataTypeMap {
   30: "oidvector";
   114: "json";
   142: "xml";
+  1007: "int4[]";
+  1009: "text[]";
+  1015: "varchar[]";
   1042: "bpchar";
   1043: "varchar";
   1082: "date";

@@ -23,7 +23,7 @@ import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import { generateId } from "../../utils/misc.ts";
-import { getInLog, InLog } from "#inLog";
+import { getInLog, type InLog } from "#inLog";
 
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -202,7 +202,9 @@ export class InSpatialDB {
   /**
    * Get a list of column definitions for a table
    */
-  async getTableColumns(tableName: string): Promise<PostgresColumn[]> {
+  async getTableColumns(
+    tableName: string,
+  ): Promise<Array<PostgresColumn & { array?: boolean }>> {
     tableName = toSnake(tableName);
     const columns = [
       "tableCatalog",
@@ -256,9 +258,24 @@ export class InSpatialDB {
     } FROM information_schema.columns WHERE table_schema = '${this.schema}' AND table_name = '${tableName}';`;
     const result = await this.query<PostgresColumn>(query);
     return result.rows.map((row) => {
+      let array: true | undefined;
+      if (row.dataType as string === "ARRAY") {
+        array = true;
+        switch (row.udtName) {
+          case "_int4":
+            row.dataType = "integer";
+            break;
+          case "_text":
+            row.dataType = "text";
+            break;
+          default:
+            raiseORMException(`Unsupported array type: ${row.udtName}`);
+        }
+      }
       return {
         ...row,
         columnName: snakeToCamel(row.columnName),
+        array,
       };
     });
   }
@@ -793,7 +810,10 @@ export class InSpatialDB {
     let nullQuery = "";
     let createColumnQuery =
       `ALTER TABLE "${this.schema}".${tableName} ADD "${columnName}"`;
-
+    if (column.array) {
+      column.dataType =
+        `${column.dataType}[]` as PgDataTypeDefinition["dataType"];
+    }
     switch (column.dataType) {
       case "character varying":
         createColumnQuery += ` VARCHAR`;

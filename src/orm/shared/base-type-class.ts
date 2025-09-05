@@ -89,7 +89,7 @@ export class BaseType<N extends string = string> {
       if (field.hidden) {
         continue;
       }
-      if (["id", "createdAt", "updatedAt"].includes(field.key)) {
+      if (["id", "createdAt", "updatedAt", "in__tags"].includes(field.key)) {
         continue;
       }
       this.displayFields.set(field.key, field);

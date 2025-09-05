@@ -132,6 +132,7 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   searchFields?: Array<any>;
   defaultListFields?: Array<string>;
   index: Array<EntryIndex<string>>;
+  taggable: boolean;
 }
 export type EntryConfig<
   E extends EntryBase = GenericEntry,
@@ -151,6 +152,7 @@ export type EntryConfig<
   defaultSortField?: FK;
   defaultSortDirection?: "asc" | "desc";
   searchFields?: Array<FK>;
+  taggable?: boolean;
   index?: Array<EntryIndex<FK>>;
   actions?: A;
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
