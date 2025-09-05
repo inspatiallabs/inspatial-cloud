@@ -127,7 +127,7 @@ const config = {
         entry: CloudFile | GlobalCloudFile;
         inCloud: InCloud;
       }) {
-        const path = entry.filePath;
+        const path = entry.$filePath;
         try {
           await Deno.remove(path);
         } catch (e) {
@@ -150,16 +150,16 @@ const config = {
         orm: InSpatialORM;
         inCloud: InCloud;
       }) {
-        if (entry.isFieldModified("optimizeImage") && entry.optimizeImage) {
+        if (entry.isFieldModified("optimizeImage") && entry.$optimizeImage) {
           inCloud.inQueue.send({
             command: "optimizeImage",
             data: {
-              format: entry.optimizeFormat || "jpeg",
-              height: entry.optimizeHeight || 1000,
-              width: entry.optimizeWidth || 1000,
-              inputFilePath: entry.filePath,
-              fileId: entry.id,
-              title: entry.fileName,
+              format: entry.$optimizeFormat || "jpeg",
+              height: entry.$optimizeHeight || 1000,
+              width: entry.$optimizeWidth || 1000,
+              inputFilePath: entry.$filePath,
+              fileId: entry.$id,
+              title: entry.$fileName,
               withThumbnail: true,
               accountId: entry._entryType.systemGlobal
                 ? undefined

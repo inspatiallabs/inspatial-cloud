@@ -132,7 +132,7 @@ export class Settings<N extends string = string> extends BaseClass<N> {
       if (!this._changeableFields.has(key)) {
         continue;
       }
-      this[key as keyof this] = value;
+      this[`$${key}`] = value;
     }
   }
   async save(): Promise<void> {

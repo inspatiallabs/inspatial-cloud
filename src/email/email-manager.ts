@@ -23,7 +23,7 @@ export class EmailManager {
     account: string;
     entryType?: string;
     entryId?: string;
-  }): Promise<GetListResponse<Email>> {
+  }): Promise<GetListResponse<Email["__fields__"]>> {
     const orm = this.inCloud.orm;
 
     const filters: InFilter[] = [{
@@ -93,23 +93,23 @@ export class EmailManager {
   }: SendEmailOptions): Promise<any> {
     const orm = this.inCloud.orm;
     const email = orm.getNewEntry<Email>("email");
-    email.recipientEmail = recipientEmail;
-    email.subject = subject;
-    email.body = body;
+    email.$recipientEmail = recipientEmail;
+    email.$subject = subject;
+    email.$body = body;
     if (link?.account) {
-      email.linkAccount = link.account;
-      email.linkTitle = link.account;
+      email.$linkAccount = link.account;
+      email.$linkTitle = link.account;
     }
     if (link?.entryType) {
-      email.linkEntry = link.entryType;
-      email.linkTitle = link.entryType;
+      email.$linkEntry = link.entryType;
+      email.$linkTitle = link.entryType;
     }
     if (link?.entryId) {
-      email.linkId = link.entryId;
-      email.linkTitle = link.entryId;
+      email.$linkId = link.entryId;
+      email.$linkTitle = link.entryId;
     }
     if (link?.entryTitle) {
-      email.linkTitle = link.entryTitle;
+      email.$linkTitle = link.entryTitle;
     }
 
     await email.save();

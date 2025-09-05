@@ -39,4 +39,7 @@ type InValueTypeMap = {
 export type IDMode = "uuid" | "ulid" | "auto" | {
   type: "field";
   field: string;
+} | {
+  type: "fields";
+  fields: string[];
 };

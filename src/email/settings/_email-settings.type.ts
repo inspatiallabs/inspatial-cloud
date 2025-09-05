@@ -1,7 +1,6 @@
-import type { SettingsBase } from "@inspatial/cloud/types";
+import type { ChildList, SettingsBase as Base } from "@inspatial/cloud/types";
 
-export interface EmailSettings extends SettingsBase {
-  _name: "emailSettings";
+type EmailSettingsFields = {
   /**
    * **Final Redirect** (URLField)
    * @description The final url to redirect to after Google OAuth completes
@@ -22,9 +21,33 @@ export interface EmailSettings extends SettingsBase {
    * @type {string}
    */
   defaultSendAccount__title?: string;
+};
+export type EmailSettings = Base<EmailSettingsFields> & {
+  _name: "emailSettings";
+  __fields__: EmailSettingsFields;
+  /**
+   * **Final Redirect** (URLField)
+   * @description The final url to redirect to after Google OAuth completes
+   * @type {string}
+   */
+  $redirectFinal?: string;
+  /**
+   * **Default Send Account** (ConnectionField)
+   *
+   * **EntryType** `emailAccount`
+   * @description The default email account to use for sending emails
+   * @type {string}
+   */
+  $defaultSendAccount?: string;
+  /**
+   * **Default Send Account Title** (EmailField)
+   * @description The email account to send emails from
+   * @type {string}
+   */
+  $defaultSendAccount__title?: string;
   isFieldModified(
     fieldKey: keyof {
-      [K in keyof EmailSettings as K extends keyof SettingsBase ? never : K]: K;
+      [K in keyof EmailSettings as K extends keyof EntryBase ? never : K]: K;
     },
   ): boolean;
-}
+};

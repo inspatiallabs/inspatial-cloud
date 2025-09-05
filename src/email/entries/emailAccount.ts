@@ -168,24 +168,24 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
       name: "setGoogleAuthDefaults",
       description: "Set default values for Google OAuth fields",
       handler({ emailAccount }) {
-        if (!emailAccount.useGmailOauth) {
+        if (!emailAccount.$useGmailOauth) {
           return;
         }
-        if (!emailAccount.smtpHost) {
-          emailAccount.smtpHost = "smtp.gmail.com";
+        if (!emailAccount.$smtpHost) {
+          emailAccount.$smtpHost = "smtp.gmail.com";
         }
-        if (!emailAccount.smtpPort) {
-          emailAccount.smtpPort = 587;
+        if (!emailAccount.$smtpPort) {
+          emailAccount.$smtpPort = 587;
         }
-        if (!emailAccount.smtpUser) {
-          emailAccount.smtpUser = emailAccount.emailAccount;
+        if (!emailAccount.$smtpUser) {
+          emailAccount.$smtpUser = emailAccount.$emailAccount;
         }
       },
     }, {
       name: "generateAuthUrl",
       description: "Generate the authorization URL for Gmail OAuth",
       async handler({ orm, emailAccount }) {
-        if (!emailAccount.useGmailOauth) {
+        if (!emailAccount.$useGmailOauth) {
           return;
         }
         const oauthEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -210,8 +210,8 @@ export const emailAccountEntry = new EntryType<EmailAccount>("emailAccount", {
         url.searchParams.append("scope", "https://mail.google.com/");
         url.searchParams.append("access_type", "offline");
         url.searchParams.append("prompt", "consent");
-        url.searchParams.append("state", emailAccount.id);
-        emailAccount.authUrl = url.toString();
+        url.searchParams.append("state", emailAccount.$id);
+        emailAccount.$authUrl = url.toString();
       },
     }],
   },
@@ -238,7 +238,7 @@ emailAccountEntry.addAction({
       clientId: googleClientId,
       clientSecret: googleClientSecret,
     });
-    if (!emailAccount.refreshToken) {
+    if (!emailAccount.$refreshToken) {
       raiseServerException(
         400,
         "Refresh token is missing",
@@ -246,7 +246,7 @@ emailAccountEntry.addAction({
     }
 
     const response = await googleAuth.refreshAccessToken(
-      emailAccount.refreshToken,
+      emailAccount.$refreshToken,
     );
     if (response === null) {
       raiseServerException(
@@ -256,18 +256,18 @@ emailAccountEntry.addAction({
     }
     const { accessToken, refreshToken, expiresIn, tokenType } = response;
     const acquiredTime = dateUtils.nowTimestamp();
-    emailAccount.accessToken = accessToken;
-    emailAccount.acquiredTime = acquiredTime;
-    emailAccount.expireTime = acquiredTime + expiresIn * 1000;
-    emailAccount.tokenType = tokenType;
+    emailAccount.$accessToken = accessToken;
+    emailAccount.$acquiredTime = acquiredTime;
+    emailAccount.$expireTime = acquiredTime + expiresIn * 1000;
+    emailAccount.$tokenType = tokenType;
     if (refreshToken) {
-      emailAccount.refreshToken = refreshToken;
+      emailAccount.$refreshToken = refreshToken;
     }
     // if (scope) {
     //   emailAccount.scope = scope;
     // }
 
-    emailAccount.authStatus = "authorized";
+    emailAccount.$authStatus = "authorized";
 
     await emailAccount.save();
   },

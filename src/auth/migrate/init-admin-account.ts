@@ -16,6 +16,7 @@ export async function initAdminAccount(
   }
   const account = await orm.createEntry<Account>("account", {
     name: "Admin Account",
+
     users: [{ user: newAdminUser.id, isOwner: true, role: "accountOwner" }],
   });
   await account.runAction("initialize");
@@ -58,7 +59,7 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     systemAdmin: true,
   });
 
-  user.systemAdmin = true;
+  user.$systemAdmin = true;
   await user.save();
   await user.runAction("setPassword", { password });
   orm.inLog.info("Admin user created successfully.");

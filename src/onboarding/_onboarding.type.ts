@@ -1,16 +1,25 @@
-import type { SettingsBase } from "@inspatial/cloud/types";
+import type { ChildList, SettingsBase as Base } from "@inspatial/cloud/types";
 
-export interface Onboarding extends SettingsBase {
-  _name: "onboarding";
+type OnboardingFields = {
   /**
    * **Enable Onboarding** (BooleanField)
    * @description Enable or disable onboarding for new users
    * @type {boolean}
    */
-  enabled?: boolean;
+  enabled: boolean;
+};
+export type Onboarding = Base<OnboardingFields> & {
+  _name: "onboarding";
+  __fields__: OnboardingFields;
+  /**
+   * **Enable Onboarding** (BooleanField)
+   * @description Enable or disable onboarding for new users
+   * @type {boolean}
+   */
+  $enabled: boolean;
   isFieldModified(
     fieldKey: keyof {
-      [K in keyof Onboarding as K extends keyof SettingsBase ? never : K]: K;
+      [K in keyof Onboarding as K extends keyof EntryBase ? never : K]: K;
     },
   ): boolean;
-}
+};

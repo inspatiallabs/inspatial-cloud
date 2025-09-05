@@ -39,9 +39,9 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
         "Google auth: User not found",
       );
     }
-    user.googleAccessToken = accessToken;
-    user.googlePicture = picture;
-    user.googleId = id;
+    user.$googleAccessToken = accessToken;
+    user.$googlePicture = picture;
+    user.$googleId = id;
     await user.save();
 
     const authHandler = inCloud.auth;

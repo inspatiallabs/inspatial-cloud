@@ -9,8 +9,8 @@ export const setPassword: EntryActionDefinition<User> = {
     const password = data.password as string;
     const salt = generateSalt();
     const hashed = await hashPassword(password, salt);
-    user.password = `${salt}:${hashed}`;
-    user.resetPasswordToken = undefined;
+    user.$password = `${salt}:${hashed}`;
+    user.$resetPasswordToken = undefined;
     await user.save();
   },
   params: [

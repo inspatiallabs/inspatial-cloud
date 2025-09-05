@@ -54,17 +54,17 @@ export const uploadFile = new CloudAPIAction("upload", {
       default:
         cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
     }
-    cloudFile.fileName = fileName;
-    cloudFile.fileSize = file.size;
-    cloudFile.mimeType = file.type as any;
-    cloudFile.publicFile = publicFile;
+    cloudFile.$fileName = fileName;
+    cloudFile.$fileSize = file.size;
+    cloudFile.$mimeType = file.type as any;
+    cloudFile.$publicFile = publicFile === true;
     const extensionInfo = MimeTypes.getExtensionsByMimeType(file.type);
     if (extensionInfo) {
-      cloudFile.fileType = extensionInfo.category;
-      cloudFile.fileExtension = extensionInfo.extension as any;
-      cloudFile.fileTypeDescription = extensionInfo.description;
+      cloudFile.$fileType = extensionInfo.category;
+      cloudFile.$fileExtension = extensionInfo.extension as any;
+      cloudFile.$fileTypeDescription = extensionInfo.description;
     }
-    cloudFile.filePath = "";
+    cloudFile.$filePath = "";
     await cloudFile.save();
     const id = cloudFile.id;
     const extension = fileName.split(".").pop();
@@ -81,17 +81,17 @@ export const uploadFile = new CloudAPIAction("upload", {
     await Deno.mkdir(originalFolder, {
       recursive: true,
     });
-    cloudFile.filePath = path;
+    cloudFile.$filePath = path;
     if (optimizeImage) {
       path = joinPath(originalFolder, newFileName);
       const defaultSize = 1000;
-      cloudFile.optimizeImage = true;
-      cloudFile.optimizeWidth = optimizeWidth || defaultSize;
-      cloudFile.optimizeHeight = optimizeHeight || defaultSize;
-      cloudFile.optimizeFormat = "jpeg";
-      cloudFile.optimized = false;
+      cloudFile.$optimizeImage = true;
+      cloudFile.$optimizeWidth = optimizeWidth || defaultSize;
+      cloudFile.$optimizeHeight = optimizeHeight || defaultSize;
+      cloudFile.$optimizeFormat = "jpeg";
+      cloudFile.$optimized = false;
       if (optimizeFormat && ["jpeg", "png"].includes(optimizeFormat)) {
-        cloudFile.optimizeFormat = optimizeFormat as "jpeg" | "png";
+        cloudFile.$optimizeFormat = optimizeFormat as "jpeg" | "png";
       }
     }
     await Deno.writeFile(path, stream, {

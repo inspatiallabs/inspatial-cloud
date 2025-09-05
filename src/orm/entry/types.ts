@@ -9,7 +9,7 @@ import type {
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
-import { ChildEntryList } from "@inspatial/cloud";
+import type { ChildEntryList } from "@inspatial/cloud";
 
 /* Hooks */
 type EntryHookFunction<
@@ -160,21 +160,35 @@ export type EntryConfig<
 export type IDValue = string | number;
 
 export type ExtractFieldKeys<T> = keyof {
-  [K in keyof T as K extends keyof EntryBase ? never : K]: K;
+  [K in keyof T as K extends `$${string}` ? K : never]: K;
 };
 
 export type UpdateEntry<T> = {
   [K in keyof T as K extends BannedFieldKeys ? never : K]?:
     ExtractUpdateChildList<T[K]>;
 };
-export type NewEntry<T> = {
-  [K in keyof T as K extends BannedFieldKeys ? never : K]: ExtractNewChildList<
-    T[K]
-  >;
-};
+export type NewEntry<T extends EntryBase> =
+  & {
+    [
+      K in keyof T["__fields__"] as K extends BannedFieldKeys ? never
+        : IgnoreBoolen<K, T["__fields__"][K]>
+    ]: ExtractNewChildList<
+      T["__fields__"][K]
+    >;
+  }
+  & {
+    [
+      K in keyof T["__fields__"] as T["__fields__"][K] extends boolean ? K
+        : never
+    ]?: T["__fields__"][K];
+  };
+
+type IgnoreBoolen<K, B> = B extends boolean ? never : K;
 
 type BannedFieldKeys =
-  | keyof EntryBase
+  | "id"
+  | "createdAt"
+  | "updatedAt"
   | `${string}__title`;
 
 type BannedChildFields =

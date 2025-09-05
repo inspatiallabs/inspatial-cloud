@@ -4,6 +4,7 @@ export const extensionMeta = new EntryType("extensionMeta", {
   label: "Cloud Extension",
   description: "",
   systemGlobal: true,
+  titleField: "label",
   idMode: {
     type: "field",
     field: "key",

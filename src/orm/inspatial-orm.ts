@@ -26,7 +26,7 @@ import type {
 import { MigrationPlanner } from "~/orm/migrate/migration-planner.ts";
 import {
   generateEntryInterface,
-  generateSettingsInterfaces,
+  generateSettingsInterface,
 } from "~/orm/build/generate-interface/generate-interface.ts";
 import { ormFields } from "~/orm/field/fields.ts";
 
@@ -180,8 +180,6 @@ export class InSpatialORM {
     this.rootPath = options.rootPath || Deno.cwd();
     this.rootPath = `${this.rootPath}/.inspatial`;
     this.roles = options.inCloud.roles;
-    const adminRole = this.roles.getRole("systemAdmin");
-    const basicRole = this.roles.getRole("accountOwner");
 
     this._inCloud = options.inCloud;
     this.inLog = this._inCloud.inLog;
@@ -189,7 +187,6 @@ export class InSpatialORM {
     for (const field of ormFields) {
       this.fieldTypes.set(field.type, field as ORMFieldConfig);
     }
-    const dbConfig = options.dbConfig;
 
     this.db = new InSpatialDB({
       ...options.dbConfig,
@@ -197,33 +194,9 @@ export class InSpatialORM {
     // this.db.schema = this.systemGobalUser.accountId; // "cloud_global" default
     this.systemDb = this.db.withSchema("cloud_global");
     for (const entryType of options.entries) {
-      adminRole.entryPermissions.set(entryType.name, {
-        create: true,
-        view: true,
-        modify: true,
-        delete: true,
-      });
-      if (entryType.extension !== "core") {
-        basicRole.entryPermissions.set(entryType.name, {
-          create: true,
-          view: true,
-          modify: true,
-          delete: true,
-        });
-      }
       this.#addEntryType(entryType);
     }
     for (const settingsType of options.settings) {
-      adminRole.settingsPermissions.set(settingsType.name, {
-        view: true,
-        modify: true,
-      });
-      if (settingsType.extension !== "core") {
-        basicRole.settingsPermissions.set(settingsType.name, {
-          view: true,
-          modify: true,
-        });
-      }
       this.#addSettingsType(settingsType);
     }
     if (options.globalEntryHooks) {
@@ -472,13 +445,14 @@ export class InSpatialORM {
     const entry = await this.getEntry<E>(entryType, result.rows[0].id);
     return entry;
   }
-  async findEntryId(
-    entryType: string,
+  async findEntryId<E extends EntryBase = GenericEntry>(
+    entryType: E["_name"],
     filter: DBFilter,
   ): Promise<IDValue | null> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
-    const result = await this.db.getRows(tableName, {
+    const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
+    const result = await db.getRows(tableName, {
       filter,
       limit: 1,
       columns: ["id"],
@@ -498,7 +472,7 @@ export class InSpatialORM {
   >(
     entryType: E["_name"],
     options?: ListOptions<E>,
-  ): Promise<GetListResponse<E>> {
+  ): Promise<GetListResponse<E["__fields__"]>> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     let dbOptions: DBListOptions = {
@@ -570,8 +544,15 @@ export class InSpatialORM {
       }
     }
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
-    const result = await db.getRows(tableName, dbOptions);
-    return result as GetListResponse<E>;
+    try {
+      const result = await db.getRows(tableName, dbOptions);
+      return result as GetListResponse<E>;
+    } catch (e) {
+      if (!isPgError(e)) {
+        throw e;
+      }
+      this.handlePgError(e);
+    }
   }
 
   /** Tags Section **/
@@ -944,7 +925,7 @@ export class InSpatialORM {
       generatedEntries.push(entryType.name);
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      await generateSettingsInterfaces(settingsType);
+      await generateSettingsInterface(settingsType);
       generatedSettings.push(settingsType.name);
     }
     return {
@@ -967,7 +948,7 @@ export class InSpatialORM {
 
     return entriesInterfaces + "\n\n" + settingsInterfaces;
   }
-  handlePgError(e: PgError) {
+  handlePgError(e: PgError): never {
     const { info, response, subject } = handlePgError(e);
     const code = info.code as PGErrorCode;
     switch (code) {
@@ -991,14 +972,16 @@ export class InSpatialORM {
         );
         break;
       }
-      case PGErrorCode.UniqueViolation: {
+      case PGErrorCode.UniqueViolation:
         raiseORMException(
           `Cannot create or update entry because it would violate a unique constraint. ${response}`,
           "ORMUniqueViolation",
           400,
         );
+        break;
+      default: {
+        raiseORMException(response.join("\n"), subject, 400);
       }
     }
-    throw e;
   }
 }

@@ -49,7 +49,8 @@ export const userEntry = new EntryType<User>("user", {
       handler({
         user,
       }) {
-        user.fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+        user.$fullName = `${user.$firstName ?? ""} ${user.$lastName ?? ""}`
+          .trim();
       },
     }],
     beforeDelete: [{

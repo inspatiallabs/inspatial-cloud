@@ -1,16 +1,10 @@
 import type { UserRole } from "./_user-role.type.ts";
-import { ChildEntryType } from "../../../orm/child-entry/child-entry.ts";
 import { EntryType } from "../../../orm/entry/entry-type.ts";
 import convertString from "../../../utils/convert-string.ts";
+import type { RoleConfig } from "../../../orm/roles/role.ts";
+import type { EntryPermission } from "../entry-permission/_entry-permission.type.ts";
+import { ORMException } from "../../../orm/orm-exception.ts";
 
-const entryPermission = new ChildEntryType("entryPermission", {
-  fields: [{
-    key: "entryType",
-    label: "",
-    type: "ConnectionField",
-    entryType: "entryMeta",
-  }],
-});
 export const userRole = new EntryType<UserRole>("userRole", {
   titleField: "roleName",
   systemGlobal: true,
@@ -32,14 +26,13 @@ export const userRole = new EntryType<UserRole>("userRole", {
     type: "TextField",
     description: "A short description of the role",
   }],
-  children: [entryPermission],
   hooks: {
     beforeValidate: [{
       name: "setRoleKey",
       handler({ userRole }) {
-        if (!userRole.roleKey) {
-          const roleName = userRole.roleName;
-          userRole.roleKey = convertString(
+        if (!userRole.$roleKey) {
+          const roleName = userRole.$roleName;
+          userRole.$roleKey = convertString(
             roleName.replace(/[^a-zA-Z]/g, ""),
             "camel",
             true,
@@ -47,6 +40,65 @@ export const userRole = new EntryType<UserRole>("userRole", {
         }
       },
     }],
+  },
+});
+
+userRole.addAction({
+  key: "generateConfig",
+  label: "Generate Config",
+  description: "Generate the role configuration as a JSON object",
+  params: [],
+  async action({ userRole, orm, inCloud }) {
+    const { rows } = await orm.getEntryList<EntryPermission>(
+      "entryPermission",
+      {
+        filter: {
+          role: userRole.$id,
+        },
+        columns: [
+          "id",
+        ],
+      },
+    );
+    const roleConfig: RoleConfig = {
+      roleName: userRole.$roleKey,
+      description: userRole.$description || "",
+      label: userRole.$roleName,
+      entryTypes: {},
+      settingsTypes: {},
+    };
+    for (const { id } of rows) {
+      const perm = await orm.getEntry<EntryPermission>("entryPermission", id);
+      const entryPermission: Record<string, any> = {
+        create: perm.$canCreate,
+        delete: perm.$canDelete,
+        modify: perm.$canModify,
+        view: perm.$canView,
+      };
+      if (perm.$fieldPermissions.count > 0) {
+        entryPermission["fields"] = {};
+        for (const field of perm.$fieldPermissions.data) {
+          entryPermission["fields"][field.field.split(":").pop()!] = {
+            view: !!field.canView,
+            modify: !!field.canModify,
+          };
+        }
+      }
+      roleConfig.entryTypes![perm.$entryMeta] = entryPermission as any;
+    }
+    try {
+      inCloud.roles.updateRole(roleConfig);
+    } catch (e) {
+      if (e instanceof ORMException) {
+        inCloud.inLog.warn("Role Setup: " + e.message, {
+          compact: true,
+          subject: e.subject,
+        });
+        return;
+      }
+      throw e;
+    }
+    return roleConfig;
   },
 });
 

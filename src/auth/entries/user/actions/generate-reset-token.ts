@@ -8,7 +8,7 @@ export const generateResetToken: EntryActionDefinition<User> = {
   description: "Generate a reset token for the user",
   async action({ user }): Promise<{ token: string }> {
     const token = generateSalt();
-    user.resetPasswordToken = token;
+    user.$resetPasswordToken = token;
     await user.save();
     return { token };
   },

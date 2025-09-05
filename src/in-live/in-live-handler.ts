@@ -21,7 +21,7 @@ import { getInLog } from "#inLog";
 export class InLiveHandler {
   #clients: Map<string, InLiveClient>;
   #shuttingDown: boolean = false;
-  #channel: BrokerClient<InLiveBroadcastMessage>;
+  #channel: BrokerClient;
   #rooms: Map<string, InLiveRoom> = new Map();
 
   #roomHandlers: Map<
@@ -46,20 +46,23 @@ export class InLiveHandler {
   globalEntryTypes: Set<string> = new Set();
   settingsTypes: Set<string> = new Set();
   globalSettingsTypes: Set<string> = new Set();
-  constructor(inCloud: InCloud) {
+  #broadcastToChannel: (message: InLiveBroadcastMessage) => void = () => {};
+  constructor(inCloud: InCloud, channel: BrokerClient) {
     this.inCloud = inCloud;
     this.#roomHandlers = new Map();
     this.#clients = new Map();
-    this.#channel = new BrokerClient<InLiveBroadcastMessage>("in-live");
-    this.#channel.onMessageReceived((message) => this.#sendToRoom(message));
+    this.#channel = channel;
+    this.#broadcastToChannel = this.#channel.addChannel<InLiveBroadcastMessage>(
+      "inLive",
+      (message) => this.#sendToRoom(message),
+    );
   }
 
   #handleError(...args: any) {
     getInLog("cloud").error(args, "InLiveHandler");
   }
-  init(brokerPort: number) {
+  init() {
     this.globalAccountId = this.inCloud.orm.systemGobalUser.accountId;
-    this.#channel.connect(brokerPort);
   }
 
   shutdown() {
@@ -295,7 +298,7 @@ export class InLiveHandler {
     this.#sendToRoom(
       message,
     );
-    this.#channel.broadcast(message);
+    this.#broadcastToChannel(message);
   }
 
   announce(message: string | Record<string, any>): void {
@@ -305,7 +308,7 @@ export class InLiveHandler {
       event: "announce",
       data: typeof message === "string" ? { message } : message,
     };
-    this.#channel.broadcast(broadcastMessage);
+    this.#broadcastToChannel(broadcastMessage);
     this.#sendToAll(broadcastMessage);
   }
   #sendToAll(message: InLiveBroadcastMessage) {

@@ -7,7 +7,6 @@ import type {
   EntryHookDefinition,
   EntryIndex,
   EntryTypeConfig,
-  ExtractFieldKeys,
 } from "~/orm/entry/types.ts";
 import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
@@ -27,7 +26,7 @@ export class EntryType<
   A extends Array<EntryActionDefinition<E>> = Array<
     EntryActionDefinition<E>
   >,
-  FK extends PropertyKey = ExtractFieldKeys<E>,
+  FK extends keyof E["__fields__"] = keyof E["__fields__"],
 > extends BaseType<N> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;

@@ -17,7 +17,7 @@ export const userSessionEntry = new EntryType<UserSession>("userSession", {
       name: "setSessionId",
       description: "Set the session ID to a unique value",
       handler({ userSession }): void {
-        userSession.sessionId = generateSalt(32);
+        userSession.$sessionId = generateSalt(32);
       },
     }],
   },

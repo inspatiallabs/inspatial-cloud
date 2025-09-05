@@ -12,10 +12,10 @@ export const getAccount = new CloudAPIAction("getAccount", {
     const orm = inCloud.orm.withAccount(user.accountId);
     const account = await orm.getEntry<Account>("account", user.accountId);
 
-    if (!account.onboardingComplete) {
+    if (!account.$onboardingComplete) {
       // const steps = await orm.systemDb.getRows("")
     }
-    return account.data;
+    return account.clientData;
   },
   params: [],
 });

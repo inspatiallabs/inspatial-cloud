@@ -3,7 +3,7 @@ import { EntryType } from "~/orm/entry/entry-type.ts";
 import type { Entry } from "~/orm/entry/entry.ts";
 import { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { Settings } from "~/orm/settings/settings.ts";
-import { raiseORMException } from "~/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "~/orm/orm-exception.ts";
 import {
   ConnectionRegistry,
   type EntryTypeRegistry,
@@ -25,12 +25,12 @@ import type {
   SettingsBase,
 } from "~/orm/settings/settings-base.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
-import type { Choice } from "~/orm/field/types.ts";
 import type { EntryConfig, EntryConnection } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
 
 import type { UserID } from "~/auth/types.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
+import { BrokerClient } from "../../in-live/broker-client.ts";
 
 export class Role {
   readonly roleName: string;
@@ -241,12 +241,19 @@ export interface RoleConfig {
 export class RoleManager {
   readonly defaultRole: string;
   roles: Map<string, Role>;
+  #rootEntryTypes: Map<string, EntryType>;
+  #rootSettingsTypes: Map<string, SettingsType>;
   #locked: boolean;
-
-  constructor() {
+  #updateRole: (config: RoleConfig) => void;
+  constructor(channel: BrokerClient) {
     this.roles = new Map();
+    this.#rootEntryTypes = new Map();
+    this.#rootSettingsTypes = new Map();
     this.defaultRole = "accountOwner";
     this.#locked = false;
+    this.#updateRole = channel.addChannel<RoleConfig>("roles", (roleConfig) => {
+      this.#setNewRole(roleConfig);
+    });
   }
   addRole(config: RoleConfig): void {
     if (this.roles.has(config.roleName)) {
@@ -255,30 +262,29 @@ export class RoleManager {
     const role = new Role(config);
     this.roles.set(role.roleName, role);
   }
+  #setNewRole(config: RoleConfig): void {
+    const role = new Role(config);
+    this.roles.set(role.roleName, role);
+    this.setupRole(role.roleName);
+  }
+  updateRole(config: RoleConfig): void {
+    this.#setNewRole(config);
+    this.#updateRole(config);
+  }
   addEntryType(entryType: EntryType): void {
-    if (entryType.name === "account") {
-      const usersChild = entryType.children!.get("users")!;
-      const addUserAction = entryType.actions.get("addUser")!;
-      const actionRoleField = addUserAction.params.find((field) =>
-        field.key === "role"
-      ) as InField<"ChoicesField">;
-      const roleField = usersChild.fields.get("role")! as InField<
-        "ChoicesField"
-      >;
-
-      const roles: Array<Choice> = [];
-      for (const role of this.roles.values()) {
-        roles.push({
-          key: role.roleName,
-          label: role.label,
-          description: role.description,
-        });
-      }
-      roleField.choices = roles;
-      actionRoleField.choices = roles;
-    }
-    for (const role of this.roles.values()) {
-      const permission = role.entryPermissions.get(entryType.name);
+    const admin = this.getRole("systemAdmin");
+    admin.entryPermissions.set(entryType.name, {
+      view: true,
+      modify: true,
+      create: true,
+      delete: true,
+    });
+    this.#rootEntryTypes.set(entryType.name, entryType);
+  }
+  setupRole(roleName: string): void {
+    const role = this.getRole(roleName);
+    for (const [name, entryType] of this.#rootEntryTypes.entries()) {
+      const permission = role.entryPermissions.get(name);
       if (!permission) {
         continue;
       }
@@ -288,20 +294,27 @@ export class RoleManager {
       );
       role.addEntryType(roleEntryType);
     }
-  }
-
-  addSettingsType(settingsType: SettingsType): void {
-    for (const role of this.roles.values()) {
-      const permission = role.settingsPermissions.get(settingsType.name);
+    for (const [name, settings] of this.#rootSettingsTypes.entries()) {
+      const permission = role.settingsPermissions.get(name);
       if (!permission) {
         continue;
       }
       const roleSettingsType = buildSettingsTypeForRole(
-        settingsType,
+        settings,
         permission,
       );
       role.addSettingsType(roleSettingsType);
     }
+
+    role.setup();
+  }
+  addSettingsType(settingsType: SettingsType): void {
+    const admin = this.getRole("systemAdmin");
+    admin.settingsPermissions.set(settingsType.name, {
+      modify: true,
+      view: true,
+    });
+    this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }
 
   getEntryInstance<E extends EntryBase = GenericEntry>(
@@ -351,9 +364,12 @@ export class RoleManager {
     return role.registry.getEntryTypeRegistry(entryType);
   }
   setup(): void {
-    if (this.#locked) return;
-    for (const role of this.roles.values()) {
-      role.setup();
+    if (this.#locked) {
+      console.log("RoleManager is locked, skipping setup.");
+      return;
+    }
+    for (const role of this.roles.keys()) {
+      this.setupRole(role);
     }
     this.#locked = true;
   }
@@ -365,7 +381,7 @@ function buildEntryTypeForRole(
 ): EntryType {
   const config = {
     ...entryType.sourceConfig,
-  };
+  } as EntryConfig;
   setFieldPermissions(config, permission);
   config.actions = Array.from(entryType.actions.values());
   setActionsPermissions(config, permission);

@@ -16,8 +16,10 @@ import type {
 import type { InCloud } from "~/in-cloud.ts";
 
 import type { UserID } from "~/auth/types.ts";
-import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/_in-task-global.type.ts";
 
+export interface BaseClass {
+  [key: `$${string}`]: any;
+}
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
   _name: N;
@@ -195,7 +197,7 @@ export class BaseClass<N extends string = string> {
           this._data.get(def.key),
           field.fetchField.fetchField,
         );
-        (this as any)[field.key] = value;
+        this[`$${field.key}`] = value;
       }
     }
   }

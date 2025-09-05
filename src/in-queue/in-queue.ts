@@ -21,6 +21,7 @@ import type { CloudFile } from "../files/entries/_cloud-file.type.ts";
 import type { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
 import type { InTask } from "./entry-types/in-task/_in-task.type.ts";
+import { ListOptions } from "../orm/db/db-types.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -50,8 +51,8 @@ export class InQueue extends InCloud {
       "core",
     );
     this.images.init();
+    this.inChannel.connect(brokerPort);
     this.inLive.init(brokerPort);
-    this.inCache.init(brokerPort);
     this.globalOrm = this.orm.withAccount("cloud_global");
     const port = this.getExtensionConfigValue("core", "queuePort");
     if (port === undefined) {
@@ -187,9 +188,9 @@ export class InQueue extends InCloud {
       size: 200,
     });
     if (result.success) {
-      fileEntry.thumbnailSize = result.fileSize;
-      fileEntry.hasThumbnail = true;
-      fileEntry.thumbnailPath = result.outputFilePath;
+      fileEntry.$thumbnailSize = result.fileSize;
+      fileEntry.$hasThumbnail = true;
+      fileEntry.$thumbnailPath = result.outputFilePath;
       await fileEntry.save();
       this.broadcastEnd("completed", startTime, message);
       return;
@@ -227,17 +228,17 @@ export class InQueue extends InCloud {
     });
 
     if (result.success) {
-      fileEntry.filePath = result.newFilePath;
+      fileEntry.$filePath = result.newFilePath;
       if (result.thumbnailSize) {
-        fileEntry.thumbnailSize = result.thumbnailSize;
+        fileEntry.$thumbnailSize = result.thumbnailSize;
       }
       if (result.thumbnailPath) {
-        fileEntry.thumbnailPath = result.thumbnailPath;
+        fileEntry.$thumbnailPath = result.thumbnailPath;
       }
-      fileEntry.fileSize = result.fileSize;
-      fileEntry.fileExtension = format;
-      fileEntry.optimized = true;
-      fileEntry.mimeType = MimeTypes.getMimeTypeByExtension(format);
+      fileEntry.$fileSize = result.fileSize;
+      fileEntry.$fileExtension = format;
+      fileEntry.$optimized = true;
+      fileEntry.$mimeType = MimeTypes.getMimeTypeByExtension(format);
       await fileEntry.save();
       this.broadcastEnd("completed", startTime, message);
       return;
@@ -332,7 +333,7 @@ export class InQueue extends InCloud {
 
   async loadTasks() {
     // load global tasks
-    const listOptions = {
+    const listOptions: ListOptions = {
       columns: ["id"],
       filter: [{
         field: "status",
@@ -355,7 +356,7 @@ export class InQueue extends InCloud {
         },
       });
     }
-    const optimizeOptions = {
+    const optimizeOptions: ListOptions = {
       columns: [
         "id",
         "filePath",
@@ -454,9 +455,9 @@ export class InQueue extends InCloud {
       limit: 0,
     };
     const cancelTask = async (task: GenericEntry) => {
-      task.status = "failed";
-      task.endTime = dateUtils.nowTimestamp();
-      task.errorInfo = "Task was cancelled due to server restart.";
+      task.$status = "failed";
+      task.$endTime = dateUtils.nowTimestamp();
+      task.$errorInfo = "Task was cancelled due to server restart.";
       await task.save();
     };
     const { rows: globalTasks } = await this.globalOrm.getEntryList(

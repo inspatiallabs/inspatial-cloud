@@ -116,7 +116,7 @@ export class AuthHandler {
         }],
       );
       if (userSession) {
-        sessionData = userSession.sessionData as SessionData;
+        sessionData = userSession.$sessionData as SessionData;
         this.#inCloud.inCache.setValue("userSession", sessionId, sessionData);
       }
     }
@@ -147,36 +147,40 @@ export class AuthHandler {
       },
     );
     // app.cacheSet("userSession", session.id, session.sessionData as any);
-    inResponse.setCookie("userSession", session.sessionId);
+    inResponse.setCookie("userSession", session.$sessionId);
     inRequest.context.update("user", {
       ...sessionData,
-      sessionId: session.sessionId,
+      sessionId: session.$sessionId,
     });
-    inRequest.context.update("userSession", session.sessionId);
+    inRequest.context.update("userSession", session.$sessionId);
     this.#inCloud.inCache.setValue(
       "userSession",
-      session.sessionId,
+      session.$sessionId,
       {
         ...sessionData,
-        sessionId: session.sessionId,
+        sessionId: session.$sessionId,
       },
     );
     return {
       ...sessionData,
-      sessionId: session.sessionId,
+      sessionId: session.$sessionId,
     };
   }
 }
 
 async function makeSessiondata(user: User): Promise<SessionData> {
-  const accounts = await user.runAction("findAccounts");
+  const accounts = await user.runAction("findAccounts") as Array<{
+    accountId: string;
+    role: string;
+  }>;
+  // Pick the first account as the default account
   const sessionData: SessionData = {
-    userId: user.id,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    systemAdmin: user.systemAdmin ?? false,
-    profilePicture: user.profilePicture,
+    userId: user.$id,
+    email: user.$email,
+    firstName: user.$firstName,
+    lastName: user.$lastName,
+    systemAdmin: user.$systemAdmin ?? false,
+    profilePicture: user.$profilePicture,
     accountId: "",
     role: "",
   };
@@ -185,7 +189,7 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     sessionData.accountId = accountId;
     sessionData.role = role;
   }
-  if (user.systemAdmin) {
+  if (user.$systemAdmin) {
     sessionData.role = "systemAdmin";
   }
 

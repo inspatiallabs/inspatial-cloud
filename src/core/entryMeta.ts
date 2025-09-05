@@ -8,6 +8,7 @@ export const entryMeta = new EntryType<EntryMeta>("entryMeta", {
     field: "name",
   },
   titleField: "label",
+  searchFields: ["extension"],
   defaultListFields: ["label", "extension", "systemGlobal"],
   fields: [{
     key: "name",

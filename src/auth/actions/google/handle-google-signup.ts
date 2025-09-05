@@ -63,22 +63,24 @@ export async function handleGoogleSignup(args: {
     });
   }
   const user = orm.getNewEntry<User>("user");
-  user.firstName = givenName;
-  user.lastName = familyName;
-  user.email = email;
-  user.googlePicture = picture;
-  user.googleCredential = accessToken;
-  user.googleAccessToken = accessToken.accessToken;
-  user.googleRefreshToken = accessToken.refreshToken;
-  user.googlePicture = picture;
-  user.googleId = sub;
-  user.googleAuthStatus = "authenticated";
+  user.$firstName = givenName;
+  user.$lastName = familyName;
+  user.$email = email;
+  user.$googlePicture = picture;
+  user.$googleCredential = accessToken;
+  user.$googleAccessToken = accessToken.accessToken;
+  user.$googleRefreshToken = accessToken.refreshToken;
+  user.$googlePicture = picture;
+  user.$googleId = sub;
+  user.$googleAuthStatus = "authenticated";
   await user.save();
   await orm.createEntry<Account>("account", {
     name: `${givenName} ${familyName}`.trim() || email,
     initialized: true,
     users: [{
-      user: user.id,
+      user: user.$id,
+      isOwner: true,
+      role: "accountOwner",
     }],
   });
   await authHandler.createUserSession(

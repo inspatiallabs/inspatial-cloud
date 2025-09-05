@@ -30,14 +30,14 @@ export const redirectAction = new CloudAPIAction("redirect", {
       );
     }
     const emailAccount = await orm.getEntry("emailAccount", accountEntryId);
-    emailAccount.accessToken = tokenResult?.accessToken;
-    emailAccount.acquiredTime = new Date().getTime();
-    emailAccount.expireTime = emailAccount.acquiredTime +
+    emailAccount.$accessToken = tokenResult?.accessToken;
+    emailAccount.$acquiredTime = new Date().getTime();
+    emailAccount.$expireTime = emailAccount.$acquiredTime +
       tokenResult.expiresIn * 1000;
-    emailAccount.tokenType = tokenResult.tokenType;
-    emailAccount.refreshToken = tokenResult.refreshToken;
-    emailAccount.scope = tokenResult.scope;
-    emailAccount.authStatus = "authorized";
+    emailAccount.$tokenType = tokenResult.tokenType;
+    emailAccount.$refreshToken = tokenResult.refreshToken;
+    emailAccount.$scope = tokenResult.scope;
+    emailAccount.$authStatus = "authorized";
     await emailAccount.save();
     const redirectFinal = emailSettings.redirectFinal ||
       `${inRequest.origin}/#/entry/emailAccount/${emailAccount.id}`;

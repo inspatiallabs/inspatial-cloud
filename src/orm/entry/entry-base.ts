@@ -1,15 +1,16 @@
 import type { Entry } from "~/orm/entry/entry.ts";
-
-export interface EntryBase extends Entry<any> {
+type HashString = `$${string}`;
+export interface EntryBase<Fields = Record<string, any>> extends Entry<any> {
   _name: string;
-  createdAt: number;
+  __fields__: Fields;
+  $createdAt: number;
   /**
    * **Updated At** (TimeStampField)
    * @description The date and time this entry was last updated
    * @type {number}
    * @required true
    */
-  updatedAt: number;
+  $updatedAt: number;
   /**
    * **First Name** (DataField)
    * @description The user's first name
@@ -18,8 +19,8 @@ export interface EntryBase extends Entry<any> {
    */
 
   save(): Promise<void>;
+  [key: HashString]: any;
 }
 
-export interface GenericEntry extends EntryBase {
-  [key: string]: any;
+export interface GenericEntry extends EntryBase<Record<string, any>> {
 }

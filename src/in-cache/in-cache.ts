@@ -32,15 +32,13 @@ type CacheMessage =
 export class InCache {
   #cache: Map<string, Map<string, any>>;
 
-  channel: BrokerClient<CacheMessage>;
-  constructor() {
+  channel: BrokerClient;
+  constructor(channel: BrokerClient) {
     this.#cache = new Map();
-    this.channel = new BrokerClient<CacheMessage>("inCache");
+    this.channel = channel;
     this.#setupChannel();
   }
-  init(brokerPort: number): void {
-    this.channel.connect(brokerPort);
-  }
+
   getValue<T = any>(namespace: string, key: string): T | undefined {
     const cache = this.#cache.get(namespace);
     if (!cache) {
@@ -114,33 +112,34 @@ export class InCache {
   #clearAll(): void {
     this.#cache.clear();
   }
-  #broadcast(message: CacheMessage): void {
-    this.channel.broadcast(message);
-  }
+  #broadcast: (message: CacheMessage) => void = (message) => {};
 
   #setupChannel(): void {
-    this.channel.onMessageReceived((message) => {
-      switch (message.type) {
-        case "setValue": {
-          this.#setValue(
-            message.namespace,
-            message.key,
-            message.value,
-          );
-          break;
+    this.#broadcast = this.channel.addChannel<CacheMessage>(
+      "inCache",
+      (message) => {
+        switch (message.type) {
+          case "setValue": {
+            this.#setValue(
+              message.namespace,
+              message.key,
+              message.value,
+            );
+            break;
+          }
+          case "deleteValue":
+            this.#deleteValue(message.namespace, message.key);
+            break;
+
+          case "clearNamespace":
+            this.#clear(message.namespace);
+            break;
+
+          case "clearAll":
+            this.#clearAll();
+            break;
         }
-        case "deleteValue":
-          this.#deleteValue(message.namespace, message.key);
-          break;
-
-        case "clearNamespace":
-          this.#clear(message.namespace);
-          break;
-
-        case "clearAll":
-          this.#clearAll();
-          break;
-      }
-    });
+      },
+    );
   }
 }

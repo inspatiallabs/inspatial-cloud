@@ -5,6 +5,7 @@ import {
 } from "@inspatial/cloud";
 import type { Account } from "./_account.type.ts";
 import { raiseORMException } from "../../../orm/mod.ts";
+import { User } from "../user/_user.type.ts";
 
 export const account = new EntryType<Account>("account", {
   label: "Account",
@@ -51,9 +52,9 @@ export const account = new EntryType<Account>("account", {
       }, {
         key: "role",
         label: "Role",
-        type: "ChoicesField",
-        defaultValue: "accountOwner",
-        choices: [],
+        type: "ConnectionField",
+        entryType: "userRole",
+        required: true,
       }, {
         key: "isOwner",
         label: "Is Owner",
@@ -76,10 +77,10 @@ export const account = new EntryType<Account>("account", {
           if (isOwner) {
             const owner = user.get("user");
             if (owner) {
-              account.owner = owner;
+              account.$owner = owner;
             }
-            if (!account.name) {
-              account.name = user.get("user__title") || account.id;
+            if (!account.$name) {
+              account.$name = user.get("user__title") || account.id;
             }
             ownerCount++;
           }
@@ -98,7 +99,7 @@ export const account = new EntryType<Account>("account", {
       name: "noDuplicateUsers",
       handler({ account }) {
         const userIds = new Set<string>();
-        for (const { user, user__title } of account.users.data) {
+        for (const { user, user__title } of account.$users.data) {
           if (!user) continue; // Skip if user is not set
           if (userIds.has(user)) {
             raiseORMException(
@@ -118,7 +119,7 @@ account.addAction({
   label: "Schedule Account Initialization",
   private: false,
   async action({ account }) {
-    if (account.initialized) return;
+    if (account.$initialized) return;
     await account.enqueueAction("initialize");
   },
   params: [],
@@ -128,11 +129,11 @@ account.addAction({
   label: "Initialize Account",
   private: true,
   async action({ account, inCloud }) {
-    if (account.initialized) return;
-    const schemaId = account.id;
+    if (account.$initialized) return;
+    const schemaId = account.$id;
     await inCloud.orm.db.createSchema(schemaId);
     await inCloud.orm.migrate(schemaId);
-    account.initialized = true;
+    account.$initialized = true;
     await account.save();
   },
   params: [],
@@ -157,27 +158,27 @@ account.addAction({
   }, {
     key: "role",
     label: "Role",
-    type: "ChoicesField",
-    defaultValue: "accountOwner",
+    type: "ConnectionField",
+    entryType: "userRole",
     required: true,
-    choices: [],
   }],
 
-  async action({ account, inCloud, data, orm }) {
+  async action({ account, data, orm }) {
     const { firstName, lastName, email } = data;
     const role = data.role as any;
     let user = await orm.findEntry("user", {
       email,
     });
     if (!user) {
-      user = await orm.createEntry("user", {
+      user = await orm.createEntry<User>("user", {
         firstName,
         lastName,
         email,
       });
     }
-    account.users.add({
-      user: user.id as string,
+    account.$users.add({
+      user: user.$id,
+      isOwner: false,
       role: role,
     });
     await account.save();

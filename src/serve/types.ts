@@ -111,16 +111,14 @@ export type AfterOnboarding = (args: {
 
 export interface ExtensionOptions<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
-  E extends Array<EntryType<any>> = Array<EntryType<any>>,
-  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
   C extends ConfigDefinition = ConfigDefinition,
 > {
   name: string;
   description?: string;
   version?: string;
   config?: C;
-  entryTypes?: E;
-  settingsTypes?: ST;
+  entryTypes?: Array<EntryType<any, any, any, any>>;
+  settingsTypes?: Array<SettingsType<any, any>>;
   ormGlobalHooks?: {
     entries: Partial<GlobalEntryHooks>;
     settings: Partial<GlobalSettingsHooks>;

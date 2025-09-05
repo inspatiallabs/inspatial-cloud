@@ -8,7 +8,7 @@ export const generateApiToken: EntryActionDefinition<User> = {
   description: "Generate an API token for the user",
   async action({ user }): Promise<{ token: string }> {
     const token = generateSalt();
-    user.apiToken = token;
+    user.$apiToken = token;
 
     await user.save();
     return { token };

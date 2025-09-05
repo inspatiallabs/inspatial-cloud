@@ -41,12 +41,12 @@ export async function handleGoogleLogin(args: {
   if (!user) {
     raiseServerException(401, "Google auth: User not found");
   }
-  user.googleCredential = accessToken;
-  user.googleAccessToken = accessToken.accessToken;
-  user.googleRefreshToken = accessToken.refreshToken;
-  user.googlePicture = idToken.picture;
-  user.googleId = idToken.sub;
-  user.googleAuthStatus = "authenticated";
+  user.$googleCredential = accessToken;
+  user.$googleAccessToken = accessToken.accessToken;
+  user.$googleRefreshToken = accessToken.refreshToken;
+  user.$googlePicture = idToken.picture;
+  user.$googleId = idToken.sub;
+  user.$googleAuthStatus = "authenticated";
   await user.save();
   await authHandler.createUserSession(
     user,

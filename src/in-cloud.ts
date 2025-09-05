@@ -28,7 +28,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
-import { RoleManager } from "~/orm/roles/role.ts";
+import { RoleConfig, RoleManager } from "~/orm/roles/role.ts";
 import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
@@ -41,6 +41,7 @@ import { raiseCloudException } from "./serve/exeption/cloud-exception.ts";
 import { InQueueClient } from "./in-queue/in-queue-client.ts";
 import { EmailManager } from "./email/email-manager.ts";
 import convertString from "./utils/convert-string.ts";
+import { BrokerClient } from "./in-live/broker-client.ts";
 
 export class InCloud {
   appName: string;
@@ -65,6 +66,7 @@ export class InCloud {
   privateFiles: StaticFileHandler;
   auth: AuthHandler;
   inLive: InLiveHandler;
+  inChannel: BrokerClient;
   inCache: InCache;
   inQueue: InQueueClient;
   emailManager: EmailManager;
@@ -96,12 +98,15 @@ export class InCloud {
     this.filesPath = joinPath(this.inRoot, "files");
     this.publicFilesPath = joinPath(this.inRoot, "public-files");
     this.appName = appName;
-
+    const inChannel = new BrokerClient();
+    this.inChannel = inChannel;
     this.#config = config;
-    this.inLive = new InLiveHandler(this);
-    this.inCache = new InCache();
+    this.inLive = new InLiveHandler(this, inChannel);
+    this.inCache = new InCache(inChannel);
     this.api = new CloudAPI();
-    this.roles = new RoleManager();
+    const roles = new RoleManager(inChannel);
+    this.roles = roles;
+
     this.static = new StaticFileHandler();
     this.publicFiles = new StaticFileHandler({
       staticFilesRoot: this.publicFilesPath,
@@ -361,8 +366,9 @@ export class InCloud {
     const { brokerPort, queuePort } = this.getExtensionConfig(
       "core",
     );
-    this.inLive.init(brokerPort);
-    this.inCache.init(brokerPort);
+    this.inChannel.connect(brokerPort);
+    this.inLive.init();
+
     this.inQueue.init(queuePort);
   }
   #initExtensions() {

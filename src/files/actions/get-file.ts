@@ -39,18 +39,18 @@ export const getFile = new CloudAPIAction("getFile", {
       );
       let fileName = "";
       if (thumbnail) {
-        fileName = file.thumbnailPath
-          ? file.thumbnailPath.split("/").pop() || ""
+        fileName = file.$thumbnailPath
+          ? file.$thumbnailPath.split("/").pop() || ""
           : "";
-        if (!file.thumbnailPath) {
+        if (!file.$thumbnailPath) {
           raiseServerException(404, "Thumbnail not found");
         }
       } else {
-        fileName = file.filePath.split("/").pop() || "";
+        fileName = file.$filePath.split("/").pop() || "";
       }
 
       filePath = joinPath(
-        file.publicFile ? "public-files" : "files",
+        file.$publicFile ? "public-files" : "files",
         accountId,
         fileName,
       );

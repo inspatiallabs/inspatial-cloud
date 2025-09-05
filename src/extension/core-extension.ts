@@ -45,14 +45,13 @@ import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
-<<<<<<< HEAD
 import { userRole } from "../auth/entries/user-role/user-role.ts";
 import { entryMeta } from "../core/entryMeta.ts";
 import { extensionMeta } from "../core/extensionMeta.ts";
-
-=======
 import { tagsGroup } from "../orm/api-actions/tags-group.ts";
->>>>>>> main
+import { entryPermission } from "../auth/entries/entry-permission/entry-permission.ts";
+import { fieldMeta } from "../core/fieldMeta.ts";
+
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
@@ -96,8 +95,10 @@ export const coreExtension = new CloudExtension("core", {
     emailTemplate,
     onboardingStep,
     userRole,
+    entryPermission,
     entryMeta,
     extensionMeta,
+    fieldMeta,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],
@@ -489,6 +490,7 @@ export const coreExtension = new CloudExtension("core", {
         value: false,
       },
     },
+
     authAllowAll: {
       type: "boolean",
       description:

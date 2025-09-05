@@ -27,7 +27,7 @@ export function makeFields<ForType extends keyof ForTypeMap>(
   const fields = typeClass.fields;
   const children = typeClass.children || [];
   for (const childName of children.keys()) {
-    Object.defineProperty(dataClass.prototype, childName, {
+    Object.defineProperty(dataClass.prototype, `$${childName}`, {
       get(): any {
         return (this as Entry | Settings).getChild(childName as string);
       },
@@ -35,7 +35,7 @@ export function makeFields<ForType extends keyof ForTypeMap>(
     });
   }
   for (const field of fields.values()) {
-    Object.defineProperty(dataClass.prototype, field.key, {
+    Object.defineProperty(dataClass.prototype, `$${field.key}`, {
       enumerable: true,
       get(): any {
         if (!(this as Entry | Settings)._data.has(field.key)) {

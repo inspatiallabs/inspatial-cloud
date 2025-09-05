@@ -11,7 +11,7 @@ export const completeOnboarding = new CloudAPIAction("completeOnboarding", {
         "account",
         user.accountId,
       );
-    if (account.onboardingComplete) {
+    if (account.$onboardingComplete) {
       raiseCloudException(
         "Onboarding is already complete for this account.",
         {
@@ -30,8 +30,8 @@ export const completeOnboarding = new CloudAPIAction("completeOnboarding", {
         responses: obResponse,
       });
     }
-    account.onboardingComplete = true;
-    account.obResponse = obResponse;
+    account.$onboardingComplete = true;
+    account.$obResponse = obResponse;
     await account.save();
     return {
       message: "Onboarding completed successfully.",

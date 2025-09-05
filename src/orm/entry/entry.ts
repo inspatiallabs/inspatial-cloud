@@ -14,7 +14,7 @@ import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 export class Entry<
   N extends string = string,
 > extends BaseClass<N> {
-  get id(): IDValue {
+  get id(): any {
     return this._data.get("id");
   }
   get tags(): Array<number> {
@@ -99,7 +99,7 @@ export class Entry<
       ) {
         continue;
       }
-      this[field.key as keyof this] = field.defaultValue === undefined
+      this[`$${field.key}`] = field.defaultValue === undefined
         ? null
         : field.defaultValue;
     }
@@ -143,7 +143,7 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.add(tag.id);
-    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    this.$in__tags = Array.from(tags) as any;
     await this.save();
   }
   async addTag(tagId: number) {
@@ -159,7 +159,7 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.add(tagId);
-    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    this.$in__tags = Array.from(tags) as any;
     await this.save();
   }
   async removeTag(tagId: number) {
@@ -171,7 +171,7 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.delete(tagId);
-    this["in__tags" as keyof typeof this] = Array.from(tags) as any;
+    this.$in__tags = Array.from(tags) as any;
     await this.save();
   }
   async save(): Promise<void> {
@@ -180,10 +180,10 @@ export class Entry<
     }
     this.assertModifyPermission();
     await this.refreshFetchedFields();
-    this["updatedAt" as keyof this] = Date.now() as any;
+    this.$updatedAt = Date.now() as any;
     switch (this.#isNew) {
       case true:
-        this["createdAt" as keyof this] = Date.now() as any;
+        this.$createdAt = Date.now() as any;
         await this.#beforeCreate();
         break;
       default:
@@ -244,7 +244,7 @@ export class Entry<
       if (!this._changeableFields.has(key)) {
         continue;
       }
-      this[key as keyof this] = value;
+      this[`$${key}`] = value;
     }
   }
 
@@ -291,7 +291,7 @@ export class Entry<
       if (field.readOnly && field.required) {
         const value = this._data.get(field.key);
         if (value === undefined || value === null) {
-          this[field.key as keyof this] = field.defaultValue;
+          this[`$${field.key}`] = field.defaultValue;
         }
       }
     }
@@ -309,7 +309,7 @@ export class Entry<
       if (field.readOnly && field.required) {
         const value = this._data.get(field.key);
         if (value === undefined || value === null) {
-          this[field.key as keyof this] = field.defaultValue;
+          this[`$${field.key}`] = field.defaultValue;
         }
       }
     }
@@ -363,7 +363,10 @@ export class Entry<
         id = crypto.randomUUID();
         break;
       default:
-        if (typeof idMode === "object" && idMode.type === "field") {
+        if (typeof idMode !== "object") {
+          raiseORMException(`Invalid idMode ${idMode}`);
+        }
+        if (idMode.type === "field") {
           const field = this._getFieldDef(idMode.field);
           if (!field) {
             raiseORMException(
@@ -376,8 +379,27 @@ export class Entry<
               `Field ${idMode.field} is not set on entry type ${this._entryType.name}`,
             );
           }
-          console.log({ value });
           id = value as string;
+          break;
+        }
+        if (idMode.type === "fields") {
+          const fieldValues = [];
+          for (const fieldKey of idMode.fields) {
+            const field = this._getFieldDef(fieldKey);
+            if (!field) {
+              raiseORMException(
+                `Field ${fieldKey} does not exist on entry type ${this._entryType.name}`,
+              );
+            }
+            const value = this._data.get(field.key);
+            if (!value) {
+              raiseORMException(
+                `Field ${fieldKey} is not set on entry type ${this._entryType.name}`,
+              );
+            }
+            fieldValues.push(value);
+          }
+          id = fieldValues.join(":");
           break;
         }
         raiseORMException(`Invalid idMode ${idMode}`);
@@ -415,7 +437,7 @@ export class Entry<
           [{
             field: registryField.targetIdField,
             op: "=",
-            value: this.id,
+            value: this.$id,
           }],
         );
       }

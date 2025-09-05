@@ -79,6 +79,13 @@ export function handlePgError(error: PgError) {
         }`,
       );
       break;
+    case PGErrorCode.UndefinedFunction:
+      response.push(
+        `Query: ${error.query} \n ${
+          ColorMe.fromOptions(error.message, { color: "brightRed" })
+        }`,
+      );
+      break;
     default:
       console.log(error);
       throw error;

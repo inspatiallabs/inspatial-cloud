@@ -16,7 +16,7 @@ export const updateAccount = new CloudAPIAction("updateAccount", {
     for (const [key, value] of Object.entries(accountData)) {
       switch (key) {
         case "onboardingComplete":
-          account.onboardingComplete = value as boolean;
+          account.$onboardingComplete = value as boolean;
           break;
         default:
           account.update({

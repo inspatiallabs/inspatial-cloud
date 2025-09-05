@@ -8,7 +8,7 @@ export const validatePassword: EntryActionDefinition<User> = {
   description: "Validate the user's password",
   async action({ data, user }): Promise<boolean> {
     const password = data.password as string;
-    const existingPassword = user.password;
+    const existingPassword = user.$password;
     if (!existingPassword) {
       return false;
     }

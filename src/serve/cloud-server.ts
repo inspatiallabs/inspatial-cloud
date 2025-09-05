@@ -6,6 +6,7 @@ import type {
   QueueStatus,
   QueueTaskStatus,
 } from "../in-queue/types.ts";
+import { UserRole } from "../auth/entries/user-role/_user-role.type.ts";
 
 export class InCloudServer extends InCloud {
   instanceNumber: string;
@@ -44,8 +45,28 @@ export class InCloudServer extends InCloud {
       },
     });
   }
+  async #syncUserRoles() {
+    const orm = this.orm.withUser(this.orm.systemGobalUser);
+    const { rows: roles } = await orm.getEntryList("userRole", {
+      columns: ["id"],
+      filter: [{
+        field: "id",
+        op: "!=",
+        value: "accountOwner",
+      }],
+    });
+    for (const { id } of roles) {
+      const role = await orm.getEntry<UserRole>("userRole", id);
+      try {
+        await role.runAction("generateConfig");
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
   override async run() {
     await super.run();
+    await this.#syncUserRoles();
     this.inQueue.onMessageReceived((message) => {
       switch (message.type) {
         case "status":
