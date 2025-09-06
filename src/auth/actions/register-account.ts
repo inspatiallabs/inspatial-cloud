@@ -1,24 +1,21 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
-import type { User } from "~/auth/entries/user/_user.type.ts";
-import type { Account } from "~/auth/entries/account/_account.type.ts";
-import { SystemSettings } from "../../extension/settings/_system-settings.type.ts";
 
 export const registerAccount = new CloudAPIAction("registerAccount", {
   label: "Register Account",
   description: "Create a new acount and assign the given user as the owner.",
   authRequired: false,
   async run({ inCloud, orm, params, inRequest, inResponse }) {
-    const { enableSignup } = await orm.getSettings<SystemSettings>(
+    const { $enableSignup } = await orm.getSettings(
       "systemSettings",
     );
-    if (!enableSignup) {
+    if (!$enableSignup) {
       raiseCloudException("User signup is disabled", {
         type: "warning",
       });
     }
     const { firstName, lastName, email, password } = params;
-    const existingUser = await orm.findEntry<User>("user", [{
+    const existingUser = await orm.findEntry("user", [{
       field: "email",
       op: "=",
       value: email,
@@ -28,7 +25,7 @@ export const registerAccount = new CloudAPIAction("registerAccount", {
         type: "warning",
       });
     }
-    const user = orm.getNewEntry<User>("user");
+    const user = orm.getNewEntry("user");
     user.update({
       firstName,
       lastName,
@@ -36,7 +33,7 @@ export const registerAccount = new CloudAPIAction("registerAccount", {
     });
     await user.save();
     await user.runAction("setPassword", { password });
-    const account = await orm.createEntry<Account>("account", {
+    const account = await orm.createEntry("account", {
       name: `${firstName} ${lastName}'s Account`,
       users: [{ user: user.$id, isOwner: true }],
     });

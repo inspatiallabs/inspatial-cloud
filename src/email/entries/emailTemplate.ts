@@ -1,7 +1,6 @@
 import { EntryType } from "@inspatial/cloud";
-import type { EmailTemplate } from "./_email-template.type.ts";
 
-export const emailTemplate = new EntryType<EmailTemplate>("emailTemplate", {
+export const emailTemplate = new EntryType("emailTemplate", {
   systemGlobal: true,
   titleField: "title",
   fields: [{

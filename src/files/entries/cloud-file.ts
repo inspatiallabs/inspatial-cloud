@@ -1,12 +1,10 @@
 import { EntryType } from "@inspatial/cloud";
 
 import { convertString } from "~/utils/mod.ts";
-import type { CloudFile } from "./_cloud-file.type.ts";
-import type { EntryConfig } from "~/orm/entry/types.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
-import { GlobalCloudFile } from "./_global-cloud-file.type.ts";
-import { InCloud } from "../../in-cloud.ts";
-import { InSpatialORM } from "../../orm/mod.ts";
+import type { InCloud } from "../../in-cloud.ts";
+import type { InSpatialORM } from "../../orm/mod.ts";
+import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
 const config = {
   label: "File",
   titleField: "fileName",
@@ -171,8 +169,8 @@ const config = {
     }],
   },
 } as any;
-export const cloudFile = new EntryType<CloudFile>("cloudFile", config);
-export const globalCloudFile = new EntryType<GlobalCloudFile>(
+export const cloudFile = new EntryType("cloudFile", config);
+export const globalCloudFile = new EntryType(
   "globalCloudFile",
   {
     ...config,

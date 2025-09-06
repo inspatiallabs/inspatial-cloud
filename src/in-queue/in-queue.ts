@@ -14,14 +14,11 @@ import type {
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import { createInLog } from "#inLog";
-import type { InTaskGlobal } from "./entry-types/in-task/_in-task-global.type.ts";
 import type { GenericEntry } from "../orm/entry/entry-base.ts";
 import { ImageOps } from "../files/image-ops/image-ops.ts";
-import type { CloudFile } from "../files/entries/_cloud-file.type.ts";
-import type { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
-import type { InTask } from "./entry-types/in-task/_in-task.type.ts";
-import { ListOptions } from "../orm/db/db-types.ts";
+import type { ListOptions } from "../orm/db/db-types.ts";
+import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -52,7 +49,7 @@ export class InQueue extends InCloud {
     );
     this.images.init();
     this.inChannel.connect(brokerPort);
-    this.inLive.init(brokerPort);
+    this.inLive.init();
     this.globalOrm = this.orm.withAccount("cloud_global");
     const port = this.getExtensionConfigValue("core", "queuePort");
     if (port === undefined) {
@@ -257,12 +254,12 @@ export class InQueue extends InCloud {
     const startTime = this.broadcastStart(message);
     let task;
     if (taskInfo.systemGlobal) {
-      task = await this.globalOrm.getEntry<InTaskGlobal>(
+      task = await this.globalOrm.getEntry(
         "inTaskGlobal",
         taskInfo.id,
       );
     } else {
-      task = await this.orm.withAccount(taskInfo.account).getEntry<InTask>(
+      task = await this.orm.withAccount(taskInfo.account).getEntry(
         "inTask",
         taskInfo.id,
       );
@@ -453,7 +450,7 @@ export class InQueue extends InCloud {
         value: "running",
       }],
       limit: 0,
-    };
+    } as ListOptions;
     const cancelTask = async (task: GenericEntry) => {
       task.$status = "failed";
       task.$endTime = dateUtils.nowTimestamp();
@@ -465,7 +462,7 @@ export class InQueue extends InCloud {
       listOptions,
     );
     for (const task of globalTasks) {
-      const taskEntry = await this.globalOrm.getEntry<InTaskGlobal>(
+      const taskEntry = await this.globalOrm.getEntry(
         "inTaskGlobal",
         task.id,
       );

@@ -1,7 +1,6 @@
-import { EntryType } from "@inspatial/cloud";
-import type { EntryMeta } from "./_entry-meta.type.ts";
+import { EntryType } from "../orm/entry/entry-type.ts";
 
-export const entryMeta = new EntryType<EntryMeta>("entryMeta", {
+export const entryMeta = new EntryType("entryMeta", {
   systemGlobal: true,
   idMode: {
     type: "field",

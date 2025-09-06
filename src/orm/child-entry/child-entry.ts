@@ -14,6 +14,7 @@ import type { InSpatialDB } from "../db/inspatial-db.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import { getInLog } from "#inLog";
 export interface ChildEntry<T extends Record<string, unknown>> {
+  _name?: string;
   [key: `$${string}`]: any;
 }
 type BuiltInFields = "id" | "createdAt" | "updatedAt" | "parent" | "order";

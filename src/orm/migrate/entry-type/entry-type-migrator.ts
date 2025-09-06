@@ -24,6 +24,7 @@ import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
 import type { EntryIndex } from "~/orm/entry/types.ts";
 import { convertString } from "~/utils/mod.ts";
 import type { InSpatialDB } from "../../db/inspatial-db.ts";
+import type { EntryName } from "@inspatial/cloud/models";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {
@@ -194,7 +195,9 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       let connectionEntryType: EntryType | undefined;
       switch (field.type) {
         case "ConnectionField":
-          connectionEntryType = this.orm.getEntryType(field.entryType);
+          connectionEntryType = this.orm.getEntryType(
+            field.entryType as EntryName,
+          );
           break;
         case "ImageField":
         case "FileField":
@@ -203,7 +206,9 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
               `Field ${field.key} in EntryType ${this.entryType.name} is a ${field.type} but does not have an entryType defined.`,
             );
           }
-          connectionEntryType = this.orm.getEntryType(field.entryType);
+          connectionEntryType = this.orm.getEntryType(
+            field.entryType as EntryName,
+          );
           break;
         default:
           continue;

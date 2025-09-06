@@ -1,7 +1,7 @@
 import { EntryType } from "../orm/entry/entry-type.ts";
 import { ormFields } from "../orm/field/fields.ts";
-import { FieldMeta } from "./_field-meta.type.ts";
-export const fieldMeta = new EntryType<FieldMeta>("fieldMeta", {
+
+export const fieldMeta = new EntryType("fieldMeta", {
   systemGlobal: true,
   label: "Field Meta",
   description: "",

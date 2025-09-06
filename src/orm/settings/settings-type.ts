@@ -6,20 +6,23 @@ import type {
   SettingsTypeConfig,
 } from "~/orm/settings/types.ts";
 import type { HookName } from "~/orm/orm-types.ts";
-import type { GenericSettings } from "~/orm/settings/settings-base.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type {
   SettingsPermission,
   SettingsRole,
 } from "../roles/settings-permissions.ts";
-import { getCallerPath, normalizePath } from "../../utils/path-utils.ts";
+import { getCallerPath } from "../../utils/path-utils.ts";
+import type { SettingsMap, SettingsName } from "#types/models.ts";
+import type { GenericSettings } from "./settings-base.ts";
 
 /**
  * Defines a settings type for the ORM.
  */
 export class SettingsType<
-  S extends GenericSettings = GenericSettings,
-  N extends string = string,
+  N extends string = SettingsName,
+  S extends N extends SettingsName ? SettingsMap[N] : GenericSettings =
+    N extends SettingsName ? SettingsMap[N]
+      : GenericSettings,
 > extends BaseType<N> {
   /**
    * Defines a settings type for the ORM.

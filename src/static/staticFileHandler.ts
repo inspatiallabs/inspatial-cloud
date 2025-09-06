@@ -9,7 +9,7 @@ import {
   notFoundContent,
 } from "./content.ts";
 import { raiseServerException } from "../serve/server-exception.ts";
-import { CacheControlResponseOptions } from "../serve/types.ts";
+import type { CacheControlResponseOptions } from "../serve/types.ts";
 type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
 export const CacheTime = {
   none: 0, // No caching

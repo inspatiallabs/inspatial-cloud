@@ -28,7 +28,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
-import { RoleConfig, RoleManager } from "~/orm/roles/role.ts";
+import { RoleManager } from "~/orm/roles/role.ts";
 import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";

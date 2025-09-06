@@ -1,11 +1,9 @@
-import type { UserRole } from "./_user-role.type.ts";
 import { EntryType } from "../../../orm/entry/entry-type.ts";
 import convertString from "../../../utils/convert-string.ts";
 import type { RoleConfig } from "../../../orm/roles/role.ts";
-import type { EntryPermission } from "../entry-permission/_entry-permission.type.ts";
 import { ORMException } from "../../../orm/orm-exception.ts";
 
-export const userRole = new EntryType<UserRole>("userRole", {
+export const userRole = new EntryType("userRole", {
   titleField: "roleName",
   systemGlobal: true,
   idMode: {
@@ -49,7 +47,7 @@ userRole.addAction({
   description: "Generate the role configuration as a JSON object",
   params: [],
   async action({ userRole, orm, inCloud }) {
-    const { rows } = await orm.getEntryList<EntryPermission>(
+    const { rows } = await orm.getEntryList(
       "entryPermission",
       {
         filter: {
@@ -68,7 +66,7 @@ userRole.addAction({
       settingsTypes: {},
     };
     for (const { id } of rows) {
-      const perm = await orm.getEntry<EntryPermission>("entryPermission", id);
+      const perm = await orm.getEntry("entryPermission", id);
       const entryPermission: Record<string, any> = {
         create: perm.$canCreate,
         delete: perm.$canDelete,

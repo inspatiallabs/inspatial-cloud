@@ -3,7 +3,7 @@ import { EntryType } from "~/orm/entry/entry-type.ts";
 import type { Entry } from "~/orm/entry/entry.ts";
 import { SettingsType } from "~/orm/settings/settings-type.ts";
 import type { Settings } from "~/orm/settings/settings.ts";
-import { ORMException, raiseORMException } from "~/orm/orm-exception.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
 import {
   ConnectionRegistry,
   type EntryTypeRegistry,
@@ -19,19 +19,20 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { SettingsPermission } from "~/orm/roles/settings-permissions.ts";
 
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
-import type {
-  GenericSettings,
-  SettingsBase,
-} from "~/orm/settings/settings-base.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { EntryConfig, EntryConnection } from "~/orm/entry/types.ts";
 import type { SettingsConfig } from "~/orm/settings/types.ts";
 
 import type { UserID } from "~/auth/types.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
-import { BrokerClient } from "../../in-live/broker-client.ts";
-
+import type { BrokerClient } from "../../in-live/broker-client.ts";
+import type {
+  EntryMap,
+  EntryName,
+  SettingsMap,
+  SettingsName,
+} from "#types/models.ts";
+import type { MaybeEntry } from "#types/mod.ts";
 export class Role {
   readonly roleName: string;
   label: string;
@@ -84,9 +85,9 @@ export class Role {
     );
   }
 
-  getEntryType<T extends EntryType = EntryType>(
-    entryType: string,
-  ): T {
+  getEntryType<E extends EntryName>(
+    entryType: E,
+  ): EntryType<E> {
     if (!this.entryTypes.has(entryType)) {
       raiseORMException(
         `EntryType ${entryType} does not exist in ORM`,
@@ -94,15 +95,15 @@ export class Role {
         400,
       );
     }
-    return this.entryTypes.get(entryType)! as T;
+    return this.entryTypes.get(entryType)! as EntryType<E>;
   }
-  getSettingsType<T extends SettingsType = SettingsType>(
-    settingsType: string,
-  ): T {
+  getSettingsType<S extends SettingsName>(
+    settingsType: S,
+  ): SettingsType<S> {
     if (!this.settingsTypes.has(settingsType)) {
       raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
     }
-    return this.settingsTypes.get(settingsType)! as T;
+    return this.settingsTypes.get(settingsType)! as SettingsType<S>;
   }
   addEntryType(entryType: EntryType): void {
     if (this.#locked) return;
@@ -160,7 +161,7 @@ export class Role {
       }
     }
     for (const [entryName, connectionFields] of connections.entries()) {
-      const entryType = this.getEntryType(entryName);
+      const entryType = this.getEntryType(entryName as EntryName);
       entryType.connections = [];
       for (const connection of connectionFields) {
         entryType.connections.push({
@@ -196,25 +197,27 @@ export class Role {
       this.#settingsClasses.set(settingsType.name, settingsClass);
     }
   }
-  getEntryInstance<E extends EntryBase = GenericEntry>(
+  getEntryInstance<E extends EntryName | string>(
     orm: InSpatialORM,
-    entryType: string,
+    entryType: E,
     user: UserID,
-  ): E {
+  ): MaybeEntry<E> {
     const entryClass = this.#entryClasses.get(entryType);
     if (!entryClass) {
       raiseORMException(
         `EntryType ${entryType} is not a valid entry type for role ${this.roleName}`,
       );
     }
-    return new entryClass({ orm, inCloud: orm._inCloud, user }) as E;
+    return new entryClass({ orm, inCloud: orm._inCloud, user }) as MaybeEntry<
+      E
+    >;
   }
 
-  getSettingsInstance<S extends SettingsBase = GenericSettings>(
+  getSettingsInstance<S extends SettingsName>(
     orm: InSpatialORM,
     settingsType: string,
     user: UserID,
-  ): S {
+  ): SettingsMap[S] {
     const settingsClass = this.#settingsClasses.get(settingsType);
     if (!settingsClass) {
       raiseORMException(
@@ -226,7 +229,7 @@ export class Role {
       inCloud: orm._inCloud,
       name: settingsType,
       user,
-    }) as S;
+    }) as SettingsMap[S];
   }
 }
 
@@ -317,20 +320,20 @@ export class RoleManager {
     this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }
 
-  getEntryInstance<E extends EntryBase = GenericEntry>(
+  getEntryInstance<E extends EntryName = EntryName>(
     orm: InSpatialORM,
-    entryType: string,
+    entryType: E,
     user: UserID,
-  ): E {
+  ): MaybeEntry<E> {
     const role = this.getRole(user?.role || this.defaultRole);
     return role.getEntryInstance<E>(orm, entryType, user);
   }
 
-  getSettingsInstance<S extends SettingsBase = GenericSettings>(
+  getSettingsInstance<S extends SettingsName>(
     orm: InSpatialORM,
     settingsType: string,
     user: UserID,
-  ): S {
+  ): SettingsMap[S] {
     const role = this.getRole(user?.role || this.defaultRole);
     return role.getSettingsInstance<S>(orm, settingsType, user);
   }
@@ -342,19 +345,19 @@ export class RoleManager {
     return this.roles.get(roleName)!;
   }
 
-  getEntryType<T extends EntryType = EntryType>(
-    entryType: string,
+  getEntryType<E extends EntryName>(
+    entryType: E,
     roleName: string,
-  ): T {
+  ): EntryType<E> {
     const role = this.getRole(roleName);
-    return role.getEntryType<T>(entryType);
+    return role.getEntryType(entryType);
   }
-  getSettingsType<T extends SettingsType = SettingsType>(
-    settingsType: string,
+  getSettingsType<T extends SettingsName>(
+    settingsType: T,
     roleName: string,
-  ): T {
+  ): SettingsType<T> {
     const role = this.getRole(roleName);
-    return role.getSettingsType<T>(settingsType);
+    return role.getSettingsType(settingsType);
   }
   getRegistry(
     entryType: string,
@@ -385,7 +388,7 @@ function buildEntryTypeForRole(
   setFieldPermissions(config, permission);
   config.actions = Array.from(entryType.actions.values());
   setActionsPermissions(config, permission);
-  const roleEntryType = new EntryType(entryType.name, config, true);
+  const roleEntryType = new EntryType(entryType.name, config as any, true);
 
   roleEntryType.permission = { ...permission };
   roleEntryType.dir = entryType.dir;
@@ -408,8 +411,8 @@ function buildSettingsTypeForRole(
   const config = {
     ...settingsType.sourceConfig,
   };
-  setFieldPermissions(config, permission);
-  setActionsPermissions(config, permission);
+  setFieldPermissions(config as any, permission);
+  setActionsPermissions(config as any, permission);
   const roleSettingsType = new SettingsType(settingsType.name, config, true);
   roleSettingsType.config.extension = settingsType.config.extension;
   roleSettingsType.dir = settingsType.dir;

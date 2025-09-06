@@ -1,8 +1,7 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
-import type { CloudFile } from "../entries/_cloud-file.type.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
-import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "~/utils/path-utils.ts";
+import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
 export const uploadFile = new CloudAPIAction("upload", {
   label: "Upload File",
   raw: true,
@@ -48,11 +47,11 @@ export const uploadFile = new CloudAPIAction("upload", {
     let accountId = orm._user!.accountId;
     switch (global) {
       case true:
-        cloudFile = orm.getNewEntry<GlobalCloudFile>("globalCloudFile");
+        cloudFile = orm.getNewEntry("globalCloudFile");
         accountId = "global";
         break;
       default:
-        cloudFile = orm.getNewEntry<CloudFile>("cloudFile");
+        cloudFile = orm.getNewEntry("cloudFile");
     }
     cloudFile.$fileName = fileName;
     cloudFile.$fileSize = file.size;

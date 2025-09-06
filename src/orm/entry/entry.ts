@@ -262,7 +262,7 @@ export class Entry<
         entry: this as any,
         [this._name]: this as any,
         [this._type]: this as any,
-      });
+      } as any);
     }
   }
   async #beforeValidate(): Promise<void> {

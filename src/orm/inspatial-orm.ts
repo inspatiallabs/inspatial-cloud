@@ -12,17 +12,13 @@ import type {
 import type { Entry } from "~/orm/entry/entry.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type {
   DBConfig,
   DBFilter,
   DBListOptions,
   ListOptions,
 } from "~/orm/db/db-types.ts";
-import type {
-  GenericSettings,
-  SettingsBase,
-} from "~/orm/settings/settings-base.ts";
+
 import { MigrationPlanner } from "~/orm/migrate/migration-planner.ts";
 import {
   generateEntryInterface,
@@ -48,6 +44,16 @@ import {
 } from "./build/generate-interface/generate-client-interface.ts";
 import { PGErrorCode } from "./db/postgres/maps/errorMap.ts";
 import type { InLog } from "#inLog";
+import { joinPath } from "../utils/path-utils.ts";
+import convertString from "../utils/convert-string.ts";
+import { formatInterfaceFile } from "./build/generate-interface/files-handling.ts";
+import type {
+  EntryMap,
+  EntryName,
+  SettingsMap,
+  SettingsName,
+} from "#types/models.ts";
+import type { EntryFieldKeys, MaybeEntry } from "#types/mod.ts";
 
 export class InSpatialORM {
   inLog: InLog;
@@ -283,36 +289,36 @@ export class InSpatialORM {
       }
     }
   }
-  getEntryInstance<E extends EntryBase = GenericEntry>(
-    entryType: string,
-  ): E {
+  getEntryInstance<E extends EntryName>(
+    entryType: E,
+  ): MaybeEntry<E> {
     return this.roles.getEntryInstance<E>(
       this,
       entryType,
       this._user || this.systemAdminUser,
     );
   }
-  getSettingsInstance<S extends SettingsBase = GenericSettings>(
-    settingsType: string,
-  ): S {
+  getSettingsInstance<S extends SettingsName>(
+    settingsType: S,
+  ): SettingsMap[S] {
     return this.roles.getSettingsInstance<S>(
       this,
       settingsType,
       this._user || this.systemAdminUser,
     );
   }
-  getEntryType<T extends EntryType = EntryType>(
-    entryType: string,
-  ): T {
-    return this.roles.getEntryType<T>(
+  getEntryType<E extends EntryName = EntryName>(
+    entryType: E,
+  ): EntryType<E> {
+    return this.roles.getEntryType<E>(
       entryType,
       this._user?.role || this.systemAdminUser.role,
     );
   }
-  getSettingsType<T extends SettingsType = SettingsType>(
-    settingsType: string,
-  ): T {
-    return this.roles.getSettingsType<T>(
+  getSettingsType<S extends SettingsName>(
+    settingsType: S,
+  ): SettingsType<S> {
+    return this.roles.getSettingsType(
       settingsType,
       this._user?.role || this.systemAdminUser.role,
     );
@@ -330,11 +336,11 @@ export class InSpatialORM {
   /**
    * Creates a new entry in the database with the provided data.
    */
-  async createEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
-    data: NewEntry<E>,
-  ): Promise<E> {
-    const entry = this.getEntryInstance(entryType) as E;
+  async createEntry<E extends EntryName>(
+    entryType: E,
+    data: E extends EntryName ? NewEntry<E> : Record<string, any>,
+  ): Promise<MaybeEntry<E>> {
+    const entry = this.getEntryInstance(entryType);
     entry.create();
     entry.update(data);
     await entry.save();
@@ -343,21 +349,22 @@ export class InSpatialORM {
   /**
    * Gets an instance of a new entry with default values set. This is not saved to the database.
    */
-  getNewEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
-  ): E {
-    const entry = this.getEntryInstance(entryType) as E;
+  getNewEntry<E extends EntryName>(
+    entryType: E,
+  ): MaybeEntry<E> {
+    const entry = this.getEntryInstance(entryType);
     entry.create();
     return entry;
   }
+
   /**
    * Gets an entry from the database by its ID.
    */
-  async getEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
+  async getEntry<E extends EntryName>(
+    entryType: E,
     id: IDValue,
-  ): Promise<E> {
-    const entry = this.getEntryInstance(entryType) as E;
+  ): Promise<MaybeEntry<E>> {
+    const entry = this.getEntryInstance(entryType);
     await entry.load(id);
     return entry;
   }
@@ -365,12 +372,12 @@ export class InSpatialORM {
    * Updates an entry in the database with the provided data.
    * The data object should contain the fields that need to be updated with their new values.
    */
-  async updateEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
+  async updateEntry<E extends EntryName>(
+    entryType: E,
     id: string,
-    data: UpdateEntry<E>,
-  ): Promise<E> {
-    const entry = await this.getEntry(entryType, id);
+    data: UpdateEntry<MaybeEntry<E>>,
+  ): Promise<MaybeEntry<E>> {
+    const entry = await this.getEntry<E>(entryType, id);
     entry.update(data);
     await entry.save();
     return entry;
@@ -379,10 +386,10 @@ export class InSpatialORM {
   /**
    * Deletes an entry from the database.
    */
-  async deleteEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
+  async deleteEntry<E extends EntryName>(
+    entryType: E,
     id: string,
-  ): Promise<any> {
+  ): Promise<MaybeEntry<E>> {
     const entry = await this.getEntry(entryType, id);
     try {
       await entry.delete();
@@ -395,8 +402,8 @@ export class InSpatialORM {
     return entry;
   }
 
-  async countConnections<E extends EntryBase = GenericEntry>(
-    entryName: E["_name"],
+  async countConnections<E extends EntryName>(
+    entryName: E,
     id: string,
   ): Promise<
     Array<{
@@ -410,7 +417,7 @@ export class InSpatialORM {
     const entryTypeObj = this.getEntryType(entryName);
     const results = [];
     for (const connection of entryTypeObj.connections) {
-      const count = await this.count(connection.referencingEntry, {
+      const count = await this.count(connection.referencingEntry as EntryName, {
         filter: [{
           field: connection.referencingField,
           op: "=",
@@ -427,10 +434,10 @@ export class InSpatialORM {
     }
     return results;
   }
-  async findEntry<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
+  async findEntry<E extends EntryName>(
+    entryType: E,
     filter: DBFilter,
-  ): Promise<E | null> {
+  ): Promise<MaybeEntry<E> | null> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
@@ -442,11 +449,11 @@ export class InSpatialORM {
     if (result.rowCount === 0) {
       return null;
     }
-    const entry = await this.getEntry<E>(entryType, result.rows[0].id);
+    const entry = await this.getEntry(entryType, result.rows[0].id);
     return entry;
   }
-  async findEntryId<E extends EntryBase = GenericEntry>(
-    entryType: E["_name"],
+  async findEntryId<E extends EntryName>(
+    entryType: E,
     filter: DBFilter,
   ): Promise<IDValue | null> {
     const entryTypeObj = this.getEntryType(entryType);
@@ -468,11 +475,11 @@ export class InSpatialORM {
    * Gets a list of entries for a specific EntryType.
    */
   async getEntryList<
-    E extends EntryBase = GenericEntry,
+    E extends EntryName,
   >(
-    entryType: E["_name"],
-    options?: ListOptions<E>,
-  ): Promise<GetListResponse<E["__fields__"]>> {
+    entryType: E,
+    options?: ListOptions<EntryMap[E]>,
+  ): Promise<GetListResponse<EntryMap[E]["__fields__"]>> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     let dbOptions: DBListOptions = {
@@ -545,8 +552,11 @@ export class InSpatialORM {
     }
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
     try {
-      const result = await db.getRows(tableName, dbOptions);
-      return result as GetListResponse<E>;
+      const result = await db.getRows<EntryMap[E]["__fields__"]>(
+        tableName,
+        dbOptions,
+      );
+      return result;
     } catch (e) {
       if (!isPgError(e)) {
         throw e;
@@ -628,8 +638,8 @@ export class InSpatialORM {
       Record<string, string> & Record<string, number>
     >
   >;
-  async sum(entryType: string, options: {
-    fields: Array<string>;
+  async sum<E extends EntryName>(entryType: E, options: {
+    fields: Array<EntryFieldKeys<E>>;
     filter?: DBFilter;
     orFilter?: DBFilter;
     groupBy?: Array<string>;
@@ -690,12 +700,12 @@ export class InSpatialORM {
       groupBy: Array.from(groupByColumns),
     });
   }
-  async count(
-    entryType: string,
+  async count<E extends EntryName>(
+    entryType: E,
     options?: {
       filter?: DBFilter;
       orFilter?: DBFilter;
-      groupBy?: Array<string>;
+      groupBy?: Array<EntryFieldKeys<E>>;
     },
   ): Promise<number> {
     const entryTypeObj = this.getEntryType(entryType);
@@ -727,10 +737,10 @@ export class InSpatialORM {
   /**
    * Gets the value of a specific field in an entry.
    */
-  getEntryValue<E extends EntryBase = GenericEntry>(
-    _entryType: E["_name"],
+  getEntryValue<E extends EntryName>(
+    _entryType: E,
     _id: string,
-    _field: string,
+    _field: keyof EntryMap[E]["__fields__"],
   ): Promise<any> {
     raiseORMException(
       `getEntryValue is not implemented yet. Use getEntry instead.`,
@@ -744,10 +754,10 @@ export class InSpatialORM {
   /**
    * Gets the settings for a specific settings type.
    */
-  async getSettings<T extends SettingsBase = GenericSettings>(
-    settingsType: T["_name"],
-  ): Promise<T> {
-    const settings = this.getSettingsInstance(settingsType) as T;
+  async getSettings<S extends SettingsName>(
+    settingsType: S,
+  ): Promise<SettingsMap[S]> {
+    const settings = this.getSettingsInstance(settingsType);
     await settings.load();
     return settings;
   }
@@ -755,12 +765,12 @@ export class InSpatialORM {
    * Updates the settings for a specific settings type.
    */
   async updateSettings<
-    T extends SettingsBase = GenericSettings,
+    S extends SettingsName,
   >(
-    settingsType: T["_name"],
-    data: Record<string, any>,
-  ): Promise<T> {
-    const settings = await this.getSettings<T>(settingsType);
+    settingsType: S,
+    data: Partial<SettingsMap[S]["__fields__"]>,
+  ): Promise<SettingsMap[S]> {
+    const settings = await this.getSettings(settingsType);
     settings.update(data);
     await settings.save();
     return settings;
@@ -770,13 +780,14 @@ export class InSpatialORM {
    * Gets the value of a specific setting field.
    */
   async getSettingsValue<
-    T extends SettingsBase = GenericSettings,
+    S extends SettingsName,
+    K extends keyof SettingsMap[S]["__fields__"],
   >(
-    settingsType: T["_name"],
-    field: string,
-  ): Promise<any> {
+    settingsType: S,
+    field: K,
+  ): Promise<SettingsMap[S]["__fields__"][K]> {
     const settings = this.getSettingsInstance(settingsType);
-    return await settings.getValue(field);
+    return await settings.getValue(field as string);
   }
 
   /**
@@ -788,7 +799,7 @@ export class InSpatialORM {
     value: InValue,
     filters: DBFilter,
   ): Promise<void> {
-    const entryTypeDef = this.getEntryType(entryType);
+    const entryTypeDef = this.getEntryType(entryType as EntryName);
     if (typeof fieldOrChildField === "string") {
       const field = fieldOrChildField;
       if (!entryTypeDef.fields.has(field)) {
@@ -920,14 +931,105 @@ export class InSpatialORM {
     const generatedEntries: string[] = [];
     const generatedSettings: string[] = [];
     const adminRole = this.roles.getRole("systemAdmin");
+
+    const output: string[] = [
+      `/* This file is auto-generated by InSpatial ORM. Do not edit manually. */`,
+      'import { EntryBase, SettingsBase, ChildList } from "@inspatial/cloud/types";',
+      'declare module "@inspatial/cloud/models" {',
+    ];
+    const libOut: string[] = [
+      `/* This file is auto-generated by InSpatial ORM. Do not edit manually. */`,
+      `import type { EntryBase } from "../orm/entry/entry-base.ts";`,
+      `import type { ChildEntryList as ChildList } from "../orm/child-entry/child-entry.ts";`,
+      `import type { SettingsBase } from "../orm/settings/settings-base.ts";`,
+      "",
+    ];
+    const libEntries: string[] = [];
+    const libSettings: string[] = [];
+    let libPath = "";
     for (const entryType of adminRole.entryTypes.values()) {
-      await generateEntryInterface(entryType);
-      generatedEntries.push(entryType.name);
+      const entryString = await generateEntryInterface(entryType);
+      if (entryType.dir) {
+        switch (entryType.config.extension?.key) {
+          case "core":
+            libPath = entryType.dir;
+            libOut.push(entryString);
+            libEntries.push(entryType.name);
+            break;
+          default:
+            output.push(entryString);
+            generatedEntries.push(entryType.name);
+        }
+      }
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      await generateSettingsInterface(settingsType);
-      generatedSettings.push(settingsType.name);
+      const settingsString = await generateSettingsInterface(settingsType);
+      if (settingsType.dir) {
+        switch (settingsType.config.extension?.key) {
+          case "core":
+            libPath = settingsType.dir;
+            libOut.push(settingsString);
+            libSettings.push(settingsType.name);
+            break;
+          default:
+            output.push(settingsString);
+            generatedSettings.push(settingsType.name);
+        }
+      }
     }
+
+    output.push(
+      "export interface EntryMap {",
+      generatedEntries.map((e) => {
+        return `  ${e}: ${convertString(e, "pascal", true)};`;
+      }).join("\n"),
+      "}",
+    );
+    libOut.push(
+      "export interface EntryMap {",
+      libEntries.map((e) => {
+        return `  ${e}: ${convertString(e, "pascal", true)};`;
+      }).join("\n"),
+      "}",
+    );
+
+    output.push(
+      "export interface SettingsMap {",
+      generatedSettings.map((s) => {
+        return `  ${s}: ${convertString(s, "pascal", true)};`;
+      }).join("\n"),
+      "}",
+    );
+    output.push("}");
+    libOut.push(
+      "export interface SettingsMap {",
+      libSettings.map((s) => {
+        return `  ${s}: ${convertString(s, "pascal", true)};`;
+      }).join("\n"),
+      "}",
+    );
+
+    libOut.push(
+      "export type EntryName = Exclude<keyof EntryMap, symbol | number>;",
+      "export type SettingsName = Exclude<keyof SettingsMap, symbol | number>;",
+    );
+
+    const path = joinPath(this.rootPath, "models.d.ts");
+    libPath = libPath.match(/(.+\/inspatial-cloud)\/src/)?.[1] || "";
+    if (libPath) {
+      const libFile = joinPath(libPath, "src", "types", "models.ts");
+
+      libOut.push("");
+      await Deno.writeTextFile(libFile, libOut.join("\n"), {
+        create: true,
+      });
+      await formatInterfaceFile(libFile);
+    }
+    await Deno.writeTextFile(path, output.join("\n\n"), {
+      create: true,
+    });
+    await formatInterfaceFile(path);
+
     return {
       generatedEntries,
       generatedSettings,

@@ -5,6 +5,7 @@ import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
 import type { RegisterFieldConfig } from "../registry/connection-registry.ts";
+import type { EntryName } from "#types/models.ts";
 
 export function buildConnectionFields(
   role: Role,
@@ -23,7 +24,7 @@ export function buildConnectionFields(
     }
     let connectionEntryType: EntryType;
     try {
-      connectionEntryType = role.getEntryType(field.entryType);
+      connectionEntryType = role.getEntryType(field.entryType as EntryName);
     } catch (_e) {
       raiseORMException(
         `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist for role '${role.label}'`,
@@ -133,7 +134,9 @@ function registerField(role: Role, args: {
   const connectionIdField = childOrEntryType.fields.get(
     fetchOptions.connectionField,
   ) as InField<"ConnectionField">;
-  const referencedEntryType = role.getEntryType(connectionIdField.entryType);
+  const referencedEntryType = role.getEntryType(
+    connectionIdField.entryType as EntryName,
+  );
   const referencedField = referencedEntryType.fields.get(
     fetchOptions.fetchField,
   );
@@ -156,12 +159,12 @@ function registerField(role: Role, args: {
     role.registry.registerField(config);
   }
 }
-function buildConnectionTitleField(
+function buildConnectionTitleField<E extends EntryType<any>>(
   field:
     | InFieldMap["ConnectionField"]
     | InFieldMap["FileField"]
     | InFieldMap["ImageField"],
-  connectionEntryType: EntryType,
+  connectionEntryType: E,
 ): InField | undefined {
   const titleFieldKey = connectionEntryType.config.titleField;
   if (!titleFieldKey || titleFieldKey === "id") {

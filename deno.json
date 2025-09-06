@@ -6,7 +6,8 @@
     ".": "./mod.ts",
     "./utils": "./src/utils/mod.ts",
     "./types": "./types.ts",
-    "./incloud": "./cli/incloud.ts"
+    "./incloud": "./cli/incloud.ts",
+    "./models": "./src/types/models.ts"
   },
 
   "publish": {
@@ -31,6 +32,10 @@
     "#cli/": "./cli/src/",
     "#types/": "./src/types/",
     "#inLog": "./src/in-log/in-log.ts"
+  },
+  "compilerOptions": {
+    "types": ["./types.ts", "./src/types/models.ts"],
+    "verbatimModuleSyntax": true
   },
   "tasks": {
     "check": "deno publish --dry-run",

@@ -1,8 +1,5 @@
 import { InCloud } from "~/in-cloud.ts";
 import type { InSpatialORM } from "../mod.ts";
-import type { EntryMeta } from "../../core/_entry-meta.type.ts";
-import { ExtensionMeta } from "../../core/_extension-meta.type.ts";
-import { FieldMeta } from "../../core/_field-meta.type.ts";
 
 export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {
@@ -28,11 +25,11 @@ export class InCloudMigrator extends InCloud {
   }
   async #syncExtensionModels(orm: InSpatialORM) {
     for (const extension of this.extensionManager.extensions.values()) {
-      let model = await orm.findEntry<ExtensionMeta>("extensionMeta", {
+      let model = await orm.findEntry("extensionMeta", {
         id: extension.key,
       });
       if (!model) {
-        model = orm.getNewEntry<ExtensionMeta>("extensionMeta");
+        model = orm.getNewEntry("extensionMeta");
         model.$key = extension.key;
       }
       model.$label = extension.label;
@@ -55,11 +52,11 @@ export class InCloudMigrator extends InCloud {
     for (const entryType of adminRole.entryTypes.values()) {
       const name = entryType.name;
       entryNames.add(name);
-      let model = await orm.findEntry<EntryMeta>("entryMeta", {
+      let model = await orm.findEntry("entryMeta", {
         id: name,
       });
       if (!model) {
-        model = orm.getNewEntry<EntryMeta>("entryMeta");
+        model = orm.getNewEntry("entryMeta");
         model.$name = name;
       }
       model.$systemGlobal = entryType.systemGlobal || false;
@@ -97,11 +94,11 @@ export class InCloudMigrator extends InCloud {
       for (const [key, field] of entryType.fields.entries()) {
         if (skipFields.has(key)) continue;
         if (key.endsWith("__title")) continue; // skip title fields
-        let fieldMeta = await orm.findEntry<FieldMeta>("fieldMeta", {
+        let fieldMeta = await orm.findEntry("fieldMeta", {
           id: `${entryType.name}:${key}`,
         });
         if (!fieldMeta) {
-          fieldMeta = orm.getNewEntry<FieldMeta>("fieldMeta");
+          fieldMeta = orm.getNewEntry("fieldMeta");
           fieldMeta.$key = key;
           fieldMeta.$entryMeta = entryType.name;
         }

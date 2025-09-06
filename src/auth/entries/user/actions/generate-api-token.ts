@@ -1,8 +1,7 @@
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
-import type { User } from "../_user.type.ts";
 import { generateSalt } from "../../../security.ts";
 
-export const generateApiToken: EntryActionDefinition<User> = {
+export const generateApiToken: EntryActionDefinition<"user"> = {
   key: "generateApiToken",
   label: "Generate API Token",
   description: "Generate an API token for the user",

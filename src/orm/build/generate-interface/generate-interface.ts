@@ -1,8 +1,5 @@
-import type { EntryType } from "~/orm/entry/entry-type.ts";
-import {
-  formatInterfaceFile,
-  writeInterfaceFile,
-} from "~/orm/build/generate-interface/files-handling.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+
 import {
   buildField,
   buildFields,
@@ -19,34 +16,19 @@ function hashFields(fields: string[]): string[] {
 }
 export async function generateEntryInterface(
   entryType: EntryType,
-): Promise<void> {
-  if (!entryType.dir) {
-    return;
-  }
-  const { filePath, outLines } = generateCommon(entryType);
-  outLines.unshift(
-    'import type { EntryBase as Base, ChildList } from "@inspatial/cloud/types";\n',
-  );
-
-  await writeInterfaceFile(filePath, outLines.join("\n"));
-  await formatInterfaceFile(filePath);
+): Promise<string> {
+  const { outLines } = generateCommon(entryType);
+  return outLines.join("\n");
 }
 export async function generateSettingsInterface(
   settingsType: SettingsType,
-): Promise<void> {
-  if (!settingsType.dir) {
-    return;
-  }
-  const { filePath, outLines } = generateCommon(settingsType);
-  outLines.unshift(
-    'import type { SettingsBase as Base, ChildList } from "@inspatial/cloud/types";\n',
-  );
-  await writeInterfaceFile(filePath, outLines.join("\n"));
-  await formatInterfaceFile(filePath);
+): Promise<string> {
+  const { outLines } = generateCommon(settingsType);
+  return outLines.join("\n");
 }
 function generateCommon(entryOrSettings: EntryType | SettingsType) {
   const es = entryOrSettings;
-
+  const baseType = es instanceof EntryType ? "EntryBase" : "SettingsBase";
   const interfaceName = convertString(es.name, "pascal", true);
   const fileName = `_${convertString(es.name, "kebab", true)}.type.ts`;
   const filePath = `${es.dir}/${fileName}`;
@@ -56,12 +38,17 @@ function generateCommon(entryOrSettings: EntryType | SettingsType) {
     `type ${interfaceName}Fields = { \n${fields.join("\n")}`,
   ];
   const outLines: string[] = [
-    `export type ${interfaceName} = Base<${interfaceName}Fields> & {`,
+    `export type ${interfaceName} = ${baseType}<${interfaceName}Fields> & {`,
     ` _name:"${convertString(es.name, "camel", true)}"`,
     ` __fields__: ${interfaceName}Fields;`,
     ...hashFields(fields),
   ];
-  outLines.push(...buildOthers("entry", interfaceName));
+  outLines.push(
+    ...buildOthers(
+      baseType === "EntryBase" ? "entry" : "settings",
+      interfaceName,
+    ),
+  );
   for (const child of es.children?.values() || []) {
     const childFields = buildFields(child.fields);
     classFields.push(

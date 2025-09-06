@@ -1,7 +1,6 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { User } from "../entries/user/_user.type.ts";
 import { center } from "../../terminal/format-utils.ts";
-import type { Account } from "../entries/account/_account.type.ts";
+import type { User } from "#types/models.ts";
 
 export async function initAdminAccount(
   orm: InSpatialORM,
@@ -14,7 +13,7 @@ export async function initAdminAccount(
   if (!newAdminUser) {
     return;
   }
-  const account = await orm.createEntry<Account>("account", {
+  const account = await orm.createEntry("account", {
     name: "Admin Account",
 
     users: [{ user: newAdminUser.id, isOwner: true, role: "accountOwner" }],
@@ -50,7 +49,7 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     subject,
   );
 
-  const user = orm.getNewEntry<User>("user");
+  const user = orm.getNewEntry("user");
   user.update({
     firstName,
     lastName,

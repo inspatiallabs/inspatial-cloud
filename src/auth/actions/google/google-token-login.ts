@@ -2,16 +2,21 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { GoogleOAuth } from "~/auth/providers/google/accessToken.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
-import type { User } from "~/auth/entries/user/_user.type.ts";
 
 const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   authRequired: false,
   async run({ inCloud, orm, inRequest, inResponse, params }) {
     const { accessToken } = params;
     const authSettings = await orm.getSettings("authSettings");
+    if (!authSettings.$googleClientId || !authSettings.$googleClientSecret) {
+      raiseServerException(
+        500,
+        "Google auth: Client ID or Client Secret not set",
+      );
+    }
     const googleAuth = new GoogleOAuth({
-      clientId: authSettings.googleClientId,
-      clientSecret: authSettings.googleClientSecret,
+      clientId: authSettings.$googleClientId,
+      clientSecret: authSettings.$googleClientSecret,
     });
     const userInfo = await googleAuth.getUserInfo(accessToken);
     if (!userInfo) {
@@ -27,7 +32,7 @@ const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
         "Google auth: Email not verified",
       );
     }
-    const user = await orm.findEntry<User>("user", [{
+    const user = await orm.findEntry("user", [{
       field: "email",
       op: "=",
       value: email,

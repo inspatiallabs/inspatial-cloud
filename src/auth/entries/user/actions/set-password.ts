@@ -1,8 +1,7 @@
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
-import type { User } from "../_user.type.ts";
 import { generateSalt, hashPassword } from "../../../security.ts";
 
-export const setPassword: EntryActionDefinition<User> = {
+export const setPassword: EntryActionDefinition<"user"> = {
   key: "setPassword",
   description: "Set the user's password",
   async action({ user, data }): Promise<void> {

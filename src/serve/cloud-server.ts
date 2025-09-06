@@ -6,7 +6,6 @@ import type {
   QueueStatus,
   QueueTaskStatus,
 } from "../in-queue/types.ts";
-import { UserRole } from "../auth/entries/user-role/_user-role.type.ts";
 
 export class InCloudServer extends InCloud {
   instanceNumber: string;
@@ -56,7 +55,7 @@ export class InCloudServer extends InCloud {
       }],
     });
     for (const { id } of roles) {
-      const role = await orm.getEntry<UserRole>("userRole", id);
+      const role = await orm.getEntry("userRole", id);
       try {
         await role.runAction("generateConfig");
       } catch (e) {

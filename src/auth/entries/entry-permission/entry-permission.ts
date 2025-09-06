@@ -1,8 +1,6 @@
 import { EntryType } from "@inspatial/cloud";
-import type { EntryPermission } from "./_entry-permission.type.ts";
 import { raiseORMException } from "../../../orm/orm-exception.ts";
 import { ChildEntryType } from "../../../orm/child-entry/child-entry.ts";
-import { UserRole } from "../user-role/_user-role.type.ts";
 const fieldPermission = new ChildEntryType("fieldPermissions", {
   fields: [{
     key: "field",
@@ -21,7 +19,7 @@ const fieldPermission = new ChildEntryType("fieldPermissions", {
     type: "BooleanField",
   }],
 });
-export const entryPermission = new EntryType<EntryPermission>(
+export const entryPermission = new EntryType(
   "entryPermission",
   {
     systemGlobal: true,
@@ -73,7 +71,7 @@ export const entryPermission = new EntryType<EntryPermission>(
         async handler({ entryPermission, orm }) {
           if (!entryPermission.$role || !entryPermission.$entryMeta) return;
           entryPermission;
-          const existingId = await orm.findEntryId<EntryPermission>(
+          const existingId = await orm.findEntryId(
             "entryPermission",
             {
               role: entryPermission.$role,
@@ -90,7 +88,7 @@ export const entryPermission = new EntryType<EntryPermission>(
       afterUpdate: [{
         name: "syncRoleConfig",
         async handler({ entryPermission, orm }) {
-          const userRole = await orm.getEntry<UserRole>(
+          const userRole = await orm.getEntry(
             "userRole",
             entryPermission.$role,
           );

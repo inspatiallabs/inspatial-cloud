@@ -2,9 +2,8 @@ import type { SessionData } from "~/auth/types.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import type { InResponse } from "~/serve/in-response.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { UserSession } from "./entries/user-session/_user-session.type.ts";
-import type { User } from "./entries/user/_user.type.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { User } from "#types/models.ts";
 
 export class AuthHandler {
   #inCloud: InCloud;
@@ -85,7 +84,7 @@ export class AuthHandler {
       authToken,
     );
     if (!sessionData) {
-      const user = await this.#inCloud.orm.findEntry<User>("user", [{
+      const user = await this.#inCloud.orm.findEntry("user", [{
         field: "apiToken",
         op: "=",
         value: authToken,
@@ -107,7 +106,7 @@ export class AuthHandler {
     }
     let sessionData = this.#inCloud.inCache.getValue("userSession", sessionId);
     if (!sessionData) {
-      const userSession = await this.orm.findEntry<UserSession>(
+      const userSession = await this.orm.findEntry(
         "userSession",
         [{
           field: "sessionId",
@@ -138,7 +137,7 @@ export class AuthHandler {
   > {
     const sessionData = await makeSessiondata(user);
 
-    const session = await this.orm.createEntry<UserSession>(
+    const session = await this.orm.createEntry(
       "userSession",
       {
         sessionId: "",

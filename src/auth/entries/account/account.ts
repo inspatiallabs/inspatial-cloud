@@ -3,11 +3,9 @@ import {
   EntryType,
   raiseCloudException,
 } from "@inspatial/cloud";
-import type { Account } from "./_account.type.ts";
 import { raiseORMException } from "../../../orm/mod.ts";
-import { User } from "../user/_user.type.ts";
 
-export const account = new EntryType<Account>("account", {
+export const account = new EntryType("account", {
   label: "Account",
   systemGlobal: true,
   titleField: "name",
@@ -54,7 +52,6 @@ export const account = new EntryType<Account>("account", {
         label: "Role",
         type: "ConnectionField",
         entryType: "userRole",
-        required: true,
       }, {
         key: "isOwner",
         label: "Is Owner",
@@ -170,7 +167,7 @@ account.addAction({
       email,
     });
     if (!user) {
-      user = await orm.createEntry<User>("user", {
+      user = await orm.createEntry("user", {
         firstName,
         lastName,
         email,

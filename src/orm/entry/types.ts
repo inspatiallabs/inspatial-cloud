@@ -1,5 +1,4 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { IDMode, InValue } from "~/orm/field/types.ts";
 import type {
   BaseConfig,
@@ -10,10 +9,12 @@ import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
 import type { ChildEntryList } from "@inspatial/cloud";
+import type { EntryMap, EntryName } from "#types/models.ts";
+import type { GenericEntry } from "./entry-base.ts";
 
 /* Hooks */
 type EntryHookFunction<
-  E extends EntryBase = EntryBase,
+  E extends EntryName | string = EntryName,
 > = (
   hookParams:
     & {
@@ -21,12 +22,13 @@ type EntryHookFunction<
       inCloud: InCloud;
     }
     & {
-      [K in E["_name"] | "entry"]: E;
+      [K in E | "entry"]: K extends keyof EntryMap ? EntryMap[K]
+        : GenericEntry;
     },
 ) => Promise<void> | void;
 
 export type EntryHookDefinition<
-  E extends EntryBase = EntryBase,
+  E extends EntryName | string = EntryName,
 > = {
   name: string;
   description?: string;
@@ -35,7 +37,7 @@ export type EntryHookDefinition<
 
 /* Entry Actions */
 export type EntryActionDefinition<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
 > = {
   key: string;
   label?: string;
@@ -52,7 +54,8 @@ export type EntryActionDefinition<
         inCloud: InCloud;
       }
       & {
-        [K in E["_name"] | "entry"]: E;
+        [K in E | "entry"]: K extends keyof EntryMap ? EntryMap[K]
+          : GenericEntry;
       }
       & {
         data: Record<string, unknown>;
@@ -61,7 +64,7 @@ export type EntryActionDefinition<
   params: Array<InField>;
 };
 export type EntryActionMethod<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
   K extends PropertyKey = PropertyKey,
   P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
 > = (
@@ -72,12 +75,13 @@ export type EntryActionMethod<
       inCloud: InCloud;
     }
     & {
-      [K in E["_name"] | "entry"]: E;
+      [L in E | "entry"]: L extends keyof EntryMap ? EntryMap[L]
+        : GenericEntry;
     },
 ) => Promise<any> | any;
 
 export type EntryActionConfig<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
   K extends PropertyKey = PropertyKey,
   P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
   R extends EntryActionMethod<E, K, P> = EntryActionMethod<E, K, P>,
@@ -135,7 +139,7 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   taggable: boolean;
 }
 export type EntryConfig<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
   A extends Array<EntryActionDefinition<E>> = Array<
     EntryActionDefinition<E>
   >,
@@ -167,20 +171,22 @@ export type UpdateEntry<T> = {
   [K in keyof T as K extends BannedFieldKeys ? never : K]?:
     ExtractUpdateChildList<T[K]>;
 };
-export type NewEntry<T extends EntryBase> =
+export type NewEntry<E extends EntryName> =
   & {
     [
-      K in keyof T["__fields__"] as K extends BannedFieldKeys ? never
-        : IgnoreBoolen<K, T["__fields__"][K]>
+      K in keyof EntryMap[E]["__fields__"] as K extends BannedFieldKeys ? never
+        : IgnoreBoolen<K, EntryMap[E]["__fields__"][K]>
     ]: ExtractNewChildList<
-      T["__fields__"][K]
+      EntryMap[E]["__fields__"][K]
     >;
   }
   & {
     [
-      K in keyof T["__fields__"] as T["__fields__"][K] extends boolean ? K
+      K in keyof EntryMap[E][
+        "__fields__"
+      ] as EntryMap[E]["__fields__"][K] extends boolean ? K
         : never
-    ]?: T["__fields__"][K];
+    ]?: EntryMap[E]["__fields__"][K];
   };
 
 type IgnoreBoolen<K, B> = B extends boolean ? never : K;

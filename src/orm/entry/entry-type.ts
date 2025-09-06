@@ -8,7 +8,7 @@ import type {
   EntryIndex,
   EntryTypeConfig,
 } from "~/orm/entry/types.ts";
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
+import type { GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
@@ -16,16 +16,17 @@ import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
 import { getCallerPath } from "../../utils/path-utils.ts";
+import type { EntryMap, EntryName } from "#types/models.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  E extends EntryBase = GenericEntry,
-  N extends string = string,
-  A extends Array<EntryActionDefinition<E>> = Array<
-    EntryActionDefinition<E>
-  >,
+  N extends EntryName | string = EntryName,
+  E extends N extends EntryName ? EntryMap[N] : GenericEntry = N extends
+    EntryName ? EntryMap[N]
+    : GenericEntry,
+  A extends Array<EntryActionDefinition<N>> = Array<EntryActionDefinition<N>>,
   FK extends keyof E["__fields__"] = keyof E["__fields__"],
 > extends BaseType<N> {
   config: EntryTypeConfig;
@@ -36,7 +37,7 @@ export class EntryType<
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
   connections: Array<EntryConnection> = [];
-  hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
+  hooks: Record<EntryHookName, Array<EntryHookDefinition<N>>> = {
     beforeUpdate: [],
     afterCreate: [],
     afterDelete: [],
@@ -47,10 +48,10 @@ export class EntryType<
     validate: [],
   };
   permission: EntryPermission;
-  sourceConfig: EntryConfig<E, A, FK>;
+  sourceConfig: EntryConfig<N, A, FK>;
   constructor(
     name: N,
-    config: EntryConfig<E, A, FK>,
+    config: EntryConfig<N, A, FK>,
     rm?: boolean,
   ) {
     super(name, config);
@@ -226,7 +227,7 @@ export class EntryType<
     }
   }
   #setupHooks(
-    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>,
+    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<N>>>>,
   ): void {
     if (!hooks) {
       return;
@@ -257,7 +258,7 @@ export class EntryType<
   addAction<
     K extends PropertyKey = PropertyKey,
     P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
-  >(action: EntryActionConfig<E, K, P>): void {
+  >(action: EntryActionConfig<N, K, P>): void {
     if (this.actions.has(action.key)) {
       raiseORMException(
         `Action with key ${action.key} already exists in EntryType ${this.name}`,

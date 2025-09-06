@@ -8,12 +8,13 @@ import type {
 import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import { InLiveRoom } from "~/in-live/in-live-room.ts";
-import { BrokerClient } from "./broker-client.ts";
+import type { BrokerClient } from "./broker-client.ts";
 
 import type { SessionData } from "../auth/types.ts";
 import type { InCloud } from "../in-cloud.ts";
 import { ORMException } from "../orm/orm-exception.ts";
 import { getInLog } from "#inLog";
+import type { EntryName, SettingsName } from "#types/models.ts";
 
 /**
  * Handles realtime websocket connections
@@ -238,7 +239,7 @@ export class InLiveHandler {
         case "entry":
         case "entryType": {
           const entryType = this.inCloud.orm.withUser(client.user).getEntryType(
-            name,
+            name as EntryName,
           );
           if (entryType.systemGlobal) {
             accountId = this.globalAccountId;
@@ -247,7 +248,7 @@ export class InLiveHandler {
         }
         case "settings": {
           const settings = this.inCloud.orm.withUser(client.user)
-            .getSettingsType(name);
+            .getSettingsType(name as SettingsName);
           if (settings.systemGlobal) {
             accountId = this.globalAccountId;
           }
@@ -390,7 +391,7 @@ export class InLiveHandler {
         case "entry":
         case "entryType": {
           const entryType = this.inCloud.orm.withUser(client.user).getEntryType(
-            name,
+            name as EntryName,
           );
           if (entryType.systemGlobal) {
             accountId = this.globalAccountId;
@@ -399,7 +400,7 @@ export class InLiveHandler {
         }
         case "settings": {
           const settings = this.inCloud.orm.withUser(client.user)
-            .getSettingsType(name);
+            .getSettingsType(name as SettingsName);
           if (settings.systemGlobal) {
             accountId = this.globalAccountId;
           }

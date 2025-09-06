@@ -46,11 +46,14 @@ import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
 import { userRole } from "../auth/entries/user-role/user-role.ts";
-import { entryMeta } from "../core/entryMeta.ts";
-import { extensionMeta } from "../core/extensionMeta.ts";
+import { entryMeta } from "../build/entryMeta.ts";
+import { extensionMeta } from "../build/extensionMeta.ts";
 import { tagsGroup } from "../orm/api-actions/tags-group.ts";
 import { entryPermission } from "../auth/entries/entry-permission/entry-permission.ts";
-import { fieldMeta } from "../core/fieldMeta.ts";
+import { fieldMeta } from "../build/fieldMeta.ts";
+import { entryAction } from "../build/entryAction.ts";
+import { apiGroup } from "../build/apiGroup.ts";
+import { apiAction } from "../build/apiAction.ts";
 
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -95,10 +98,13 @@ export const coreExtension = new CloudExtension("core", {
     emailTemplate,
     onboardingStep,
     userRole,
-    entryPermission,
     entryMeta,
     extensionMeta,
     fieldMeta,
+    entryAction,
+    entryPermission,
+    apiGroup,
+    apiAction,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],

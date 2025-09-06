@@ -12,8 +12,8 @@ import type {
 } from "~/cloud-config/config-types.ts";
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { AfterMigrate } from "~/extension/cloud-extension.ts";
-import type { Account } from "../auth/entries/account/_account.type.ts";
 import type { GlobalEntryHooks } from "@inspatial/cloud/types";
+import type { Account } from "#types/models.ts";
 
 /**
  * Information about a {@link CloudExtension}

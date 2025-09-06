@@ -4,10 +4,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 import type { SMTPOptions } from "../smtp/smtpTypes.ts";
 import { SMTPClient } from "../smtp/smtpClient.ts";
 
-import type { EmailSettings } from "~/email/settings/_email-settings.type.ts";
-import type { Email } from "./_email.type.ts";
-
-export const emailEntry = new EntryType<Email>("email", {
+export const emailEntry = new EntryType("email", {
   label: "Email",
   description: "An email",
   systemGlobal: true,
@@ -107,11 +104,11 @@ export const emailEntry = new EntryType<Email>("email", {
       description: "Set the default email account if not provided",
       async handler({ orm, email }) {
         if (!email.$emailAccount) {
-          const emailSettings = await orm.getSettings<EmailSettings>(
+          const emailSettings = await orm.getSettings(
             "emailSettings",
           );
 
-          const accountId = emailSettings.defaultSendAccount;
+          const accountId = emailSettings.$defaultSendAccount;
           if (!accountId) {
             raiseServerException(
               400,
@@ -266,7 +263,7 @@ emailEntry.addAction({
     const settings = await orm.getSettings("emailSettings");
 
     const config: SMTPOptions = {
-      port: settings.smtpPort as number || 587,
+      port: settings.$smtpPort as number || 587,
       smtpServer: emailAccount.$smtpHost as string,
       userLogin: emailAccount.$smtpUser as string,
       password,

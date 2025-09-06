@@ -1,7 +1,7 @@
 import { sendEmail } from "./sendEmail.ts";
 import { redirectAction } from "./googleRedirect.ts";
 import { CloudAPIGroup } from "~/api/cloud-group.ts";
-import { SessionData } from "../../auth/types.ts";
+import type { SessionData } from "../../auth/types.ts";
 
 export const emailGroup: CloudAPIGroup<"email"> = new CloudAPIGroup("email", {
   label: "Email",

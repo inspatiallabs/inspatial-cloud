@@ -7,7 +7,6 @@ import type {
   GoogleIdToken,
 } from "~/auth/providers/google/accessToken.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
-import type { User } from "../../entries/user/_user.type.ts";
 
 export async function handleGoogleLogin(args: {
   accessToken: GoogleAccessTokenResponse;
@@ -33,7 +32,7 @@ export async function handleGoogleLogin(args: {
   if (!email || !emailVerified) {
     raiseServerException(401, "Google auth: Email not verified");
   }
-  const user = await orm.findEntry<User>("user", [{
+  const user = await orm.findEntry("user", [{
     field: "email",
     op: "=",
     value: email,
