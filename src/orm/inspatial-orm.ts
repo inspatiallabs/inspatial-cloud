@@ -291,7 +291,7 @@ export class InSpatialORM {
   }
   getEntryInstance<E extends EntryName>(
     entryType: E,
-  ): MaybeEntry<E> {
+  ): EntryMap[E] {
     return this.roles.getEntryInstance<E>(
       this,
       entryType,
@@ -338,8 +338,8 @@ export class InSpatialORM {
    */
   async createEntry<E extends EntryName>(
     entryType: E,
-    data: E extends EntryName ? NewEntry<E> : Record<string, any>,
-  ): Promise<MaybeEntry<E>> {
+    data: NewEntry<E>,
+  ): Promise<EntryMap[E]> {
     const entry = this.getEntryInstance(entryType);
     entry.create();
     entry.update(data);
@@ -351,7 +351,7 @@ export class InSpatialORM {
    */
   getNewEntry<E extends EntryName>(
     entryType: E,
-  ): MaybeEntry<E> {
+  ): EntryMap[E] {
     const entry = this.getEntryInstance(entryType);
     entry.create();
     return entry;
@@ -363,7 +363,7 @@ export class InSpatialORM {
   async getEntry<E extends EntryName>(
     entryType: E,
     id: IDValue,
-  ): Promise<MaybeEntry<E>> {
+  ): Promise<EntryMap[E]> {
     const entry = this.getEntryInstance(entryType);
     await entry.load(id);
     return entry;
@@ -375,8 +375,8 @@ export class InSpatialORM {
   async updateEntry<E extends EntryName>(
     entryType: E,
     id: string,
-    data: UpdateEntry<MaybeEntry<E>>,
-  ): Promise<MaybeEntry<E>> {
+    data: UpdateEntry<EntryMap[E]>,
+  ): Promise<EntryMap[E]> {
     const entry = await this.getEntry<E>(entryType, id);
     entry.update(data);
     await entry.save();
@@ -389,7 +389,7 @@ export class InSpatialORM {
   async deleteEntry<E extends EntryName>(
     entryType: E,
     id: string,
-  ): Promise<MaybeEntry<E>> {
+  ): Promise<EntryMap[E]> {
     const entry = await this.getEntry(entryType, id);
     try {
       await entry.delete();
@@ -437,7 +437,7 @@ export class InSpatialORM {
   async findEntry<E extends EntryName>(
     entryType: E,
     filter: DBFilter,
-  ): Promise<MaybeEntry<E> | null> {
+  ): Promise<EntryMap[E] | null> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
     const db = entryTypeObj.systemGlobal ? this.systemDb : this.db;
@@ -948,7 +948,7 @@ export class InSpatialORM {
     const libSettings: string[] = [];
     let libPath = "";
     for (const entryType of adminRole.entryTypes.values()) {
-      const entryString = await generateEntryInterface(entryType);
+      const entryString = generateEntryInterface(entryType);
       if (entryType.dir) {
         switch (entryType.config.extension?.key) {
           case "core":
@@ -963,7 +963,7 @@ export class InSpatialORM {
       }
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
-      const settingsString = await generateSettingsInterface(settingsType);
+      const settingsString = generateSettingsInterface(settingsType);
       if (settingsType.dir) {
         switch (settingsType.config.extension?.key) {
           case "core":
@@ -1057,7 +1057,8 @@ export class InSpatialORM {
       case PGErrorCode.ForeignKeyViolation: {
         const table = info.table as string;
         const id = info.id as string;
-        const parts = table.split("_");
+        const parts = table
+          ?.split("_") || [table];
         const firstPart = parts[0];
         switch (firstPart) {
           case "entry": {

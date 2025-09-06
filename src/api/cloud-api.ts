@@ -4,6 +4,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { CloudAPIGroup } from "~/api/cloud-group.ts";
+import type { SessionData } from "../auth/types.ts";
 
 /**
  * CloudAPI is a class that provides the main interface for InSpatial Cloud
@@ -99,8 +100,39 @@ export class CloudAPI {
       label: "Get Docs",
       description: "Get API documentation",
       params: [],
-      run({ inCloud }) {
-        return inCloud.api.docs;
+      run({ inCloud, inRequest }) {
+        const user = inRequest.context.get<SessionData>("user");
+        if (!user) {
+          return;
+        }
+        const role = inCloud.roles.getRole(user.role);
+        const docs = inCloud.api.docs;
+        // const groups = [];
+        // for (const groupName of role.apiGroups.keys()) {
+        //   const group = docs.groups.find((g) => g.groupName === groupName);
+        //   if (group) {
+        //     groups.push({
+        //       groupName: group.groupName,
+        //     });
+        //   }
+        // }
+        // return {
+        //   groups,
+        // };
+
+        return {
+          ...docs,
+          groups: docs.groups.filter((group) =>
+            role.apiGroups.has(group.groupName)
+          ).map((group) => {
+            return {
+              ...group,
+              actions: group.actions.filter((action) =>
+                role.apiGroups.get(group.groupName)?.has(action.actionName)
+              ),
+            };
+          }),
+        };
       },
     });
     const pingAction = new CloudAPIAction("ping", {

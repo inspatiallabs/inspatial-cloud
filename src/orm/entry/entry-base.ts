@@ -1,7 +1,11 @@
 import type { Entry } from "~/orm/entry/entry.ts";
+import type { EntryName } from "#types/models.ts";
 type HashString = `$${string}`;
-export interface EntryBase<Fields = Record<string, any>> extends Entry<any> {
-  _name: string;
+export interface EntryBase<
+  E extends EntryName = EntryName,
+  Fields = Record<string, any>,
+> extends Entry<E> {
+  _name: E;
   __fields__: Fields;
   $createdAt: number;
   /**
@@ -17,10 +21,9 @@ export interface EntryBase<Fields = Record<string, any>> extends Entry<any> {
    * @type {string}
    * @required true
    */
-
-  save(): Promise<void>;
-  [key: HashString]: any;
 }
 
-export interface GenericEntry extends EntryBase<Record<string, any>> {
+export interface GenericEntry
+  extends EntryBase<EntryName, Record<string, any>> {
+  [key: HashString]: any;
 }

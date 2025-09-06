@@ -14,15 +14,15 @@ function hashFields(fields: string[]): string[] {
     return fieldLines.join("\n");
   });
 }
-export async function generateEntryInterface(
+export function generateEntryInterface(
   entryType: EntryType,
-): Promise<string> {
+): string {
   const { outLines } = generateCommon(entryType);
   return outLines.join("\n");
 }
-export async function generateSettingsInterface(
+export function generateSettingsInterface(
   settingsType: SettingsType,
-): Promise<string> {
+): string {
   const { outLines } = generateCommon(settingsType);
   return outLines.join("\n");
 }
@@ -38,19 +38,21 @@ function generateCommon(entryOrSettings: EntryType | SettingsType) {
     `type ${interfaceName}Fields = { \n${fields.join("\n")}`,
   ];
   const outLines: string[] = [
-    `export type ${interfaceName} = ${baseType}<${interfaceName}Fields> & {`,
+    `export type ${interfaceName} = ${baseType}<"${es.name}", ${interfaceName}Fields> & {`,
     ` _name:"${convertString(es.name, "camel", true)}"`,
     ` __fields__: ${interfaceName}Fields;`,
     ...hashFields(fields),
   ];
-  outLines.push(
-    ...buildOthers(
-      baseType === "EntryBase" ? "entry" : "settings",
-      interfaceName,
-    ),
-  );
+
   for (const child of es.children?.values() || []) {
-    const childFields = buildFields(child.fields);
+    const childFields = buildFields(child.fields, [
+      "id",
+      "parent",
+      "parent__title",
+      "createdAt",
+      "updatedAt",
+      "order",
+    ]);
     classFields.push(
       `${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
     );
@@ -66,15 +68,6 @@ function generateCommon(entryOrSettings: EntryType | SettingsType) {
   return { filePath, outLines };
 }
 
-function buildOthers(forType: "entry" | "settings", interfaceName: string) {
-  return [`isFieldModified(
-    fieldKey: keyof {
-      [K in keyof ${interfaceName} as K extends keyof ${
-    forType === "entry" ? "EntryBase" : "SettingsBase"
-  } ? never : K]: K;
-    },
-  ): boolean;`];
-}
 function buildActions(
   es: EntryType | SettingsType,
   className: string,

@@ -11,6 +11,7 @@ import type { EntryHookName } from "@inspatial/cloud/types";
 import type { ChildEntryList } from "@inspatial/cloud";
 import type { EntryMap, EntryName } from "#types/models.ts";
 import type { GenericEntry } from "./entry-base.ts";
+import type { EntryFieldKeys } from "#types/mod.ts";
 
 /* Hooks */
 type EntryHookFunction<
@@ -139,32 +140,31 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   taggable: boolean;
 }
 export type EntryConfig<
-  E extends EntryName | string = EntryName,
+  E extends EntryName = EntryName,
   A extends Array<EntryActionDefinition<E>> = Array<
     EntryActionDefinition<E>
   >,
-  FK extends PropertyKey = ExtractFieldKeys<E>,
 > = BaseConfig & {
   /**
    * The field to use as the display value instead of the ID.
    */
-  titleField?: FK;
+  titleField?: EntryFieldKeys<E>;
   idMode?: IDMode;
-  imageField?: FK;
-  statusField?: FK;
-  defaultListFields?: Array<FK>;
-  defaultSortField?: FK;
+  imageField?: EntryFieldKeys<E>;
+  statusField?: EntryFieldKeys<E>;
+  defaultListFields?: Array<EntryFieldKeys<E>>;
+  defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc";
-  searchFields?: Array<FK>;
+  searchFields?: Array<EntryFieldKeys<E>>;
   taggable?: boolean;
-  index?: Array<EntryIndex<FK>>;
+  index?: Array<EntryIndex<EntryFieldKeys<E>>>;
   actions?: A;
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
 };
 export type IDValue = string | number;
 
-export type ExtractFieldKeys<T> = keyof {
-  [K in keyof T as K extends `$${string}` ? K : never]: K;
+export type ExtractFieldKeys<E extends EntryName> = keyof {
+  [K in keyof EntryMap[E] as K extends `$${string}` ? K : never]: K;
 };
 
 export type UpdateEntry<T> = {

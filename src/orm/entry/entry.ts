@@ -1,5 +1,9 @@
 import { BaseClass } from "~/orm/shared/base-class.ts";
-import type { EntryHookDefinition, IDValue } from "~/orm/entry/types.ts";
+import type {
+  EntryHookDefinition,
+  IDValue,
+  UpdateEntry,
+} from "~/orm/entry/types.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
@@ -10,10 +14,12 @@ import type { InCloud } from "~/in-cloud.ts";
 import type { UserID } from "~/auth/types.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
+import type { EntryMap, EntryName } from "#types/models.ts";
+import type { EntryFieldKeys } from "#types/mod.ts";
 
 export class Entry<
-  N extends string = string,
-> extends BaseClass<N> {
+  E extends EntryName = EntryName,
+> extends BaseClass<E> {
   get id(): any {
     return this._data.get("id");
   }
@@ -24,7 +30,7 @@ export class Entry<
     }
     return this._data.get("in__tags") || [];
   }
-  get #isNew(): boolean {
+  get isNew(): boolean {
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
   }
@@ -70,7 +76,7 @@ export class Entry<
       systemGlobal?: boolean;
       orm: InSpatialORM;
       inCloud: InCloud;
-      name?: N;
+      name?: E;
       user: UserID;
     },
   ) {
@@ -99,9 +105,8 @@ export class Entry<
       ) {
         continue;
       }
-      this[`$${field.key}`] = field.defaultValue === undefined
-        ? null
-        : field.defaultValue;
+      this[`$${field.key}` as keyof typeof this] =
+        field.defaultValue === undefined ? null : field.defaultValue;
     }
     this._data.set("id", "_new_");
   }
@@ -143,7 +148,7 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.add(tag.id);
-    this.$in__tags = Array.from(tags) as any;
+    this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
   async addTag(tagId: number) {
@@ -159,7 +164,7 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.add(tagId);
-    this.$in__tags = Array.from(tags) as any;
+    this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
   async removeTag(tagId: number) {
@@ -171,19 +176,19 @@ export class Entry<
     }
     const tags = new Set(this.tags);
     tags.delete(tagId);
-    this.$in__tags = Array.from(tags) as any;
+    this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
   async save(): Promise<void> {
-    if (this.#isNew) {
+    if (this.isNew) {
       this.assertCreatePermission();
     }
     this.assertModifyPermission();
     await this.refreshFetchedFields();
-    this.$updatedAt = Date.now() as any;
-    switch (this.#isNew) {
+    this["$updatedAt" as keyof typeof this] = Date.now() as any;
+    switch (this.isNew) {
       case true:
-        this.$createdAt = Date.now() as any;
+        this["$createdAt" as keyof typeof this] = Date.now() as any;
         await this.#beforeCreate();
         break;
       default:
@@ -197,7 +202,7 @@ export class Entry<
       data[key] = fieldType.prepareForDB(value.to, fieldDef);
     }
 
-    if (this.#isNew) {
+    if (this.isNew) {
       return await this.#insertNew(data);
     }
 
@@ -230,7 +235,7 @@ export class Entry<
    * as it will only update the fields that are allowed to be changed.
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
-  update(data: Record<string, any>): void {
+  update(data: UpdateEntry<EntryMap[E]["__fields__"]>): void {
     this.assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
@@ -244,11 +249,11 @@ export class Entry<
       if (!this._changeableFields.has(key)) {
         continue;
       }
-      this[`$${key}`] = value;
+      this[`$${key}` as keyof typeof this] = value;
     }
   }
 
-  isFieldModified(fieldName: string): boolean {
+  isFieldModified(fieldName: EntryFieldKeys<E>): boolean {
     this.assertViewPermission();
     return this._modifiedValues.has(fieldName);
   }
@@ -271,7 +276,7 @@ export class Entry<
   }
   async #validate(): Promise<void> {
     await this.#beforeValidate();
-    if (!this.#isNew) {
+    if (!this.isNew) {
       const idMode = this._entryType.config.idMode;
       if (typeof idMode === "object" && idMode.type === "field") {
         if (this._modifiedValues.has(idMode.field)) {
@@ -291,7 +296,7 @@ export class Entry<
       if (field.readOnly && field.required) {
         const value = this._data.get(field.key);
         if (value === undefined || value === null) {
-          this[`$${field.key}`] = field.defaultValue;
+          this[`$${field.key}` as keyof typeof this] = field.defaultValue;
         }
       }
     }
@@ -309,7 +314,7 @@ export class Entry<
       if (field.readOnly && field.required) {
         const value = this._data.get(field.key);
         if (value === undefined || value === null) {
-          this[`$${field.key}`] = field.defaultValue;
+          this[`$${field.key}` as keyof typeof this] = field.defaultValue;
         }
       }
     }
@@ -437,7 +442,7 @@ export class Entry<
           [{
             field: registryField.targetIdField,
             op: "=",
-            value: this.$id,
+            value: this["$id" as keyof typeof this] as string,
           }],
         );
       }

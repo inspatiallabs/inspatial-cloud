@@ -9,6 +9,7 @@ export const apiGroup = new EntryType("apiGroup", {
   titleField: "label",
   defaultListFields: [
     "label",
+    "extensionMeta",
     "description",
   ],
   label: "API Group",

@@ -32,19 +32,19 @@ import type {
   SettingsMap,
   SettingsName,
 } from "#types/models.ts";
-import type { MaybeEntry } from "#types/mod.ts";
 export class Role {
   readonly roleName: string;
   label: string;
   description: string;
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
-  settingsTypes: Map<string, SettingsType>;
-  #settingsClasses: Map<string, typeof Settings>;
+  settingsTypes: Map<string, SettingsType<any>>;
+  #settingsClasses: Map<string, typeof Settings<any>>;
   registry: ConnectionRegistry;
   #locked: boolean;
   entryPermissions: Map<string, EntryPermission>;
   settingsPermissions: Map<string, SettingsPermission>;
+  apiGroups: Map<string, Set<string> | true>;
 
   constructor(config: RoleConfig) {
     this.#locked = false;
@@ -55,6 +55,15 @@ export class Role {
     this.settingsPermissions = new Map(
       Object.entries(config.settingsTypes || {}),
     );
+    this.apiGroups = new Map();
+    if (config.apiGroups) {
+      for (const [group, actions] of Object.entries(config.apiGroups)) {
+        this.apiGroups.set(
+          group,
+          typeof actions === "boolean" ? actions : new Set(actions),
+        );
+      }
+    }
     this.entryTypes = new Map();
     this.#entryClasses = new Map();
     this.settingsTypes = new Map();
@@ -103,7 +112,7 @@ export class Role {
     if (!this.settingsTypes.has(settingsType)) {
       raiseORMException(`SettingsType ${settingsType} does not exist in ORM`);
     }
-    return this.settingsTypes.get(settingsType)! as SettingsType<S>;
+    return this.settingsTypes.get(settingsType)!;
   }
   addEntryType(entryType: EntryType): void {
     if (this.#locked) return;
@@ -197,25 +206,23 @@ export class Role {
       this.#settingsClasses.set(settingsType.name, settingsClass);
     }
   }
-  getEntryInstance<E extends EntryName | string>(
+  getEntryInstance<E extends EntryName>(
     orm: InSpatialORM,
     entryType: E,
     user: UserID,
-  ): MaybeEntry<E> {
+  ): EntryMap[E] {
     const entryClass = this.#entryClasses.get(entryType);
     if (!entryClass) {
       raiseORMException(
         `EntryType ${entryType} is not a valid entry type for role ${this.roleName}`,
       );
     }
-    return new entryClass({ orm, inCloud: orm._inCloud, user }) as MaybeEntry<
-      E
-    >;
+    return new entryClass({ orm, inCloud: orm._inCloud, user }) as EntryMap[E];
   }
 
   getSettingsInstance<S extends SettingsName>(
     orm: InSpatialORM,
-    settingsType: string,
+    settingsType: S,
     user: UserID,
   ): SettingsMap[S] {
     const settingsClass = this.#settingsClasses.get(settingsType);
@@ -239,6 +246,7 @@ export interface RoleConfig {
   description?: string;
   entryTypes?: Record<string, EntryPermission>;
   settingsTypes?: Record<string, SettingsPermission>;
+  apiGroups?: Record<string, Array<string> | true>;
 }
 
 export class RoleManager {
@@ -324,14 +332,14 @@ export class RoleManager {
     orm: InSpatialORM,
     entryType: E,
     user: UserID,
-  ): MaybeEntry<E> {
+  ): EntryMap[E] {
     const role = this.getRole(user?.role || this.defaultRole);
     return role.getEntryInstance<E>(orm, entryType, user);
   }
 
   getSettingsInstance<S extends SettingsName>(
     orm: InSpatialORM,
-    settingsType: string,
+    settingsType: S,
     user: UserID,
   ): SettingsMap[S] {
     const role = this.getRole(user?.role || this.defaultRole);

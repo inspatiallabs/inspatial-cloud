@@ -51,7 +51,7 @@ userRole.addAction({
       "entryPermission",
       {
         filter: {
-          role: userRole.$id,
+          userRole: userRole.$id,
         },
         columns: [
           "id",
@@ -64,6 +64,7 @@ userRole.addAction({
       label: userRole.$roleName,
       entryTypes: {},
       settingsTypes: {},
+      apiGroups: {},
     };
     for (const { id } of rows) {
       const perm = await orm.getEntry("entryPermission", id);
@@ -72,7 +73,16 @@ userRole.addAction({
         delete: perm.$canDelete,
         modify: perm.$canModify,
         view: perm.$canView,
+        actions: {
+          include: perm.$actionPermissions.data.filter((action) =>
+            action.canExecute
+          ).map((action) => action.action.split(":").pop()!),
+          exclude: perm.$actionPermissions.data.filter((action) =>
+            !action.canExecute
+          ).map((action) => action.action.split(":").pop()!),
+        },
       };
+
       if (perm.$fieldPermissions.count > 0) {
         entryPermission["fields"] = {};
         for (const field of perm.$fieldPermissions.data) {
@@ -83,6 +93,26 @@ userRole.addAction({
         }
       }
       roleConfig.entryTypes![perm.$entryMeta] = entryPermission as any;
+    }
+    const { rows: apiGroups } = await orm.getEntryList(
+      "apiGroupPermission",
+      {
+        filter: {
+          userRole: userRole.$id,
+        },
+        columns: [
+          "id",
+        ],
+      },
+    );
+    for (const { id } of apiGroups) {
+      const perm = await orm.getEntry("apiGroupPermission", id);
+
+      roleConfig.apiGroups![perm.$apiGroup] = perm.$actions.data.filter((
+        action,
+      ) => action.canAccess).map((
+        action,
+      ) => action.apiAction.split(":").pop()!);
     }
     try {
       inCloud.roles.updateRole(roleConfig);

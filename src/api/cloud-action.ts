@@ -45,6 +45,7 @@ export class CloudAPIAction<
   label?: string;
   raw: boolean = false;
   actionName: string;
+  groupName: string = "";
   authRequired: boolean = true;
 
   includeInAPI: boolean = true;
@@ -144,7 +145,12 @@ export class CloudAPIAction<
 
     return Object.fromEntries(incomingParams);
   }
-
+  #raisePermissionError(): never {
+    raiseServerException(
+      403,
+      "User does not have permission to access this action",
+    );
+  }
   async run(args: {
     inCloud: InCloud;
     params?: Record<string, any>;
@@ -162,6 +168,21 @@ export class CloudAPIAction<
       if (!user) {
         raiseServerException(401, "User is not authenticated");
       }
+      const role = args.inCloud.roles.getRole(user.role);
+      const groupPermission = role.apiGroups.get(this.groupName);
+
+      switch (groupPermission) {
+        case true:
+          break;
+        case undefined:
+          this.#raisePermissionError();
+          break;
+        default:
+          if (!groupPermission.has(this.actionName)) {
+            this.#raisePermissionError();
+          }
+      }
+
       runObject.orm = args.inCloud.orm.withUser(user);
     }
 

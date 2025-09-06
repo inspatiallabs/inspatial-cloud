@@ -448,8 +448,12 @@ export class InCloud {
     this.auth.allowPath(apiPathHandler.match);
     this.auth.allowPath(staticFilesHandler.match);
     const allowAll = this.getExtensionConfigValue("core", "authAllowAll");
+    const adminRole = this.roles.getRole("systemAdmin");
+
     for (const group of this.actionGroups.values()) {
+      const actionsSet = new Set<string>();
       for (const action of group.actions.values()) {
+        actionsSet.add(action.actionName);
         if (allowAll === true) {
           this.auth.allowAction(group.groupName, action.actionName);
           continue;
@@ -458,6 +462,7 @@ export class InCloud {
           this.auth.allowAction(group.groupName, action.actionName);
         }
       }
+      adminRole.apiGroups.set(group.groupName, actionsSet);
     }
   }
   #setupOrm() {

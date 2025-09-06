@@ -10,7 +10,7 @@ export const apiPathHandler: PathHandler = {
     const groupParam = inRequest.group;
     const actionParam = inRequest.action;
     if (!groupParam) {
-      return api.docs as HandlerResponse;
+      raiseServerException(400, "Group name is required");
     }
     const action = api.getAction(groupParam, actionParam);
 

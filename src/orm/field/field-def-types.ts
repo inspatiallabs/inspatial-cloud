@@ -4,6 +4,7 @@ import type {
   ImageFileType,
 } from "~/files/mime-types/file-types.ts";
 import type { InFilter } from "../db/db-types.ts";
+import type { EntryName } from "#types/models.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
@@ -205,7 +206,7 @@ export interface ConnectionField extends BaseField {
   /**
    * The `EntryType` that this field connects to.
    */
-  entryType: string;
+  entryType: EntryName;
 
   connectionIdMode?: IDMode;
   filter?: InFilter | Array<InFilter>;

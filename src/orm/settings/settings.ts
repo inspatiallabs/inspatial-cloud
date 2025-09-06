@@ -10,8 +10,10 @@ import type { InCloud } from "~/in-cloud.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import type { UserID } from "../../auth/types.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
+import type { SettingsName } from "#types/models.ts";
 
-export class Settings<N extends string = string> extends BaseClass<N> {
+export class Settings<S extends SettingsName = SettingsName>
+  extends BaseClass<S> {
   _fieldIds!: Map<string, string>;
 
   #updatedAt: Map<string, number> = new Map();
@@ -24,13 +26,13 @@ export class Settings<N extends string = string> extends BaseClass<N> {
     readOnly: true,
     required: true,
   };
-  readonly _settingsType!: SettingsType;
+  readonly _settingsType!: SettingsType<S>;
   constructor(
     config: {
       orm: any;
       inCloud: InCloud;
       user: UserID;
-      name?: N;
+      name?: S;
       systemGlobal?: boolean;
     },
   ) {

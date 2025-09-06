@@ -43,7 +43,7 @@ export function handlePgError(error: PgError) {
     case PGErrorCode.ForeignKeyViolation: {
       response.push(error.detail);
       const match = error.detail.match(
-        /\(id\)=\((?<id>[\w\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
+        /\(id\)=\((?<id>[\w:\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
       );
       if (match?.groups) {
         info.set("id", match.groups.id);

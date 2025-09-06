@@ -16,11 +16,7 @@ import type {
 import type { InCloud } from "~/in-cloud.ts";
 
 import type { UserID } from "~/auth/types.ts";
-import type { EntryName } from "@inspatial/cloud/models";
 
-export interface BaseClass {
-  [key: `$${string}`]: any;
-}
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
   _name: N;

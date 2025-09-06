@@ -16,28 +16,25 @@ import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
 import { getCallerPath } from "../../utils/path-utils.ts";
-import type { EntryMap, EntryName } from "#types/models.ts";
+import type { EntryName } from "#types/models.ts";
+import type { EntryFieldKeys } from "#types/mod.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  N extends EntryName | string = EntryName,
-  E extends N extends EntryName ? EntryMap[N] : GenericEntry = N extends
-    EntryName ? EntryMap[N]
-    : GenericEntry,
-  A extends Array<EntryActionDefinition<N>> = Array<EntryActionDefinition<N>>,
-  FK extends keyof E["__fields__"] = keyof E["__fields__"],
-> extends BaseType<N> {
+  E extends EntryName = EntryName,
+  A extends Array<EntryActionDefinition<E>> = Array<EntryActionDefinition<E>>,
+> extends BaseType<E> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
   imageField?: InField<"ImageField">;
   defaultListFields: Set<string> = new Set(["id"]);
-  defaultSortField?: FK;
+  defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
   connections: Array<EntryConnection> = [];
-  hooks: Record<EntryHookName, Array<EntryHookDefinition<N>>> = {
+  hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
     beforeUpdate: [],
     afterCreate: [],
     afterDelete: [],
@@ -48,10 +45,10 @@ export class EntryType<
     validate: [],
   };
   permission: EntryPermission;
-  sourceConfig: EntryConfig<N, A, FK>;
+  sourceConfig: EntryConfig<E, A>;
   constructor(
-    name: N,
-    config: EntryConfig<N, A, FK>,
+    name: E,
+    config: EntryConfig<E, A>,
     rm?: boolean,
   ) {
     super(name, config);
@@ -88,7 +85,7 @@ export class EntryType<
       const fieldDef = this.fields.get(field);
       if (!fieldDef) {
         raiseORMException(
-          `ID field ${field.toString()} does not exist in EntryType ${this.name}`,
+          `ID field ${field} does not exist in EntryType ${this.name}`,
         );
       }
       if (fieldDef.type !== "DataField") {

@@ -32,6 +32,7 @@ export class CloudAPIGroup<
         `Action name ${action.actionName} is already a registered action!`,
       );
     }
+    action.groupName = this.groupName;
     this.actions.set(action.actionName, action);
   }
   addAction<

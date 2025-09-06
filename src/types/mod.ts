@@ -13,5 +13,8 @@ export interface CloudConfig {
 export type MaybeEntry<T> = T extends EntryName ? EntryMap[T] : GenericEntry;
 
 export type EntryFieldKeys<T extends EntryName | string> = T extends EntryName
-  ? Exclude<keyof EntryMap[T]["__fields__"], symbol | number>
+  ? Exclude<
+    keyof EntryMap[T]["__fields__"],
+    symbol | number | `${string}__title` | "in__tags"
+  >
   : string;

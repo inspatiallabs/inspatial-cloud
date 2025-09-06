@@ -49,11 +49,12 @@ import { userRole } from "../auth/entries/user-role/user-role.ts";
 import { entryMeta } from "../build/entryMeta.ts";
 import { extensionMeta } from "../build/extensionMeta.ts";
 import { tagsGroup } from "../orm/api-actions/tags-group.ts";
-import { entryPermission } from "../auth/entries/entry-permission/entry-permission.ts";
+import { entryPermission } from "../auth/entries/permission/entry-permission.ts";
 import { fieldMeta } from "../build/fieldMeta.ts";
 import { entryAction } from "../build/entryAction.ts";
 import { apiGroup } from "../build/apiGroup.ts";
 import { apiAction } from "../build/apiAction.ts";
+import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts";
 
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -105,6 +106,7 @@ export const coreExtension = new CloudExtension("core", {
     entryPermission,
     apiGroup,
     apiAction,
+    apiGroupPermission,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],
@@ -119,9 +121,13 @@ export const coreExtension = new CloudExtension("core", {
     },
   },
   roles: [{
-    roleName: "accountOwner",
-    label: "Account Owner",
+    roleName: "basicUser",
+    label: "Basic User",
     description: "The default role assigned to a user",
+    apiGroups: {
+      auth: true,
+      api: true,
+    },
     entryTypes: {
       cloudFile: {
         view: true,

@@ -45,9 +45,12 @@ export function buildField(field: InField): string {
 
 export function buildFields(
   fieldDefs: Map<string, InField>,
+  excludeFields: Array<string> = [],
 ): Array<string> {
+  const exclude = new Set<string>(excludeFields);
   const fields: string[] = [];
   fieldDefs.forEach((field) => {
+    if (exclude.has(field.key)) return;
     fields.push(buildField(field));
   });
   return fields;
