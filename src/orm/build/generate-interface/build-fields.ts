@@ -36,16 +36,21 @@ export function buildField(field: InField): string {
   lines.push(` */`);
 
   lines.push(
-    `${field.key}${required ? "" : "?"}: ${fieldType};`,
+    `${field.key}${
+      required || field.type === "BooleanField" ? "" : "?"
+    }: ${fieldType};`,
   );
   return lines.join("\n");
 }
 
 export function buildFields(
   fieldDefs: Map<string, InField>,
+  excludeFields: Array<string> = [],
 ): Array<string> {
+  const exclude = new Set<string>(excludeFields);
   const fields: string[] = [];
   fieldDefs.forEach((field) => {
+    if (exclude.has(field.key)) return;
     fields.push(buildField(field));
   });
   return fields;

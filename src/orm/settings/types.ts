@@ -11,6 +11,7 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type { HookName } from "../orm-types.ts";
 import type { InCloud } from "@inspatial/cloud/types";
+import type { SettingsMap, SettingsName } from "#types/models.ts";
 
 export interface SettingsTypeInfo extends BaseTypeInfo {
   config: SettingsTypeConfig;
@@ -19,7 +20,7 @@ export interface SettingsTypeInfo extends BaseTypeInfo {
 
 export interface SettingsTypeConfig extends BaseTypeConfig {
 }
-export type SettingsConfig<S extends SettingsBase = GenericSettings> =
+export type SettingsConfig<S extends SettingsName = SettingsName> =
   & BaseConfig
   & {
     actions?: Array<SettingsActionDefinition<S>>;
@@ -37,7 +38,7 @@ export interface SettingsRow {
 }
 
 export type GlobalSettingsHook = () => void;
-export type SettingsHookFunction<S extends SettingsBase = SettingsBase> = {
+export type SettingsHookFunction<S extends SettingsName = SettingsName> = {
   (
     hookParams:
       & {
@@ -45,19 +46,21 @@ export type SettingsHookFunction<S extends SettingsBase = SettingsBase> = {
         orm: InSpatialORM;
       }
       & {
-        [K in S["_name"] | "settings"]: S;
+        [K in S | "settings"]: S extends SettingsName ? SettingsMap[S]
+          : GenericSettings;
       },
   ): Promise<void> | void;
 };
-export type SettingsHookDefinition<S extends SettingsBase = SettingsBase> = {
+export type SettingsHookDefinition<S extends SettingsName = SettingsName> = {
   name: string;
   description?: string;
   handler: SettingsHookFunction<S>;
 };
 
-export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
+export type SettingsActionDefinition<S extends SettingsName = SettingsName> = {
   key: string;
   description?: string;
+  label?: string;
   private?: boolean;
   action(
     actionParams:
@@ -65,7 +68,10 @@ export type SettingsActionDefinition<S extends SettingsBase = SettingsBase> = {
         orm: InSpatialORM;
         inCloud: InCloud;
       }
-      & { [K in S["_name"] | "settings"]: S }
+      & {
+        [K in S | "settings"]: S extends SettingsName ? SettingsMap[S]
+          : GenericSettings;
+      }
       & {
         data: Record<string, any>;
       },

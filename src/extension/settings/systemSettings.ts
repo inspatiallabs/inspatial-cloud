@@ -1,7 +1,6 @@
 import { SettingsType } from "~/orm/settings/settings-type.ts";
-import type { SystemSettings } from "./_system-settings.type.ts";
 
-export const systemSettings = new SettingsType<SystemSettings>(
+export const systemSettings = new SettingsType(
   "systemSettings",
   {
     systemGlobal: true,
@@ -28,7 +27,7 @@ export const systemSettings = new SettingsType<SystemSettings>(
           inCloud.inCache.setValue(
             "systemSettings",
             "serverHost",
-            systemSettings.serverHost,
+            systemSettings.$serverHost,
           );
         },
       }],

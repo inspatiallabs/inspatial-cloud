@@ -7,9 +7,7 @@ import type {
   EntryHookDefinition,
   EntryIndex,
   EntryTypeConfig,
-  ExtractFieldKeys,
 } from "~/orm/entry/types.ts";
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
@@ -17,23 +15,21 @@ import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
 import { getCallerPath } from "../../utils/path-utils.ts";
+import type { EntryName } from "#types/models.ts";
+import type { EntryFieldKeys } from "#types/mod.ts";
 
 /**
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  E extends EntryBase = GenericEntry,
-  N extends string = string,
-  A extends Array<EntryActionDefinition<E>> = Array<
-    EntryActionDefinition<E>
-  >,
-  FK extends PropertyKey = ExtractFieldKeys<E>,
-> extends BaseType<N> {
+  E extends EntryName = EntryName,
+  A extends Array<EntryActionDefinition<E>> = Array<EntryActionDefinition<E>>,
+> extends BaseType<E> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
   imageField?: InField<"ImageField">;
   defaultListFields: Set<string> = new Set(["id"]);
-  defaultSortField?: FK;
+  defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc" = "asc";
   actions: Map<string, EntryActionDefinition> = new Map();
   connections: Array<EntryConnection> = [];
@@ -48,10 +44,10 @@ export class EntryType<
     validate: [],
   };
   permission: EntryPermission;
-  sourceConfig: EntryConfig<E, A, FK>;
+  sourceConfig: EntryConfig<E, A>;
   constructor(
-    name: N,
-    config: EntryConfig<E, A, FK>,
+    name: E,
+    config: EntryConfig<E, A>,
     rm?: boolean,
   ) {
     super(name, config);
@@ -62,7 +58,8 @@ export class EntryType<
     this.sourceConfig = {
       ...config,
     };
-    this.defaultSortField = config.defaultSortField || "id" as FK;
+    this.defaultSortField = config.defaultSortField ||
+      "id" as EntryFieldKeys<E>;
     this.defaultSortDirection = config.defaultSortDirection || "asc";
     this.permission = {
       create: true,
@@ -79,6 +76,26 @@ export class EntryType<
       readOnly: true,
       required: true,
     });
+
+    if (
+      config.idMode && typeof config.idMode === "object" &&
+      config.idMode.type === "field"
+    ) {
+      const field = config.idMode.field;
+      const fieldDef = this.fields.get(field);
+      if (!fieldDef) {
+        raiseORMException(
+          `ID field ${field} does not exist in EntryType ${this.name}`,
+        );
+      }
+      if (fieldDef.type !== "DataField") {
+        raiseORMException(
+          `ID field ${field.toString()} must be of type 'DataField' in EntryType ${this.name}`,
+        );
+      }
+      fieldDef.unique = true;
+      fieldDef.required = true;
+    }
 
     this.fields.set("createdAt", {
       key: "createdAt",

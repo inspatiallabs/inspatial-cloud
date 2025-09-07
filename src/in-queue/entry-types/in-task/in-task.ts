@@ -2,10 +2,10 @@ import { inTaskFields } from "~/in-queue/entry-types/in-task/fields.ts";
 
 import { EntryType } from "~/orm/entry/entry-type.ts";
 
-import type { InTaskGlobal } from "./_in-task-global.type.ts";
 import dateUtils from "../../../utils/date-utils.ts";
 import type { InSpatialORM } from "../../../orm/inspatial-orm.ts";
 import { convertString } from "~/utils/mod.ts";
+import type { EntryName, SettingsName } from "#types/models.ts";
 
 const config = {
   titleField: "title",
@@ -94,7 +94,7 @@ const config = {
     },
   }],
 } as any;
-export const inTaskGlobal = new EntryType<InTaskGlobal>("inTaskGlobal", {
+export const inTaskGlobal = new EntryType("inTaskGlobal", {
   ...config,
   label: "InTask Global",
   description: "A task in the global task queue",
@@ -114,7 +114,7 @@ async function runEntryTask(args: {
   orm: InSpatialORM;
 }) {
   const { entryType, id, actionName, taskData, orm } = args;
-  const entry = await orm.getEntry(entryType, id);
+  const entry = await orm.getEntry(entryType as EntryName, id);
   return await entry.runAction(actionName, taskData);
 }
 async function runSettingsTask(
@@ -126,6 +126,6 @@ async function runSettingsTask(
   },
 ) {
   const { settings: settingsKey, actionName, taskData, orm } = args;
-  const settings = await orm.getSettings(settingsKey);
+  const settings = await orm.getSettings(settingsKey as SettingsName);
   return await settings.runAction(actionName, taskData);
 }

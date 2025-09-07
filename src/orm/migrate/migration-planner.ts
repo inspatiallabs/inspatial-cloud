@@ -285,9 +285,9 @@ export class MigrationPlanner {
     }
   }
 
-  #dropColumns(plan: EntryMigrationPlan): void {
+  async #dropColumns(plan: EntryMigrationPlan): Promise<void> {
     for (const column of plan.columns.drop) {
-      this.db.removeColumn(plan.table.tableName, column.columnName);
+      await this.db.removeColumn(plan.table.tableName, column.columnName);
       this.#logResult(
         `Dropped column ${column.columnName} from table ${plan.table.tableName}`,
       );

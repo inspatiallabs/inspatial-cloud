@@ -1,5 +1,4 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { IDMode, InValue } from "~/orm/field/types.ts";
 import type {
   BaseConfig,
@@ -9,11 +8,14 @@ import type {
 import type { InField } from "~/orm/field/field-def-types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { EntryHookName } from "@inspatial/cloud/types";
-import { ChildEntryList } from "@inspatial/cloud";
+import type { ChildEntryList } from "@inspatial/cloud";
+import type { EntryMap, EntryName } from "#types/models.ts";
+import type { GenericEntry } from "./entry-base.ts";
+import type { EntryFieldKeys } from "#types/mod.ts";
 
 /* Hooks */
 type EntryHookFunction<
-  E extends EntryBase = EntryBase,
+  E extends EntryName | string = EntryName,
 > = (
   hookParams:
     & {
@@ -21,12 +23,13 @@ type EntryHookFunction<
       inCloud: InCloud;
     }
     & {
-      [K in E["_name"] | "entry"]: E;
+      [K in E | "entry"]: K extends keyof EntryMap ? EntryMap[K]
+        : GenericEntry;
     },
 ) => Promise<void> | void;
 
 export type EntryHookDefinition<
-  E extends EntryBase = EntryBase,
+  E extends EntryName | string = EntryName,
 > = {
   name: string;
   description?: string;
@@ -35,7 +38,7 @@ export type EntryHookDefinition<
 
 /* Entry Actions */
 export type EntryActionDefinition<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
 > = {
   key: string;
   label?: string;
@@ -52,7 +55,8 @@ export type EntryActionDefinition<
         inCloud: InCloud;
       }
       & {
-        [K in E["_name"] | "entry"]: E;
+        [K in E | "entry"]: K extends keyof EntryMap ? EntryMap[K]
+          : GenericEntry;
       }
       & {
         data: Record<string, unknown>;
@@ -61,7 +65,7 @@ export type EntryActionDefinition<
   params: Array<InField>;
 };
 export type EntryActionMethod<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
   K extends PropertyKey = PropertyKey,
   P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
 > = (
@@ -72,12 +76,13 @@ export type EntryActionMethod<
       inCloud: InCloud;
     }
     & {
-      [K in E["_name"] | "entry"]: E;
+      [L in E | "entry"]: L extends keyof EntryMap ? EntryMap[L]
+        : GenericEntry;
     },
 ) => Promise<any> | any;
 
 export type EntryActionConfig<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName | string = EntryName,
   K extends PropertyKey = PropertyKey,
   P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
   R extends EntryActionMethod<E, K, P> = EntryActionMethod<E, K, P>,
@@ -135,46 +140,61 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   taggable: boolean;
 }
 export type EntryConfig<
-  E extends EntryBase = GenericEntry,
+  E extends EntryName = EntryName,
   A extends Array<EntryActionDefinition<E>> = Array<
     EntryActionDefinition<E>
   >,
-  FK extends PropertyKey = ExtractFieldKeys<E>,
 > = BaseConfig & {
   /**
    * The field to use as the display value instead of the ID.
    */
-  titleField?: FK;
+  titleField?: EntryFieldKeys<E>;
   idMode?: IDMode;
-  imageField?: FK;
-  statusField?: FK;
-  defaultListFields?: Array<FK>;
-  defaultSortField?: FK;
+  imageField?: EntryFieldKeys<E>;
+  statusField?: EntryFieldKeys<E>;
+  defaultListFields?: Array<EntryFieldKeys<E>>;
+  defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc";
-  searchFields?: Array<FK>;
+  searchFields?: Array<EntryFieldKeys<E>>;
   taggable?: boolean;
-  index?: Array<EntryIndex<FK>>;
+  index?: Array<EntryIndex<EntryFieldKeys<E>>>;
   actions?: A;
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
 };
 export type IDValue = string | number;
 
-export type ExtractFieldKeys<T> = keyof {
-  [K in keyof T as K extends keyof EntryBase ? never : K]: K;
+export type ExtractFieldKeys<E extends EntryName> = keyof {
+  [K in keyof EntryMap[E] as K extends `$${string}` ? K : never]: K;
 };
 
 export type UpdateEntry<T> = {
   [K in keyof T as K extends BannedFieldKeys ? never : K]?:
     ExtractUpdateChildList<T[K]>;
 };
-export type NewEntry<T> = {
-  [K in keyof T as K extends BannedFieldKeys ? never : K]: ExtractNewChildList<
-    T[K]
-  >;
-};
+export type NewEntry<E extends EntryName> =
+  & {
+    [
+      K in keyof EntryMap[E]["__fields__"] as K extends BannedFieldKeys ? never
+        : IgnoreBoolen<K, EntryMap[E]["__fields__"][K]>
+    ]: ExtractNewChildList<
+      EntryMap[E]["__fields__"][K]
+    >;
+  }
+  & {
+    [
+      K in keyof EntryMap[E][
+        "__fields__"
+      ] as EntryMap[E]["__fields__"][K] extends boolean ? K
+        : never
+    ]?: EntryMap[E]["__fields__"][K];
+  };
+
+type IgnoreBoolen<K, B> = B extends boolean ? never : K;
 
 type BannedFieldKeys =
-  | keyof EntryBase
+  | "id"
+  | "createdAt"
+  | "updatedAt"
   | `${string}__title`;
 
 type BannedChildFields =

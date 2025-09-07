@@ -36,4 +36,10 @@ type InValueTypeMap = {
   ArrayField: any[];
 };
 
-export type IDMode = "uuid" | "ulid" | "auto";
+export type IDMode = "uuid" | "ulid" | "auto" | {
+  type: "field";
+  field: string;
+} | {
+  type: "fields";
+  fields: string[];
+};

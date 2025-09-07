@@ -1,5 +1,6 @@
 import { CloudAPIGroup } from "@inspatial/cloud";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
+import type { EntryName } from "#types/models.ts";
 
 export const tagsGroup = new CloudAPIGroup("tags", {
   description: "Actions related to tags",
@@ -36,7 +37,7 @@ tagsGroup.addAction("tagEntry", {
     type: "DataField",
   }],
   async run({ orm, params: { entryType, entryId, tagId, tagName } }) {
-    const entry = await orm.getEntry(entryType, entryId);
+    const entry = await orm.getEntry(entryType as EntryName, entryId);
     if (tagId) {
       await entry.addTag(tagId);
       return entry.tags;
@@ -66,7 +67,7 @@ tagsGroup.addAction("untagEntry", {
     required: true,
   }],
   async run({ orm, params: { entryType, entryId, tagId } }) {
-    const entry = await orm.getEntry(entryType, entryId);
+    const entry = await orm.getEntry(entryType as EntryName, entryId);
     await entry.removeTag(tagId);
     return entry.tags;
   },

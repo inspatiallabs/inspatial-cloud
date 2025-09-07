@@ -134,9 +134,10 @@ export type ValueType<Join> = Join extends false ? Array<string>
 
 type BaseKeys = "id" | "createdAt" | "updatedAt";
 export interface ListOptions<T extends EntryBase = EntryBase> {
-  columns?: (ExtractFieldKeys<T> | BaseKeys)[];
+  columns?: (keyof T["__fields__"] | BaseKeys)[];
   filter?: DBFilter;
   limit?: number;
+  orFilter?: DBFilter;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";

@@ -1,12 +1,10 @@
 import { EntryType } from "@inspatial/cloud";
 
 import { convertString } from "~/utils/mod.ts";
-import type { CloudFile } from "./_cloud-file.type.ts";
-import type { EntryConfig } from "~/orm/entry/types.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
-import { GlobalCloudFile } from "./_global-cloud-file.type.ts";
-import { InCloud } from "../../in-cloud.ts";
-import { InSpatialORM } from "../../orm/mod.ts";
+import type { InCloud } from "../../in-cloud.ts";
+import type { InSpatialORM } from "../../orm/mod.ts";
+import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
 const config = {
   label: "File",
   titleField: "fileName",
@@ -127,7 +125,7 @@ const config = {
         entry: CloudFile | GlobalCloudFile;
         inCloud: InCloud;
       }) {
-        const path = entry.filePath;
+        const path = entry.$filePath;
         try {
           await Deno.remove(path);
         } catch (e) {
@@ -150,16 +148,16 @@ const config = {
         orm: InSpatialORM;
         inCloud: InCloud;
       }) {
-        if (entry.isFieldModified("optimizeImage") && entry.optimizeImage) {
+        if (entry.isFieldModified("optimizeImage") && entry.$optimizeImage) {
           inCloud.inQueue.send({
             command: "optimizeImage",
             data: {
-              format: entry.optimizeFormat || "jpeg",
-              height: entry.optimizeHeight || 1000,
-              width: entry.optimizeWidth || 1000,
-              inputFilePath: entry.filePath,
-              fileId: entry.id,
-              title: entry.fileName,
+              format: entry.$optimizeFormat || "jpeg",
+              height: entry.$optimizeHeight || 1000,
+              width: entry.$optimizeWidth || 1000,
+              inputFilePath: entry.$filePath,
+              fileId: entry.$id,
+              title: entry.$fileName,
               withThumbnail: true,
               accountId: entry._entryType.systemGlobal
                 ? undefined
@@ -171,8 +169,8 @@ const config = {
     }],
   },
 } as any;
-export const cloudFile = new EntryType<CloudFile>("cloudFile", config);
-export const globalCloudFile = new EntryType<GlobalCloudFile>(
+export const cloudFile = new EntryType("cloudFile", config);
+export const globalCloudFile = new EntryType(
   "globalCloudFile",
   {
     ...config,

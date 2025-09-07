@@ -14,13 +14,10 @@ import type {
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import { createInLog } from "#inLog";
-import type { InTaskGlobal } from "./entry-types/in-task/_in-task-global.type.ts";
-import type { GenericEntry } from "../orm/entry/entry-base.ts";
 import { ImageOps } from "../files/image-ops/image-ops.ts";
-import type { CloudFile } from "../files/entries/_cloud-file.type.ts";
-import type { GlobalCloudFile } from "../files/entries/_global-cloud-file.type.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
-import type { InTask } from "./entry-types/in-task/_in-task.type.ts";
+import type { ListOptions } from "../orm/db/db-types.ts";
+import type { CloudFile, EntryMap, GlobalCloudFile } from "#types/models.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -50,8 +47,8 @@ export class InQueue extends InCloud {
       "core",
     );
     this.images.init();
-    this.inLive.init(brokerPort);
-    this.inCache.init(brokerPort);
+    this.inChannel.connect(brokerPort);
+    this.inLive.init();
     this.globalOrm = this.orm.withAccount("cloud_global");
     const port = this.getExtensionConfigValue("core", "queuePort");
     if (port === undefined) {
@@ -187,9 +184,9 @@ export class InQueue extends InCloud {
       size: 200,
     });
     if (result.success) {
-      fileEntry.thumbnailSize = result.fileSize;
-      fileEntry.hasThumbnail = true;
-      fileEntry.thumbnailPath = result.outputFilePath;
+      fileEntry.$thumbnailSize = result.fileSize;
+      fileEntry.$hasThumbnail = true;
+      fileEntry.$thumbnailPath = result.outputFilePath;
       await fileEntry.save();
       this.broadcastEnd("completed", startTime, message);
       return;
@@ -227,17 +224,17 @@ export class InQueue extends InCloud {
     });
 
     if (result.success) {
-      fileEntry.filePath = result.newFilePath;
+      fileEntry.$filePath = result.newFilePath;
       if (result.thumbnailSize) {
-        fileEntry.thumbnailSize = result.thumbnailSize;
+        fileEntry.$thumbnailSize = result.thumbnailSize;
       }
       if (result.thumbnailPath) {
-        fileEntry.thumbnailPath = result.thumbnailPath;
+        fileEntry.$thumbnailPath = result.thumbnailPath;
       }
-      fileEntry.fileSize = result.fileSize;
-      fileEntry.fileExtension = format;
-      fileEntry.optimized = true;
-      fileEntry.mimeType = MimeTypes.getMimeTypeByExtension(format);
+      fileEntry.$fileSize = result.fileSize;
+      fileEntry.$fileExtension = format;
+      fileEntry.$optimized = true;
+      fileEntry.$mimeType = MimeTypes.getMimeTypeByExtension(format);
       await fileEntry.save();
       this.broadcastEnd("completed", startTime, message);
       return;
@@ -256,12 +253,12 @@ export class InQueue extends InCloud {
     const startTime = this.broadcastStart(message);
     let task;
     if (taskInfo.systemGlobal) {
-      task = await this.globalOrm.getEntry<InTaskGlobal>(
+      task = await this.globalOrm.getEntry(
         "inTaskGlobal",
         taskInfo.id,
       );
     } else {
-      task = await this.orm.withAccount(taskInfo.account).getEntry<InTask>(
+      task = await this.orm.withAccount(taskInfo.account).getEntry(
         "inTask",
         taskInfo.id,
       );
@@ -332,7 +329,7 @@ export class InQueue extends InCloud {
 
   async loadTasks() {
     // load global tasks
-    const listOptions = {
+    const listOptions: ListOptions = {
       columns: ["id"],
       filter: [{
         field: "status",
@@ -355,7 +352,7 @@ export class InQueue extends InCloud {
         },
       });
     }
-    const optimizeOptions = {
+    const optimizeOptions: ListOptions = {
       columns: [
         "id",
         "filePath",
@@ -452,11 +449,13 @@ export class InQueue extends InCloud {
         value: "running",
       }],
       limit: 0,
-    };
-    const cancelTask = async (task: GenericEntry) => {
-      task.status = "failed";
-      task.endTime = dateUtils.nowTimestamp();
-      task.errorInfo = "Task was cancelled due to server restart.";
+    } as ListOptions;
+    const cancelTask = async (
+      task: EntryMap["inTask"] | EntryMap["inTaskGlobal"],
+    ) => {
+      task.$status = "failed";
+      task.$endTime = dateUtils.nowTimestamp();
+      task.$errorInfo = "Task was cancelled due to server restart.";
       await task.save();
     };
     const { rows: globalTasks } = await this.globalOrm.getEntryList(
@@ -464,7 +463,7 @@ export class InQueue extends InCloud {
       listOptions,
     );
     for (const task of globalTasks) {
-      const taskEntry = await this.globalOrm.getEntry<InTaskGlobal>(
+      const taskEntry = await this.globalOrm.getEntry(
         "inTaskGlobal",
         task.id,
       );

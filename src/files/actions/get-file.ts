@@ -1,7 +1,5 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
-import type { CloudFile } from "../entries/_cloud-file.type.ts";
-import type { GlobalCloudFile } from "../entries/_global-cloud-file.type.ts";
 import { joinPath } from "../../utils/path-utils.ts";
 import { raiseServerException } from "@inspatial/cloud";
 
@@ -33,24 +31,24 @@ export const getFile = new CloudAPIAction("getFile", {
     }${fileId}`;
     let filePath = inCloud.inCache.getValue("getFileFiles", accountAndFileId);
     if (!filePath) {
-      const file = await orm.getEntry<CloudFile | GlobalCloudFile>(
+      const file = await orm.getEntry(
         global ? "globalCloudFile" : "cloudFile",
         fileId,
       );
       let fileName = "";
       if (thumbnail) {
-        fileName = file.thumbnailPath
-          ? file.thumbnailPath.split("/").pop() || ""
+        fileName = file.$thumbnailPath
+          ? file.$thumbnailPath.split("/").pop() || ""
           : "";
-        if (!file.thumbnailPath) {
+        if (!file.$thumbnailPath) {
           raiseServerException(404, "Thumbnail not found");
         }
       } else {
-        fileName = file.filePath.split("/").pop() || "";
+        fileName = file.$filePath.split("/").pop() || "";
       }
 
       filePath = joinPath(
-        file.publicFile ? "public-files" : "files",
+        file.$publicFile ? "public-files" : "files",
         accountId,
         fileName,
       );

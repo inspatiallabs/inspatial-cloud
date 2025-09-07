@@ -1,14 +1,15 @@
-export class BrokerClient<T> {
+export class BrokerClient {
   channel: string;
   #stop: boolean = false;
   #socket: WebSocket | null = null;
-  onMessage: (message: T) => void = () => {
-    console.log("Default onMessage handler called");
-  };
+  #onMessage(message: { channel: string; data: Record<string, unknown> }) {
+    this.#channels.get(message.channel)?.(message.data);
+  }
+  #channels: Map<string, (message: any) => void | Promise<void>> = new Map();
   port: number = 11254;
 
-  constructor(channel: string) {
-    this.channel = channel;
+  constructor(channel?: string) {
+    this.channel = channel ?? "default";
   }
   get closed(): boolean {
     if (!this.#socket) {
@@ -68,9 +69,9 @@ export class BrokerClient<T> {
       }, 2000);
       this.#socket!.onopen = () => {
         this.#socket!.onmessage = (event) => {
-          const data = JSON.parse(event.data) as T;
+          const data = JSON.parse(event.data);
 
-          this.onMessage(data);
+          this.#onMessage(data);
         };
         this.#socket!.onclose = () => {
           this.#reconnect();
@@ -79,10 +80,21 @@ export class BrokerClient<T> {
       };
     });
   }
-  onMessageReceived(callback: (message: T) => void) {
-    this.onMessage = callback;
+  addChannel<T = Record<string, unknown>>(
+    channelId: string,
+    callback: (message: T) => void | Promise<void>,
+  ): (message: T) => void {
+    this.#channels.set(channelId, callback);
+    const send = (message: T) => {
+      this.#broadcast({
+        channel: channelId,
+        data: message,
+      });
+    };
+    return send;
   }
-  broadcast(message: T) {
+
+  #broadcast(message: Record<string, unknown>) {
     if (!this.connected) {
       return;
     }

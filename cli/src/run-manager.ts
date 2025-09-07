@@ -198,19 +198,33 @@ export class RunManager {
     Deno.exit(0);
   }
   async setupWatcher() {
+    const paths: string[] = [];
+    const setupPaths = (
+      root: string,
+      dirs: IteratorObject<Deno.DirEntry, unknown, unknown>,
+    ) => {
+      for (const item of dirs) {
+        if (item.isDirectory && !item.name.startsWith(".")) {
+          paths.push(joinPath(root, item.name));
+        }
+        if (item.name.endsWith(".type.ts")) {
+          continue;
+        }
+        if (item.isFile && item.name.endsWith("ts")) {
+          paths.push(joinPath(root, item.name));
+        }
+      }
+    };
     const dirs = Deno.readDirSync(this.rootPath);
-    const paths = [];
-    for (const item of dirs) {
-      if (item.isDirectory && item.name != ".inspatial") {
-        paths.push(joinPath(this.rootPath, item.name));
-      }
-      if (item.name.endsWith(".type.ts")) {
-        continue;
-      }
-      if (item.isFile && item.name.endsWith("ts")) {
-        paths.push(joinPath(this.rootPath, item.name));
-      }
+    setupPaths(this.rootPath, dirs);
+    try {
+      const cloudPath = joinPath(this.rootPath, "..", "inspatial-cloud", "src");
+      const cloudDirs = Deno.readDirSync(cloudPath);
+      setupPaths(cloudPath, cloudDirs);
+    } catch (_e) {
+      // No inspatial-cloud directory, skip it
     }
+
     const watcher = Deno.watchFs(paths, {
       recursive: true,
     });

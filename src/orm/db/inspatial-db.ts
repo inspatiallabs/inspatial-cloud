@@ -350,7 +350,8 @@ export class InSpatialDB {
         query += ` UUID`;
         break;
       case "manual":
-        query += ` CHAR(255)`;
+      default:
+        query += ` VARCHAR(255)`;
     }
     query += ` PRIMARY KEY );`;
     await this.query(query);
@@ -953,7 +954,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     columnName = toSnake(columnName);
     const query =
-      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
+      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique;`;
     await this.query(query);
   }
 

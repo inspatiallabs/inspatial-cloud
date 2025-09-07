@@ -14,6 +14,7 @@ export function formatColumnName(column: string): string {
     "column",
     "to",
     "unique",
+    "create",
   ];
   if (reservedWords.includes(column)) {
     return `"${column}"`;

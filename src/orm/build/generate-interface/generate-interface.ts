@@ -1,111 +1,88 @@
-import type { EntryType } from "~/orm/entry/entry-type.ts";
-import {
-  formatInterfaceFile,
-  writeInterfaceFile,
-} from "~/orm/build/generate-interface/files-handling.ts";
+import { EntryType } from "~/orm/entry/entry-type.ts";
+
 import {
   buildField,
   buildFields,
 } from "~/orm/build/generate-interface/build-fields.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
 import convertString from "~/utils/convert-string.ts";
-
-export async function generateEntryInterface(
+function hashFields(fields: string[]): string[] {
+  return fields.map((f) => {
+    const fieldLines = f.split("\n");
+    const lastLine = fieldLines.pop()!;
+    fieldLines.push(`$${lastLine.trim()}`);
+    return fieldLines.join("\n");
+  });
+}
+export function generateEntryInterface(
   entryType: EntryType,
-): Promise<void> {
-  if (!entryType.dir) {
-    return;
-  }
-  const className = convertString(entryType.name, "pascal", true);
-  const fileName = `_${convertString(entryType.name, "kebab", true)}.type.ts`;
-  const filePath = `${entryType.dir!}/${fileName}`; //`${entriesPath}/${fileName}`;
-  const actionsInfo = buildActions(entryType, className);
+): string {
+  const { outLines } = generateCommon(entryType);
+  return outLines.join("\n");
+}
+export function generateSettingsInterface(
+  settingsType: SettingsType,
+): string {
+  const { outLines } = generateCommon(settingsType);
+  return outLines.join("\n");
+}
+function generateCommon(entryOrSettings: EntryType | SettingsType) {
+  const es = entryOrSettings;
+  const baseType = es instanceof EntryType ? "EntryBase" : "SettingsBase";
+  const interfaceName = convertString(es.name, "pascal", true);
+  const fileName = `_${convertString(es.name, "kebab", true)}.type.ts`;
+  const filePath = `${es.dir}/${fileName}`;
+  const actionsInfo = buildActions(es, interfaceName);
+  const fields = buildFields(es.fields);
+  const classFields = [
+    `type ${interfaceName}Fields = { \n${fields.join("\n")}`,
+  ];
   const outLines: string[] = [
-    'import type { EntryBase } from "@inspatial/cloud/types";\n',
-    `export interface ${className} extends EntryBase {`,
-    ` _name:"${convertString(entryType.name, "camel", true)}"`,
+    `export type ${interfaceName} = ${baseType}<"${es.name}", ${interfaceName}Fields> & {`,
+    ` _name:"${convertString(es.name, "camel", true)}"`,
+    ` __fields__: ${interfaceName}Fields;`,
+    ...hashFields(fields),
   ];
 
-  const fields = buildFields(entryType.fields);
-  outLines.push(...fields);
-  outLines.push(...buildOthers("entry", className));
-  for (const child of entryType.children?.values() || []) {
-    const childFields = buildFields(child.fields);
-    outLines.push(
+  for (const child of es.children?.values() || []) {
+    const childFields = buildFields(child.fields, [
+      "id",
+      "parent",
+      "parent__title",
+      "createdAt",
+      "updatedAt",
+      "order",
+    ]);
+    classFields.push(
       `${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
     );
+    outLines.push(
+      `$${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
+    );
   }
+  classFields.push("};");
+  outLines.unshift(...classFields);
   outLines.push(actionsInfo.property);
   outLines.push("}");
-  if (entryType.children?.size) {
-    outLines[0] =
-      'import type { EntryBase, ChildList } from "@inspatial/cloud/types";\n';
-  }
   outLines.push(actionsInfo.types);
-  await writeInterfaceFile(filePath, outLines.join("\n"));
-  await formatInterfaceFile(filePath);
+  return { filePath, outLines };
 }
 
-export async function generateSettingsInterfaces(
-  settingsType: SettingsType,
-): Promise<void> {
-  if (!settingsType.dir) {
-    return;
-  }
-  const settingsPath = settingsType.dir;
-
-  const fileName = `_${
-    convertString(settingsType.name, "kebab", true)
-  }.type.ts`;
-  const filePath = `${settingsPath}/${fileName}`;
-  const interfaceName = convertString(settingsType.name, "pascal", true);
-  const outLines: string[] = [
-    'import type { SettingsBase }from "@inspatial/cloud/types";\n',
-    `export interface ${interfaceName} extends SettingsBase {`,
-    ` _name:"${convertString(settingsType.name, "camel", true)}"`,
-  ];
-
-  const fields = buildFields(settingsType.fields);
-  outLines.push(...fields);
-  outLines.push(...buildOthers("settings", interfaceName));
-  for (const child of settingsType.children?.values() || []) {
-    const childFields = buildFields(child.fields);
-    outLines.push(
-      `${child.name}: ChildList<{ ${childFields.join("\n")}}>`,
-    );
-  }
-  outLines.push("}");
-  if (settingsType.children?.size) {
-    outLines[0] =
-      'import type { SettingsBase, ChildList } from "@inspatial/cloud/types";\n';
-  }
-  await writeInterfaceFile(filePath, outLines.join("\n"));
-  await formatInterfaceFile(filePath);
-}
-function buildOthers(forType: "entry" | "settings", interfaceName: string) {
-  return [`isFieldModified(
-    fieldKey: keyof {
-      [K in keyof ${interfaceName} as K extends keyof ${
-    forType === "entry" ? "EntryBase" : "SettingsBase"
-  } ? never : K]: K;
-    },
-  ): boolean;`];
-}
 function buildActions(
-  entryType: EntryType,
+  es: EntryType | SettingsType,
   className: string,
 ): {
   property: string;
   types: string;
 } {
-  if (entryType.actions.size === 0) {
+  if (es.actions.size === 0) {
     return {
       property: "",
       types: "",
     };
   }
   const lines: string[] = [];
-  const actions = entryType.actions;
+  const actions = es.actions;
   const actionMap = `${className}ActionMap`;
   const paramsMap = `${className}ParamsActionMap`;
 

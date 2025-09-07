@@ -1,7 +1,6 @@
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
-import type { User } from "../_user.type.ts";
 
-export const findAccounts: EntryActionDefinition<User> = {
+export const findAccounts: EntryActionDefinition<"user"> = {
   key: "findAccounts",
   label: "Find Accounts",
   params: [],

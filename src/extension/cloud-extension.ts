@@ -35,8 +35,6 @@ export type AfterMigrate = {
 export class CloudExtension<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
   N extends string = string,
-  E extends Array<EntryType<any>> = Array<EntryType<any>>,
-  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
   C extends ConfigDefinition = ConfigDefinition,
 > {
   key: string;
@@ -83,7 +81,7 @@ export class CloudExtension<
 
   constructor(
     extensionName: N,
-    options: Omit<ExtensionOptions<AG, E, ST, C>, "name"> & {
+    options: Omit<ExtensionOptions<AG, C>, "name"> & {
       label?: string;
       description?: string;
     },

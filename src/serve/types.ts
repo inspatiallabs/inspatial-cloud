@@ -12,8 +12,8 @@ import type {
 } from "~/cloud-config/config-types.ts";
 import type { RoleConfig } from "~/orm/roles/role.ts";
 import type { AfterMigrate } from "~/extension/cloud-extension.ts";
-import type { Account } from "../auth/entries/account/_account.type.ts";
 import type { GlobalEntryHooks } from "@inspatial/cloud/types";
+import type { Account } from "#types/models.ts";
 
 /**
  * Information about a {@link CloudExtension}
@@ -111,16 +111,14 @@ export type AfterOnboarding = (args: {
 
 export interface ExtensionOptions<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
-  E extends Array<EntryType<any>> = Array<EntryType<any>>,
-  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
   C extends ConfigDefinition = ConfigDefinition,
 > {
   name: string;
   description?: string;
   version?: string;
   config?: C;
-  entryTypes?: E;
-  settingsTypes?: ST;
+  entryTypes?: Array<EntryType<any>>;
+  settingsTypes?: Array<SettingsType<any>>;
   ormGlobalHooks?: {
     entries: Partial<GlobalEntryHooks>;
     settings: Partial<GlobalSettingsHooks>;

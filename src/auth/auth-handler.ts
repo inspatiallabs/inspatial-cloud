@@ -2,9 +2,8 @@ import type { SessionData } from "~/auth/types.ts";
 import type { InRequest } from "~/serve/in-request.ts";
 import type { InResponse } from "~/serve/in-response.ts";
 import type { InCloud } from "~/in-cloud.ts";
-import type { UserSession } from "./entries/user-session/_user-session.type.ts";
-import type { User } from "./entries/user/_user.type.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
+import type { User } from "#types/models.ts";
 
 export class AuthHandler {
   #inCloud: InCloud;
@@ -85,7 +84,7 @@ export class AuthHandler {
       authToken,
     );
     if (!sessionData) {
-      const user = await this.#inCloud.orm.findEntry<User>("user", [{
+      const user = await this.#inCloud.orm.findEntry("user", [{
         field: "apiToken",
         op: "=",
         value: authToken,
@@ -107,7 +106,7 @@ export class AuthHandler {
     }
     let sessionData = this.#inCloud.inCache.getValue("userSession", sessionId);
     if (!sessionData) {
-      const userSession = await this.orm.findEntry<UserSession>(
+      const userSession = await this.orm.findEntry(
         "userSession",
         [{
           field: "sessionId",
@@ -116,7 +115,7 @@ export class AuthHandler {
         }],
       );
       if (userSession) {
-        sessionData = userSession.sessionData as SessionData;
+        sessionData = userSession.$sessionData as SessionData;
         this.#inCloud.inCache.setValue("userSession", sessionId, sessionData);
       }
     }
@@ -138,7 +137,7 @@ export class AuthHandler {
   > {
     const sessionData = await makeSessiondata(user);
 
-    const session = await this.orm.createEntry<UserSession>(
+    const session = await this.orm.createEntry(
       "userSession",
       {
         sessionId: "",
@@ -147,36 +146,43 @@ export class AuthHandler {
       },
     );
     // app.cacheSet("userSession", session.id, session.sessionData as any);
-    inResponse.setCookie("userSession", session.sessionId);
+    inResponse.setCookie("userSession", session.$sessionId);
     inRequest.context.update("user", {
       ...sessionData,
-      sessionId: session.sessionId,
+      sessionId: session.$sessionId,
     });
-    inRequest.context.update("userSession", session.sessionId);
+    inRequest.context.update("userSession", session.$sessionId);
     this.#inCloud.inCache.setValue(
       "userSession",
-      session.sessionId,
+      session.$sessionId,
       {
         ...sessionData,
-        sessionId: session.sessionId,
+        sessionId: session.$sessionId,
       },
     );
     return {
       ...sessionData,
-      sessionId: session.sessionId,
+      sessionId: session.$sessionId,
     };
   }
 }
 
 async function makeSessiondata(user: User): Promise<SessionData> {
-  const accounts = await user.runAction("findAccounts");
+  const accounts = await user.runAction("findAccounts") as Array<{
+    accountId: string;
+    role: string;
+  }>;
+  // Pick the first account as the default account
+  const systemAdmin = !!user.$systemAdmin;
+  const adminPortalAccess = systemAdmin ? true : !!user.$adminPortalAccess;
   const sessionData: SessionData = {
-    userId: user.id,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    systemAdmin: user.systemAdmin ?? false,
-    profilePicture: user.profilePicture,
+    userId: user.$id,
+    email: user.$email,
+    firstName: user.$firstName,
+    lastName: user.$lastName,
+    systemAdmin,
+    adminPortalAccess,
+    profilePicture: user.$profilePicture,
     accountId: "",
     role: "",
   };
@@ -185,7 +191,7 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     sessionData.accountId = accountId;
     sessionData.role = role;
   }
-  if (user.systemAdmin) {
+  if (user.$systemAdmin) {
     sessionData.role = "systemAdmin";
   }
 

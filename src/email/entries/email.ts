@@ -4,10 +4,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 import type { SMTPOptions } from "../smtp/smtpTypes.ts";
 import { SMTPClient } from "../smtp/smtpClient.ts";
 
-import type { EmailSettings } from "~/email/settings/_email-settings.type.ts";
-import type { Email } from "./_email.type.ts";
-
-export const emailEntry = new EntryType<Email>("email", {
+export const emailEntry = new EntryType("email", {
   label: "Email",
   description: "An email",
   systemGlobal: true,
@@ -106,40 +103,40 @@ export const emailEntry = new EntryType<Email>("email", {
       name: "setDefaultAccount",
       description: "Set the default email account if not provided",
       async handler({ orm, email }) {
-        if (!email.emailAccount) {
-          const emailSettings = await orm.getSettings<EmailSettings>(
+        if (!email.$emailAccount) {
+          const emailSettings = await orm.getSettings(
             "emailSettings",
           );
 
-          const accountId = emailSettings.defaultSendAccount;
+          const accountId = emailSettings.$defaultSendAccount;
           if (!accountId) {
             raiseServerException(
               400,
               "No default email account is set. Please set a default email account in the settings.",
             );
           }
-          email.emailAccount = accountId;
+          email.$emailAccount = accountId;
         }
-        if (email.contentType === "html") {
-          email.htmlBody = email.body;
+        if (email.$contentType === "html") {
+          email.$htmlBody = email.$body;
         }
       },
     }],
     afterUpdate: [{
       name: "notifyAccount",
       handler({ email, inCloud }) {
-        if (email.linkAccount) {
+        if (email.$linkAccount) {
           inCloud.inLive.notify({
-            accountId: email.linkAccount,
+            accountId: email.$linkAccount,
             roomName: "linkedEmail",
             event: "emailStatus",
             data: email.data,
           });
-          if (email.linkEntry && email.linkId) {
-            const id = email.linkId!;
-            const entry = email.linkEntry!;
+          if (email.$linkEntry && email.$linkId) {
+            const id = email.$linkId!;
+            const entry = email.$linkEntry!;
             inCloud.inLive.notify({
-              accountId: email.linkAccount,
+              accountId: email.$linkAccount,
               roomName: `linkedEmail:${entry}:${id}`,
               event: "emailStatus",
               data: email.data,
@@ -197,7 +194,7 @@ emailEntry.addAction({
   label: "Send Email",
   params: [],
   async action({ email }) {
-    switch (email.status) {
+    switch (email.$status) {
       case "sent":
         raiseServerException(
           400,
@@ -214,7 +211,7 @@ emailEntry.addAction({
       case "failed":
         break;
     }
-    email.status = "queued";
+    email.$status = "queued";
     await email.save();
     await email.enqueueAction("send");
     return {
@@ -230,51 +227,51 @@ emailEntry.addAction({
   description: "Send the email",
   label: "Send",
   async action({ email, orm }) {
-    if (email.status !== "queued") {
-      email.status = "queued";
+    if (email.$status !== "queued") {
+      email.$status = "queued";
       // raiseEasyException("Email has already been sent", 400);
       await email.save();
     }
     const emailAccount = await orm.getEntry(
       "emailAccount",
-      email.emailAccount!,
+      email.$emailAccount!,
     );
 
-    let password: string = emailAccount.smtpPassword || "";
-    if (emailAccount.useGmailOauth) {
-      const expireTime = emailAccount.expireTime as number;
+    let password: string = emailAccount.$smtpPassword || "";
+    if (emailAccount.$useGmailOauth) {
+      const expireTime = emailAccount.$expireTime as number;
       const nowTime = dateUtils.nowTimestamp();
 
       if (nowTime > expireTime) {
         await emailAccount.runAction("refreshToken");
       }
-      const user = emailAccount.smtpUser;
+      const user = emailAccount.$smtpUser;
       if (!user) {
         raiseServerException(
           400,
           "SMTP user is missing",
         );
       }
-      if (!emailAccount.accessToken) {
+      if (!emailAccount.$accessToken) {
         raiseServerException(
           400,
           "Access token is missing",
         );
       }
-      password = emailAccount.accessToken as string;
+      password = emailAccount.$accessToken as string;
     }
     const settings = await orm.getSettings("emailSettings");
 
     const config: SMTPOptions = {
-      port: settings.smtpPort as number || 587,
-      smtpServer: emailAccount.smtpHost as string,
-      userLogin: emailAccount.smtpUser as string,
+      port: settings.$smtpPort as number || 587,
+      smtpServer: emailAccount.$smtpHost as string,
+      userLogin: emailAccount.$smtpUser as string,
       password,
-      authMethod: emailAccount.useGmailOauth ? "XOAUTH2" : "LOGIN",
+      authMethod: emailAccount.$useGmailOauth ? "XOAUTH2" : "LOGIN",
       domain: "localhost",
     };
     try {
-      const body = email.body as string || "";
+      const body = email.$body as string || "";
 
       const smtpClient = new SMTPClient(config);
 
@@ -309,30 +306,30 @@ emailEntry.addAction({
         body,
         header: {
           from: {
-            email: emailAccount.emailAccount as string,
-            name: emailAccount.senderName as string,
+            email: emailAccount.$emailAccount as string,
+            name: emailAccount.$senderName as string,
           },
-          to: [email.recipientEmail],
-          subject: email.subject as string,
-          contentType: email.contentType as "html" | "text",
+          to: [email.$recipientEmail],
+          subject: email.$subject as string,
+          contentType: email.$contentType as "html" | "text",
           date: sendDate,
         },
         // attachments,
       });
       if (errors.length > 0) {
-        email.status = "failed";
+        email.$status = "failed";
         await email.save();
         orm.inLog.error(errors.join("\n"));
         return;
       }
 
-      email.sendDate = sendDate.getTime();
+      email.$sendDate = sendDate.getTime();
       // Send the email
-      email.status = "sent";
+      email.$status = "sent";
       await email.save();
     } catch (e) {
       orm.inLog.error(e, "Failed to send email");
-      email.status = "failed";
+      email.$status = "failed";
       await email.save();
     }
   },

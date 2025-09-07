@@ -1,5 +1,4 @@
 import { CloudAPIAction } from "../../api/cloud-action.ts";
-import type { Account } from "../entries/account/_account.type.ts";
 import type { SessionData } from "../types.ts";
 
 export const updateAccount = new CloudAPIAction("updateAccount", {
@@ -11,12 +10,12 @@ export const updateAccount = new CloudAPIAction("updateAccount", {
     }
     const { accountData } = params;
     const orm = inCloud.orm.withAccount(user.accountId);
-    const account = await orm.getEntry<Account>("account", user.accountId);
+    const account = await orm.getEntry("account", user.accountId);
 
     for (const [key, value] of Object.entries(accountData)) {
       switch (key) {
         case "onboardingComplete":
-          account.onboardingComplete = value as boolean;
+          account.$onboardingComplete = value as boolean;
           break;
         default:
           account.update({

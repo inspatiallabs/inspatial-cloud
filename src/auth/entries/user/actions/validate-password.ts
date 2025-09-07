@@ -1,14 +1,13 @@
 import type { EntryActionDefinition } from "~/orm/entry/types.ts";
-import type { User } from "../_user.type.ts";
 import { hashPassword } from "../../../security.ts";
 
-export const validatePassword: EntryActionDefinition<User> = {
+export const validatePassword: EntryActionDefinition<"user"> = {
   key: "validatePassword",
   label: "Validate Password",
   description: "Validate the user's password",
   async action({ data, user }): Promise<boolean> {
     const password = data.password as string;
-    const existingPassword = user.password;
+    const existingPassword = user.$password;
     if (!existingPassword) {
       return false;
     }

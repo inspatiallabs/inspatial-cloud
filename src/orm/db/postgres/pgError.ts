@@ -43,7 +43,7 @@ export function handlePgError(error: PgError) {
     case PGErrorCode.ForeignKeyViolation: {
       response.push(error.detail);
       const match = error.detail.match(
-        /\(id\)=\((?<id>[\w\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
+        /\(id\)=\((?<id>[\w:\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
       );
       if (match?.groups) {
         info.set("id", match.groups.id);
@@ -73,6 +73,13 @@ export function handlePgError(error: PgError) {
         break;
       }
 
+      response.push(
+        `Query: ${error.query} \n ${
+          ColorMe.fromOptions(error.message, { color: "brightRed" })
+        }`,
+      );
+      break;
+    case PGErrorCode.UndefinedFunction:
       response.push(
         `Query: ${error.query} \n ${
           ColorMe.fromOptions(error.message, { color: "brightRed" })

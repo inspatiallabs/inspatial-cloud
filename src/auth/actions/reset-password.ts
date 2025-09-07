@@ -21,7 +21,7 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
       };
     }
     await user.runAction("generateResetToken");
-    const token = user.resetPasswordToken as string;
+    const token = user.$resetPasswordToken as string;
     const resetLink = resetUrl || `${inRequest.origin}/reset-password`;
     const searchParams = new URLSearchParams();
     searchParams.set("token", token);
@@ -29,7 +29,7 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
     const resetString = `${resetLink}?${searchParams.toString()}`;
 
     const emailContent = `
-      <p>Hi ${user.firstName},</p>
+      <p>Hi ${user.$firstName},</p>
       <p>We received a request to reset your password.</p>
       <p><b>Click the link below to reset your password:<b></p>
       <a href="${resetString}" target="_blank">${resetString}</a>

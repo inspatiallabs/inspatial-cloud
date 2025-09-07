@@ -1,7 +1,6 @@
 import { ChildEntryType, EntryType } from "@inspatial/cloud";
-import type { OnboardingStep } from "./_onboarding-step.type.ts";
 
-export const onboardingStep = new EntryType<OnboardingStep>("onboardingStep", {
+export const onboardingStep = new EntryType("onboardingStep", {
   systemGlobal: true,
   titleField: "title",
   defaultListFields: ["order", "description"],
