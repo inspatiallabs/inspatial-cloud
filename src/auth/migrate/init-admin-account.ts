@@ -16,7 +16,7 @@ export async function initAdminAccount(
   const account = await orm.createEntry("account", {
     name: "Admin Account",
 
-    users: [{ user: newAdminUser.id, isOwner: true, role: "accountOwner" }],
+    users: [{ user: newAdminUser.id, isOwner: true, role: "accountAdmin" }],
   });
   await account.runAction("initialize");
   orm.inLog.info("Admin account created successfully.");
@@ -34,7 +34,6 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
   const lastName = "Admin";
   const email = "admin@user.com";
   const password = "password";
-  const role = "systemAdmin";
 
   const info = [
     `Creating a new admin user with the following details:`,
@@ -42,7 +41,6 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     `Last Name: ${lastName}`,
     `Email: ${email}`,
     `Password: ${password}`,
-    `Role: ${role}`,
   ];
   orm.inLog.warn(
     info.map((line) => center(line)).join("\n"),
