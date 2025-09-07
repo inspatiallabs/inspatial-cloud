@@ -24,7 +24,7 @@ import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
 import type { EntryIndex } from "~/orm/entry/types.ts";
 import { convertString } from "~/utils/mod.ts";
 import type { InSpatialDB } from "../../db/inspatial-db.ts";
-import type { EntryName } from "@inspatial/cloud/models";
+import type { EntryName } from "#types/models.ts";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {

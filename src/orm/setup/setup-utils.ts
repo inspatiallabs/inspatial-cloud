@@ -83,12 +83,11 @@ export function validateConnectionFields(
     if (field.type !== "ConnectionField") {
       continue;
     }
-    if (field.type === "ConnectionField") {
-      if (!field.entryType) {
-        raiseORMException(
-          `Connection field '${field.key}' in '${entryOrSettingsType.name}' is missing a connection EntryType`,
-        );
-      }
+    const key = field.key || "(unknown)";
+    if (!field.entryType) {
+      raiseORMException(
+        `Connection field '${key}' in '${entryOrSettingsType.name}' is missing a connection EntryType`,
+      );
     }
 
     if (!role.entryTypes.has(field.entryType)) {

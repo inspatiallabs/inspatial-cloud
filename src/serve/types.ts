@@ -117,8 +117,8 @@ export interface ExtensionOptions<
   description?: string;
   version?: string;
   config?: C;
-  entryTypes?: Array<EntryType<any, any, any, any>>;
-  settingsTypes?: Array<SettingsType<any, any>>;
+  entryTypes?: Array<EntryType<any>>;
+  settingsTypes?: Array<SettingsType<any>>;
   ormGlobalHooks?: {
     entries: Partial<GlobalEntryHooks>;
     settings: Partial<GlobalSettingsHooks>;

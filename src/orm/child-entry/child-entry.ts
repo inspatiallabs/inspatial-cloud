@@ -13,6 +13,7 @@ import { dateUtils } from "~/utils/date-utils.ts";
 import type { InSpatialDB } from "../db/inspatial-db.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import { getInLog } from "#inLog";
+import type { EntryName } from "#types/models.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
   _name?: string;
   [key: `$${string}`]: any;
@@ -356,7 +357,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       key: "parent",
       label: "Parent",
       type: "ConnectionField",
-      entryType: parentEntryType,
+      entryType: parentEntryType as EntryName,
       required: true,
     });
   }

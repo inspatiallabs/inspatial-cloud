@@ -134,7 +134,7 @@ export class InSpatialORM {
   }
   async _runGlobalSettingsHooks(
     hookType: keyof GlobalSettingsHooks,
-    settings: Settings,
+    settings: Settings<any>,
   ): Promise<void> {
     for (const hook of this.globalSettingsHooks[hookType]) {
       await hook({

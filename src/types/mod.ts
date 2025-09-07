@@ -1,6 +1,6 @@
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
-import type { EntryMap, EntryName } from "@inspatial/cloud/models";
 import type { GenericEntry } from "../orm/entry/entry-base.ts";
+import type { EntryMap, EntryName } from "./models.ts";
 
 export type AppMode = "development" | "production";
 

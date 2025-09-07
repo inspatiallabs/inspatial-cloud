@@ -1,6 +1,6 @@
 import { CloudAPIGroup } from "@inspatial/cloud";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
-import type { EntryName } from "@inspatial/cloud/models";
+import type { EntryName } from "#types/models.ts";
 
 export const tagsGroup = new CloudAPIGroup("tags", {
   description: "Actions related to tags",

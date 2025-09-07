@@ -14,11 +14,10 @@ import type {
 import type { InSpatialORM } from "../orm/inspatial-orm.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 import { createInLog } from "#inLog";
-import type { GenericEntry } from "../orm/entry/entry-base.ts";
 import { ImageOps } from "../files/image-ops/image-ops.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
 import type { ListOptions } from "../orm/db/db-types.ts";
-import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
+import type { CloudFile, EntryMap, GlobalCloudFile } from "#types/models.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -451,7 +450,9 @@ export class InQueue extends InCloud {
       }],
       limit: 0,
     } as ListOptions;
-    const cancelTask = async (task: GenericEntry) => {
+    const cancelTask = async (
+      task: EntryMap["inTask"] | EntryMap["inTaskGlobal"],
+    ) => {
       task.$status = "failed";
       task.$endTime = dateUtils.nowTimestamp();
       task.$errorInfo = "Task was cancelled due to server restart.";

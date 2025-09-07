@@ -3,16 +3,14 @@ import type { InSpatialORM } from "../mod.ts";
 import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
-import type { ApiAction, EntryName } from "@inspatial/cloud/models";
+import type { ApiAction, EntryName } from "#types/models.ts";
 import type { InField } from "../field/field-def-types.ts";
 import type { EntryActionDefinition } from "../entry/types.ts";
 import type { SettingsActionDefinition } from "../settings/types.ts";
 import { handlePgError, isPgError } from "../db/postgres/pgError.ts";
 import { raiseORMException } from "../orm-exception.ts";
-import { InLog } from "#inLog";
 import type { ListOptions } from "../db/db-types.ts";
 import type { InFilter } from "~/orm/db/db-types.ts";
-import type { DBFilter } from "@inspatial/cloud-client/types";
 
 export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {

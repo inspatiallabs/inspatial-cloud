@@ -58,7 +58,8 @@ export class EntryType<
     this.sourceConfig = {
       ...config,
     };
-    this.defaultSortField = config.defaultSortField || "id" as FK;
+    this.defaultSortField = config.defaultSortField ||
+      "id" as EntryFieldKeys<E>;
     this.defaultSortDirection = config.defaultSortDirection || "asc";
     this.permission = {
       create: true,
@@ -223,7 +224,7 @@ export class EntryType<
     }
   }
   #setupHooks(
-    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<N>>>>,
+    hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>,
   ): void {
     if (!hooks) {
       return;

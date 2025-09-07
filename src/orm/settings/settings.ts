@@ -134,7 +134,7 @@ export class Settings<S extends SettingsName = SettingsName>
       if (!this._changeableFields.has(key)) {
         continue;
       }
-      this[`$${key}`] = value;
+      this[`$${key}` as keyof typeof this] = value;
     }
   }
   async save(): Promise<void> {
@@ -185,7 +185,7 @@ export class Settings<S extends SettingsName = SettingsName>
         settings: this as any,
         [this._name]: this as any,
         [this._type]: this as any,
-      });
+      } as any);
     }
   }
 

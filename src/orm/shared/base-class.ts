@@ -194,7 +194,7 @@ export class BaseClass<N extends string = string> {
           this._data.get(def.key),
           field.fetchField.fetchField,
         );
-        this[`$${field.key}`] = value;
+        this[`$${field.key}` as keyof typeof this] = value;
       }
     }
   }

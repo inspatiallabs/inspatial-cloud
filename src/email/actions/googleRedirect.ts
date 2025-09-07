@@ -40,7 +40,6 @@ export const redirectAction = new CloudAPIAction("redirect", {
       tokenResult.expiresIn * 1000;
     emailAccount.$tokenType = tokenResult.tokenType;
     emailAccount.$refreshToken = tokenResult.refreshToken;
-    emailAccount.$scope = tokenResult.scope;
     emailAccount.$authStatus = "authorized";
     await emailAccount.save();
     const redirectFinal = emailSettings.$redirectFinal ||

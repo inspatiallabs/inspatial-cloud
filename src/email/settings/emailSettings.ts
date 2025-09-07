@@ -1,6 +1,6 @@
 import { SettingsType } from "~/orm/settings/settings-type.ts";
 
-export const emailSettings: SettingsType = new SettingsType("emailSettings", {
+export const emailSettings = new SettingsType("emailSettings", {
   label: "Email Settings",
   description: "Settings for sending emails",
   systemGlobal: true,

@@ -52,8 +52,8 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     firstName,
     lastName,
     email,
-    role,
     systemAdmin: true,
+    adminPortalAccess: true,
   });
 
   user.$systemAdmin = true;
