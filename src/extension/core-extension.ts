@@ -191,6 +191,7 @@ export const coreExtension = new CloudExtension("core", {
         create: false,
         delete: false,
       },
+
       user: {
         view: true,
         modify: false,

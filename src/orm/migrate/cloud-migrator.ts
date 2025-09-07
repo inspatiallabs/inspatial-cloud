@@ -144,9 +144,6 @@ export class InCloudMigrator extends InCloud {
   async #syncFieldMeta(orm: InSpatialORM) {
     const adminRole = orm.roles.getRole("systemAdmin");
     const skipFields = new Set<string>([
-      "id",
-      "createdAt",
-      "updatedAt",
       "in__tags",
     ]);
     const syncFields = async (

@@ -111,6 +111,8 @@ export class Entry<
   }
 
   async load(id: IDValue): Promise<void> {
+    const role = this._inCloud.roles.getRole(this._user?.role as string);
+    const userScopeField = role.entryPermissions.get(this._name)?.userScope;
     this.assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
@@ -126,6 +128,13 @@ export class Entry<
     for (const [key, value] of Object.entries(dbRow)) {
       if (!this._fields.has(key)) {
         continue;
+      }
+      if (key === userScopeField && value !== this._user?.userId) {
+        raiseORMException(
+          `You do not have permission to view this ${this._entryType.config.label}`,
+          "PermissionDenied",
+          403,
+        );
       }
       const fieldDef = this._getFieldDef(key);
       const fieldType = this._getFieldType(fieldDef.type);
