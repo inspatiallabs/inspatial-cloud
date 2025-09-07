@@ -45,16 +45,18 @@ import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
-import { userRole } from "../auth/entries/user-role/user-role.ts";
+import { userRole } from "../auth/entries/user-role.ts";
 import { entryMeta } from "../build/entryMeta.ts";
 import { extensionMeta } from "../build/extensionMeta.ts";
 import { tagsGroup } from "../orm/api-actions/tags-group.ts";
 import { entryPermission } from "../auth/entries/permission/entry-permission.ts";
 import { fieldMeta } from "../build/fieldMeta.ts";
-import { entryAction } from "../build/entryAction.ts";
+import { actionMeta } from "../build/actionMeta.ts";
 import { apiGroup } from "../build/apiGroup.ts";
 import { apiAction } from "../build/apiAction.ts";
 import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts";
+import { settingsMeta } from "../build/settingsMeta.ts";
+import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
 
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -99,11 +101,13 @@ export const coreExtension = new CloudExtension("core", {
     emailTemplate,
     onboardingStep,
     userRole,
-    entryMeta,
     extensionMeta,
+    entryMeta,
+    settingsMeta,
     fieldMeta,
-    entryAction,
+    actionMeta,
     entryPermission,
+    settingsPermission,
     apiGroup,
     apiAction,
     apiGroupPermission,

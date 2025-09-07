@@ -12,18 +12,15 @@ import type {
   SettingsRole,
 } from "../roles/settings-permissions.ts";
 import { getCallerPath } from "../../utils/path-utils.ts";
-import type { SettingsMap, SettingsName } from "#types/models.ts";
-import type { GenericSettings } from "./settings-base.ts";
+import type { SettingsName } from "#types/models.ts";
+import convertString from "../../utils/convert-string.ts";
 
 /**
  * Defines a settings type for the ORM.
  */
 export class SettingsType<
-  N extends string = SettingsName,
-  S extends N extends SettingsName ? SettingsMap[N] : GenericSettings =
-    N extends SettingsName ? SettingsMap[N]
-      : GenericSettings,
-> extends BaseType<N> {
+  S extends SettingsName = SettingsName,
+> extends BaseType<S> {
   /**
    * Defines a settings type for the ORM.
    * @param name The name of the settings type.
@@ -42,7 +39,7 @@ export class SettingsType<
   sourceConfig: SettingsConfig<S>;
   permission: SettingsPermission;
   constructor(
-    name: N,
+    name: S,
     config: SettingsConfig<S>,
     rm?: boolean,
   ) {
@@ -89,7 +86,7 @@ export class SettingsType<
           `Action with key ${action.key} already exists in SettingsType ${this.name}`,
         );
       }
-
+      setupAction(action);
       this.actions.set(action.key, action);
     }
   }
@@ -111,10 +108,22 @@ export class SettingsType<
         `Action with key ${action.key} already exists in SettingsType ${this.name}`,
       );
     }
+    setupAction(action);
     this.actions.set(action.key, action);
     this.info = {
       ...this.info,
       actions: Array.from(this.actions.values()).filter((a) => !a.private),
     };
+  }
+}
+
+function setupAction(action: SettingsActionDefinition<any>): void {
+  if (!action.label) {
+    action.label = convertString(action.key, "title", true);
+  }
+  for (const param of action.params) {
+    if (!param.label) {
+      param.label = convertString(param.key, "title", true);
+    }
   }
 }

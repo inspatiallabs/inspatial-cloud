@@ -3,6 +3,7 @@ export interface SessionData extends UserContext {
   firstName: string;
   lastName: string;
   systemAdmin: boolean;
+  adminPortalAccess: boolean;
   profilePicture?: string;
   [key: string]: any;
 }

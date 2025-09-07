@@ -47,12 +47,13 @@ export const fieldMeta = new EntryType("fieldMeta", {
   description: "",
   idMode: {
     type: "fields",
-    fields: ["entryMeta", "key"],
+    fields: ["entryMeta", "settingsMeta", "key"],
   },
   titleField: "label",
   defaultListFields: [
     "label",
     "entryMeta",
+    "settingsMeta",
     "key",
     "type",
     "description",
@@ -62,7 +63,14 @@ export const fieldMeta = new EntryType("fieldMeta", {
     key: "generalInfo",
     label: "General Information",
     description: "Basic information about the field.",
-    fields: ["key", "label", "type", "entryMeta"],
+    fields: [
+      "key",
+      "label",
+      "type",
+      "entryMeta",
+      "settingsMeta",
+      "description",
+    ],
   }, {
     key: "common",
     label: "Common Attributes",
@@ -86,7 +94,10 @@ export const fieldMeta = new EntryType("fieldMeta", {
     key: "entryMeta",
     type: "ConnectionField",
     entryType: "entryMeta",
-    required: true,
+  }, {
+    key: "settingsMeta",
+    type: "ConnectionField",
+    entryType: "settingsMeta",
   }, {
     key: "key",
     type: "DataField",

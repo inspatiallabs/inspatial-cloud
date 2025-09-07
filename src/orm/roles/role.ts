@@ -289,6 +289,11 @@ export class RoleManager {
       modify: true,
       create: true,
       delete: true,
+      actions: {
+        include: entryType.actions
+          ? Array.from(entryType.actions.keys())
+          : undefined,
+      },
     });
     this.#rootEntryTypes.set(entryType.name, entryType);
   }
@@ -321,9 +326,15 @@ export class RoleManager {
   }
   addSettingsType(settingsType: SettingsType): void {
     const admin = this.getRole("systemAdmin");
+
     admin.settingsPermissions.set(settingsType.name, {
       modify: true,
       view: true,
+      actions: {
+        include: settingsType.actions
+          ? Array.from(settingsType.actions.keys())
+          : undefined,
+      },
     });
     this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }
@@ -420,6 +431,7 @@ function buildSettingsTypeForRole(
     ...settingsType.sourceConfig,
   };
   setFieldPermissions(config as any, permission);
+  config.actions = Array.from(settingsType.actions.values());
   setActionsPermissions(config as any, permission);
   const roleSettingsType = new SettingsType(settingsType.name, config, true);
   roleSettingsType.config.extension = settingsType.config.extension;

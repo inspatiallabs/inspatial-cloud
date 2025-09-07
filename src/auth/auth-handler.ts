@@ -173,12 +173,15 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     role: string;
   }>;
   // Pick the first account as the default account
+  const systemAdmin = !!user.$systemAdmin;
+  const adminPortalAccess = systemAdmin ? true : !!user.$adminPortalAccess;
   const sessionData: SessionData = {
     userId: user.$id,
     email: user.$email,
     firstName: user.$firstName,
     lastName: user.$lastName,
-    systemAdmin: user.$systemAdmin ?? false,
+    systemAdmin,
+    adminPortalAccess,
     profilePicture: user.$profilePicture,
     accountId: "",
     role: "",

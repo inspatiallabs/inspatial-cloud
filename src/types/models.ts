@@ -56,6 +56,12 @@ type UserFields = {
    */
   systemAdmin: boolean;
   /**
+   * **Admin Portal Access** (BooleanField)
+   * @description Does the user have access to the admin portal?
+   * @type {boolean}
+   */
+  adminPortalAccess: boolean;
+  /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
@@ -188,6 +194,12 @@ export type User = EntryBase<"user", UserFields> & {
    * @type {boolean}
    */
   $systemAdmin: boolean;
+  /**
+   * **Admin Portal Access** (BooleanField)
+   * @description Does the user have access to the admin portal?
+   * @type {boolean}
+   */
+  $adminPortalAccess: boolean;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
@@ -2686,6 +2698,14 @@ type UserRoleFields = {
    */
   roleName: string;
   /**
+   * **Extends Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @description The role this role extends
+   * @type {string}
+   */
+  extendsRole?: string;
+  /**
    * **Description** (TextField)
    * @description A short description of the role
    * @type {string}
@@ -2717,6 +2737,11 @@ type UserRoleFields = {
    * @type {Array<any>}
    */
   in__tags?: Array<any>;
+  /**
+   * **Extends Role Title** (DataField)
+   * @type {string}
+   */
+  extendsRole__title?: string;
 };
 export type UserRole = EntryBase<"userRole", UserRoleFields> & {
   _name: "userRole";
@@ -2733,6 +2758,14 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
    * @required true
    */
   $roleName: string;
+  /**
+   * **Extends Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @description The role this role extends
+   * @type {string}
+   */
+  $extendsRole?: string;
   /**
    * **Description** (TextField)
    * @description A short description of the role
@@ -2765,6 +2798,11 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
    * @type {Array<any>}
    */
   $in__tags?: Array<any>;
+  /**
+   * **Extends Role Title** (DataField)
+   * @type {string}
+   */
+  $extendsRole__title?: string;
   runAction<N extends keyof UserRoleActionMap>(
     actionName: N,
   ): UserRoleActionMap[N]["return"];
@@ -2773,6 +2811,111 @@ type UserRoleActionMap = {
   generateConfig: {
     return: Promise<any>;
   };
+};
+
+type ExtensionMetaFields = {
+  /**
+   * **Key** (DataField)
+   * @type {string}
+   * @required true
+   */
+  key: string;
+  /**
+   * **Label** (DataField)
+   * @type {string}
+   * @required true
+   */
+  label: string;
+  /**
+   * **Description** (TextField)
+   * @type {string}
+   */
+  description?: string;
+  /**
+   * **Version** (DataField)
+   * @description The version of this extension
+   * @type {string}
+   */
+  version?: string;
+  /**
+   * **Cloud Extension** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Cloud Extension
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+};
+export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
+  _name: "extensionMeta";
+  __fields__: ExtensionMetaFields;
+  /**
+   * **Key** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $key: string;
+  /**
+   * **Label** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $label: string;
+  /**
+   * **Description** (TextField)
+   * @type {string}
+   */
+  $description?: string;
+  /**
+   * **Version** (DataField)
+   * @description The version of this extension
+   * @type {string}
+   */
+  $version?: string;
+  /**
+   * **Cloud Extension** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Cloud Extension
+   * @type {Array<any>}
+   */
+  $in__tags?: Array<any>;
 };
 
 type EntryMetaFields = {
@@ -3002,13 +3145,13 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
   }>;
 };
 
-type ExtensionMetaFields = {
+type SettingsMetaFields = {
   /**
-   * **Key** (DataField)
+   * **Settings Name** (DataField)
    * @type {string}
    * @required true
    */
-  key: string;
+  settingsName: string;
   /**
    * **Label** (DataField)
    * @type {string}
@@ -3017,17 +3160,26 @@ type ExtensionMetaFields = {
   label: string;
   /**
    * **Description** (TextField)
+   * @description A brief description of the settings.
    * @type {string}
    */
   description?: string;
   /**
-   * **Version** (DataField)
-   * @description The version of this extension
-   * @type {string}
+   * **System Global** (BooleanField)
+   * @description Whether these settings are global to the entire system or specific to an account.
+   * @type {boolean}
    */
-  version?: string;
+  systemGlobal: boolean;
   /**
-   * **Cloud Extension** (IDField)
+   * **Extension** (ConnectionField)
+   *
+   * **EntryType** `extensionMeta`
+   * @type {string}
+   * @required true
+   */
+  extensionMeta: string;
+  /**
+   * **ID** (IDField)
    * @type {string}
    * @required true
    */
@@ -3048,20 +3200,59 @@ type ExtensionMetaFields = {
   updatedAt: number;
   /**
    * **Tags** (ArrayField)
-   * @description Tags associated with this Cloud Extension
+   * @description Tags associated with this Settings Meta
    * @type {Array<any>}
    */
   in__tags?: Array<any>;
-};
-export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
-  _name: "extensionMeta";
-  __fields__: ExtensionMetaFields;
   /**
-   * **Key** (DataField)
+   * **Extension Title** (DataField)
+   * @type {string}
+   */
+  extensionMeta__title?: string;
+  hooks: ChildList<{
+    /**
+     * **Hook** (ChoicesField)
+     * @type {'beforeUpdate' | 'afterUpdate' | 'beforeValidate' | 'validate'}
+     * @required true
+     */
+    hook: "beforeUpdate" | "afterUpdate" | "beforeValidate" | "validate";
+    /**
+     * **Name** (DataField)
+     * @description The unique name of this hook
+     * @type {string}
+     * @required true
+     */
+    name: string;
+    /**
+     * **Description** (TextField)
+     * @description A brief description of what this hook does.
+     * @type {string}
+     */
+    description?: string;
+    /**
+     * **Handler** (CodeField)
+     * @description The code to execute for this hook
+     * @type {string}
+     * @required true
+     */
+    handler: string;
+    /**
+     * **Active** (BooleanField)
+     * @description Whether this hook is active or not.
+     * @type {boolean}
+     */
+    active: boolean;
+  }>;
+};
+export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
+  _name: "settingsMeta";
+  __fields__: SettingsMetaFields;
+  /**
+   * **Settings Name** (DataField)
    * @type {string}
    * @required true
    */
-  $key: string;
+  $settingsName: string;
   /**
    * **Label** (DataField)
    * @type {string}
@@ -3070,17 +3261,26 @@ export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
   $label: string;
   /**
    * **Description** (TextField)
+   * @description A brief description of the settings.
    * @type {string}
    */
   $description?: string;
   /**
-   * **Version** (DataField)
-   * @description The version of this extension
-   * @type {string}
+   * **System Global** (BooleanField)
+   * @description Whether these settings are global to the entire system or specific to an account.
+   * @type {boolean}
    */
-  $version?: string;
+  $systemGlobal: boolean;
   /**
-   * **Cloud Extension** (IDField)
+   * **Extension** (ConnectionField)
+   *
+   * **EntryType** `extensionMeta`
+   * @type {string}
+   * @required true
+   */
+  $extensionMeta: string;
+  /**
+   * **ID** (IDField)
    * @type {string}
    * @required true
    */
@@ -3101,10 +3301,49 @@ export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
   $updatedAt: number;
   /**
    * **Tags** (ArrayField)
-   * @description Tags associated with this Cloud Extension
+   * @description Tags associated with this Settings Meta
    * @type {Array<any>}
    */
   $in__tags?: Array<any>;
+  /**
+   * **Extension Title** (DataField)
+   * @type {string}
+   */
+  $extensionMeta__title?: string;
+  $hooks: ChildList<{
+    /**
+     * **Hook** (ChoicesField)
+     * @type {'beforeUpdate' | 'afterUpdate' | 'beforeValidate' | 'validate'}
+     * @required true
+     */
+    hook: "beforeUpdate" | "afterUpdate" | "beforeValidate" | "validate";
+    /**
+     * **Name** (DataField)
+     * @description The unique name of this hook
+     * @type {string}
+     * @required true
+     */
+    name: string;
+    /**
+     * **Description** (TextField)
+     * @description A brief description of what this hook does.
+     * @type {string}
+     */
+    description?: string;
+    /**
+     * **Handler** (CodeField)
+     * @description The code to execute for this hook
+     * @type {string}
+     * @required true
+     */
+    handler: string;
+    /**
+     * **Active** (BooleanField)
+     * @description Whether this hook is active or not.
+     * @type {boolean}
+     */
+    active: boolean;
+  }>;
 };
 
 type FieldMetaFields = {
@@ -3113,9 +3352,15 @@ type FieldMetaFields = {
    *
    * **EntryType** `entryMeta`
    * @type {string}
-   * @required true
    */
-  entryMeta: string;
+  entryMeta?: string;
+  /**
+   * **Settings Meta** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsMeta?: string;
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3241,6 +3486,11 @@ type FieldMetaFields = {
    */
   entryMeta__title?: string;
   /**
+   * **Settings Meta Title** (DataField)
+   * @type {string}
+   */
+  settingsMeta__title?: string;
+  /**
    * **Entry Type Title** (DataField)
    * @type {string}
    */
@@ -3290,9 +3540,15 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    *
    * **EntryType** `entryMeta`
    * @type {string}
-   * @required true
    */
-  $entryMeta: string;
+  $entryMeta?: string;
+  /**
+   * **Settings Meta** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsMeta?: string;
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3418,6 +3674,11 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    */
   $entryMeta__title?: string;
   /**
+   * **Settings Meta Title** (DataField)
+   * @type {string}
+   */
+  $settingsMeta__title?: string;
+  /**
    * **Entry Type Title** (DataField)
    * @type {string}
    */
@@ -3460,7 +3721,7 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
   }>;
 };
 
-type EntryActionFields = {
+type ActionMetaFields = {
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3478,9 +3739,15 @@ type EntryActionFields = {
    *
    * **EntryType** `entryMeta`
    * @type {string}
-   * @required true
    */
-  entryMeta: string;
+  entryMeta?: string;
+  /**
+   * **Settings Meta** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsMeta?: string;
   /**
    * **Description** (TextField)
    * @type {string}
@@ -3521,7 +3788,7 @@ type EntryActionFields = {
   updatedAt: number;
   /**
    * **Tags** (ArrayField)
-   * @description Tags associated with this Entry Action
+   * @description Tags associated with this Action Meta
    * @type {Array<any>}
    */
   in__tags?: Array<any>;
@@ -3530,6 +3797,11 @@ type EntryActionFields = {
    * @type {string}
    */
   entryMeta__title?: string;
+  /**
+   * **Settings Meta Title** (DataField)
+   * @type {string}
+   */
+  settingsMeta__title?: string;
   parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -3601,9 +3873,9 @@ type EntryActionFields = {
     entryType__title?: string;
   }>;
 };
-export type EntryAction = EntryBase<"entryAction", EntryActionFields> & {
-  _name: "entryAction";
-  __fields__: EntryActionFields;
+export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
+  _name: "actionMeta";
+  __fields__: ActionMetaFields;
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3621,9 +3893,15 @@ export type EntryAction = EntryBase<"entryAction", EntryActionFields> & {
    *
    * **EntryType** `entryMeta`
    * @type {string}
-   * @required true
    */
-  $entryMeta: string;
+  $entryMeta?: string;
+  /**
+   * **Settings Meta** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsMeta?: string;
   /**
    * **Description** (TextField)
    * @type {string}
@@ -3664,7 +3942,7 @@ export type EntryAction = EntryBase<"entryAction", EntryActionFields> & {
   $updatedAt: number;
   /**
    * **Tags** (ArrayField)
-   * @description Tags associated with this Entry Action
+   * @description Tags associated with this Action Meta
    * @type {Array<any>}
    */
   $in__tags?: Array<any>;
@@ -3673,6 +3951,11 @@ export type EntryAction = EntryBase<"entryAction", EntryActionFields> & {
    * @type {string}
    */
   $entryMeta__title?: string;
+  /**
+   * **Settings Meta Title** (DataField)
+   * @type {string}
+   */
+  $settingsMeta__title?: string;
   $parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -3854,7 +4137,7 @@ type EntryPermissionFields = {
     /**
      * **Action** (ConnectionField)
      *
-     * **EntryType** `entryAction`
+     * **EntryType** `actionMeta`
      * @type {string}
      * @required true
      */
@@ -3984,7 +4267,244 @@ export type EntryPermission =
       /**
        * **Action** (ConnectionField)
        *
-       * **EntryType** `entryAction`
+       * **EntryType** `actionMeta`
+       * @type {string}
+       * @required true
+       */
+      action: string;
+      /**
+       * **Can Execute** (BooleanField)
+       * @type {boolean}
+       */
+      canExecute: boolean;
+      /**
+       * **Action Title** (DataField)
+       * @type {string}
+       */
+      action__title?: string;
+    }>;
+  };
+
+type SettingsPermissionFields = {
+  /**
+   * **User Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @description The user role this permission applies to
+   * @type {string}
+   * @required true
+   */
+  userRole: string;
+  /**
+   * **Settings** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @description The settings type this permission applies to
+   * @type {string}
+   * @required true
+   */
+  settingsMeta: string;
+  /**
+   * **Can View** (BooleanField)
+   * @type {boolean}
+   */
+  canView: boolean;
+  /**
+   * **Can Modify** (BooleanField)
+   * @type {boolean}
+   */
+  canModify: boolean;
+  /**
+   * **Allow All Actions** (BooleanField)
+   * @type {boolean}
+   */
+  allowAllActions: boolean;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **Tags** (ArrayField)
+   * @description Tags associated with this Settings Permission
+   * @type {Array<any>}
+   */
+  in__tags?: Array<any>;
+  /**
+   * **User Role Title** (DataField)
+   * @type {string}
+   */
+  userRole__title?: string;
+  /**
+   * **Settings Title** (DataField)
+   * @type {string}
+   */
+  settingsMeta__title?: string;
+  fieldPermissions: ChildList<{
+    /**
+     * **Field** (ConnectionField)
+     *
+     * **EntryType** `fieldMeta`
+     * @type {string}
+     * @required true
+     */
+    field: string;
+    /**
+     * **Can View** (BooleanField)
+     * @type {boolean}
+     */
+    canView: boolean;
+    /**
+     * **Can Modify** (BooleanField)
+     * @type {boolean}
+     */
+    canModify: boolean;
+    /**
+     * **Field Title** (DataField)
+     * @type {string}
+     */
+    field__title?: string;
+  }>;
+  actionPermissions: ChildList<{
+    /**
+     * **Action** (ConnectionField)
+     *
+     * **EntryType** `actionMeta`
+     * @type {string}
+     * @required true
+     */
+    action: string;
+    /**
+     * **Can Execute** (BooleanField)
+     * @type {boolean}
+     */
+    canExecute: boolean;
+    /**
+     * **Action Title** (DataField)
+     * @type {string}
+     */
+    action__title?: string;
+  }>;
+};
+export type SettingsPermission =
+  & EntryBase<"settingsPermission", SettingsPermissionFields>
+  & {
+    _name: "settingsPermission";
+    __fields__: SettingsPermissionFields;
+    /**
+     * **User Role** (ConnectionField)
+     *
+     * **EntryType** `userRole`
+     * @description The user role this permission applies to
+     * @type {string}
+     * @required true
+     */
+    $userRole: string;
+    /**
+     * **Settings** (ConnectionField)
+     *
+     * **EntryType** `settingsMeta`
+     * @description The settings type this permission applies to
+     * @type {string}
+     * @required true
+     */
+    $settingsMeta: string;
+    /**
+     * **Can View** (BooleanField)
+     * @type {boolean}
+     */
+    $canView: boolean;
+    /**
+     * **Can Modify** (BooleanField)
+     * @type {boolean}
+     */
+    $canModify: boolean;
+    /**
+     * **Allow All Actions** (BooleanField)
+     * @type {boolean}
+     */
+    $allowAllActions: boolean;
+    /**
+     * **ID** (IDField)
+     * @type {string}
+     * @required true
+     */
+    $id: string;
+    /**
+     * **Created At** (TimeStampField)
+     * @description The date and time this entry was created
+     * @type {number}
+     * @required true
+     */
+    $createdAt: number;
+    /**
+     * **Updated At** (TimeStampField)
+     * @description The date and time this entry was last updated
+     * @type {number}
+     * @required true
+     */
+    $updatedAt: number;
+    /**
+     * **Tags** (ArrayField)
+     * @description Tags associated with this Settings Permission
+     * @type {Array<any>}
+     */
+    $in__tags?: Array<any>;
+    /**
+     * **User Role Title** (DataField)
+     * @type {string}
+     */
+    $userRole__title?: string;
+    /**
+     * **Settings Title** (DataField)
+     * @type {string}
+     */
+    $settingsMeta__title?: string;
+    $fieldPermissions: ChildList<{
+      /**
+       * **Field** (ConnectionField)
+       *
+       * **EntryType** `fieldMeta`
+       * @type {string}
+       * @required true
+       */
+      field: string;
+      /**
+       * **Can View** (BooleanField)
+       * @type {boolean}
+       */
+      canView: boolean;
+      /**
+       * **Can Modify** (BooleanField)
+       * @type {boolean}
+       */
+      canModify: boolean;
+      /**
+       * **Field Title** (DataField)
+       * @type {string}
+       */
+      field__title?: string;
+    }>;
+    $actionPermissions: ChildList<{
+      /**
+       * **Action** (ConnectionField)
+       *
+       * **EntryType** `actionMeta`
        * @type {string}
        * @required true
        */
@@ -4648,7 +5168,15 @@ export type SystemSettings =
      * @required true
      */
     $serverHost: string;
+    runAction<N extends keyof SystemSettingsActionMap>(
+      actionName: N,
+    ): SystemSettingsActionMap[N]["return"];
   };
+type SystemSettingsActionMap = {
+  test: {
+    return: any;
+  };
+};
 
 type AuthSettingsFields = {
   /**
@@ -4774,11 +5302,13 @@ export interface EntryMap {
   emailTemplate: EmailTemplate;
   onboardingStep: OnboardingStep;
   userRole: UserRole;
-  entryMeta: EntryMeta;
   extensionMeta: ExtensionMeta;
+  entryMeta: EntryMeta;
+  settingsMeta: SettingsMeta;
   fieldMeta: FieldMeta;
-  entryAction: EntryAction;
+  actionMeta: ActionMeta;
   entryPermission: EntryPermission;
+  settingsPermission: SettingsPermission;
   apiGroup: ApiGroup;
   apiAction: ApiAction;
   apiGroupPermission: ApiGroupPermission;

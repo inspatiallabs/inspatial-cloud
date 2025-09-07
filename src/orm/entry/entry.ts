@@ -398,9 +398,7 @@ export class Entry<
             }
             const value = this._data.get(field.key);
             if (!value) {
-              raiseORMException(
-                `Field ${fieldKey} is not set on entry type ${this._entryType.name}`,
-              );
+              continue;
             }
             fieldValues.push(value);
           }

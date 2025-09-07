@@ -5,12 +5,11 @@ import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
 const fieldPermission = new ChildEntryType("fieldPermissions", {
   fields: [{
     key: "field",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "fieldMeta",
     filterBy: {
-      entryMeta: "entryMeta",
+      settingsMeta: "settingsMeta",
     },
   }, {
     key: "canView",
@@ -29,7 +28,7 @@ const actionPermission = new ChildEntryType("actionPermissions", {
     required: true,
     entryType: "actionMeta",
     filterBy: {
-      entryMeta: "entryMeta",
+      settingsMeta: "settingsMeta",
     },
   }, {
     key: "canExecute",
@@ -37,28 +36,26 @@ const actionPermission = new ChildEntryType("actionPermissions", {
   }],
 });
 
-const syncRoleConfig: EntryHookDefinition<"entryPermission"> = {
+const syncRoleConfig: EntryHookDefinition<"settingsPermission"> = {
   name: "syncRoleConfig",
-  async handler({ entryPermission, orm }) {
+  async handler({ settingsPermission, orm }) {
     const userRole = await orm.getEntry(
       "userRole",
-      entryPermission.$userRole,
+      settingsPermission.$userRole,
     );
     userRole.runAction("generateConfig");
   },
 };
-export const entryPermission = new EntryType(
-  "entryPermission",
+export const settingsPermission = new EntryType(
+  "settingsPermission",
   {
     systemGlobal: true,
-    description: "Role permissions for a specific entry type",
+    description: "Role permissions for a specific settings type",
     defaultListFields: [
       "userRole",
-      "entryMeta",
+      "settingsMeta",
       "canView",
       "canModify",
-      "canCreate",
-      "canDelete",
     ],
     fields: [{
       key: "userRole",
@@ -67,26 +64,18 @@ export const entryPermission = new EntryType(
       required: true,
       description: "The user role this permission applies to",
     }, {
-      key: "entryMeta",
-      label: "Entry",
+      key: "settingsMeta",
+      label: "Settings",
       type: "ConnectionField",
-      entryType: "entryMeta",
+      entryType: "settingsMeta",
       required: true,
-      description: "The entry type this permission applies to",
+      description: "The settings type this permission applies to",
     }, {
       key: "canView",
       type: "BooleanField",
       defaultValue: true,
     }, {
       key: "canModify",
-      type: "BooleanField",
-      defaultValue: false,
-    }, {
-      key: "canCreate",
-      type: "BooleanField",
-      defaultValue: false,
-    }, {
-      key: "canDelete",
       type: "BooleanField",
       defaultValue: false,
     }, {
@@ -97,28 +86,30 @@ export const entryPermission = new EntryType(
     children: [fieldPermission, actionPermission],
     hooks: {
       validate: [{
-        name: "uniqueRoleEntryType",
-        description: "Ensure unique role and entry type combination",
-        async handler({ entryPermission, orm }) {
-          if (!entryPermission.$userRole || !entryPermission.$entryMeta) return;
-          entryPermission;
+        name: "uniqueRoleSettingType",
+        description: "Ensure unique role and settings type combination",
+        async handler({ settingsPermission, orm }) {
+          if (
+            !settingsPermission.$userRole || !settingsPermission.$settingsMeta
+          ) return;
+          settingsPermission;
           const existingId = await orm.findEntryId(
-            "entryPermission",
+            "settingsPermission",
             {
-              userRole: entryPermission.$userRole,
-              entryMeta: entryPermission.$entryMeta,
+              userRole: settingsPermission.$userRole,
+              settingsMeta: settingsPermission.$settingsMeta,
             },
           );
-          if (existingId && existingId !== entryPermission.id) {
+          if (existingId && existingId !== settingsPermission.id) {
             raiseORMException(
-              `An entry permission for role '${entryPermission.$userRole}' and entry type '${entryPermission.$entryMeta}' already exists.`,
+              `An entry permission for role '${settingsPermission.$userRole}' and entry type '${settingsPermission.$settingsMeta}' already exists.`,
             );
           }
         },
       }, {
         name: "ensureUniqeFieldMeta",
-        handler({ entryPermission }) {
-          const fields = entryPermission.$fieldPermissions.data.map((fp) =>
+        handler({ settingsPermission }) {
+          const fields = settingsPermission.$fieldPermissions.data.map((fp) =>
             fp.field
           );
           const duplicates = fields.filter((f, index) =>
@@ -136,8 +127,8 @@ export const entryPermission = new EntryType(
         },
       }, {
         name: "ensureUniqueActionMeta",
-        handler({ entryPermission }) {
-          const actions = entryPermission.$actionPermissions.data.map((ap) =>
+        handler({ settingsPermission }) {
+          const actions = settingsPermission.$actionPermissions.data.map((ap) =>
             ap.action
           );
           const duplicates = actions.filter((a, index) =>
@@ -156,34 +147,34 @@ export const entryPermission = new EntryType(
       }],
       beforeUpdate: [{
         name: "setActions",
-        async handler({ entryPermission, orm }) {
+        async handler({ settingsPermission, orm }) {
           const { rows: actions } = await orm.getEntryList("actionMeta", {
             filter: {
-              entryMeta: entryPermission.$entryMeta,
+              settingsMeta: settingsPermission.$settingsMeta,
             },
             columns: ["id"],
             limit: 0,
           });
-          if (entryPermission.$allowAllActions) {
-            entryPermission.$actionPermissions.update(actions.map((a) => ({
+          if (settingsPermission.$allowAllActions) {
+            settingsPermission.$actionPermissions.update(actions.map((a) => ({
               action: a.id,
               canExecute: true,
             })));
             return;
           }
-          const currentActions = entryPermission.$actionPermissions.data.map(
+          const currentActions = settingsPermission.$actionPermissions.data.map(
             (ap) => ap.action,
           );
           const newActions = actions.filter((a) =>
             !currentActions.includes(a.id)
           );
           if (newActions.length > 0) {
-            entryPermission.$actionPermissions.update([
+            settingsPermission.$actionPermissions.update([
               ...newActions.map((a) => ({
                 action: a.id,
                 canExecute: false,
               })),
-              ...entryPermission.$actionPermissions.data,
+              ...settingsPermission.$actionPermissions.data,
             ]);
           }
         },

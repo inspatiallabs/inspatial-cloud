@@ -8,7 +8,6 @@ import type {
   EntryIndex,
   EntryTypeConfig,
 } from "~/orm/entry/types.ts";
-import type { GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";

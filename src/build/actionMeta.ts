@@ -37,11 +37,11 @@ const actionParams = new ChildEntryType("parameters", {
   }],
 });
 
-export const entryAction = new EntryType("entryAction", {
+export const actionMeta = new EntryType("actionMeta", {
   systemGlobal: true,
   idMode: {
     type: "fields",
-    fields: ["entryMeta", "key"],
+    fields: ["entryMeta", "settingsMeta", "key"],
   },
   defaultListFields: ["label", "key", "entryMeta", "description"],
   titleField: "label",
@@ -56,8 +56,11 @@ export const entryAction = new EntryType("entryAction", {
   }, {
     key: "entryMeta",
     type: "ConnectionField",
-    required: true,
     entryType: "entryMeta",
+  }, {
+    key: "settingsMeta",
+    type: "ConnectionField",
+    entryType: "settingsMeta",
   }, {
     key: "description",
     type: "TextField",

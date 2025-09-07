@@ -1,6 +1,5 @@
 import { EntryType } from "~/orm/entry/entry-type.ts";
 
-import fields from "~/auth/entries/user-session/fields.ts";
 import { generateSalt } from "~/auth/security.ts";
 
 export const userSessionEntry = new EntryType("userSession", {
@@ -8,8 +7,26 @@ export const userSessionEntry = new EntryType("userSession", {
   description: "An authenticated user session",
   systemGlobal: true,
   idMode: "ulid",
-  fields: fields,
-  actions: [],
+  fields: [{
+    key: "user",
+    label: "User",
+    type: "ConnectionField",
+    entryType: "user",
+    required: true,
+    description: "The user associated with this session",
+  }, {
+    key: "sessionId",
+    label: "Session ID",
+    type: "DataField",
+    description: "Unique identifier for the session",
+    required: true,
+    readOnly: true,
+  }, {
+    key: "sessionData",
+    label: "Session Data",
+    type: "JSONField",
+    description: "Data associated with the session",
+  }],
   defaultListFields: ["user"],
   hooks: {
     beforeCreate: [{

@@ -1,7 +1,9 @@
-import { EntryType } from "../../../orm/entry/entry-type.ts";
-import convertString from "../../../utils/convert-string.ts";
-import type { RoleConfig } from "../../../orm/roles/role.ts";
-import { ORMException } from "../../../orm/orm-exception.ts";
+import { EntryType } from "../../orm/entry/entry-type.ts";
+import convertString from "../../utils/convert-string.ts";
+import type { RoleConfig } from "../../orm/roles/role.ts";
+import { ORMException, raiseORMException } from "../../orm/orm-exception.ts";
+import type { ListOptions } from "../../orm/db/db-types.ts";
+import type { EntryName } from "@inspatial/cloud/models";
 
 export const userRole = new EntryType("userRole", {
   titleField: "roleName",
@@ -19,6 +21,11 @@ export const userRole = new EntryType("userRole", {
     key: "roleName",
     type: "DataField",
     required: true,
+  }, {
+    key: "extendsRole",
+    type: "ConnectionField",
+    entryType: "userRole",
+    description: "The role this role extends",
   }, {
     key: "description",
     type: "TextField",
@@ -38,6 +45,39 @@ export const userRole = new EntryType("userRole", {
         }
       },
     }],
+    validate: [{
+      name: "noSelfExtend",
+      handler({ userRole }) {
+        if (userRole.$extendsRole && userRole.$extendsRole === userRole.$id) {
+          raiseORMException("A role cannot extend itself.", "userRole", 400);
+        }
+      },
+    }],
+    beforeDelete: [{
+      name: "removeRelatedPermissions",
+      async handler({ orm, userRole }) {
+        const entries: Array<EntryName> = [
+          "entryPermission",
+          "settingsPermission",
+          "apiGroupPermission",
+        ];
+
+        for (const entry of entries) {
+          const { rows } = await orm.getEntryList(
+            entry,
+            {
+              filter: {
+                userRole: userRole.$id,
+              },
+              columns: ["id"],
+            },
+          );
+          for (const { id } of rows) {
+            await orm.deleteEntry(entry, id);
+          }
+        }
+      },
+    }],
   },
 });
 
@@ -45,19 +85,9 @@ userRole.addAction({
   key: "generateConfig",
   label: "Generate Config",
   description: "Generate the role configuration as a JSON object",
+  private: true,
   params: [],
   async action({ userRole, orm, inCloud }) {
-    const { rows } = await orm.getEntryList(
-      "entryPermission",
-      {
-        filter: {
-          userRole: userRole.$id,
-        },
-        columns: [
-          "id",
-        ],
-      },
-    );
     const roleConfig: RoleConfig = {
       roleName: userRole.$roleKey,
       description: userRole.$description || "",
@@ -66,7 +96,20 @@ userRole.addAction({
       settingsTypes: {},
       apiGroups: {},
     };
-    for (const { id } of rows) {
+    const listOptions: ListOptions = {
+      filter: {
+        userRole: userRole.$id,
+      },
+      columns: [
+        "id",
+      ],
+    };
+    const { rows: entryPermissions } = await orm.getEntryList(
+      "entryPermission",
+      listOptions,
+    );
+
+    for (const { id } of entryPermissions) {
       const perm = await orm.getEntry("entryPermission", id);
       const entryPermission: Record<string, any> = {
         create: perm.$canCreate,
@@ -94,16 +137,38 @@ userRole.addAction({
       }
       roleConfig.entryTypes![perm.$entryMeta] = entryPermission as any;
     }
+    const { rows: settingsPermissions } = await orm.getEntryList(
+      "settingsPermission",
+      listOptions,
+    );
+    for (const { id } of settingsPermissions) {
+      const perm = await orm.getEntry("settingsPermission", id);
+      const settingsPermission: Record<string, any> = {
+        modify: perm.$canModify,
+        view: perm.$canView,
+        actions: {
+          include: perm.$actionPermissions.data.filter((action) =>
+            action.canExecute
+          ).map((action) => action.action.split(":").pop()!),
+          exclude: perm.$actionPermissions.data.filter((action) =>
+            !action.canExecute
+          ).map((action) => action.action.split(":").pop()!),
+        },
+      };
+      if (perm.$fieldPermissions.count > 0) {
+        settingsPermission["fields"] = {};
+        for (const field of perm.$fieldPermissions.data) {
+          settingsPermission["fields"][field.field.split(":").pop()!] = {
+            view: !!field.canView,
+            modify: !!field.canModify,
+          };
+        }
+      }
+      roleConfig.settingsTypes![perm.$settingsMeta] = settingsPermission as any;
+    }
     const { rows: apiGroups } = await orm.getEntryList(
       "apiGroupPermission",
-      {
-        filter: {
-          userRole: userRole.$id,
-        },
-        columns: [
-          "id",
-        ],
-      },
+      listOptions,
     );
     for (const { id } of apiGroups) {
       const perm = await orm.getEntry("apiGroupPermission", id);

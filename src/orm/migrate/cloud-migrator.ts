@@ -4,6 +4,9 @@ import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
 import type { ApiAction } from "@inspatial/cloud/models";
+import type { InField, IntField } from "../field/field-def-types.ts";
+import type { EntryActionDefinition } from "../entry/types.ts";
+import type { SettingsActionDefinition } from "../settings/types.ts";
 
 export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {
@@ -18,9 +21,11 @@ export class InCloudMigrator extends InCloud {
     const orm = this.orm.withUser(this.orm.systemGobalUser);
 
     await orm.migrateGlobal();
-    await this.#syncExtensionModels(orm);
-    await this.#syncDatabaseEntryModels(orm);
-    await this.#syncSettingsModels(orm);
+    await this.#syncExtensionMeta(orm);
+    await this.#syncEntryMeta(orm);
+    await this.#syncSettingsMeta(orm);
+    await this.#syncFieldMeta(orm);
+    await this.#syncActionMeta(orm);
     await this.#syncApiGroups(orm);
     await this.#syncRoles(orm);
     for (const migrateAction of this.extensionManager.afterMigrate.global) {
@@ -30,7 +35,7 @@ export class InCloudMigrator extends InCloud {
       });
     }
   }
-  async #syncExtensionModels(orm: InSpatialORM) {
+  async #syncExtensionMeta(orm: InSpatialORM) {
     for (const extension of this.extensionManager.extensions.values()) {
       let model = await orm.findEntry("extensionMeta", {
         id: extension.key,
@@ -53,7 +58,7 @@ export class InCloudMigrator extends InCloud {
       value: extensionKeys,
     }]);
   }
-  async #syncDatabaseEntryModels(orm: InSpatialORM) {
+  async #syncEntryMeta(orm: InSpatialORM) {
     const adminRole = orm.roles.getRole("systemAdmin"); // ensure admin role exists
     const entryNames = new Set<string>();
     for (const entryType of adminRole.entryTypes.values()) {
@@ -87,24 +92,38 @@ export class InCloudMigrator extends InCloud {
 
       await model.save();
     }
-    await orm.db.deleteRows("entryFieldMeta", [{
-      field: "entryMeta",
-      op: "notInList",
-      value: Array.from(entryNames),
-    }]);
-    await orm.db.deleteRows("entryEntryAction", [{
-      field: "entryMeta",
-      op: "notInList",
-      value: Array.from(entryNames),
-    }]);
-    await orm.db.deleteRows("entryEntryMeta", [{
-      field: "id",
-      op: "notInList",
-      value: Array.from(entryNames),
-    }]);
+  }
+  async #syncSettingsMeta(orm: InSpatialORM) {
+    const adminRole = orm.roles.getRole("systemAdmin");
+    const settingsNames = new Set<string>();
+    for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      settingsNames.add(key);
+      let model = await orm.findEntry("settingsMeta", {
+        id: key,
+      });
+      if (!model) {
+        model = orm.getNewEntry("settingsMeta");
+        model.$settingsName = key;
+      }
+      model.$label = setting.label || convertString(key, "title", true);
+      model.$description = setting.description || "";
+      model.$extensionMeta = setting.config.extension!.key;
+      model.$systemGlobal = setting.systemGlobal || false;
 
-    await this.#syncFieldMeta(orm);
-    await this.#syncEntryActionMeta(orm);
+      const hooks = Object.entries(setting.hooks || {}).flatMap((
+        [hookName, hookDefs],
+      ) =>
+        hookDefs.map((hookDef) => ({
+          hook: hookName,
+          name: hookDef.name,
+          description: hookDef.description || "",
+          handler: hookDef.handler.toString(),
+          active: true,
+        }))
+      );
+      model.$hooks.update(hooks as any[]);
+      await model.save();
+    }
   }
   async #syncFieldMeta(orm: InSpatialORM) {
     const adminRole = orm.roles.getRole("systemAdmin");
@@ -114,17 +133,30 @@ export class InCloudMigrator extends InCloud {
       "updatedAt",
       "in__tags",
     ]);
-    for (const entryType of adminRole.entryTypes.values()) {
-      for (const [key, field] of entryType.fields.entries()) {
+    const syncFields = async (
+      fields: Map<string, InField>,
+      name: string,
+      type: "entry" | "settings",
+    ) => {
+      for (const [key, field] of fields.entries()) {
         if (skipFields.has(key)) continue;
         if (key.endsWith("__title")) continue; // skip title fields
         let fieldMeta = await orm.findEntry("fieldMeta", {
-          id: `${entryType.name}:${key}`,
+          id: `${name}:${key}`,
         });
         if (!fieldMeta) {
           fieldMeta = orm.getNewEntry("fieldMeta");
           fieldMeta.$key = key;
-          fieldMeta.$entryMeta = entryType.name;
+          switch (type) {
+            case "entry":
+              fieldMeta.$entryMeta = name;
+              fieldMeta.$settingsMeta = undefined;
+              break;
+            case "settings":
+              fieldMeta.$entryMeta = undefined;
+              fieldMeta.$settingsMeta = name;
+              break;
+          }
         }
         fieldMeta.$label = field.label || key;
         fieldMeta.$description = field.description || "";
@@ -132,7 +164,9 @@ export class InCloudMigrator extends InCloud {
         fieldMeta.$required = field.required || false;
         fieldMeta.$readOnly = field.readOnly || false;
         fieldMeta.$unique = field.unique || false;
-        fieldMeta.$defaultValue = field.defaultValue;
+        fieldMeta.$defaultValue = field.defaultValue !== undefined
+          ? field.defaultValue.toString()
+          : undefined;
         fieldMeta.$hidden = field.hidden || false;
         fieldMeta.$placeholder = field.placeholder || "";
         if (field.type === "ConnectionField" && field.entryType) {
@@ -150,7 +184,77 @@ export class InCloudMigrator extends InCloud {
         }
         await fieldMeta.save();
       }
+    };
+    for (const entryType of adminRole.entryTypes.values()) {
+      await syncFields(entryType.fields, entryType.name, "entry");
     }
+    for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      await syncFields(setting.fields, key, "settings");
+    }
+  }
+  async #syncActionMeta(orm: InSpatialORM) {
+    const adminRole = orm.roles.getRole("systemAdmin");
+    const syncActions = async (
+      actions: Map<string, EntryActionDefinition | SettingsActionDefinition>,
+      name: string,
+      type: "entry" | "settings",
+    ) => {
+      for (const [key, action] of actions.entries()) {
+        let actionMeta = await orm.findEntry("actionMeta", {
+          id: `${name}:${key}`,
+        });
+        if (!actionMeta) {
+          actionMeta = orm.getNewEntry("actionMeta");
+          actionMeta.$key = key;
+          switch (type) {
+            case "entry":
+              actionMeta.$entryMeta = name;
+              actionMeta.$settingsMeta = undefined;
+              break;
+            case "settings":
+              actionMeta.$entryMeta = undefined;
+              actionMeta.$settingsMeta = name;
+              break;
+          }
+        }
+        actionMeta.$label = action.label || convertString(key, "title", true);
+        actionMeta.$description = action.description || "";
+        actionMeta.$private = action.private || false;
+        actionMeta.$code = action.action.toString();
+
+        if (action.params) {
+          actionMeta.$parameters.update(action.params as any[]);
+        }
+        await actionMeta.save();
+      }
+    };
+    for (const entryType of adminRole.entryTypes.values()) {
+      await syncActions(entryType.actions, entryType.name, "entry");
+    }
+    for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      await syncActions(setting.actions, key, "settings");
+    }
+  }
+  async #deleteObsoleteMeta(orm: InSpatialORM) {
+    await orm.db.deleteRows("entryFieldMeta", [{
+      field: "entryMeta",
+      and: [{
+        op: "isNotEmpty",
+      }, {
+        op: "inList",
+        value: Array.from(entryNames),
+      }],
+    }]);
+    await orm.db.deleteRows("entryEntryAction", [{
+      field: "entryMeta",
+      op: "notInList",
+      value: Array.from(entryNames),
+    }]);
+    await orm.db.deleteRows("entryEntryMeta", [{
+      field: "id",
+      op: "notInList",
+      value: Array.from(entryNames),
+    }]);
   }
 
   async #syncRoles(orm: InSpatialORM) {
@@ -202,30 +306,7 @@ export class InCloudMigrator extends InCloud {
       }
     }
   }
-  async #syncEntryActionMeta(orm: InSpatialORM) {
-    const adminRole = orm.roles.getRole("systemAdmin");
-    for (const entryType of adminRole.entryTypes.values()) {
-      for (const [key, action] of entryType.actions.entries()) {
-        let actionMeta = await orm.findEntry("entryAction", {
-          id: `${entryType.name}:${key}`,
-        });
-        if (!actionMeta) {
-          actionMeta = orm.getNewEntry("entryAction");
-          actionMeta.$key = key;
-          actionMeta.$entryMeta = entryType.name;
-        }
-        actionMeta.$label = action.label || key;
-        actionMeta.$description = action.description || "";
-        actionMeta.$private = action.private || false;
-        actionMeta.$code = action.action.toString();
 
-        if (action.params) {
-          actionMeta.$parameters.update(action.params as any[]);
-        }
-        await actionMeta.save();
-      }
-    }
-  }
   async #syncApiGroups(orm: InSpatialORM) {
     const syncAction = async (action: CloudAPIAction, groupName: string) => {
       let model = await orm.findEntry("apiAction", {
@@ -305,11 +386,7 @@ export class InCloudMigrator extends InCloud {
       await orm.deleteEntry("apiGroup", id);
     }
   }
-  async #syncSettingsModels(orm: InSpatialORM) {
-    this.inLog.warn(
-      "Settings sync sync not implemented yet.",
-    );
-  }
+
   async #migrateAccounts() {
     const { rows: accounts } = await this.orm.getEntryList(
       "account",
