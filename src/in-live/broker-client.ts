@@ -83,7 +83,7 @@ export class BrokerClient {
   addChannel<T = Record<string, unknown>>(
     channelId: string,
     callback: (message: T) => void | Promise<void>,
-  ) {
+  ): (message: T) => void {
     this.#channels.set(channelId, callback);
     const send = (message: T) => {
       this.#broadcast({
