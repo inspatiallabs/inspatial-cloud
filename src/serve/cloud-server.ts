@@ -57,7 +57,7 @@ export class InCloudServer extends InCloud {
     for (const { id } of roles) {
       const role = await orm.getEntry("userRole", id);
       try {
-        await role.runAction("generateConfig");
+        await role.runAction("syncWithSystem");
       } catch (e) {
         console.log(e);
       }

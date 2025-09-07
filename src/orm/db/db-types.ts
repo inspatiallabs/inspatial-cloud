@@ -137,6 +137,7 @@ export interface ListOptions<T extends EntryBase = EntryBase> {
   columns?: (keyof T["__fields__"] | BaseKeys)[];
   filter?: DBFilter;
   limit?: number;
+  orFilter?: DBFilter;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";

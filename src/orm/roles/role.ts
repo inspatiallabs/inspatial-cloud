@@ -36,6 +36,7 @@ export class Role {
   readonly roleName: string;
   label: string;
   description: string;
+  extendsRole?: string;
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
   settingsTypes: Map<string, SettingsType<any>>;
@@ -49,6 +50,7 @@ export class Role {
   constructor(config: RoleConfig) {
     this.#locked = false;
     this.roleName = config.roleName;
+    this.extendsRole = config.extendsRole;
     this.description = config.description || "";
     this.label = config.label || convertString(config.roleName, "title", true);
     this.entryPermissions = new Map(Object.entries(config.entryTypes || {}));
@@ -242,6 +244,7 @@ export class Role {
 
 export interface RoleConfig {
   roleName: string;
+  extendsRole?: string;
   label?: string;
   description?: string;
   entryTypes?: Record<string, EntryPermission>;
@@ -283,8 +286,7 @@ export class RoleManager {
     this.#updateRole(config);
   }
   addEntryType(entryType: EntryType): void {
-    const admin = this.getRole("systemAdmin");
-    admin.entryPermissions.set(entryType.name, {
+    const permission: EntryPermission = {
       view: true,
       modify: true,
       create: true,
@@ -294,8 +296,33 @@ export class RoleManager {
           ? Array.from(entryType.actions.keys())
           : undefined,
       },
-    });
+    };
+    const admin = this.getRole("systemAdmin");
+    admin.entryPermissions.set(entryType.name, permission);
+    if (entryType.config.extension?.key !== "core") {
+      const accountAdmin = this.getRole("accountAdmin");
+      accountAdmin.entryPermissions.set(entryType.name, permission);
+    }
+
     this.#rootEntryTypes.set(entryType.name, entryType);
+  }
+  addSettingsType(settingsType: SettingsType): void {
+    const permission: SettingsPermission = {
+      modify: true,
+      view: true,
+      actions: {
+        include: settingsType.actions
+          ? Array.from(settingsType.actions.keys())
+          : undefined,
+      },
+    };
+    const admin = this.getRole("systemAdmin");
+    admin.settingsPermissions.set(settingsType.name, permission);
+    if (settingsType.config.extension?.key !== "core") {
+      const accountAdmin = this.getRole("accountAdmin");
+      accountAdmin.settingsPermissions.set(settingsType.name, permission);
+    }
+    this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }
   setupRole(roleName: string): void {
     const role = this.getRole(roleName);
@@ -323,20 +350,6 @@ export class RoleManager {
     }
 
     role.setup();
-  }
-  addSettingsType(settingsType: SettingsType): void {
-    const admin = this.getRole("systemAdmin");
-
-    admin.settingsPermissions.set(settingsType.name, {
-      modify: true,
-      view: true,
-      actions: {
-        include: settingsType.actions
-          ? Array.from(settingsType.actions.keys())
-          : undefined,
-      },
-    });
-    this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }
 
   getEntryInstance<E extends EntryName = EntryName>(

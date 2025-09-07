@@ -28,7 +28,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
-import { RoleManager } from "~/orm/roles/role.ts";
+import { type RoleConfig, RoleManager } from "~/orm/roles/role.ts";
 import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
@@ -129,6 +129,7 @@ export class InCloud {
       description: "System Administrator",
       label: "System Admin",
     });
+
     this.auth = new AuthHandler(this);
     this.inQueue = new InQueueClient();
     this.inLog = createInLog("cloud", {
@@ -449,7 +450,18 @@ export class InCloud {
     this.auth.allowPath(staticFilesHandler.match);
     const allowAll = this.getExtensionConfigValue("core", "authAllowAll");
     const adminRole = this.roles.getRole("systemAdmin");
-
+    const coreExtension = this.extensionManager.extensions.get("core");
+    const basicUserConfig = coreExtension?.roles.find((r) =>
+      r.roleName === "basicUser"
+    );
+    if (basicUserConfig) {
+      this.roles.addRole({
+        ...basicUserConfig,
+        roleName: "accountAdmin",
+        description: "Account Administrator",
+        label: "Account Admin",
+      });
+    }
     for (const group of this.actionGroups.values()) {
       const actionsSet = new Set<string>();
       for (const action of group.actions.values()) {

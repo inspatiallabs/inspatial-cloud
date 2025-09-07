@@ -77,22 +77,50 @@ export const entryPermission = new EntryType(
       key: "canView",
       type: "BooleanField",
       defaultValue: true,
+      description: "Whether users with this role can view entries of this type",
     }, {
       key: "canModify",
       type: "BooleanField",
       defaultValue: false,
+      description:
+        "Whether users with this role can modify entries of this type",
     }, {
       key: "canCreate",
       type: "BooleanField",
       defaultValue: false,
+      description:
+        "Whether users with this role can create entries of this type",
     }, {
       key: "canDelete",
       type: "BooleanField",
       defaultValue: false,
+      description:
+        "Whether users with this role can delete entries of this type",
     }, {
       key: "allowAllActions",
       type: "BooleanField",
       defaultValue: true,
+      description:
+        "If true, all actions will be allowed. If false, actions can be set individually.",
+    }, {
+      key: "userScope",
+      type: "ConnectionField",
+      label: "User Scope Field",
+      entryType: "fieldMeta",
+      description:
+        "Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.",
+      filterBy: {
+        entryMeta: "entryMeta",
+      },
+      filter: [{
+        field: "type",
+        op: "inList",
+        value: ["ConnectionField", "DataField", "IDField"],
+      }, {
+        field: "key",
+        op: "notContains",
+        value: "__title",
+      }],
     }],
     children: [fieldPermission, actionPermission],
     hooks: {
@@ -101,15 +129,24 @@ export const entryPermission = new EntryType(
         description: "Ensure unique role and entry type combination",
         async handler({ entryPermission, orm }) {
           if (!entryPermission.$userRole || !entryPermission.$entryMeta) return;
-          entryPermission;
+
           const existingId = await orm.findEntryId(
             "entryPermission",
-            {
-              userRole: entryPermission.$userRole,
-              entryMeta: entryPermission.$entryMeta,
-            },
+            [{
+              field: "userRole",
+              op: "=",
+              value: entryPermission.$userRole,
+            }, {
+              field: "entryMeta",
+              op: "=",
+              value: entryPermission.$entryMeta,
+            }, {
+              field: "id",
+              op: "!=",
+              value: entryPermission.id,
+            }],
           );
-          if (existingId && existingId !== entryPermission.id) {
+          if (existingId) {
             raiseORMException(
               `An entry permission for role '${entryPermission.$userRole}' and entry type '${entryPermission.$entryMeta}' already exists.`,
             );
@@ -188,9 +225,9 @@ export const entryPermission = new EntryType(
           }
         },
       }],
-      afterUpdate: [syncRoleConfig],
-      afterDelete: [syncRoleConfig],
-      afterCreate: [syncRoleConfig],
+      // afterUpdate: [syncRoleConfig],
+      // afterDelete: [syncRoleConfig],
+      // afterCreate: [syncRoleConfig],
     },
   },
 );

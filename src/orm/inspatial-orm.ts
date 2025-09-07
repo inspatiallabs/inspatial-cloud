@@ -535,8 +535,8 @@ export class InSpatialORM {
       delete options.columns;
       dbOptions = { ...dbOptions, ...options as any };
     }
-    if (entryTypeObj.permission.userScoped && this._user?.userId) {
-      const idField = entryTypeObj.permission.userScoped.userIdField;
+    if (entryTypeObj.permission.userScope && this._user?.userId) {
+      const idField = entryTypeObj.permission.userScope;
       const filter = {
         field: idField,
         op: "=",

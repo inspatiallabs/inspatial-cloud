@@ -3,7 +3,9 @@ import convertString from "../../utils/convert-string.ts";
 import type { RoleConfig } from "../../orm/roles/role.ts";
 import { ORMException, raiseORMException } from "../../orm/orm-exception.ts";
 import type { ListOptions } from "../../orm/db/db-types.ts";
-import type { EntryName } from "@inspatial/cloud/models";
+import type { EntryName } from "#types/models.ts";
+import type { EntryPermission } from "../../orm/roles/entry-permissions.ts";
+import type { SettingsPermission } from "../../orm/roles/settings-permissions.ts";
 
 export const userRole = new EntryType("userRole", {
   titleField: "roleName",
@@ -80,12 +82,31 @@ export const userRole = new EntryType("userRole", {
     }],
   },
 });
-
+userRole.addAction({
+  key: "syncWithSystem",
+  label: "Sync with System Roles",
+  params: [],
+  async action({ userRole, inCloud }) {
+    const roleConfig = await userRole.runAction<RoleConfig>("generateConfig");
+    try {
+      inCloud.roles.updateRole(roleConfig);
+    } catch (e) {
+      if (e instanceof ORMException) {
+        inCloud.inLog.warn("Role Setup: " + e.message, {
+          compact: true,
+          subject: e.subject,
+        });
+        return;
+      }
+      throw e;
+    }
+  },
+});
 userRole.addAction({
   key: "generateConfig",
   label: "Generate Config",
   description: "Generate the role configuration as a JSON object",
-  private: true,
+  private: false,
   params: [],
   async action({ userRole, orm, inCloud }) {
     const roleConfig: RoleConfig = {
@@ -96,6 +117,37 @@ userRole.addAction({
       settingsTypes: {},
       apiGroups: {},
     };
+    const entryTypes = new Map<string, EntryPermission>();
+    const settingsTypes = new Map<string, SettingsPermission>();
+    const apiGroups = new Map<string, string[] | true>();
+    if (userRole.$extendsRole) {
+      const parentRole = await orm.getEntry("userRole", userRole.$extendsRole);
+      const parentConfig = await parentRole.runAction<RoleConfig>(
+        "generateConfig",
+      );
+      if (parentConfig.entryTypes) {
+        for (
+          const [key, entryPerm] of Object.entries(parentConfig.entryTypes)
+        ) {
+          entryTypes.set(key, entryPerm);
+        }
+      }
+      if (parentConfig.settingsTypes) {
+        for (
+          const [key, settingsPerm] of Object.entries(
+            parentConfig.settingsTypes,
+          )
+        ) {
+          settingsTypes.set(key, settingsPerm);
+        }
+      }
+      if (parentConfig.apiGroups) {
+        for (const [key, apiPerm] of Object.entries(parentConfig.apiGroups)) {
+          apiGroups.set(key, apiPerm);
+        }
+      }
+    }
+
     const listOptions: ListOptions = {
       filter: {
         userRole: userRole.$id,
@@ -111,11 +163,14 @@ userRole.addAction({
 
     for (const { id } of entryPermissions) {
       const perm = await orm.getEntry("entryPermission", id);
-      const entryPermission: Record<string, any> = {
+      const existing = entryTypes.get(perm.$entryMeta);
+      const entryPermission: EntryPermission = {
+        ...existing,
         create: perm.$canCreate,
         delete: perm.$canDelete,
         modify: perm.$canModify,
         view: perm.$canView,
+        userScope: perm.$userScope?.split(":").pop() || existing?.userScope,
         actions: {
           include: perm.$actionPermissions.data.filter((action) =>
             action.canExecute
@@ -127,23 +182,32 @@ userRole.addAction({
       };
 
       if (perm.$fieldPermissions.count > 0) {
-        entryPermission["fields"] = {};
+        if (!entryPermission.fields) {
+          entryPermission.fields = {};
+        }
         for (const field of perm.$fieldPermissions.data) {
-          entryPermission["fields"][field.field.split(":").pop()!] = {
+          entryPermission.fields[field.field.split(":").pop()!] = {
             view: !!field.canView,
             modify: !!field.canModify,
           };
         }
       }
-      roleConfig.entryTypes![perm.$entryMeta] = entryPermission as any;
+
+      entryTypes.set(perm.$entryMeta, entryPermission);
     }
+    roleConfig.entryTypes = Object.fromEntries(entryTypes);
     const { rows: settingsPermissions } = await orm.getEntryList(
       "settingsPermission",
       listOptions,
     );
     for (const { id } of settingsPermissions) {
       const perm = await orm.getEntry("settingsPermission", id);
-      const settingsPermission: Record<string, any> = {
+      const existing = settingsTypes.get(perm.$settingsMeta);
+      if (!roleConfig.settingsTypes) {
+        roleConfig.settingsTypes = {};
+      }
+      const settingsPermission: SettingsPermission = {
+        ...existing,
         modify: perm.$canModify,
         view: perm.$canView,
         actions: {
@@ -156,7 +220,9 @@ userRole.addAction({
         },
       };
       if (perm.$fieldPermissions.count > 0) {
-        settingsPermission["fields"] = {};
+        if (!settingsPermission.fields) {
+          settingsPermission.fields = {};
+        }
         for (const field of perm.$fieldPermissions.data) {
           settingsPermission["fields"][field.field.split(":").pop()!] = {
             view: !!field.canView,
@@ -164,33 +230,25 @@ userRole.addAction({
           };
         }
       }
-      roleConfig.settingsTypes![perm.$settingsMeta] = settingsPermission as any;
+      settingsTypes.set(perm.$settingsMeta, settingsPermission);
     }
-    const { rows: apiGroups } = await orm.getEntryList(
+    roleConfig.settingsTypes = Object.fromEntries(settingsTypes);
+    const { rows: apiGroupPermissions } = await orm.getEntryList(
       "apiGroupPermission",
       listOptions,
     );
-    for (const { id } of apiGroups) {
+    for (const { id } of apiGroupPermissions) {
       const perm = await orm.getEntry("apiGroupPermission", id);
 
-      roleConfig.apiGroups![perm.$apiGroup] = perm.$actions.data.filter((
+      const accessActions = perm.$actions.data.filter((
         action,
       ) => action.canAccess).map((
         action,
       ) => action.apiAction.split(":").pop()!);
+      apiGroups.set(perm.$apiGroup, perm.$accessAll ? true : accessActions);
     }
-    try {
-      inCloud.roles.updateRole(roleConfig);
-    } catch (e) {
-      if (e instanceof ORMException) {
-        inCloud.inLog.warn("Role Setup: " + e.message, {
-          compact: true,
-          subject: e.subject,
-        });
-        return;
-      }
-      throw e;
-    }
+    roleConfig.apiGroups = Object.fromEntries(apiGroups);
+
     return roleConfig;
   },
 });

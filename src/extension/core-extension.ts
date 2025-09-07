@@ -128,9 +128,27 @@ export const coreExtension = new CloudExtension("core", {
     roleName: "basicUser",
     label: "Basic User",
     description: "The default role assigned to a user",
+
     apiGroups: {
-      auth: true,
+      auth: [
+        "authCheck",
+        "completeOnboarding",
+        "getAccount",
+        "googleAuthCallback",
+        "googleTokenLogin",
+        "login",
+        "logout",
+        "resetPassword",
+        "setNewPassword",
+        "signInWithGoogle",
+        "signupWithGoogle",
+        "updateAccount",
+      ],
       api: true,
+      entry: true,
+      orm: ["entryTypes", "settingsTypes"],
+      settings: true,
+      tags: true,
     },
     entryTypes: {
       cloudFile: {
@@ -157,16 +175,34 @@ export const coreExtension = new CloudExtension("core", {
         create: false,
         delete: false,
       },
+      account: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+        userScope: "owner",
+        actions: {
+          include: ["addUser"],
+        },
+      },
+      userRole: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
       user: {
         view: true,
         modify: false,
         create: false,
         delete: false,
-        userScoped: {
-          userIdField: "id",
-        },
+        userScope: "id",
         fields: {
           systemAdmin: {
+            view: false,
+            modify: false,
+          },
+          adminPortalAccess: {
             view: false,
             modify: false,
           },
@@ -183,8 +219,15 @@ export const coreExtension = new CloudExtension("core", {
             view: true,
           },
         },
+
         actions: {
-          include: [],
+          include: [
+            "findAccounts",
+            "generateApiToken",
+            "generateResetToken",
+            "setPassword",
+            "validatePassword",
+          ],
         },
       },
     },

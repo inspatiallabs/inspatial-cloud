@@ -43,7 +43,13 @@ export const actionMeta = new EntryType("actionMeta", {
     type: "fields",
     fields: ["entryMeta", "settingsMeta", "key"],
   },
-  defaultListFields: ["label", "key", "entryMeta", "description"],
+  defaultListFields: [
+    "label",
+    "key",
+    "entryMeta",
+    "settingsMeta",
+    "description",
+  ],
   titleField: "label",
   fields: [{
     key: "key",

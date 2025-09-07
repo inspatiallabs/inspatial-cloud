@@ -254,7 +254,7 @@ export class EntryType<
   addAction<
     K extends PropertyKey = PropertyKey,
     P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
-  >(action: EntryActionConfig<N, K, P>): void {
+  >(action: EntryActionConfig<E, K, P>): void {
     if (this.actions.has(action.key)) {
       raiseORMException(
         `Action with key ${action.key} already exists in EntryType ${this.name}`,

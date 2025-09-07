@@ -97,7 +97,6 @@ export class Entry<
    * Note: This does not save the entry to the database. You must call the save method to do that.
    */
   create(): void {
-    this.assertCreatePermission();
     this._data.clear();
     for (const field of this._fields.values()) {
       if (

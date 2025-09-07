@@ -18,7 +18,7 @@ const apiActions = new ChildEntryType("actions", {
     key: "canAccess",
     label: "Can Access",
     type: "BooleanField",
-    defaultValue: true,
+    defaultValue: false,
     description: "Whether the role can access this API action",
   }],
 });
@@ -130,8 +130,8 @@ export const apiGroupPermission = new EntryType("apiGroupPermission", {
         }
       },
     }],
-    afterUpdate: [syncRoleConfig],
-    afterDelete: [syncRoleConfig],
-    afterCreate: [syncRoleConfig],
+    // afterUpdate: [syncRoleConfig],
+    // afterDelete: [syncRoleConfig],
+    // afterCreate: [syncRoleConfig],
   },
 });

@@ -127,9 +127,11 @@ export class CloudAPI {
           ).map((group) => {
             return {
               ...group,
-              actions: group.actions.filter((action) =>
-                role.apiGroups.get(group.groupName)?.has(action.actionName)
-              ),
+              actions: group.actions.filter((action) => {
+                const groupPermission = role.apiGroups.get(group.groupName);
+                if (groupPermission === true) return true;
+                return groupPermission?.has(action.actionName);
+              }),
             };
           }),
         };

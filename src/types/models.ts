@@ -2808,6 +2808,9 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
   ): UserRoleActionMap[N]["return"];
 };
 type UserRoleActionMap = {
+  syncWithSystem: {
+    return: Promise<any>;
+  };
   generateConfig: {
     return: Promise<any>;
   };
@@ -4049,29 +4052,42 @@ type EntryPermissionFields = {
   entryMeta: string;
   /**
    * **Can View** (BooleanField)
+   * @description Whether users with this role can view entries of this type
    * @type {boolean}
    */
   canView: boolean;
   /**
    * **Can Modify** (BooleanField)
+   * @description Whether users with this role can modify entries of this type
    * @type {boolean}
    */
   canModify: boolean;
   /**
    * **Can Create** (BooleanField)
+   * @description Whether users with this role can create entries of this type
    * @type {boolean}
    */
   canCreate: boolean;
   /**
    * **Can Delete** (BooleanField)
+   * @description Whether users with this role can delete entries of this type
    * @type {boolean}
    */
   canDelete: boolean;
   /**
    * **Allow All Actions** (BooleanField)
+   * @description If true, all actions will be allowed. If false, actions can be set individually.
    * @type {boolean}
    */
   allowAllActions: boolean;
+  /**
+   * **User Scope Field** (ConnectionField)
+   *
+   * **EntryType** `fieldMeta`
+   * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
+   * @type {string}
+   */
+  userScope?: string;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -4108,6 +4124,11 @@ type EntryPermissionFields = {
    * @type {string}
    */
   entryMeta__title?: string;
+  /**
+   * **User Scope Field Title** (DataField)
+   * @type {string}
+   */
+  userScope__title?: string;
   fieldPermissions: ChildList<{
     /**
      * **Field** (ConnectionField)
@@ -4179,29 +4200,42 @@ export type EntryPermission =
     $entryMeta: string;
     /**
      * **Can View** (BooleanField)
+     * @description Whether users with this role can view entries of this type
      * @type {boolean}
      */
     $canView: boolean;
     /**
      * **Can Modify** (BooleanField)
+     * @description Whether users with this role can modify entries of this type
      * @type {boolean}
      */
     $canModify: boolean;
     /**
      * **Can Create** (BooleanField)
+     * @description Whether users with this role can create entries of this type
      * @type {boolean}
      */
     $canCreate: boolean;
     /**
      * **Can Delete** (BooleanField)
+     * @description Whether users with this role can delete entries of this type
      * @type {boolean}
      */
     $canDelete: boolean;
     /**
      * **Allow All Actions** (BooleanField)
+     * @description If true, all actions will be allowed. If false, actions can be set individually.
      * @type {boolean}
      */
     $allowAllActions: boolean;
+    /**
+     * **User Scope Field** (ConnectionField)
+     *
+     * **EntryType** `fieldMeta`
+     * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
+     * @type {string}
+     */
+    $userScope?: string;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -4238,6 +4272,11 @@ export type EntryPermission =
      * @type {string}
      */
     $entryMeta__title?: string;
+    /**
+     * **User Scope Field Title** (DataField)
+     * @type {string}
+     */
+    $userScope__title?: string;
     $fieldPermissions: ChildList<{
       /**
        * **Field** (ConnectionField)
@@ -5168,15 +5207,7 @@ export type SystemSettings =
      * @required true
      */
     $serverHost: string;
-    runAction<N extends keyof SystemSettingsActionMap>(
-      actionName: N,
-    ): SystemSettingsActionMap[N]["return"];
   };
-type SystemSettingsActionMap = {
-  test: {
-    return: any;
-  };
-};
 
 type AuthSettingsFields = {
   /**

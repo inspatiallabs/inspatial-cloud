@@ -255,7 +255,8 @@ export const countConnections = new CloudAPIAction("countConnections", {
 });
 
 export const sum = new CloudAPIAction("sum", {
-  label: "Get the sum of the selected fields for a given Entry Type",
+  label: "Sum",
+  description: "Get the sum of the selected fields for a given Entry Type",
   params: [{
     key: "entryType",
     type: "DataField",
@@ -299,6 +300,9 @@ export const sum = new CloudAPIAction("sum", {
 });
 
 export const count = new CloudAPIAction("count", {
+  label: "Count",
+  description:
+    "Get the count of entries for a given Entry Type, optionally grouped by a field",
   async run({
     orm,
     params: {

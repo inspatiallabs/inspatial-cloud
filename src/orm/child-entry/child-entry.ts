@@ -155,6 +155,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     this.rowsToRemove.clear();
   }
   update(data: Array<T>): void {
+    this._newData.clear();
     const rowsToRemove = new Set(this._data.keys());
     for (const row of data) {
       switch (typeof row.id) {

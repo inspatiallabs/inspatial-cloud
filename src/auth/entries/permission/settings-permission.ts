@@ -179,9 +179,9 @@ export const settingsPermission = new EntryType(
           }
         },
       }],
-      afterUpdate: [syncRoleConfig],
-      afterDelete: [syncRoleConfig],
-      afterCreate: [syncRoleConfig],
+      // afterUpdate: [syncRoleConfig],
+      // afterDelete: [syncRoleConfig],
+      // afterCreate: [syncRoleConfig],
     },
   },
 );

@@ -47,6 +47,8 @@ export const apiAction = new EntryType("apiAction", {
   defaultListFields: [
     "actionName",
     "label",
+    "authRequired",
+    "hideFromApi",
     "apiGroup",
   ],
   label: "API Action",

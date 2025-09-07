@@ -3,10 +3,16 @@ import type { InSpatialORM } from "../mod.ts";
 import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
-import type { ApiAction } from "@inspatial/cloud/models";
-import type { InField, IntField } from "../field/field-def-types.ts";
+import type { ApiAction, EntryName } from "@inspatial/cloud/models";
+import type { InField } from "../field/field-def-types.ts";
 import type { EntryActionDefinition } from "../entry/types.ts";
 import type { SettingsActionDefinition } from "../settings/types.ts";
+import { handlePgError, isPgError } from "../db/postgres/pgError.ts";
+import { raiseORMException } from "../orm-exception.ts";
+import { InLog } from "#inLog";
+import type { ListOptions } from "../db/db-types.ts";
+import type { InFilter } from "~/orm/db/db-types.ts";
+import type { DBFilter } from "@inspatial/cloud-client/types";
 
 export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {
@@ -21,13 +27,25 @@ export class InCloudMigrator extends InCloud {
     const orm = this.orm.withUser(this.orm.systemGobalUser);
 
     await orm.migrateGlobal();
-    await this.#syncExtensionMeta(orm);
-    await this.#syncEntryMeta(orm);
-    await this.#syncSettingsMeta(orm);
-    await this.#syncFieldMeta(orm);
-    await this.#syncActionMeta(orm);
-    await this.#syncApiGroups(orm);
-    await this.#syncRoles(orm);
+    try {
+      await this.#deleteObsoleteMeta(orm);
+      await this.#syncExtensionMeta(orm);
+      await this.#syncEntryMeta(orm);
+      await this.#syncSettingsMeta(orm);
+      await this.#syncFieldMeta(orm);
+      await this.#syncActionMeta(orm);
+      await this.#syncApiGroups(orm);
+      await this.#syncRoles(orm);
+    } catch (e) {
+      if (isPgError(e)) {
+        const { info, response, subject } = handlePgError(e);
+        this.inLog.error(response, {
+          stackTrace: e.stack,
+          subject,
+        });
+        raiseORMException(response.join("\n"), subject);
+      }
+    }
     for (const migrateAction of this.extensionManager.afterMigrate.global) {
       await migrateAction.action({
         inCloud: this,
@@ -236,27 +254,126 @@ export class InCloudMigrator extends InCloud {
     }
   }
   async #deleteObsoleteMeta(orm: InSpatialORM) {
-    await orm.db.deleteRows("entryFieldMeta", [{
+    const adminRole = orm.roles.getRole("systemAdmin");
+    const entryNames = new Set<string>();
+    const actionKeys = new Set<string>();
+    for (const entryType of adminRole.entryTypes.values()) {
+      entryNames.add(entryType.name);
+      for (const actionName of entryType.actions.keys()) {
+        actionKeys.add(`${entryType.name}:${actionName}`);
+      }
+    }
+    const settingsNames = new Set<string>();
+    for (const settingsType of adminRole.settingsTypes.values()) {
+      settingsNames.add(settingsType.name);
+      for (const actionName of settingsType.actions.keys()) {
+        actionKeys.add(`${settingsType.name}:${actionName}`);
+      }
+    }
+
+    const entryMetaFilter: InFilter = {
       field: "entryMeta",
       and: [{
-        op: "isNotEmpty",
+        op: "notInList",
+        value: Array.from(entryNames),
       }, {
-        op: "inList",
+        op: "isNotEmpty",
+      }],
+    };
+    const settingsMetaFilter: InFilter = {
+      field: "settingsMeta",
+      and: [{
+        op: "notInList",
+        value: Array.from(settingsNames),
+      }, {
+        op: "isNotEmpty",
+      }],
+    };
+    const entrySettingsOrFilter: ListOptions["orFilter"] = [
+      entryMetaFilter,
+      settingsMetaFilter,
+    ];
+    const deleteEntries = async (
+      entryType: EntryName,
+      listOptions: ListOptions,
+    ) => {
+      const { rows: entries } = await orm.getEntryList(entryType, {
+        ...listOptions,
+        columns: ["id"],
+      });
+      for (const { id } of entries) {
+        await orm.deleteEntry(entryType, id);
+      }
+    };
+    const { rows: fieldMetas } = await orm.getEntryList(
+      "fieldMeta",
+      { orFilter: entrySettingsOrFilter, columns: ["id"] },
+    );
+    const fieldMetaIds = fieldMetas.map((f) => f.id);
+    if (fieldMetaIds.length > 0) {
+      [
+        "childEntryPermissionFieldPermissions",
+        "childSettingsPermissionFieldPermissions",
+      ].forEach(
+        async (table) => {
+          await orm.db.deleteRows(table, [{
+            field: "field",
+            op: "inList",
+            value: fieldMetaIds,
+          }]);
+        },
+      );
+    }
+    const { rows: actionMetas } = await orm.getEntryList(
+      "actionMeta",
+      { orFilter: entrySettingsOrFilter, columns: ["id"] },
+    );
+    const actionMetaIds = actionMetas.map((a) => a.id);
+    if (actionMetaIds.length > 0) {
+      [
+        "childEntryPermissionActionPermissions",
+        "childSettingsPermissionActionPermissions",
+      ].forEach(async (table) => {
+        await orm.db.deleteRows(table, [{
+          field: "action",
+          op: "inList",
+          value: actionMetaIds,
+        }]);
+      });
+    }
+
+    await deleteEntries("entryPermission", { filter: [entryMetaFilter] });
+    await deleteEntries("settingsPermission", { filter: [settingsMetaFilter] });
+    await deleteEntries("fieldMeta", {
+      columns: ["id"],
+      orFilter: entrySettingsOrFilter,
+    });
+    await deleteEntries("actionMeta", {
+      columns: ["id"],
+      orFilter: [{
+        field: "id",
+        op: "notInList",
+        value: Array.from(actionKeys),
+      }, ...entrySettingsOrFilter],
+    });
+    await deleteEntries("entryMeta", {
+      columns: ["id"],
+      filter: [{
+        field: "id",
+        op: "notInList",
         value: Array.from(entryNames),
       }],
-    }]);
-    await orm.db.deleteRows("entryEntryAction", [{
-      field: "entryMeta",
-      op: "notInList",
-      value: Array.from(entryNames),
-    }]);
-    await orm.db.deleteRows("entryEntryMeta", [{
-      field: "id",
-      op: "notInList",
-      value: Array.from(entryNames),
-    }]);
-  }
+    });
 
+    await deleteEntries("settingsMeta", {
+      columns: ["id"],
+      filter: [{
+        field: "id",
+        op: "notInList",
+        value: Array.from(settingsNames),
+      }],
+    });
+  }
   async #syncRoles(orm: InSpatialORM) {
     for (const [roleName, role] of this.roles.roles.entries()) {
       if (roleName === "systemAdmin") {
@@ -270,40 +387,159 @@ export class InCloudMigrator extends InCloud {
         roleModel.$roleKey = roleName;
       }
       roleModel.$roleName = role.label;
+      roleModel.$extendsRole = role.extendsRole;
       await roleModel.save();
-      for (const [entryTypeName, entryPerm] of role.entryPermissions) {
-        let entryPermModel = await orm.findEntry("entryPermission", {
-          userRole: roleName,
-          entryMeta: entryTypeName,
-        });
-        if (!entryPermModel) {
-          entryPermModel = orm.getNewEntry("entryPermission");
-          entryPermModel.$userRole = roleName;
-          entryPermModel.$entryMeta = entryTypeName;
-        }
-        entryPermModel.$canView = entryPerm.view || false;
-        entryPermModel.$canModify = entryPerm.modify || false;
-        entryPermModel.$canCreate = entryPerm.create || false;
-        entryPermModel.$canDelete = entryPerm.delete || false;
-        const existingActions = entryPermModel.$actionPermissions.data;
-        for (const actionName of entryPerm.actions?.include || []) {
-          const existing = existingActions.find((a) =>
-            a.action === `${entryTypeName}:${actionName}`
-          );
-          if (existing) {
-            existing.canExecute = true;
-            continue;
-          }
+      await this.#syncRoleEntryPermissions(orm, roleName);
+      await this.#syncRoleSettingsPermissions(orm, roleName);
+      await this.#syncRoleApiPermissions(orm, roleName);
+    }
+  }
+  async #syncRoleEntryPermissions(orm: InSpatialORM, roleName: string) {
+    const role = this.roles.getRole(roleName);
+    for (const [entryTypeName, entryPerm] of role.entryPermissions.entries()) {
+      let entryPermModel = await orm.findEntry("entryPermission", {
+        userRole: roleName,
+        entryMeta: entryTypeName,
+      });
+      if (!entryPermModel) {
+        entryPermModel = orm.getNewEntry("entryPermission");
+        entryPermModel.$userRole = roleName;
+        entryPermModel.$entryMeta = entryTypeName;
+      }
+      entryPermModel.$canView = entryPerm.view || false;
+      entryPermModel.$canModify = entryPerm.modify || false;
+      entryPermModel.$canCreate = entryPerm.create || false;
+      entryPermModel.$canDelete = entryPerm.delete || false;
+      entryPermModel.$userScope = entryPerm.userScope
+        ? `${entryTypeName}:${entryPerm.userScope}`
+        : undefined;
+      const includedActions = new Set(
+        entryPerm.actions?.include || [],
+      );
+      const excludedActions = new Set(
+        entryPerm.actions?.exclude || [],
+      );
+      if (includedActions.size > 0 || excludedActions.size > 0) {
+        entryPermModel.$allowAllActions = false;
 
-          existingActions.push({
+        entryPermModel.$actionPermissions.update(
+          entryPerm.actions?.include?.map((actionName) => ({
             action: `${entryTypeName}:${actionName}`,
             canExecute: true,
+          })) || [],
+        );
+      }
+
+      if (entryPerm.fields) {
+        const fieldPerms = [];
+        for (
+          const [fieldName, permission] of Object.entries(entryPerm.fields)
+        ) {
+          if (!permission) {
+            continue;
+          }
+          fieldPerms.push({
+            field: `${entryTypeName}:${fieldName}`,
+            canView: !!permission.view,
+            canModify: !!permission.modify,
           });
         }
-
-        entryPermModel.$actionPermissions.update(existingActions);
-        await entryPermModel.save();
+        entryPermModel.$fieldPermissions.update(fieldPerms);
       }
+
+      await entryPermModel.save();
+    }
+  }
+  async #syncRoleSettingsPermissions(orm: InSpatialORM, roleName: string) {
+    const role = this.roles.getRole(roleName);
+    for (const [settingsTypeName, settingsPerm] of role.settingsPermissions) {
+      let settingsPermModel = await orm.findEntry("settingsPermission", {
+        userRole: roleName,
+        settingsMeta: settingsTypeName,
+      });
+      if (!settingsPermModel) {
+        settingsPermModel = orm.getNewEntry("settingsPermission");
+        settingsPermModel.$userRole = roleName;
+        settingsPermModel.$settingsMeta = settingsTypeName;
+      }
+      settingsPermModel.$canView = settingsPerm.view || false;
+      settingsPermModel.$canModify = settingsPerm.modify || false;
+
+      const includedActions = new Set(
+        settingsPerm.actions?.include || [],
+      );
+      const excludedActions = new Set(
+        settingsPerm.actions?.exclude || [],
+      );
+      if (includedActions.size > 0 || excludedActions.size > 0) {
+        settingsPermModel.$allowAllActions = false;
+
+        settingsPermModel.$actionPermissions.update(
+          settingsPerm.actions?.include?.map((actionName) => ({
+            action: `${settingsTypeName}:${actionName}`,
+            canExecute: true,
+          })) || [],
+        );
+      }
+
+      if (settingsPerm.fields) {
+        const fieldPerms = [];
+        for (
+          const [fieldName, permission] of Object.entries(settingsPerm.fields)
+        ) {
+          if (!permission) {
+            continue;
+          }
+          fieldPerms.push({
+            field: `${settingsTypeName}:${fieldName}`,
+            canView: !!permission.view,
+            canModify: !!permission.modify,
+          });
+        }
+        settingsPermModel.$fieldPermissions.update(fieldPerms);
+      }
+
+      await settingsPermModel.save();
+    }
+  }
+  async #syncRoleApiPermissions(orm: InSpatialORM, roleName: string) {
+    const role = this.roles.getRole(roleName);
+    for (const [groupName, groupPerm] of role.apiGroups.entries()) {
+      let apiGroupPermModel = await orm.findEntry("apiGroupPermission", {
+        userRole: roleName,
+        apiGroup: groupName,
+      });
+      if (!apiGroupPermModel) {
+        apiGroupPermModel = orm.getNewEntry("apiGroupPermission");
+        apiGroupPermModel.$userRole = roleName;
+        apiGroupPermModel.$apiGroup = groupName;
+      }
+      apiGroupPermModel.$canAccess = true;
+      apiGroupPermModel.$accessAll = groupPerm === true;
+      const existingActions = new Set(
+        apiGroupPermModel.$actions.data.map((a) => a.apiAction),
+      );
+      const newActions = [];
+      if (groupPerm !== true) {
+        for (const actionName of groupPerm) {
+          const actionId = `${groupName}:${actionName}`;
+          newActions.push({
+            apiAction: actionId,
+            canAccess: true,
+          });
+        }
+        for (const existingAction of existingActions) {
+          if (!groupPerm.has(existingAction.split(":").pop()!)) {
+            newActions.push({
+              apiAction: existingAction,
+              canAccess: false,
+            });
+          }
+        }
+        apiGroupPermModel.$actions.update(newActions);
+      }
+
+      await apiGroupPermModel.save();
     }
   }
 

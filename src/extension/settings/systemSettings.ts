@@ -34,13 +34,3 @@ export const systemSettings = new SettingsType(
     },
   },
 );
-
-systemSettings.addAction({
-  key: "test",
-  params: [],
-  action() {
-    return {
-      message: "Test action executed successfully",
-    };
-  },
-});
