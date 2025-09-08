@@ -384,7 +384,7 @@ export class InSpatialORM {
   }
 
   /**
-   * Deletes an entry from the database.
+   * Deletes an entry from the database by its ID.
    */
   async deleteEntry<E extends EntryName>(
     entryType: E,
@@ -434,6 +434,7 @@ export class InSpatialORM {
     }
     return results;
   }
+  /** Finds and returns an instance of a single entry matching the provided filter. Returns null if no entry is found. */
   async findEntry<E extends EntryName>(
     entryType: E,
     filter: DBFilter,
@@ -452,6 +453,7 @@ export class InSpatialORM {
     const entry = await this.getEntry(entryType, result.rows[0].id);
     return entry;
   }
+  /** Finds and returns the ID of a single entry matching the provided filter. Returns null if no entry is found. */
   async findEntryId<E extends EntryName>(
     entryType: E,
     filter: DBFilter,
@@ -567,14 +569,22 @@ export class InSpatialORM {
 
   /** Tags Section **/
 
+  /** Gets a list of all the tags currently in the system. */
   async getTags(): Promise<Array<Tag>> {
     const { rows } = await this.db.getRows<Tag>("inTag");
     return rows;
   }
+
+  /** Checks if a tag with the given ID exists in the system.
+   *  @param tagId The ID of the tag to check for.
+   */
   async hasTag(tagId: number): Promise<boolean> {
     const result = await this.db.getRow("inTag", tagId);
     return !!result;
   }
+  /** Gets a tag by its name. Returns null if not found.
+   * @param tagName The name of the tag to search for.
+   */
   async getTagByName(tagName: string): Promise<
     {
       id: number;
@@ -595,6 +605,9 @@ export class InSpatialORM {
     }
     return result.rows[0];
   }
+  /** Adds a new tag to the system. Tag names are unique and case insensitive.
+   * @param tagName The name of the tag to add.
+   */
   async addTag(tagName: string): Promise<{
     id: number;
     name: string;
@@ -622,7 +635,7 @@ export class InSpatialORM {
   }
 
   /** End Tags section **/
-
+  /** Sums the values of specified fields for entries of a specific EntryType, with optional filtering and grouping. */
   async sum(entryType: string, options: {
     fields: Array<string>;
     filter?: DBFilter;
@@ -700,6 +713,7 @@ export class InSpatialORM {
       groupBy: Array.from(groupByColumns),
     });
   }
+  /** Counts the number of entries for a specific EntryType, with optional filtering and grouping. */
   async count<E extends EntryName>(
     entryType: E,
     options?: {
@@ -752,7 +766,7 @@ export class InSpatialORM {
   // Settings
 
   /**
-   * Gets the settings for a specific settings type.
+   * Gets all the settings for a specific `SettingsType`.
    */
   async getSettings<S extends SettingsName>(
     settingsType: S,

@@ -1,6 +1,6 @@
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
-import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
+import { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type {
   BaseTypeInfo,
   FieldGroup,
@@ -101,16 +101,22 @@ export class BaseType<N extends string = string> {
     }
     this.children = new Map();
     for (const child of children) {
-      if (this.children.has(child.name)) {
-        raiseORMException(
-          `Child with name ${child.name} already exists in EntryType ${this.name}`,
-        );
-      }
-      child.config.parentEntryType = this.name;
-      child.generateTableName();
-      child.systemGlobal = this.systemGlobal;
-      this.children.set(child.name, child);
+      this._addChild(child);
     }
+  }
+  _addChild(child: ChildEntryType<any>): void {
+    if (!this.children) {
+      this.children = new Map();
+    }
+    if (this.children.has(child.name)) {
+      raiseORMException(
+        `Child with name ${child.name} already exists in EntryType ${this.name}`,
+      );
+    }
+    child.config.parentEntryType = this.name;
+    child.generateTableName();
+    child.systemGlobal = this.systemGlobal;
+    this.children.set(child.name, child);
     this.#baseInfo.children = Array.from(this.children.values()).map(
       (child) => child.info,
     );

@@ -13,7 +13,7 @@ import type { EntryMap, EntryName } from "#types/models.ts";
 import type { GenericEntry } from "./entry-base.ts";
 import type { EntryFieldKeys } from "#types/mod.ts";
 
-/* Hooks */
+/** Hooks */
 type EntryHookFunction<
   E extends EntryName | string = EntryName,
 > = (
@@ -31,14 +31,17 @@ type EntryHookFunction<
 export type EntryHookDefinition<
   E extends EntryName | string = EntryName,
 > = {
+  /** A unique name for this hook. */
   name: string;
+  /** A short description of what this hook does. */
   description?: string;
+  /** The function to run when this hook is triggered. */
   handler: EntryHookFunction<E>;
 };
 
 /* Entry Actions */
 export type EntryActionDefinition<
-  E extends EntryName | string = EntryName,
+  E extends EntryName | string = string,
 > = {
   key: string;
   label?: string;
@@ -140,10 +143,7 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   taggable: boolean;
 }
 export type EntryConfig<
-  E extends EntryName = EntryName,
-  A extends Array<EntryActionDefinition<E>> = Array<
-    EntryActionDefinition<E>
-  >,
+  E extends string = string,
 > = BaseConfig & {
   /**
    * The field to use as the display value instead of the ID.
@@ -158,7 +158,7 @@ export type EntryConfig<
   searchFields?: Array<EntryFieldKeys<E>>;
   taggable?: boolean;
   index?: Array<EntryIndex<EntryFieldKeys<E>>>;
-  actions?: A;
+  actions?: Array<EntryActionDefinition<E>>;
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
 };
 export type IDValue = string | number;

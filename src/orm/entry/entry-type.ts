@@ -15,15 +15,13 @@ import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
 import { getCallerPath } from "../../utils/path-utils.ts";
-import type { EntryName } from "#types/models.ts";
 import type { EntryFieldKeys } from "#types/mod.ts";
-
+import { ChildEntryType } from "../child-entry/child-entry.ts";
 /**
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  E extends EntryName = EntryName,
-  A extends Array<EntryActionDefinition<E>> = Array<EntryActionDefinition<E>>,
+  E extends string,
 > extends BaseType<E> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
@@ -31,23 +29,23 @@ export class EntryType<
   defaultListFields: Set<string> = new Set(["id"]);
   defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc" = "asc";
-  actions: Map<string, EntryActionDefinition> = new Map();
+  actions: Map<string, EntryActionDefinition<E>> = new Map();
   connections: Array<EntryConnection> = [];
-  hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
-    beforeUpdate: [],
-    afterCreate: [],
-    afterDelete: [],
-    afterUpdate: [],
-    beforeCreate: [],
-    beforeDelete: [],
-    beforeValidate: [],
-    validate: [],
+  hooks: Record<EntryHookName, Map<string, EntryHookDefinition<E>>> = {
+    beforeUpdate: new Map(),
+    afterCreate: new Map(),
+    afterDelete: new Map(),
+    afterUpdate: new Map(),
+    beforeCreate: new Map(),
+    beforeDelete: new Map(),
+    beforeValidate: new Map(),
+    validate: new Map(),
   };
   permission: EntryPermission;
-  sourceConfig: EntryConfig<E, A>;
+  sourceConfig: EntryConfig<E>;
   constructor(
     name: E,
-    config: EntryConfig<E, A>,
+    config: EntryConfig<E>,
     rm?: boolean,
   ) {
     super(name, config);
@@ -229,10 +227,15 @@ export class EntryType<
     if (!hooks) {
       return;
     }
-    this.hooks = {
-      ...this.hooks,
-      ...hooks,
-    };
+    for (
+      const [hookName, hookList] of Object.entries(hooks) as Array<
+        [EntryHookName, Array<EntryHookDefinition<E>>]
+      >
+    ) {
+      for (const hook of hookList) {
+        this.addHook(hookName, hook);
+      }
+    }
   }
 
   #generateTableName(): string {
@@ -251,7 +254,28 @@ export class EntryType<
       });
     }
   }
-
+  addHook(hookName: EntryHookName, hook: EntryHookDefinition<E>): void {
+    const hookMap = this.hooks[hookName];
+    if (hookMap.has(hook.name)) {
+      raiseORMException(
+        `Hook with name ${hook.name} already exists for ${hookName} in EntryType ${this.name}`,
+      );
+    }
+    hookMap.set(hook.name, hook);
+  }
+  addChild(childName: string, config: {
+    label?: string;
+    description?: string;
+    fields: InField[];
+  }): void {
+    const child = new ChildEntryType(childName, config);
+    this.sourceConfig.children = [
+      ...(this.sourceConfig.children || []),
+      child,
+    ];
+    this._addChild(child);
+    child.setParentEntryType(this.name);
+  }
   addAction<
     K extends PropertyKey = PropertyKey,
     P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
@@ -281,4 +305,14 @@ function setupAction(action: EntryActionConfig<any, any, any>): void {
       param.label = convertString(param.key, "title", true);
     }
   }
+}
+
+/** Define a new Entry Type for the ORM */
+export function defineEntry<
+  N extends string,
+>(
+  entryName: N,
+  config: EntryConfig<N>,
+): EntryType<N> {
+  return new EntryType(entryName, config);
 }

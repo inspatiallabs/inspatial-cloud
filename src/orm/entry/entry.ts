@@ -14,7 +14,7 @@ import type { InCloud } from "~/in-cloud.ts";
 import type { UserID } from "~/auth/types.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
-import type { EntryMap, EntryName } from "#types/models.ts";
+import type { EntryName } from "#types/models.ts";
 import type { EntryFieldKeys } from "#types/mod.ts";
 
 export class Entry<
@@ -268,7 +268,7 @@ export class Entry<
   /* Lifecycle Hooks */
 
   async #runHooks(hookName: EntryHookName): Promise<void> {
-    for (const hook of this._entryType.hooks[hookName]) {
+    for (const hook of this._entryType.hooks[hookName].values()) {
       await hook.handler({
         orm: this._orm,
         inCloud: this._inCloud,
