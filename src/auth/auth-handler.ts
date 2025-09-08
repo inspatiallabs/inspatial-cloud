@@ -182,7 +182,7 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     lastName: user.$lastName,
     systemAdmin,
     adminPortalAccess,
-    profilePicture: user.$profilePicture,
+    profilePicture: user.$profilePicture || undefined,
     accountId: "",
     role: "",
   };

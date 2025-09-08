@@ -243,21 +243,21 @@ export class Entry<
    * as it will only update the fields that are allowed to be changed.
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
-  update(data: UpdateEntry<EntryMap[E]["__fields__"]>): void {
+  update(data: UpdateEntry<E>): void {
     this.assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
         const childList = this._childrenData.get(key);
         if (childList) {
           childList._parentId = this.id as string;
-          childList.update(value);
+          childList.update(value as any[]);
         }
         continue;
       }
       if (!this._changeableFields.has(key)) {
         continue;
       }
-      this[`$${key}` as keyof typeof this] = value;
+      this[`$${key}` as keyof typeof this] = value as any;
     }
   }
 

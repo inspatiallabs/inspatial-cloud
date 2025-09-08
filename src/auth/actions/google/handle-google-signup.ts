@@ -64,7 +64,7 @@ export async function handleGoogleSignup(args: {
   user.$lastName = familyName;
   user.$email = email;
   user.$googlePicture = picture;
-  user.$googleCredential = accessToken;
+  user.$googleCredential = accessToken as any;
   user.$googleAccessToken = accessToken.accessToken;
   user.$googleRefreshToken = accessToken.refreshToken;
   user.$googlePicture = picture;

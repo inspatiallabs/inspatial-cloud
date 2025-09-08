@@ -54,19 +54,19 @@ type UserFields = {
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
    */
-  systemAdmin: boolean | null;
+  systemAdmin: boolean;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
    */
-  adminPortalAccess: boolean | null;
+  adminPortalAccess: boolean;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
    */
-  enabled: boolean | null;
+  enabled: boolean;
   /**
    * **API Token** (PasswordField)
    * @description The user's API token
@@ -187,19 +187,19 @@ export type User = EntryBase<"user", UserFields> & {
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
    */
-  $systemAdmin: boolean | null;
+  $systemAdmin: boolean;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
    */
-  $adminPortalAccess: boolean | null;
+  $adminPortalAccess: boolean;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
    */
-  $enabled: boolean | null;
+  $enabled: boolean;
   /**
    * **API Token** (PasswordField)
    * @description The user's API token
@@ -435,12 +435,12 @@ type AccountFields = {
    * **Onboarding Complete** (BooleanField)
    * @type {boolean}
    */
-  onboardingComplete: boolean | null;
+  onboardingComplete: boolean;
   /**
    * **Initialized** (BooleanField)
    * @type {boolean}
    */
-  initialized: boolean | null;
+  initialized: boolean;
   /**
    * **Onboarding Response** (JSONField)
    * @type {Record<string, unknown>}
@@ -492,7 +492,7 @@ type AccountFields = {
      * **Is Owner** (BooleanField)
      * @type {boolean}
      */
-    isOwner: boolean | null;
+    isOwner: boolean;
     /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)
@@ -528,12 +528,12 @@ export type Account = EntryBase<"account", AccountFields> & {
    * **Onboarding Complete** (BooleanField)
    * @type {boolean}
    */
-  $onboardingComplete: boolean | null;
+  $onboardingComplete: boolean;
   /**
    * **Initialized** (BooleanField)
    * @type {boolean}
    */
-  $initialized: boolean | null;
+  $initialized: boolean;
   /**
    * **Onboarding Response** (JSONField)
    * @type {Record<string, unknown>}
@@ -585,7 +585,7 @@ export type Account = EntryBase<"account", AccountFields> & {
      * **Is Owner** (BooleanField)
      * @type {boolean}
      */
-    isOwner: boolean | null;
+    isOwner: boolean;
     /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)
@@ -1142,19 +1142,19 @@ type CloudFileFields = {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  publicFile: boolean | null;
+  publicFile: boolean;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  optimizeImage: boolean | null;
+  optimizeImage: boolean;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  optimized: boolean | null;
+  optimized: boolean;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
@@ -1174,7 +1174,7 @@ type CloudFileFields = {
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  hasThumbnail: boolean | null;
+  hasThumbnail: boolean;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
@@ -1332,19 +1332,19 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  $publicFile: boolean | null;
+  $publicFile: boolean;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  $optimizeImage: boolean | null;
+  $optimizeImage: boolean;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  $optimized: boolean | null;
+  $optimized: boolean;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
@@ -1364,7 +1364,7 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  $hasThumbnail: boolean | null;
+  $hasThumbnail: boolean;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
@@ -1521,19 +1521,19 @@ type GlobalCloudFileFields = {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  publicFile: boolean | null;
+  publicFile: boolean;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  optimizeImage: boolean | null;
+  optimizeImage: boolean;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  optimized: boolean | null;
+  optimized: boolean;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
@@ -1553,7 +1553,7 @@ type GlobalCloudFileFields = {
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  hasThumbnail: boolean | null;
+  hasThumbnail: boolean;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
@@ -1713,19 +1713,19 @@ export type GlobalCloudFile =
      * @description If enabled, this file can be accessed publicly without authentication.
      * @type {boolean}
      */
-    $publicFile: boolean | null;
+    $publicFile: boolean;
     /**
      * **Optimize Image** (BooleanField)
      * @description If enabled, images will be optimized
      * @type {boolean}
      */
-    $optimizeImage: boolean | null;
+    $optimizeImage: boolean;
     /**
      * **Optimized** (BooleanField)
      * @description Indicates if the image has been optimized.
      * @type {boolean}
      */
-    $optimized: boolean | null;
+    $optimized: boolean;
     /**
      * **Optimize Width** (IntField)
      * @type {number}
@@ -1745,7 +1745,7 @@ export type GlobalCloudFile =
      * **Has Thumbnail** (BooleanField)
      * @type {boolean}
      */
-    $hasThumbnail: boolean | null;
+    $hasThumbnail: boolean;
     /**
      * **Thumbnail Size** (IntField)
      * @type {number}
@@ -2037,7 +2037,7 @@ type EmailAccountFields = {
    * @description Use OAuth to authenticate with Gmail
    * @type {boolean}
    */
-  useGmailOauth: boolean | null;
+  useGmailOauth: boolean;
   /**
    * **Authorize Gmail** (URLField)
    * @description The URL to authorize this email account with Gmail
@@ -2049,13 +2049,13 @@ type EmailAccountFields = {
    * @description Whether this email account can send emails
    * @type {boolean}
    */
-  sendEmails: boolean | null;
+  sendEmails: boolean;
   /**
    * **Receive Emails** (BooleanField)
    * @description Whether this email account can receive emails
    * @type {boolean}
    */
-  receiveEmails: boolean | null;
+  receiveEmails: boolean;
   /**
    * **SMTP Host** (TextField)
    * @description The host of the SMTP server. smtp.gmail.com for Gmail
@@ -2152,7 +2152,7 @@ export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
    * @description Use OAuth to authenticate with Gmail
    * @type {boolean}
    */
-  $useGmailOauth: boolean | null;
+  $useGmailOauth: boolean;
   /**
    * **Authorize Gmail** (URLField)
    * @description The URL to authorize this email account with Gmail
@@ -2164,13 +2164,13 @@ export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
    * @description Whether this email account can send emails
    * @type {boolean}
    */
-  $sendEmails: boolean | null;
+  $sendEmails: boolean;
   /**
    * **Receive Emails** (BooleanField)
    * @description Whether this email account can receive emails
    * @type {boolean}
    */
-  $receiveEmails: boolean | null;
+  $receiveEmails: boolean;
   /**
    * **SMTP Host** (TextField)
    * @description The host of the SMTP server. smtp.gmail.com for Gmail
@@ -2414,7 +2414,7 @@ type OnboardingStepFields = {
      * @description Indicates whether the field is required to be filled out by the user.
      * @type {boolean}
      */
-    required: boolean | null;
+    required: boolean;
     /**
      * **Description** (TextField)
      * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
@@ -2518,7 +2518,7 @@ export type OnboardingStep =
        * @description Indicates whether the field is required to be filled out by the user.
        * @type {boolean}
        */
-      required: boolean | null;
+      required: boolean;
       /**
        * **Description** (TextField)
        * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
@@ -2806,7 +2806,7 @@ type EntryMetaFields = {
    * **System Global** (BooleanField)
    * @type {boolean}
    */
-  systemGlobal: boolean | null;
+  systemGlobal: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2872,7 +2872,7 @@ type EntryMetaFields = {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean | null;
+    active: boolean;
   }>;
 };
 export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
@@ -2914,7 +2914,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
    * **System Global** (BooleanField)
    * @type {boolean}
    */
-  $systemGlobal: boolean | null;
+  $systemGlobal: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2980,7 +2980,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean | null;
+    active: boolean;
   }>;
 };
 
@@ -3008,7 +3008,7 @@ type SettingsMetaFields = {
    * @description Whether these settings are global to the entire system or specific to an account.
    * @type {boolean}
    */
-  systemGlobal: boolean | null;
+  systemGlobal: boolean;
   /**
    * **Extension** (ConnectionField)
    *
@@ -3074,7 +3074,7 @@ type SettingsMetaFields = {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean | null;
+    active: boolean;
   }>;
 };
 export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
@@ -3103,7 +3103,7 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
    * @description Whether these settings are global to the entire system or specific to an account.
    * @type {boolean}
    */
-  $systemGlobal: boolean | null;
+  $systemGlobal: boolean;
   /**
    * **Extension** (ConnectionField)
    *
@@ -3169,7 +3169,7 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean | null;
+    active: boolean;
   }>;
 };
 
@@ -3242,19 +3242,19 @@ type FieldMetaFields = {
    * @description Whether the field is mandatory.
    * @type {boolean}
    */
-  required: boolean | null;
+  required: boolean;
   /**
    * **Read Only** (BooleanField)
    * @description Whether the field is read-only.
    * @type {boolean}
    */
-  readOnly: boolean | null;
+  readOnly: boolean;
   /**
    * **Unique** (BooleanField)
    * @description Whether the field must have unique values across entries.
    * @type {boolean}
    */
-  unique: boolean | null;
+  unique: boolean;
   /**
    * **Default Value** (DataField)
    * @description The default value for the field.
@@ -3266,7 +3266,7 @@ type FieldMetaFields = {
    * @description Whether the field is hidden in the UI.
    * @type {boolean}
    */
-  hidden: boolean | null;
+  hidden: boolean;
   /**
    * **Placeholder** (DataField)
    * @description Placeholder text for the field.
@@ -3425,19 +3425,19 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    * @description Whether the field is mandatory.
    * @type {boolean}
    */
-  $required: boolean | null;
+  $required: boolean;
   /**
    * **Read Only** (BooleanField)
    * @description Whether the field is read-only.
    * @type {boolean}
    */
-  $readOnly: boolean | null;
+  $readOnly: boolean;
   /**
    * **Unique** (BooleanField)
    * @description Whether the field must have unique values across entries.
    * @type {boolean}
    */
-  $unique: boolean | null;
+  $unique: boolean;
   /**
    * **Default Value** (DataField)
    * @description The default value for the field.
@@ -3449,7 +3449,7 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    * @description Whether the field is hidden in the UI.
    * @type {boolean}
    */
-  $hidden: boolean | null;
+  $hidden: boolean;
   /**
    * **Placeholder** (DataField)
    * @description Placeholder text for the field.
@@ -3575,7 +3575,7 @@ type ActionMetaFields = {
    * @description Set to true to hide this action from the api. This means it can only be called from server side code.
    * @type {boolean}
    */
-  private: boolean | null;
+  private: boolean;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this action
@@ -3668,7 +3668,7 @@ type ActionMetaFields = {
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean | null;
+    required: boolean;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -3723,7 +3723,7 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
    * @description Set to true to hide this action from the api. This means it can only be called from server side code.
    * @type {boolean}
    */
-  $private: boolean | null;
+  $private: boolean;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this action
@@ -3816,7 +3816,7 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean | null;
+    required: boolean;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -3857,31 +3857,31 @@ type EntryPermissionFields = {
    * @description Whether users with this role can view entries of this type
    * @type {boolean}
    */
-  canView: boolean | null;
+  canView: boolean;
   /**
    * **Can Modify** (BooleanField)
    * @description Whether users with this role can modify entries of this type
    * @type {boolean}
    */
-  canModify: boolean | null;
+  canModify: boolean;
   /**
    * **Can Create** (BooleanField)
    * @description Whether users with this role can create entries of this type
    * @type {boolean}
    */
-  canCreate: boolean | null;
+  canCreate: boolean;
   /**
    * **Can Delete** (BooleanField)
    * @description Whether users with this role can delete entries of this type
    * @type {boolean}
    */
-  canDelete: boolean | null;
+  canDelete: boolean;
   /**
    * **Allow All Actions** (BooleanField)
    * @description If true, all actions will be allowed. If false, actions can be set individually.
    * @type {boolean}
    */
-  allowAllActions: boolean | null;
+  allowAllActions: boolean;
   /**
    * **User Scope Field** (ConnectionField)
    *
@@ -3938,12 +3938,12 @@ type EntryPermissionFields = {
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    canView: boolean | null;
+    canView: boolean;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    canModify: boolean | null;
+    canModify: boolean;
     /**
      * **Field Title** (DataField)
      * @type {string}
@@ -3963,7 +3963,7 @@ type EntryPermissionFields = {
      * **Can Execute** (BooleanField)
      * @type {boolean}
      */
-    canExecute: boolean | null;
+    canExecute: boolean;
     /**
      * **Action Title** (DataField)
      * @type {string}
@@ -3999,31 +3999,31 @@ export type EntryPermission =
      * @description Whether users with this role can view entries of this type
      * @type {boolean}
      */
-    $canView: boolean | null;
+    $canView: boolean;
     /**
      * **Can Modify** (BooleanField)
      * @description Whether users with this role can modify entries of this type
      * @type {boolean}
      */
-    $canModify: boolean | null;
+    $canModify: boolean;
     /**
      * **Can Create** (BooleanField)
      * @description Whether users with this role can create entries of this type
      * @type {boolean}
      */
-    $canCreate: boolean | null;
+    $canCreate: boolean;
     /**
      * **Can Delete** (BooleanField)
      * @description Whether users with this role can delete entries of this type
      * @type {boolean}
      */
-    $canDelete: boolean | null;
+    $canDelete: boolean;
     /**
      * **Allow All Actions** (BooleanField)
      * @description If true, all actions will be allowed. If false, actions can be set individually.
      * @type {boolean}
      */
-    $allowAllActions: boolean | null;
+    $allowAllActions: boolean;
     /**
      * **User Scope Field** (ConnectionField)
      *
@@ -4080,12 +4080,12 @@ export type EntryPermission =
        * **Can View** (BooleanField)
        * @type {boolean}
        */
-      canView: boolean | null;
+      canView: boolean;
       /**
        * **Can Modify** (BooleanField)
        * @type {boolean}
        */
-      canModify: boolean | null;
+      canModify: boolean;
       /**
        * **Field Title** (DataField)
        * @type {string}
@@ -4105,7 +4105,7 @@ export type EntryPermission =
        * **Can Execute** (BooleanField)
        * @type {boolean}
        */
-      canExecute: boolean | null;
+      canExecute: boolean;
       /**
        * **Action Title** (DataField)
        * @type {string}
@@ -4137,17 +4137,17 @@ type SettingsPermissionFields = {
    * **Can View** (BooleanField)
    * @type {boolean}
    */
-  canView: boolean | null;
+  canView: boolean;
   /**
    * **Can Modify** (BooleanField)
    * @type {boolean}
    */
-  canModify: boolean | null;
+  canModify: boolean;
   /**
    * **Allow All Actions** (BooleanField)
    * @type {boolean}
    */
-  allowAllActions: boolean | null;
+  allowAllActions: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -4191,12 +4191,12 @@ type SettingsPermissionFields = {
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    canView: boolean | null;
+    canView: boolean;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    canModify: boolean | null;
+    canModify: boolean;
     /**
      * **Field Title** (DataField)
      * @type {string}
@@ -4216,7 +4216,7 @@ type SettingsPermissionFields = {
      * **Can Execute** (BooleanField)
      * @type {boolean}
      */
-    canExecute: boolean | null;
+    canExecute: boolean;
     /**
      * **Action Title** (DataField)
      * @type {string}
@@ -4251,17 +4251,17 @@ export type SettingsPermission =
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    $canView: boolean | null;
+    $canView: boolean;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    $canModify: boolean | null;
+    $canModify: boolean;
     /**
      * **Allow All Actions** (BooleanField)
      * @type {boolean}
      */
-    $allowAllActions: boolean | null;
+    $allowAllActions: boolean;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -4305,12 +4305,12 @@ export type SettingsPermission =
        * **Can View** (BooleanField)
        * @type {boolean}
        */
-      canView: boolean | null;
+      canView: boolean;
       /**
        * **Can Modify** (BooleanField)
        * @type {boolean}
        */
-      canModify: boolean | null;
+      canModify: boolean;
       /**
        * **Field Title** (DataField)
        * @type {string}
@@ -4330,7 +4330,7 @@ export type SettingsPermission =
        * **Can Execute** (BooleanField)
        * @type {boolean}
        */
-      canExecute: boolean | null;
+      canExecute: boolean;
       /**
        * **Action Title** (DataField)
        * @type {string}
@@ -4481,19 +4481,19 @@ type ApiActionFields = {
    * @description Whether authentication is required to access this API action
    * @type {boolean}
    */
-  authRequired: boolean | null;
+  authRequired: boolean;
   /**
    * **Hide From Api** (BooleanField)
    * @description Whether to disable this action from client access
    * @type {boolean}
    */
-  hideFromApi: boolean | null;
+  hideFromApi: boolean;
   /**
    * **Raw** (BooleanField)
    * @description Whether to skip reading the request body. Should be set to true if the action will be reading the request body itself, such as when uploading files.
    * @type {boolean}
    */
-  raw: boolean | null;
+  raw: boolean;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this API action
@@ -4581,7 +4581,7 @@ type ApiActionFields = {
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean | null;
+    required: boolean;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -4632,19 +4632,19 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
    * @description Whether authentication is required to access this API action
    * @type {boolean}
    */
-  $authRequired: boolean | null;
+  $authRequired: boolean;
   /**
    * **Hide From Api** (BooleanField)
    * @description Whether to disable this action from client access
    * @type {boolean}
    */
-  $hideFromApi: boolean | null;
+  $hideFromApi: boolean;
   /**
    * **Raw** (BooleanField)
    * @description Whether to skip reading the request body. Should be set to true if the action will be reading the request body itself, such as when uploading files.
    * @type {boolean}
    */
-  $raw: boolean | null;
+  $raw: boolean;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this API action
@@ -4732,7 +4732,7 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean | null;
+    required: boolean;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -4771,13 +4771,13 @@ type ApiGroupPermissionFields = {
    * @description Whether the role can access this API group. Turns off all actions if false.
    * @type {boolean}
    */
-  canAccess: boolean | null;
+  canAccess: boolean;
   /**
    * **Access All** (BooleanField)
    * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
    * @type {boolean}
    */
-  accessAll: boolean | null;
+  accessAll: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -4822,7 +4822,7 @@ type ApiGroupPermissionFields = {
      * @description Whether the role can access this API action
      * @type {boolean}
      */
-    canAccess: boolean | null;
+    canAccess: boolean;
     /**
      * **Action Title** (DataField)
      * @type {string}
@@ -4856,13 +4856,13 @@ export type ApiGroupPermission =
      * @description Whether the role can access this API group. Turns off all actions if false.
      * @type {boolean}
      */
-    $canAccess: boolean | null;
+    $canAccess: boolean;
     /**
      * **Access All** (BooleanField)
      * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
      * @type {boolean}
      */
-    $accessAll: boolean | null;
+    $accessAll: boolean;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -4907,7 +4907,7 @@ export type ApiGroupPermission =
        * @description Whether the role can access this API action
        * @type {boolean}
        */
-      canAccess: boolean | null;
+      canAccess: boolean;
       /**
        * **Action Title** (DataField)
        * @type {string}
@@ -4922,7 +4922,7 @@ type SystemSettingsFields = {
    * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
    * @type {boolean}
    */
-  enableSignup: boolean | null;
+  enableSignup: boolean;
   /**
    * **Server Host** (URLField)
    * @description The host URL of the server. This is used for generating links and API endpoints.
@@ -4941,7 +4941,7 @@ export type SystemSettings =
      * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
      * @type {boolean}
      */
-    $enableSignup: boolean | null;
+    $enableSignup: boolean;
     /**
      * **Server Host** (URLField)
      * @description The host URL of the server. This is used for generating links and API endpoints.
@@ -5049,7 +5049,7 @@ type OnboardingFields = {
    * @description Enable or disable onboarding for new users
    * @type {boolean}
    */
-  enabled: boolean | null;
+  enabled: boolean;
 };
 export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
   _name: "onboarding";
@@ -5059,7 +5059,7 @@ export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
    * @description Enable or disable onboarding for new users
    * @type {boolean}
    */
-  $enabled: boolean | null;
+  $enabled: boolean;
 };
 
 export interface EntryMap {

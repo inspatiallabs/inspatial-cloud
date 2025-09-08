@@ -40,7 +40,7 @@ export async function handleGoogleLogin(args: {
   if (!user) {
     raiseServerException(401, "Google auth: User not found");
   }
-  user.$googleCredential = accessToken;
+  user.$googleCredential = accessToken as any;
   user.$googleAccessToken = accessToken.accessToken;
   user.$googleRefreshToken = accessToken.refreshToken;
   user.$googlePicture = idToken.picture;

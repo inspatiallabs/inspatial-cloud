@@ -38,7 +38,9 @@ export function buildField(field: InField): string {
   lines.push(
     `${field.key}${
       required || field.type === "BooleanField" ? "" : "?"
-    }: ${fieldType}${required ? "" : " | null"};`,
+    }: ${fieldType}${
+      required || field.type === "BooleanField" ? "" : " | null"
+    };`,
   );
   return lines.join("\n");
 }
