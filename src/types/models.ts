@@ -30,84 +30,84 @@ type UserFields = {
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  fullName?: string;
+  fullName?: string | null;
   /**
    * **Profile Picture** (ImageField)
    * @description The user's profile picture
    * @type {string}
    */
-  profilePicture?: string;
+  profilePicture?: string | null;
   /**
    * **Password** (PasswordField)
    * @description The user's password used for login
    * @type {string}
    */
-  password?: string;
+  password?: string | null;
   /**
    * **Reset Password Token** (PasswordField)
    * @description The token used to reset the user's password
    * @type {string}
    */
-  resetPasswordToken?: string;
+  resetPasswordToken?: string | null;
   /**
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
    */
-  systemAdmin: boolean;
+  systemAdmin: boolean | null;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
    */
-  adminPortalAccess: boolean;
+  adminPortalAccess: boolean | null;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
    */
-  enabled: boolean;
+  enabled: boolean | null;
   /**
    * **API Token** (PasswordField)
    * @description The user's API token
    * @type {string}
    */
-  apiToken?: string;
+  apiToken?: string | null;
   /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
    */
-  googleAccessToken?: string;
+  googleAccessToken?: string | null;
   /**
    * **Refresh Token** (PasswordField)
    * @description The refresh token used to refresh the access token.
    * @type {string}
    */
-  googleRefreshToken?: string;
+  googleRefreshToken?: string | null;
   /**
    * **Google Credential** (JSONField)
    * @description The credential used to authenticate the user with Google.
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  googleCredential?: Record<string, any>;
+  googleCredential?: Record<string, unknown> | null;
   /**
    * **Google ID** (TextField)
    * @description The user's Google ID.
    * @type {string}
    */
-  googleId?: string;
+  googleId?: string | null;
   /**
    * **Google Picture** (URLField)
    * @description The user's Google profile picture.
    * @type {string}
    */
-  googlePicture?: string;
+  googlePicture?: string | null;
   /**
    * **Google Auth Status** (ChoicesField)
    * @type {'authenticated' | 'notAuthenticated'}
    */
-  googleAuthStatus?: "authenticated" | "notAuthenticated";
+  googleAuthStatus?: "authenticated" | "notAuthenticated" | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -129,16 +129,10 @@ type UserFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Profile Picture Title** (DataField)
    * @type {string}
    */
-  profilePicture__title?: string;
+  profilePicture__title?: string | null;
 };
 export type User = EntryBase<"user", UserFields> & {
   _name: "user";
@@ -169,84 +163,84 @@ export type User = EntryBase<"user", UserFields> & {
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  $fullName?: string;
+  $fullName?: string | null;
   /**
    * **Profile Picture** (ImageField)
    * @description The user's profile picture
    * @type {string}
    */
-  $profilePicture?: string;
+  $profilePicture?: string | null;
   /**
    * **Password** (PasswordField)
    * @description The user's password used for login
    * @type {string}
    */
-  $password?: string;
+  $password?: string | null;
   /**
    * **Reset Password Token** (PasswordField)
    * @description The token used to reset the user's password
    * @type {string}
    */
-  $resetPasswordToken?: string;
+  $resetPasswordToken?: string | null;
   /**
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
    */
-  $systemAdmin: boolean;
+  $systemAdmin: boolean | null;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
    */
-  $adminPortalAccess: boolean;
+  $adminPortalAccess: boolean | null;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
    */
-  $enabled: boolean;
+  $enabled: boolean | null;
   /**
    * **API Token** (PasswordField)
    * @description The user's API token
    * @type {string}
    */
-  $apiToken?: string;
+  $apiToken?: string | null;
   /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
    */
-  $googleAccessToken?: string;
+  $googleAccessToken?: string | null;
   /**
    * **Refresh Token** (PasswordField)
    * @description The refresh token used to refresh the access token.
    * @type {string}
    */
-  $googleRefreshToken?: string;
+  $googleRefreshToken?: string | null;
   /**
    * **Google Credential** (JSONField)
    * @description The credential used to authenticate the user with Google.
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $googleCredential?: Record<string, any>;
+  $googleCredential?: Record<string, unknown> | null;
   /**
    * **Google ID** (TextField)
    * @description The user's Google ID.
    * @type {string}
    */
-  $googleId?: string;
+  $googleId?: string | null;
   /**
    * **Google Picture** (URLField)
    * @description The user's Google profile picture.
    * @type {string}
    */
-  $googlePicture?: string;
+  $googlePicture?: string | null;
   /**
    * **Google Auth Status** (ChoicesField)
    * @type {'authenticated' | 'notAuthenticated'}
    */
-  $googleAuthStatus?: "authenticated" | "notAuthenticated";
+  $googleAuthStatus?: "authenticated" | "notAuthenticated" | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -268,16 +262,10 @@ export type User = EntryBase<"user", UserFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Profile Picture Title** (DataField)
    * @type {string}
    */
-  $profilePicture__title?: string;
+  $profilePicture__title?: string | null;
   runAction<N extends keyof UserActionMap>(
     actionName: N,
   ): UserActionMap[N]["return"];
@@ -288,13 +276,13 @@ export type User = EntryBase<"user", UserFields> & {
 };
 type UserActionMap = {
   generateApiToken: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   generateResetToken: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   findAccounts: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 type UserParamsActionMap = {
@@ -308,7 +296,7 @@ type UserParamsActionMap = {
        */
       password: string;
     };
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   validatePassword: {
     params: {
@@ -320,7 +308,7 @@ type UserParamsActionMap = {
        */
       password: string;
     };
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -344,9 +332,9 @@ type UserSessionFields = {
   /**
    * **Session Data** (JSONField)
    * @description Data associated with the session
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  sessionData?: Record<string, any>;
+  sessionData?: Record<string, unknown> | null;
   /**
    * **User Session** (IDField)
    * @type {string}
@@ -368,17 +356,11 @@ type UserSessionFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User Session
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **User Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  user__title?: string;
+  user__title?: string | null;
 };
 export type UserSession = EntryBase<"userSession", UserSessionFields> & {
   _name: "userSession";
@@ -402,9 +384,9 @@ export type UserSession = EntryBase<"userSession", UserSessionFields> & {
   /**
    * **Session Data** (JSONField)
    * @description Data associated with the session
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $sessionData?: Record<string, any>;
+  $sessionData?: Record<string, unknown> | null;
   /**
    * **User Session** (IDField)
    * @type {string}
@@ -426,17 +408,11 @@ export type UserSession = EntryBase<"userSession", UserSessionFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User Session
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **User Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  $user__title?: string;
+  $user__title?: string | null;
 };
 
 type AccountFields = {
@@ -447,7 +423,7 @@ type AccountFields = {
    * @description The user who owns this account. Only one user can be the owner.
    * @type {string}
    */
-  owner?: string;
+  owner?: string | null;
   /**
    * **Account Name** (DataField)
    * @description The name of the account
@@ -459,17 +435,17 @@ type AccountFields = {
    * **Onboarding Complete** (BooleanField)
    * @type {boolean}
    */
-  onboardingComplete: boolean;
+  onboardingComplete: boolean | null;
   /**
    * **Initialized** (BooleanField)
    * @type {boolean}
    */
-  initialized: boolean;
+  initialized: boolean | null;
   /**
    * **Onboarding Response** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  obResponse?: Record<string, any>;
+  obResponse?: Record<string, unknown> | null;
   /**
    * **Account** (IDField)
    * @type {string}
@@ -491,17 +467,11 @@ type AccountFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Account
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Account Owner Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  owner__title?: string;
+  owner__title?: string | null;
   users: ChildList<{
     /**
      * **User** (ConnectionField)
@@ -517,23 +487,23 @@ type AccountFields = {
      * **EntryType** `userRole`
      * @type {string}
      */
-    role?: string;
+    role?: string | null;
     /**
      * **Is Owner** (BooleanField)
      * @type {boolean}
      */
-    isOwner: boolean;
+    isOwner: boolean | null;
     /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)
      * @type {string}
      */
-    user__title?: string;
+    user__title?: string | null;
     /**
      * **Role Title** (DataField)
      * @type {string}
      */
-    role__title?: string;
+    role__title?: string | null;
   }>;
 };
 export type Account = EntryBase<"account", AccountFields> & {
@@ -546,7 +516,7 @@ export type Account = EntryBase<"account", AccountFields> & {
    * @description The user who owns this account. Only one user can be the owner.
    * @type {string}
    */
-  $owner?: string;
+  $owner?: string | null;
   /**
    * **Account Name** (DataField)
    * @description The name of the account
@@ -558,17 +528,17 @@ export type Account = EntryBase<"account", AccountFields> & {
    * **Onboarding Complete** (BooleanField)
    * @type {boolean}
    */
-  $onboardingComplete: boolean;
+  $onboardingComplete: boolean | null;
   /**
    * **Initialized** (BooleanField)
    * @type {boolean}
    */
-  $initialized: boolean;
+  $initialized: boolean | null;
   /**
    * **Onboarding Response** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $obResponse?: Record<string, any>;
+  $obResponse?: Record<string, unknown> | null;
   /**
    * **Account** (IDField)
    * @type {string}
@@ -590,17 +560,11 @@ export type Account = EntryBase<"account", AccountFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Account
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Account Owner Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
    */
-  $owner__title?: string;
+  $owner__title?: string | null;
   $users: ChildList<{
     /**
      * **User** (ConnectionField)
@@ -616,23 +580,23 @@ export type Account = EntryBase<"account", AccountFields> & {
      * **EntryType** `userRole`
      * @type {string}
      */
-    role?: string;
+    role?: string | null;
     /**
      * **Is Owner** (BooleanField)
      * @type {boolean}
      */
-    isOwner: boolean;
+    isOwner: boolean | null;
     /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)
      * @type {string}
      */
-    user__title?: string;
+    user__title?: string | null;
     /**
      * **Role Title** (DataField)
      * @type {string}
      */
-    role__title?: string;
+    role__title?: string | null;
   }>;
   runAction<N extends keyof AccountActionMap>(
     actionName: N,
@@ -644,10 +608,10 @@ export type Account = EntryBase<"account", AccountFields> & {
 };
 type AccountActionMap = {
   queueInitialize: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   initialize: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 type AccountParamsActionMap = {
@@ -680,7 +644,7 @@ type AccountParamsActionMap = {
        */
       role: string;
     };
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -701,18 +665,18 @@ type InTaskGlobalFields = {
    * **Entry/Settings Name** (DataField)
    * @type {string}
    */
-  typeKey?: string;
+  typeKey?: string | null;
   /**
    * **Entry ID** (DataField)
    * @description The ID of the entry to run the action on
    * @type {string}
    */
-  entryId?: string;
+  entryId?: string | null;
   /**
    * **Group** (DataField)
    * @type {string}
    */
-  group?: string;
+  group?: string | null;
   /**
    * **Action Name** (DataField)
    * @type {string}
@@ -729,27 +693,27 @@ type InTaskGlobalFields = {
    * **Start Time** (TimeStampField)
    * @type {number}
    */
-  startTime?: number;
+  startTime?: number | null;
   /**
    * **End Time** (TimeStampField)
    * @type {number}
    */
-  endTime?: number;
+  endTime?: number | null;
   /**
    * **Task Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  taskData?: Record<string, any>;
+  taskData?: Record<string, unknown> | null;
   /**
    * **Result Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  resultData?: Record<string, any>;
+  resultData?: Record<string, unknown> | null;
   /**
    * **Error Info** (TextField)
    * @type {string}
    */
-  errorInfo?: string;
+  errorInfo?: string | null;
   /**
    * **InTask Global** (IDField)
    * @type {string}
@@ -770,12 +734,6 @@ type InTaskGlobalFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this InTask Global
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
   _name: "inTaskGlobal";
@@ -796,18 +754,18 @@ export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
    * **Entry/Settings Name** (DataField)
    * @type {string}
    */
-  $typeKey?: string;
+  $typeKey?: string | null;
   /**
    * **Entry ID** (DataField)
    * @description The ID of the entry to run the action on
    * @type {string}
    */
-  $entryId?: string;
+  $entryId?: string | null;
   /**
    * **Group** (DataField)
    * @type {string}
    */
-  $group?: string;
+  $group?: string | null;
   /**
    * **Action Name** (DataField)
    * @type {string}
@@ -824,27 +782,27 @@ export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
    * **Start Time** (TimeStampField)
    * @type {number}
    */
-  $startTime?: number;
+  $startTime?: number | null;
   /**
    * **End Time** (TimeStampField)
    * @type {number}
    */
-  $endTime?: number;
+  $endTime?: number | null;
   /**
    * **Task Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $taskData?: Record<string, any>;
+  $taskData?: Record<string, unknown> | null;
   /**
    * **Result Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $resultData?: Record<string, any>;
+  $resultData?: Record<string, unknown> | null;
   /**
    * **Error Info** (TextField)
    * @type {string}
    */
-  $errorInfo?: string;
+  $errorInfo?: string | null;
   /**
    * **InTask Global** (IDField)
    * @type {string}
@@ -865,19 +823,13 @@ export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this InTask Global
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
   runAction<N extends keyof InTaskGlobalActionMap>(
     actionName: N,
   ): InTaskGlobalActionMap[N]["return"];
 };
 type InTaskGlobalActionMap = {
   runTask: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -898,18 +850,18 @@ type InTaskFields = {
    * **Entry/Settings Name** (DataField)
    * @type {string}
    */
-  typeKey?: string;
+  typeKey?: string | null;
   /**
    * **Entry ID** (DataField)
    * @description The ID of the entry to run the action on
    * @type {string}
    */
-  entryId?: string;
+  entryId?: string | null;
   /**
    * **Group** (DataField)
    * @type {string}
    */
-  group?: string;
+  group?: string | null;
   /**
    * **Action Name** (DataField)
    * @type {string}
@@ -926,27 +878,27 @@ type InTaskFields = {
    * **Start Time** (TimeStampField)
    * @type {number}
    */
-  startTime?: number;
+  startTime?: number | null;
   /**
    * **End Time** (TimeStampField)
    * @type {number}
    */
-  endTime?: number;
+  endTime?: number | null;
   /**
    * **Task Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  taskData?: Record<string, any>;
+  taskData?: Record<string, unknown> | null;
   /**
    * **Result Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  resultData?: Record<string, any>;
+  resultData?: Record<string, unknown> | null;
   /**
    * **Error Info** (TextField)
    * @type {string}
    */
-  errorInfo?: string;
+  errorInfo?: string | null;
   /**
    * **InTask** (IDField)
    * @type {string}
@@ -967,12 +919,6 @@ type InTaskFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this InTask
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type InTask = EntryBase<"inTask", InTaskFields> & {
   _name: "inTask";
@@ -993,18 +939,18 @@ export type InTask = EntryBase<"inTask", InTaskFields> & {
    * **Entry/Settings Name** (DataField)
    * @type {string}
    */
-  $typeKey?: string;
+  $typeKey?: string | null;
   /**
    * **Entry ID** (DataField)
    * @description The ID of the entry to run the action on
    * @type {string}
    */
-  $entryId?: string;
+  $entryId?: string | null;
   /**
    * **Group** (DataField)
    * @type {string}
    */
-  $group?: string;
+  $group?: string | null;
   /**
    * **Action Name** (DataField)
    * @type {string}
@@ -1021,27 +967,27 @@ export type InTask = EntryBase<"inTask", InTaskFields> & {
    * **Start Time** (TimeStampField)
    * @type {number}
    */
-  $startTime?: number;
+  $startTime?: number | null;
   /**
    * **End Time** (TimeStampField)
    * @type {number}
    */
-  $endTime?: number;
+  $endTime?: number | null;
   /**
    * **Task Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $taskData?: Record<string, any>;
+  $taskData?: Record<string, unknown> | null;
   /**
    * **Result Data** (JSONField)
-   * @type {Record<string, any>}
+   * @type {Record<string, unknown>}
    */
-  $resultData?: Record<string, any>;
+  $resultData?: Record<string, unknown> | null;
   /**
    * **Error Info** (TextField)
    * @type {string}
    */
-  $errorInfo?: string;
+  $errorInfo?: string | null;
   /**
    * **InTask** (IDField)
    * @type {string}
@@ -1062,19 +1008,13 @@ export type InTask = EntryBase<"inTask", InTaskFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this InTask
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
   runAction<N extends keyof InTaskActionMap>(
     actionName: N,
   ): InTaskActionMap[N]["return"];
 };
 type InTaskActionMap = {
   runTask: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -1179,17 +1119,18 @@ type CloudFileFields = {
     | "xlsx"
     | "xml"
     | "zip"
-    | "arc";
+    | "arc"
+    | null;
   /**
    * **Mime Type** (DataField)
    * @type {string}
    */
-  mimeType?: string;
+  mimeType?: string | null;
   /**
    * **File Type Description** (DataField)
    * @type {string}
    */
-  fileTypeDescription?: string;
+  fileTypeDescription?: string | null;
   /**
    * **File Path** (TextField)
    * @type {string}
@@ -1201,49 +1142,49 @@ type CloudFileFields = {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  publicFile: boolean;
+  publicFile: boolean | null;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  optimizeImage: boolean;
+  optimizeImage: boolean | null;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  optimized: boolean;
+  optimized: boolean | null;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
    */
-  optimizeWidth?: number;
+  optimizeWidth?: number | null;
   /**
    * **Optimize Height** (IntField)
    * @type {number}
    */
-  optimizeHeight?: number;
+  optimizeHeight?: number | null;
   /**
    * **Optimize Format** (ChoicesField)
    * @type {'jpeg' | 'png'}
    */
-  optimizeFormat?: "jpeg" | "png";
+  optimizeFormat?: "jpeg" | "png" | null;
   /**
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  hasThumbnail: boolean;
+  hasThumbnail: boolean | null;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
    */
-  thumbnailSize?: number;
+  thumbnailSize?: number | null;
   /**
    * **Thumbnail Path** (TextField)
    * @type {string}
    */
-  thumbnailPath?: string;
+  thumbnailPath?: string | null;
   /**
    * **File** (IDField)
    * @type {string}
@@ -1264,12 +1205,6 @@ type CloudFileFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this File
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
   _name: "cloudFile";
@@ -1374,17 +1309,18 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
     | "xlsx"
     | "xml"
     | "zip"
-    | "arc";
+    | "arc"
+    | null;
   /**
    * **Mime Type** (DataField)
    * @type {string}
    */
-  $mimeType?: string;
+  $mimeType?: string | null;
   /**
    * **File Type Description** (DataField)
    * @type {string}
    */
-  $fileTypeDescription?: string;
+  $fileTypeDescription?: string | null;
   /**
    * **File Path** (TextField)
    * @type {string}
@@ -1396,49 +1332,49 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  $publicFile: boolean;
+  $publicFile: boolean | null;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  $optimizeImage: boolean;
+  $optimizeImage: boolean | null;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  $optimized: boolean;
+  $optimized: boolean | null;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
    */
-  $optimizeWidth?: number;
+  $optimizeWidth?: number | null;
   /**
    * **Optimize Height** (IntField)
    * @type {number}
    */
-  $optimizeHeight?: number;
+  $optimizeHeight?: number | null;
   /**
    * **Optimize Format** (ChoicesField)
    * @type {'jpeg' | 'png'}
    */
-  $optimizeFormat?: "jpeg" | "png";
+  $optimizeFormat?: "jpeg" | "png" | null;
   /**
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  $hasThumbnail: boolean;
+  $hasThumbnail: boolean | null;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
    */
-  $thumbnailSize?: number;
+  $thumbnailSize?: number | null;
   /**
    * **Thumbnail Path** (TextField)
    * @type {string}
    */
-  $thumbnailPath?: string;
+  $thumbnailPath?: string | null;
   /**
    * **File** (IDField)
    * @type {string}
@@ -1459,12 +1395,6 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this File
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
 };
 
 type GlobalCloudFileFields = {
@@ -1568,17 +1498,18 @@ type GlobalCloudFileFields = {
     | "xlsx"
     | "xml"
     | "zip"
-    | "arc";
+    | "arc"
+    | null;
   /**
    * **Mime Type** (DataField)
    * @type {string}
    */
-  mimeType?: string;
+  mimeType?: string | null;
   /**
    * **File Type Description** (DataField)
    * @type {string}
    */
-  fileTypeDescription?: string;
+  fileTypeDescription?: string | null;
   /**
    * **File Path** (TextField)
    * @type {string}
@@ -1590,49 +1521,49 @@ type GlobalCloudFileFields = {
    * @description If enabled, this file can be accessed publicly without authentication.
    * @type {boolean}
    */
-  publicFile: boolean;
+  publicFile: boolean | null;
   /**
    * **Optimize Image** (BooleanField)
    * @description If enabled, images will be optimized
    * @type {boolean}
    */
-  optimizeImage: boolean;
+  optimizeImage: boolean | null;
   /**
    * **Optimized** (BooleanField)
    * @description Indicates if the image has been optimized.
    * @type {boolean}
    */
-  optimized: boolean;
+  optimized: boolean | null;
   /**
    * **Optimize Width** (IntField)
    * @type {number}
    */
-  optimizeWidth?: number;
+  optimizeWidth?: number | null;
   /**
    * **Optimize Height** (IntField)
    * @type {number}
    */
-  optimizeHeight?: number;
+  optimizeHeight?: number | null;
   /**
    * **Optimize Format** (ChoicesField)
    * @type {'jpeg' | 'png'}
    */
-  optimizeFormat?: "jpeg" | "png";
+  optimizeFormat?: "jpeg" | "png" | null;
   /**
    * **Has Thumbnail** (BooleanField)
    * @type {boolean}
    */
-  hasThumbnail: boolean;
+  hasThumbnail: boolean | null;
   /**
    * **Thumbnail Size** (IntField)
    * @type {number}
    */
-  thumbnailSize?: number;
+  thumbnailSize?: number | null;
   /**
    * **Thumbnail Path** (TextField)
    * @type {string}
    */
-  thumbnailPath?: string;
+  thumbnailPath?: string | null;
   /**
    * **System File** (IDField)
    * @type {string}
@@ -1653,12 +1584,6 @@ type GlobalCloudFileFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this System File
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type GlobalCloudFile =
   & EntryBase<"globalCloudFile", GlobalCloudFileFields>
@@ -1765,17 +1690,18 @@ export type GlobalCloudFile =
       | "xlsx"
       | "xml"
       | "zip"
-      | "arc";
+      | "arc"
+      | null;
     /**
      * **Mime Type** (DataField)
      * @type {string}
      */
-    $mimeType?: string;
+    $mimeType?: string | null;
     /**
      * **File Type Description** (DataField)
      * @type {string}
      */
-    $fileTypeDescription?: string;
+    $fileTypeDescription?: string | null;
     /**
      * **File Path** (TextField)
      * @type {string}
@@ -1787,49 +1713,49 @@ export type GlobalCloudFile =
      * @description If enabled, this file can be accessed publicly without authentication.
      * @type {boolean}
      */
-    $publicFile: boolean;
+    $publicFile: boolean | null;
     /**
      * **Optimize Image** (BooleanField)
      * @description If enabled, images will be optimized
      * @type {boolean}
      */
-    $optimizeImage: boolean;
+    $optimizeImage: boolean | null;
     /**
      * **Optimized** (BooleanField)
      * @description Indicates if the image has been optimized.
      * @type {boolean}
      */
-    $optimized: boolean;
+    $optimized: boolean | null;
     /**
      * **Optimize Width** (IntField)
      * @type {number}
      */
-    $optimizeWidth?: number;
+    $optimizeWidth?: number | null;
     /**
      * **Optimize Height** (IntField)
      * @type {number}
      */
-    $optimizeHeight?: number;
+    $optimizeHeight?: number | null;
     /**
      * **Optimize Format** (ChoicesField)
      * @type {'jpeg' | 'png'}
      */
-    $optimizeFormat?: "jpeg" | "png";
+    $optimizeFormat?: "jpeg" | "png" | null;
     /**
      * **Has Thumbnail** (BooleanField)
      * @type {boolean}
      */
-    $hasThumbnail: boolean;
+    $hasThumbnail: boolean | null;
     /**
      * **Thumbnail Size** (IntField)
      * @type {number}
      */
-    $thumbnailSize?: number;
+    $thumbnailSize?: number | null;
     /**
      * **Thumbnail Path** (TextField)
      * @type {string}
      */
-    $thumbnailPath?: string;
+    $thumbnailPath?: string | null;
     /**
      * **System File** (IDField)
      * @type {string}
@@ -1850,12 +1776,6 @@ export type GlobalCloudFile =
      * @required true
      */
     $updatedAt: number;
-    /**
-     * **Tags** (ArrayField)
-     * @description Tags associated with this System File
-     * @type {Array<any>}
-     */
-    $in__tags?: Array<any>;
   };
 
 type EmailFields = {
@@ -1865,13 +1785,13 @@ type EmailFields = {
    * **EntryType** `emailAccount`
    * @type {string}
    */
-  emailAccount?: string;
+  emailAccount?: string | null;
   /**
    * **Sender's Name** (DataField)
    * @description The name of the sender
    * @type {string}
    */
-  senderName?: string;
+  senderName?: string | null;
   /**
    * **To** (EmailField)
    * @description The email address of the recipient
@@ -1884,60 +1804,60 @@ type EmailFields = {
    * @description The subject of the email
    * @type {string}
    */
-  subject?: string;
+  subject?: string | null;
   /**
    * **Content Type** (ChoicesField)
    * @description The content type of the email
    * @type {'html' | 'text'}
    */
-  contentType?: "html" | "text";
+  contentType?: "html" | "text" | null;
   /**
    * **Send Date** (TimeStampField)
    * @description The date the email was sent
    * @type {number}
    */
-  sendDate?: number;
+  sendDate?: number | null;
   /**
    * **Body** (TextField)
    * @description The body of the email
    * @type {string}
    */
-  body?: string;
+  body?: string | null;
   /**
    * **HTML Body** (RichTextField)
    * @description The HTML body of the email
    * @type {string}
    */
-  htmlBody?: string;
+  htmlBody?: string | null;
   /**
    * **Link Account** (ConnectionField)
    *
    * **EntryType** `account`
    * @type {string}
    */
-  linkAccount?: string;
+  linkAccount?: string | null;
   /**
    * **Link Entry** (DataField)
    * @type {string}
    */
-  linkEntry?: string;
+  linkEntry?: string | null;
   /**
    * **Link Id** (DataField)
    * @type {string}
    */
-  linkId?: string;
+  linkId?: string | null;
   /**
    * **Link Title** (TextField)
    * @description The title of the linked entry
    * @type {string}
    */
-  linkTitle?: string;
+  linkTitle?: string | null;
   /**
    * **Status** (ChoicesField)
    * @description The status of the email
    * @type {'pending' | 'queued' | 'sent' | 'failed'}
    */
-  status?: "pending" | "queued" | "sent" | "failed";
+  status?: "pending" | "queued" | "sent" | "failed" | null;
   /**
    * **Email** (IDField)
    * @type {string}
@@ -1959,23 +1879,17 @@ type EmailFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **From Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
-  emailAccount__title?: string;
+  emailAccount__title?: string | null;
   /**
    * **Link Account Title** (DataField)
    * @description The name of the account
    * @type {string}
    */
-  linkAccount__title?: string;
+  linkAccount__title?: string | null;
 };
 export type Email = EntryBase<"email", EmailFields> & {
   _name: "email";
@@ -1986,13 +1900,13 @@ export type Email = EntryBase<"email", EmailFields> & {
    * **EntryType** `emailAccount`
    * @type {string}
    */
-  $emailAccount?: string;
+  $emailAccount?: string | null;
   /**
    * **Sender's Name** (DataField)
    * @description The name of the sender
    * @type {string}
    */
-  $senderName?: string;
+  $senderName?: string | null;
   /**
    * **To** (EmailField)
    * @description The email address of the recipient
@@ -2005,60 +1919,60 @@ export type Email = EntryBase<"email", EmailFields> & {
    * @description The subject of the email
    * @type {string}
    */
-  $subject?: string;
+  $subject?: string | null;
   /**
    * **Content Type** (ChoicesField)
    * @description The content type of the email
    * @type {'html' | 'text'}
    */
-  $contentType?: "html" | "text";
+  $contentType?: "html" | "text" | null;
   /**
    * **Send Date** (TimeStampField)
    * @description The date the email was sent
    * @type {number}
    */
-  $sendDate?: number;
+  $sendDate?: number | null;
   /**
    * **Body** (TextField)
    * @description The body of the email
    * @type {string}
    */
-  $body?: string;
+  $body?: string | null;
   /**
    * **HTML Body** (RichTextField)
    * @description The HTML body of the email
    * @type {string}
    */
-  $htmlBody?: string;
+  $htmlBody?: string | null;
   /**
    * **Link Account** (ConnectionField)
    *
    * **EntryType** `account`
    * @type {string}
    */
-  $linkAccount?: string;
+  $linkAccount?: string | null;
   /**
    * **Link Entry** (DataField)
    * @type {string}
    */
-  $linkEntry?: string;
+  $linkEntry?: string | null;
   /**
    * **Link Id** (DataField)
    * @type {string}
    */
-  $linkId?: string;
+  $linkId?: string | null;
   /**
    * **Link Title** (TextField)
    * @description The title of the linked entry
    * @type {string}
    */
-  $linkTitle?: string;
+  $linkTitle?: string | null;
   /**
    * **Status** (ChoicesField)
    * @description The status of the email
    * @type {'pending' | 'queued' | 'sent' | 'failed'}
    */
-  $status?: "pending" | "queued" | "sent" | "failed";
+  $status?: "pending" | "queued" | "sent" | "failed" | null;
   /**
    * **Email** (IDField)
    * @type {string}
@@ -2080,33 +1994,27 @@ export type Email = EntryBase<"email", EmailFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **From Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
-  $emailAccount__title?: string;
+  $emailAccount__title?: string | null;
   /**
    * **Link Account Title** (DataField)
    * @description The name of the account
    * @type {string}
    */
-  $linkAccount__title?: string;
+  $linkAccount__title?: string | null;
   runAction<N extends keyof EmailActionMap>(
     actionName: N,
   ): EmailActionMap[N]["return"];
 };
 type EmailActionMap = {
   enqueueSend: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   send: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -2123,85 +2031,85 @@ type EmailAccountFields = {
    * @description The name to use when sending emails
    * @type {string}
    */
-  senderName?: string;
+  senderName?: string | null;
   /**
    * **Use Gmail OAuth** (BooleanField)
    * @description Use OAuth to authenticate with Gmail
    * @type {boolean}
    */
-  useGmailOauth: boolean;
+  useGmailOauth: boolean | null;
   /**
    * **Authorize Gmail** (URLField)
    * @description The URL to authorize this email account with Gmail
    * @type {string}
    */
-  authUrl?: string;
+  authUrl?: string | null;
   /**
    * **Send Emails** (BooleanField)
    * @description Whether this email account can send emails
    * @type {boolean}
    */
-  sendEmails: boolean;
+  sendEmails: boolean | null;
   /**
    * **Receive Emails** (BooleanField)
    * @description Whether this email account can receive emails
    * @type {boolean}
    */
-  receiveEmails: boolean;
+  receiveEmails: boolean | null;
   /**
    * **SMTP Host** (TextField)
    * @description The host of the SMTP server. smtp.gmail.com for Gmail
    * @type {string}
    */
-  smtpHost?: string;
+  smtpHost?: string | null;
   /**
    * **SMTP Port** (IntField)
    * @description The port of the SMTP server. 587 for Gmail
    * @type {number}
    */
-  smtpPort?: number;
+  smtpPort?: number | null;
   /**
    * **SMTP User** (DataField)
    * @description The user to authenticate with the SMTP server. This is usually the email address
    * @type {string}
    */
-  smtpUser?: string;
+  smtpUser?: string | null;
   /**
    * **SMTP Password** (PasswordField)
    * @description The password to authenticate with the SMTP server. Not required if using Gmail OAuth
    * @type {string}
    */
-  smtpPassword?: string;
+  smtpPassword?: string | null;
   /**
    * **Auth Status** (ChoicesField)
    * @type {'unauthorized' | 'authorized'}
    */
-  authStatus?: "unauthorized" | "authorized";
+  authStatus?: "unauthorized" | "authorized" | null;
   /**
    * **Access Token** (TextField)
    * @type {string}
    */
-  accessToken?: string;
+  accessToken?: string | null;
   /**
    * **Expire Time** (TimeStampField)
    * @type {number}
    */
-  expireTime?: number;
+  expireTime?: number | null;
   /**
    * **Acquired Time** (TimeStampField)
    * @type {number}
    */
-  acquiredTime?: number;
+  acquiredTime?: number | null;
   /**
    * **Refresh Token** (TextField)
    * @type {string}
    */
-  refreshToken?: string;
+  refreshToken?: string | null;
   /**
    * **Token Type** (DataField)
    * @type {string}
    */
-  tokenType?: string;
+  tokenType?: string | null;
   /**
    * **Email Account** (IDField)
    * @type {string}
@@ -2222,12 +2130,6 @@ type EmailAccountFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email Account
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
   _name: "emailAccount";
@@ -2244,85 +2146,85 @@ export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
    * @description The name to use when sending emails
    * @type {string}
    */
-  $senderName?: string;
+  $senderName?: string | null;
   /**
    * **Use Gmail OAuth** (BooleanField)
    * @description Use OAuth to authenticate with Gmail
    * @type {boolean}
    */
-  $useGmailOauth: boolean;
+  $useGmailOauth: boolean | null;
   /**
    * **Authorize Gmail** (URLField)
    * @description The URL to authorize this email account with Gmail
    * @type {string}
    */
-  $authUrl?: string;
+  $authUrl?: string | null;
   /**
    * **Send Emails** (BooleanField)
    * @description Whether this email account can send emails
    * @type {boolean}
    */
-  $sendEmails: boolean;
+  $sendEmails: boolean | null;
   /**
    * **Receive Emails** (BooleanField)
    * @description Whether this email account can receive emails
    * @type {boolean}
    */
-  $receiveEmails: boolean;
+  $receiveEmails: boolean | null;
   /**
    * **SMTP Host** (TextField)
    * @description The host of the SMTP server. smtp.gmail.com for Gmail
    * @type {string}
    */
-  $smtpHost?: string;
+  $smtpHost?: string | null;
   /**
    * **SMTP Port** (IntField)
    * @description The port of the SMTP server. 587 for Gmail
    * @type {number}
    */
-  $smtpPort?: number;
+  $smtpPort?: number | null;
   /**
    * **SMTP User** (DataField)
    * @description The user to authenticate with the SMTP server. This is usually the email address
    * @type {string}
    */
-  $smtpUser?: string;
+  $smtpUser?: string | null;
   /**
    * **SMTP Password** (PasswordField)
    * @description The password to authenticate with the SMTP server. Not required if using Gmail OAuth
    * @type {string}
    */
-  $smtpPassword?: string;
+  $smtpPassword?: string | null;
   /**
    * **Auth Status** (ChoicesField)
    * @type {'unauthorized' | 'authorized'}
    */
-  $authStatus?: "unauthorized" | "authorized";
+  $authStatus?: "unauthorized" | "authorized" | null;
   /**
    * **Access Token** (TextField)
    * @type {string}
    */
-  $accessToken?: string;
+  $accessToken?: string | null;
   /**
    * **Expire Time** (TimeStampField)
    * @type {number}
    */
-  $expireTime?: number;
+  $expireTime?: number | null;
   /**
    * **Acquired Time** (TimeStampField)
    * @type {number}
    */
-  $acquiredTime?: number;
+  $acquiredTime?: number | null;
   /**
    * **Refresh Token** (TextField)
    * @type {string}
    */
-  $refreshToken?: string;
+  $refreshToken?: string | null;
   /**
    * **Token Type** (DataField)
    * @type {string}
    */
-  $tokenType?: string;
+  $tokenType?: string | null;
   /**
    * **Email Account** (IDField)
    * @type {string}
@@ -2343,19 +2245,13 @@ export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email Account
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
   runAction<N extends keyof EmailAccountActionMap>(
     actionName: N,
   ): EmailAccountActionMap[N]["return"];
 };
 type EmailAccountActionMap = {
   refreshToken: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -2370,12 +2266,12 @@ type EmailTemplateFields = {
    * **Subject** (DataField)
    * @type {string}
    */
-  subject?: string;
+  subject?: string | null;
   /**
    * **Content** (RichTextField)
    * @type {string}
    */
-  content?: string;
+  content?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2396,12 +2292,6 @@ type EmailTemplateFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email Template
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type EmailTemplate = EntryBase<"emailTemplate", EmailTemplateFields> & {
   _name: "emailTemplate";
@@ -2416,12 +2306,12 @@ export type EmailTemplate = EntryBase<"emailTemplate", EmailTemplateFields> & {
    * **Subject** (DataField)
    * @type {string}
    */
-  $subject?: string;
+  $subject?: string | null;
   /**
    * **Content** (RichTextField)
    * @type {string}
    */
-  $content?: string;
+  $content?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2442,12 +2332,6 @@ export type EmailTemplate = EntryBase<"emailTemplate", EmailTemplateFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Email Template
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
   runAction<N extends keyof EmailTemplateParamsActionMap>(
     actionName: N,
     params: EmailTemplateParamsActionMap[N]["params"],
@@ -2458,12 +2342,12 @@ type EmailTemplateParamsActionMap = {
     params: {
       /**
        * **Params** (JSONField)
-       * @type {Record<string, any>}
+       * @type {Record<string, unknown>}
        * @required true
        */
-      params: Record<string, any>;
+      params: Record<string, unknown>;
     };
-    return: any;
+    return: unknown;
   };
 };
 
@@ -2478,7 +2362,7 @@ type OnboardingStepFields = {
    * **Description** (TextField)
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Order** (IntField)
    * @type {number}
@@ -2505,12 +2389,6 @@ type OnboardingStepFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Onboarding Step
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
   onboardingField: ChildList<{
     /**
      * **Key** (DataField)
@@ -2524,25 +2402,25 @@ type OnboardingStepFields = {
      * @description The label for the field, displayed to the user.
      * @type {string}
      */
-    label?: string;
+    label?: string | null;
     /**
      * **Placeholder** (DataField)
      * @description Placeholder text for the field, providing a hint to the user about what to enter.
      * @type {string}
      */
-    placeholder?: string;
+    placeholder?: string | null;
     /**
      * **Required** (BooleanField)
      * @description Indicates whether the field is required to be filled out by the user.
      * @type {boolean}
      */
-    required: boolean;
+    required: boolean | null;
     /**
      * **Description** (TextField)
      * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Type** (ChoicesField)
      * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'TimeStampField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
@@ -2568,9 +2446,9 @@ type OnboardingStepFields = {
       | "CurrencyField";
     /**
      * **Choices** (JSONField)
-     * @type {Record<string, any>}
+     * @type {Record<string, unknown>}
      */
-    choices?: Record<string, any>;
+    choices?: Record<string, unknown> | null;
   }>;
 };
 export type OnboardingStep =
@@ -2588,7 +2466,7 @@ export type OnboardingStep =
      * **Description** (TextField)
      * @type {string}
      */
-    $description?: string;
+    $description?: string | null;
     /**
      * **Order** (IntField)
      * @type {number}
@@ -2615,12 +2493,6 @@ export type OnboardingStep =
      * @required true
      */
     $updatedAt: number;
-    /**
-     * **Tags** (ArrayField)
-     * @description Tags associated with this Onboarding Step
-     * @type {Array<any>}
-     */
-    $in__tags?: Array<any>;
     $onboardingField: ChildList<{
       /**
        * **Key** (DataField)
@@ -2634,25 +2506,25 @@ export type OnboardingStep =
        * @description The label for the field, displayed to the user.
        * @type {string}
        */
-      label?: string;
+      label?: string | null;
       /**
        * **Placeholder** (DataField)
        * @description Placeholder text for the field, providing a hint to the user about what to enter.
        * @type {string}
        */
-      placeholder?: string;
+      placeholder?: string | null;
       /**
        * **Required** (BooleanField)
        * @description Indicates whether the field is required to be filled out by the user.
        * @type {boolean}
        */
-      required: boolean;
+      required: boolean | null;
       /**
        * **Description** (TextField)
        * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
        * @type {string}
        */
-      description?: string;
+      description?: string | null;
       /**
        * **Type** (ChoicesField)
        * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'TimeStampField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
@@ -2678,9 +2550,9 @@ export type OnboardingStep =
         | "CurrencyField";
       /**
        * **Choices** (JSONField)
-       * @type {Record<string, any>}
+       * @type {Record<string, unknown>}
        */
-      choices?: Record<string, any>;
+      choices?: Record<string, unknown> | null;
     }>;
   };
 
@@ -2704,13 +2576,13 @@ type UserRoleFields = {
    * @description The role this role extends
    * @type {string}
    */
-  extendsRole?: string;
+  extendsRole?: string | null;
   /**
    * **Description** (TextField)
    * @description A short description of the role
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2732,16 +2604,10 @@ type UserRoleFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User Role
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Extends Role Title** (DataField)
    * @type {string}
    */
-  extendsRole__title?: string;
+  extendsRole__title?: string | null;
 };
 export type UserRole = EntryBase<"userRole", UserRoleFields> & {
   _name: "userRole";
@@ -2765,13 +2631,13 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
    * @description The role this role extends
    * @type {string}
    */
-  $extendsRole?: string;
+  $extendsRole?: string | null;
   /**
    * **Description** (TextField)
    * @description A short description of the role
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2793,26 +2659,20 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this User Role
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Extends Role Title** (DataField)
    * @type {string}
    */
-  $extendsRole__title?: string;
+  $extendsRole__title?: string | null;
   runAction<N extends keyof UserRoleActionMap>(
     actionName: N,
   ): UserRoleActionMap[N]["return"];
 };
 type UserRoleActionMap = {
   syncWithSystem: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
   generateConfig: {
-    return: Promise<any>;
+    return: Promise<unknown>;
   };
 };
 
@@ -2833,13 +2693,13 @@ type ExtensionMetaFields = {
    * **Description** (TextField)
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Version** (DataField)
    * @description The version of this extension
    * @type {string}
    */
-  version?: string;
+  version?: string | null;
   /**
    * **Cloud Extension** (IDField)
    * @type {string}
@@ -2860,12 +2720,6 @@ type ExtensionMetaFields = {
    * @required true
    */
   updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Cloud Extension
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
 };
 export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
   _name: "extensionMeta";
@@ -2886,13 +2740,13 @@ export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
    * **Description** (TextField)
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Version** (DataField)
    * @description The version of this extension
    * @type {string}
    */
-  $version?: string;
+  $version?: string | null;
   /**
    * **Cloud Extension** (IDField)
    * @type {string}
@@ -2913,12 +2767,6 @@ export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
    * @required true
    */
   $updatedAt: number;
-  /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Cloud Extension
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
 };
 
 type EntryMetaFields = {
@@ -2939,7 +2787,7 @@ type EntryMetaFields = {
    * **Description** (TextField)
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Extension** (ConnectionField)
    *
@@ -2947,18 +2795,18 @@ type EntryMetaFields = {
    * @description The extension this entry type belongs to
    * @type {string}
    */
-  extension?: string;
+  extension?: string | null;
   /**
    * **Title Field** (DataField)
    * @description The field to use as the title when displaying this entry type
    * @type {string}
    */
-  titleField?: string;
+  titleField?: string | null;
   /**
    * **System Global** (BooleanField)
    * @type {boolean}
    */
-  systemGlobal: boolean;
+  systemGlobal: boolean | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -2980,16 +2828,10 @@ type EntryMetaFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Entry Meta
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Extension Title** (DataField)
    * @type {string}
    */
-  extension__title?: string;
+  extension__title?: string | null;
   hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3017,7 +2859,7 @@ type EntryMetaFields = {
      * @description A brief description of what this hook does.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Handler** (CodeField)
      * @description The code to execute for this hook
@@ -3030,7 +2872,7 @@ type EntryMetaFields = {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean;
+    active: boolean | null;
   }>;
 };
 export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
@@ -3053,7 +2895,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
    * **Description** (TextField)
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Extension** (ConnectionField)
    *
@@ -3061,18 +2903,18 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
    * @description The extension this entry type belongs to
    * @type {string}
    */
-  $extension?: string;
+  $extension?: string | null;
   /**
    * **Title Field** (DataField)
    * @description The field to use as the title when displaying this entry type
    * @type {string}
    */
-  $titleField?: string;
+  $titleField?: string | null;
   /**
    * **System Global** (BooleanField)
    * @type {boolean}
    */
-  $systemGlobal: boolean;
+  $systemGlobal: boolean | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -3094,16 +2936,10 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Entry Meta
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Extension Title** (DataField)
    * @type {string}
    */
-  $extension__title?: string;
+  $extension__title?: string | null;
   $hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3131,7 +2967,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
      * @description A brief description of what this hook does.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Handler** (CodeField)
      * @description The code to execute for this hook
@@ -3144,7 +2980,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean;
+    active: boolean | null;
   }>;
 };
 
@@ -3166,13 +3002,13 @@ type SettingsMetaFields = {
    * @description A brief description of the settings.
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **System Global** (BooleanField)
    * @description Whether these settings are global to the entire system or specific to an account.
    * @type {boolean}
    */
-  systemGlobal: boolean;
+  systemGlobal: boolean | null;
   /**
    * **Extension** (ConnectionField)
    *
@@ -3202,16 +3038,10 @@ type SettingsMetaFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Settings Meta
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Extension Title** (DataField)
    * @type {string}
    */
-  extensionMeta__title?: string;
+  extensionMeta__title?: string | null;
   hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3231,7 +3061,7 @@ type SettingsMetaFields = {
      * @description A brief description of what this hook does.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Handler** (CodeField)
      * @description The code to execute for this hook
@@ -3244,7 +3074,7 @@ type SettingsMetaFields = {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean;
+    active: boolean | null;
   }>;
 };
 export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
@@ -3267,13 +3097,13 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
    * @description A brief description of the settings.
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **System Global** (BooleanField)
    * @description Whether these settings are global to the entire system or specific to an account.
    * @type {boolean}
    */
-  $systemGlobal: boolean;
+  $systemGlobal: boolean | null;
   /**
    * **Extension** (ConnectionField)
    *
@@ -3303,16 +3133,10 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Settings Meta
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Extension Title** (DataField)
    * @type {string}
    */
-  $extensionMeta__title?: string;
+  $extensionMeta__title?: string | null;
   $hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3332,7 +3156,7 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
      * @description A brief description of what this hook does.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Handler** (CodeField)
      * @description The code to execute for this hook
@@ -3345,7 +3169,7 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
      * @description Whether this hook is active or not.
      * @type {boolean}
      */
-    active: boolean;
+    active: boolean | null;
   }>;
 };
 
@@ -3356,14 +3180,14 @@ type FieldMetaFields = {
    * **EntryType** `entryMeta`
    * @type {string}
    */
-  entryMeta?: string;
+  entryMeta?: string | null;
   /**
    * **Settings Meta** (ConnectionField)
    *
    * **EntryType** `settingsMeta`
    * @type {string}
    */
-  settingsMeta?: string;
+  settingsMeta?: string | null;
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3412,43 +3236,43 @@ type FieldMetaFields = {
    * @description A brief description of the field.
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Required** (BooleanField)
    * @description Whether the field is mandatory.
    * @type {boolean}
    */
-  required: boolean;
+  required: boolean | null;
   /**
    * **Read Only** (BooleanField)
    * @description Whether the field is read-only.
    * @type {boolean}
    */
-  readOnly: boolean;
+  readOnly: boolean | null;
   /**
    * **Unique** (BooleanField)
    * @description Whether the field must have unique values across entries.
    * @type {boolean}
    */
-  unique: boolean;
+  unique: boolean | null;
   /**
    * **Default Value** (DataField)
    * @description The default value for the field.
    * @type {string}
    */
-  defaultValue?: string;
+  defaultValue?: string | null;
   /**
    * **Hidden** (BooleanField)
    * @description Whether the field is hidden in the UI.
    * @type {boolean}
    */
-  hidden: boolean;
+  hidden: boolean | null;
   /**
    * **Placeholder** (DataField)
    * @description Placeholder text for the field.
    * @type {string}
    */
-  placeholder?: string;
+  placeholder?: string | null;
   /**
    * **Entry Type** (ConnectionField)
    *
@@ -3456,7 +3280,7 @@ type FieldMetaFields = {
    * @description The entry type this connection field is associated with.
    * @type {string}
    */
-  entryType?: string;
+  entryType?: string | null;
   /**
    * **Field Meta** (IDField)
    * @type {string}
@@ -3478,26 +3302,20 @@ type FieldMetaFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Field Meta
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Entry Meta Title** (DataField)
    * @type {string}
    */
-  entryMeta__title?: string;
+  entryMeta__title?: string | null;
   /**
    * **Settings Meta Title** (DataField)
    * @type {string}
    */
-  settingsMeta__title?: string;
+  settingsMeta__title?: string | null;
   /**
    * **Entry Type Title** (DataField)
    * @type {string}
    */
-  entryType__title?: string;
+  entryType__title?: string | null;
   choices: ChildList<{
     /**
      * **Key** (DataField)
@@ -3518,7 +3336,7 @@ type FieldMetaFields = {
      * @description A brief description of the choice.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Color** (ChoicesField)
      * @description A color associated with this choice (e.g., for UI display).
@@ -3532,7 +3350,8 @@ type FieldMetaFields = {
       | "error"
       | "info"
       | "accent"
-      | "muted";
+      | "muted"
+      | null;
   }>;
 };
 export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
@@ -3544,14 +3363,14 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    * **EntryType** `entryMeta`
    * @type {string}
    */
-  $entryMeta?: string;
+  $entryMeta?: string | null;
   /**
    * **Settings Meta** (ConnectionField)
    *
    * **EntryType** `settingsMeta`
    * @type {string}
    */
-  $settingsMeta?: string;
+  $settingsMeta?: string | null;
   /**
    * **Key** (DataField)
    * @type {string}
@@ -3600,43 +3419,43 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    * @description A brief description of the field.
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Required** (BooleanField)
    * @description Whether the field is mandatory.
    * @type {boolean}
    */
-  $required: boolean;
+  $required: boolean | null;
   /**
    * **Read Only** (BooleanField)
    * @description Whether the field is read-only.
    * @type {boolean}
    */
-  $readOnly: boolean;
+  $readOnly: boolean | null;
   /**
    * **Unique** (BooleanField)
    * @description Whether the field must have unique values across entries.
    * @type {boolean}
    */
-  $unique: boolean;
+  $unique: boolean | null;
   /**
    * **Default Value** (DataField)
    * @description The default value for the field.
    * @type {string}
    */
-  $defaultValue?: string;
+  $defaultValue?: string | null;
   /**
    * **Hidden** (BooleanField)
    * @description Whether the field is hidden in the UI.
    * @type {boolean}
    */
-  $hidden: boolean;
+  $hidden: boolean | null;
   /**
    * **Placeholder** (DataField)
    * @description Placeholder text for the field.
    * @type {string}
    */
-  $placeholder?: string;
+  $placeholder?: string | null;
   /**
    * **Entry Type** (ConnectionField)
    *
@@ -3644,7 +3463,7 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    * @description The entry type this connection field is associated with.
    * @type {string}
    */
-  $entryType?: string;
+  $entryType?: string | null;
   /**
    * **Field Meta** (IDField)
    * @type {string}
@@ -3666,26 +3485,20 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Field Meta
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Entry Meta Title** (DataField)
    * @type {string}
    */
-  $entryMeta__title?: string;
+  $entryMeta__title?: string | null;
   /**
    * **Settings Meta Title** (DataField)
    * @type {string}
    */
-  $settingsMeta__title?: string;
+  $settingsMeta__title?: string | null;
   /**
    * **Entry Type Title** (DataField)
    * @type {string}
    */
-  $entryType__title?: string;
+  $entryType__title?: string | null;
   $choices: ChildList<{
     /**
      * **Key** (DataField)
@@ -3706,7 +3519,7 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
      * @description A brief description of the choice.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Color** (ChoicesField)
      * @description A color associated with this choice (e.g., for UI display).
@@ -3720,7 +3533,8 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
       | "error"
       | "info"
       | "accent"
-      | "muted";
+      | "muted"
+      | null;
   }>;
 };
 
@@ -3743,25 +3557,25 @@ type ActionMetaFields = {
    * **EntryType** `entryMeta`
    * @type {string}
    */
-  entryMeta?: string;
+  entryMeta?: string | null;
   /**
    * **Settings Meta** (ConnectionField)
    *
    * **EntryType** `settingsMeta`
    * @type {string}
    */
-  settingsMeta?: string;
+  settingsMeta?: string | null;
   /**
    * **Description** (TextField)
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Private** (BooleanField)
    * @description Set to true to hide this action from the api. This means it can only be called from server side code.
    * @type {boolean}
    */
-  private: boolean;
+  private: boolean | null;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this action
@@ -3790,21 +3604,15 @@ type ActionMetaFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Action Meta
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Entry Meta Title** (DataField)
    * @type {string}
    */
-  entryMeta__title?: string;
+  entryMeta__title?: string | null;
   /**
    * **Settings Meta Title** (DataField)
    * @type {string}
    */
-  settingsMeta__title?: string;
+  settingsMeta__title?: string | null;
   parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -3854,13 +3662,13 @@ type ActionMetaFields = {
      * @description A brief description of the field.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Required** (BooleanField)
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean;
+    required: boolean | null;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -3868,12 +3676,12 @@ type ActionMetaFields = {
      * @description The entry type this parameter connects to. Only used if type is ConnectionField.
      * @type {string}
      */
-    entryType?: string;
+    entryType?: string | null;
     /**
      * **Entry Type Title** (DataField)
      * @type {string}
      */
-    entryType__title?: string;
+    entryType__title?: string | null;
   }>;
 };
 export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
@@ -3897,25 +3705,25 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
    * **EntryType** `entryMeta`
    * @type {string}
    */
-  $entryMeta?: string;
+  $entryMeta?: string | null;
   /**
    * **Settings Meta** (ConnectionField)
    *
    * **EntryType** `settingsMeta`
    * @type {string}
    */
-  $settingsMeta?: string;
+  $settingsMeta?: string | null;
   /**
    * **Description** (TextField)
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Private** (BooleanField)
    * @description Set to true to hide this action from the api. This means it can only be called from server side code.
    * @type {boolean}
    */
-  $private: boolean;
+  $private: boolean | null;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this action
@@ -3944,21 +3752,15 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Action Meta
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Entry Meta Title** (DataField)
    * @type {string}
    */
-  $entryMeta__title?: string;
+  $entryMeta__title?: string | null;
   /**
    * **Settings Meta Title** (DataField)
    * @type {string}
    */
-  $settingsMeta__title?: string;
+  $settingsMeta__title?: string | null;
   $parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -4008,13 +3810,13 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
      * @description A brief description of the field.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Required** (BooleanField)
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean;
+    required: boolean | null;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -4022,12 +3824,12 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
      * @description The entry type this parameter connects to. Only used if type is ConnectionField.
      * @type {string}
      */
-    entryType?: string;
+    entryType?: string | null;
     /**
      * **Entry Type Title** (DataField)
      * @type {string}
      */
-    entryType__title?: string;
+    entryType__title?: string | null;
   }>;
 };
 
@@ -4055,31 +3857,31 @@ type EntryPermissionFields = {
    * @description Whether users with this role can view entries of this type
    * @type {boolean}
    */
-  canView: boolean;
+  canView: boolean | null;
   /**
    * **Can Modify** (BooleanField)
    * @description Whether users with this role can modify entries of this type
    * @type {boolean}
    */
-  canModify: boolean;
+  canModify: boolean | null;
   /**
    * **Can Create** (BooleanField)
    * @description Whether users with this role can create entries of this type
    * @type {boolean}
    */
-  canCreate: boolean;
+  canCreate: boolean | null;
   /**
    * **Can Delete** (BooleanField)
    * @description Whether users with this role can delete entries of this type
    * @type {boolean}
    */
-  canDelete: boolean;
+  canDelete: boolean | null;
   /**
    * **Allow All Actions** (BooleanField)
    * @description If true, all actions will be allowed. If false, actions can be set individually.
    * @type {boolean}
    */
-  allowAllActions: boolean;
+  allowAllActions: boolean | null;
   /**
    * **User Scope Field** (ConnectionField)
    *
@@ -4087,7 +3889,7 @@ type EntryPermissionFields = {
    * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
    * @type {string}
    */
-  userScope?: string;
+  userScope?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -4109,26 +3911,20 @@ type EntryPermissionFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Entry Permission
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **User Role Title** (DataField)
    * @type {string}
    */
-  userRole__title?: string;
+  userRole__title?: string | null;
   /**
    * **Entry Title** (DataField)
    * @type {string}
    */
-  entryMeta__title?: string;
+  entryMeta__title?: string | null;
   /**
    * **User Scope Field Title** (DataField)
    * @type {string}
    */
-  userScope__title?: string;
+  userScope__title?: string | null;
   fieldPermissions: ChildList<{
     /**
      * **Field** (ConnectionField)
@@ -4142,17 +3938,17 @@ type EntryPermissionFields = {
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    canView: boolean;
+    canView: boolean | null;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    canModify: boolean;
+    canModify: boolean | null;
     /**
      * **Field Title** (DataField)
      * @type {string}
      */
-    field__title?: string;
+    field__title?: string | null;
   }>;
   actionPermissions: ChildList<{
     /**
@@ -4167,12 +3963,12 @@ type EntryPermissionFields = {
      * **Can Execute** (BooleanField)
      * @type {boolean}
      */
-    canExecute: boolean;
+    canExecute: boolean | null;
     /**
      * **Action Title** (DataField)
      * @type {string}
      */
-    action__title?: string;
+    action__title?: string | null;
   }>;
 };
 export type EntryPermission =
@@ -4203,31 +3999,31 @@ export type EntryPermission =
      * @description Whether users with this role can view entries of this type
      * @type {boolean}
      */
-    $canView: boolean;
+    $canView: boolean | null;
     /**
      * **Can Modify** (BooleanField)
      * @description Whether users with this role can modify entries of this type
      * @type {boolean}
      */
-    $canModify: boolean;
+    $canModify: boolean | null;
     /**
      * **Can Create** (BooleanField)
      * @description Whether users with this role can create entries of this type
      * @type {boolean}
      */
-    $canCreate: boolean;
+    $canCreate: boolean | null;
     /**
      * **Can Delete** (BooleanField)
      * @description Whether users with this role can delete entries of this type
      * @type {boolean}
      */
-    $canDelete: boolean;
+    $canDelete: boolean | null;
     /**
      * **Allow All Actions** (BooleanField)
      * @description If true, all actions will be allowed. If false, actions can be set individually.
      * @type {boolean}
      */
-    $allowAllActions: boolean;
+    $allowAllActions: boolean | null;
     /**
      * **User Scope Field** (ConnectionField)
      *
@@ -4235,7 +4031,7 @@ export type EntryPermission =
      * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
      * @type {string}
      */
-    $userScope?: string;
+    $userScope?: string | null;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -4257,26 +4053,20 @@ export type EntryPermission =
      */
     $updatedAt: number;
     /**
-     * **Tags** (ArrayField)
-     * @description Tags associated with this Entry Permission
-     * @type {Array<any>}
-     */
-    $in__tags?: Array<any>;
-    /**
      * **User Role Title** (DataField)
      * @type {string}
      */
-    $userRole__title?: string;
+    $userRole__title?: string | null;
     /**
      * **Entry Title** (DataField)
      * @type {string}
      */
-    $entryMeta__title?: string;
+    $entryMeta__title?: string | null;
     /**
      * **User Scope Field Title** (DataField)
      * @type {string}
      */
-    $userScope__title?: string;
+    $userScope__title?: string | null;
     $fieldPermissions: ChildList<{
       /**
        * **Field** (ConnectionField)
@@ -4290,17 +4080,17 @@ export type EntryPermission =
        * **Can View** (BooleanField)
        * @type {boolean}
        */
-      canView: boolean;
+      canView: boolean | null;
       /**
        * **Can Modify** (BooleanField)
        * @type {boolean}
        */
-      canModify: boolean;
+      canModify: boolean | null;
       /**
        * **Field Title** (DataField)
        * @type {string}
        */
-      field__title?: string;
+      field__title?: string | null;
     }>;
     $actionPermissions: ChildList<{
       /**
@@ -4315,12 +4105,12 @@ export type EntryPermission =
        * **Can Execute** (BooleanField)
        * @type {boolean}
        */
-      canExecute: boolean;
+      canExecute: boolean | null;
       /**
        * **Action Title** (DataField)
        * @type {string}
        */
-      action__title?: string;
+      action__title?: string | null;
     }>;
   };
 
@@ -4347,17 +4137,17 @@ type SettingsPermissionFields = {
    * **Can View** (BooleanField)
    * @type {boolean}
    */
-  canView: boolean;
+  canView: boolean | null;
   /**
    * **Can Modify** (BooleanField)
    * @type {boolean}
    */
-  canModify: boolean;
+  canModify: boolean | null;
   /**
    * **Allow All Actions** (BooleanField)
    * @type {boolean}
    */
-  allowAllActions: boolean;
+  allowAllActions: boolean | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -4379,21 +4169,15 @@ type SettingsPermissionFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Settings Permission
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **User Role Title** (DataField)
    * @type {string}
    */
-  userRole__title?: string;
+  userRole__title?: string | null;
   /**
    * **Settings Title** (DataField)
    * @type {string}
    */
-  settingsMeta__title?: string;
+  settingsMeta__title?: string | null;
   fieldPermissions: ChildList<{
     /**
      * **Field** (ConnectionField)
@@ -4407,17 +4191,17 @@ type SettingsPermissionFields = {
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    canView: boolean;
+    canView: boolean | null;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    canModify: boolean;
+    canModify: boolean | null;
     /**
      * **Field Title** (DataField)
      * @type {string}
      */
-    field__title?: string;
+    field__title?: string | null;
   }>;
   actionPermissions: ChildList<{
     /**
@@ -4432,12 +4216,12 @@ type SettingsPermissionFields = {
      * **Can Execute** (BooleanField)
      * @type {boolean}
      */
-    canExecute: boolean;
+    canExecute: boolean | null;
     /**
      * **Action Title** (DataField)
      * @type {string}
      */
-    action__title?: string;
+    action__title?: string | null;
   }>;
 };
 export type SettingsPermission =
@@ -4467,17 +4251,17 @@ export type SettingsPermission =
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    $canView: boolean;
+    $canView: boolean | null;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    $canModify: boolean;
+    $canModify: boolean | null;
     /**
      * **Allow All Actions** (BooleanField)
      * @type {boolean}
      */
-    $allowAllActions: boolean;
+    $allowAllActions: boolean | null;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -4499,21 +4283,15 @@ export type SettingsPermission =
      */
     $updatedAt: number;
     /**
-     * **Tags** (ArrayField)
-     * @description Tags associated with this Settings Permission
-     * @type {Array<any>}
-     */
-    $in__tags?: Array<any>;
-    /**
      * **User Role Title** (DataField)
      * @type {string}
      */
-    $userRole__title?: string;
+    $userRole__title?: string | null;
     /**
      * **Settings Title** (DataField)
      * @type {string}
      */
-    $settingsMeta__title?: string;
+    $settingsMeta__title?: string | null;
     $fieldPermissions: ChildList<{
       /**
        * **Field** (ConnectionField)
@@ -4527,17 +4305,17 @@ export type SettingsPermission =
        * **Can View** (BooleanField)
        * @type {boolean}
        */
-      canView: boolean;
+      canView: boolean | null;
       /**
        * **Can Modify** (BooleanField)
        * @type {boolean}
        */
-      canModify: boolean;
+      canModify: boolean | null;
       /**
        * **Field Title** (DataField)
        * @type {string}
        */
-      field__title?: string;
+      field__title?: string | null;
     }>;
     $actionPermissions: ChildList<{
       /**
@@ -4552,12 +4330,12 @@ export type SettingsPermission =
        * **Can Execute** (BooleanField)
        * @type {boolean}
        */
-      canExecute: boolean;
+      canExecute: boolean | null;
       /**
        * **Action Title** (DataField)
        * @type {string}
        */
-      action__title?: string;
+      action__title?: string | null;
     }>;
   };
 
@@ -4579,7 +4357,7 @@ type ApiGroupFields = {
    * @description A short description of the API group
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Extension Meta** (ConnectionField)
    *
@@ -4587,7 +4365,7 @@ type ApiGroupFields = {
    * @description The extension this API group belongs to
    * @type {string}
    */
-  extensionMeta?: string;
+  extensionMeta?: string | null;
   /**
    * **API Group** (IDField)
    * @type {string}
@@ -4609,16 +4387,10 @@ type ApiGroupFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this API Group
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Extension Meta Title** (DataField)
    * @type {string}
    */
-  extensionMeta__title?: string;
+  extensionMeta__title?: string | null;
 };
 export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
   _name: "apiGroup";
@@ -4640,7 +4412,7 @@ export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
    * @description A short description of the API group
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Extension Meta** (ConnectionField)
    *
@@ -4648,7 +4420,7 @@ export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
    * @description The extension this API group belongs to
    * @type {string}
    */
-  $extensionMeta?: string;
+  $extensionMeta?: string | null;
   /**
    * **API Group** (IDField)
    * @type {string}
@@ -4670,16 +4442,10 @@ export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this API Group
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Extension Meta Title** (DataField)
    * @type {string}
    */
-  $extensionMeta__title?: string;
+  $extensionMeta__title?: string | null;
 };
 
 type ApiActionFields = {
@@ -4709,25 +4475,25 @@ type ApiActionFields = {
    * @description A short description of the API action
    * @type {string}
    */
-  description?: string;
+  description?: string | null;
   /**
    * **Auth Required** (BooleanField)
    * @description Whether authentication is required to access this API action
    * @type {boolean}
    */
-  authRequired: boolean;
+  authRequired: boolean | null;
   /**
    * **Hide From Api** (BooleanField)
    * @description Whether to disable this action from client access
    * @type {boolean}
    */
-  hideFromApi: boolean;
+  hideFromApi: boolean | null;
   /**
    * **Raw** (BooleanField)
    * @description Whether to skip reading the request body. Should be set to true if the action will be reading the request body itself, such as when uploading files.
    * @type {boolean}
    */
-  raw: boolean;
+  raw: boolean | null;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this API action
@@ -4756,16 +4522,10 @@ type ApiActionFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this API Action
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **Api Group Title** (DataField)
    * @type {string}
    */
-  apiGroup__title?: string;
+  apiGroup__title?: string | null;
   parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -4815,13 +4575,13 @@ type ApiActionFields = {
      * @description A brief description of the field.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Required** (BooleanField)
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean;
+    required: boolean | null;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -4829,12 +4589,12 @@ type ApiActionFields = {
      * @description The entry type this parameter connects to. Only used if type is ConnectionField.
      * @type {string}
      */
-    entryType?: string;
+    entryType?: string | null;
     /**
      * **Entry Type Title** (DataField)
      * @type {string}
      */
-    entryType__title?: string;
+    entryType__title?: string | null;
   }>;
 };
 export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
@@ -4866,25 +4626,25 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
    * @description A short description of the API action
    * @type {string}
    */
-  $description?: string;
+  $description?: string | null;
   /**
    * **Auth Required** (BooleanField)
    * @description Whether authentication is required to access this API action
    * @type {boolean}
    */
-  $authRequired: boolean;
+  $authRequired: boolean | null;
   /**
    * **Hide From Api** (BooleanField)
    * @description Whether to disable this action from client access
    * @type {boolean}
    */
-  $hideFromApi: boolean;
+  $hideFromApi: boolean | null;
   /**
    * **Raw** (BooleanField)
    * @description Whether to skip reading the request body. Should be set to true if the action will be reading the request body itself, such as when uploading files.
    * @type {boolean}
    */
-  $raw: boolean;
+  $raw: boolean | null;
   /**
    * **Code** (CodeField)
    * @description The code to execute for this API action
@@ -4913,16 +4673,10 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
    */
   $updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this API Action
-   * @type {Array<any>}
-   */
-  $in__tags?: Array<any>;
-  /**
    * **Api Group Title** (DataField)
    * @type {string}
    */
-  $apiGroup__title?: string;
+  $apiGroup__title?: string | null;
   $parameters: ChildList<{
     /**
      * **Key** (DataField)
@@ -4972,13 +4726,13 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
      * @description A brief description of the field.
      * @type {string}
      */
-    description?: string;
+    description?: string | null;
     /**
      * **Required** (BooleanField)
      * @description Whether the field is mandatory.
      * @type {boolean}
      */
-    required: boolean;
+    required: boolean | null;
     /**
      * **Entry Type** (ConnectionField)
      *
@@ -4986,12 +4740,12 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
      * @description The entry type this parameter connects to. Only used if type is ConnectionField.
      * @type {string}
      */
-    entryType?: string;
+    entryType?: string | null;
     /**
      * **Entry Type Title** (DataField)
      * @type {string}
      */
-    entryType__title?: string;
+    entryType__title?: string | null;
   }>;
 };
 
@@ -5017,13 +4771,13 @@ type ApiGroupPermissionFields = {
    * @description Whether the role can access this API group. Turns off all actions if false.
    * @type {boolean}
    */
-  canAccess: boolean;
+  canAccess: boolean | null;
   /**
    * **Access All** (BooleanField)
    * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
    * @type {boolean}
    */
-  accessAll: boolean;
+  accessAll: boolean | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5045,21 +4799,15 @@ type ApiGroupPermissionFields = {
    */
   updatedAt: number;
   /**
-   * **Tags** (ArrayField)
-   * @description Tags associated with this Api Group Permission
-   * @type {Array<any>}
-   */
-  in__tags?: Array<any>;
-  /**
    * **User Role Title** (DataField)
    * @type {string}
    */
-  userRole__title?: string;
+  userRole__title?: string | null;
   /**
    * **Api Group Title** (DataField)
    * @type {string}
    */
-  apiGroup__title?: string;
+  apiGroup__title?: string | null;
   actions: ChildList<{
     /**
      * **Action** (ConnectionField)
@@ -5074,12 +4822,12 @@ type ApiGroupPermissionFields = {
      * @description Whether the role can access this API action
      * @type {boolean}
      */
-    canAccess: boolean;
+    canAccess: boolean | null;
     /**
      * **Action Title** (DataField)
      * @type {string}
      */
-    apiAction__title?: string;
+    apiAction__title?: string | null;
   }>;
 };
 export type ApiGroupPermission =
@@ -5108,13 +4856,13 @@ export type ApiGroupPermission =
      * @description Whether the role can access this API group. Turns off all actions if false.
      * @type {boolean}
      */
-    $canAccess: boolean;
+    $canAccess: boolean | null;
     /**
      * **Access All** (BooleanField)
      * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
      * @type {boolean}
      */
-    $accessAll: boolean;
+    $accessAll: boolean | null;
     /**
      * **ID** (IDField)
      * @type {string}
@@ -5136,21 +4884,15 @@ export type ApiGroupPermission =
      */
     $updatedAt: number;
     /**
-     * **Tags** (ArrayField)
-     * @description Tags associated with this Api Group Permission
-     * @type {Array<any>}
-     */
-    $in__tags?: Array<any>;
-    /**
      * **User Role Title** (DataField)
      * @type {string}
      */
-    $userRole__title?: string;
+    $userRole__title?: string | null;
     /**
      * **Api Group Title** (DataField)
      * @type {string}
      */
-    $apiGroup__title?: string;
+    $apiGroup__title?: string | null;
     $actions: ChildList<{
       /**
        * **Action** (ConnectionField)
@@ -5165,12 +4907,12 @@ export type ApiGroupPermission =
        * @description Whether the role can access this API action
        * @type {boolean}
        */
-      canAccess: boolean;
+      canAccess: boolean | null;
       /**
        * **Action Title** (DataField)
        * @type {string}
        */
-      apiAction__title?: string;
+      apiAction__title?: string | null;
     }>;
   };
 
@@ -5180,7 +4922,7 @@ type SystemSettingsFields = {
    * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
    * @type {boolean}
    */
-  enableSignup: boolean;
+  enableSignup: boolean | null;
   /**
    * **Server Host** (URLField)
    * @description The host URL of the server. This is used for generating links and API endpoints.
@@ -5199,7 +4941,7 @@ export type SystemSettings =
      * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
      * @type {boolean}
      */
-    $enableSignup: boolean;
+    $enableSignup: boolean | null;
     /**
      * **Server Host** (URLField)
      * @description The host URL of the server. This is used for generating links and API endpoints.
@@ -5215,19 +4957,19 @@ type AuthSettingsFields = {
    * @description The client ID for Google authentication.
    * @type {string}
    */
-  googleClientId?: string;
+  googleClientId?: string | null;
   /**
    * **Google Client Secret** (PasswordField)
    * @description The client secret for Google authentication.
    * @type {string}
    */
-  googleClientSecret?: string;
+  googleClientSecret?: string | null;
   /**
    * **Hostname** (URLField)
    * @description The hostname for the server used to construct the redirect URL.
    * @type {string}
    */
-  hostname?: string;
+  hostname?: string | null;
 };
 export type AuthSettings = SettingsBase<"authSettings", AuthSettingsFields> & {
   _name: "authSettings";
@@ -5237,19 +4979,19 @@ export type AuthSettings = SettingsBase<"authSettings", AuthSettingsFields> & {
    * @description The client ID for Google authentication.
    * @type {string}
    */
-  $googleClientId?: string;
+  $googleClientId?: string | null;
   /**
    * **Google Client Secret** (PasswordField)
    * @description The client secret for Google authentication.
    * @type {string}
    */
-  $googleClientSecret?: string;
+  $googleClientSecret?: string | null;
   /**
    * **Hostname** (URLField)
    * @description The hostname for the server used to construct the redirect URL.
    * @type {string}
    */
-  $hostname?: string;
+  $hostname?: string | null;
 };
 
 type EmailSettingsFields = {
@@ -5258,7 +5000,7 @@ type EmailSettingsFields = {
    * @description The final url to redirect to after Google OAuth completes
    * @type {string}
    */
-  redirectFinal?: string;
+  redirectFinal?: string | null;
   /**
    * **Default Send Account** (ConnectionField)
    *
@@ -5266,13 +5008,13 @@ type EmailSettingsFields = {
    * @description The default email account to use for sending emails
    * @type {string}
    */
-  defaultSendAccount?: string;
+  defaultSendAccount?: string | null;
   /**
    * **Default Send Account Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
-  defaultSendAccount__title?: string;
+  defaultSendAccount__title?: string | null;
 };
 export type EmailSettings =
   & SettingsBase<"emailSettings", EmailSettingsFields>
@@ -5284,7 +5026,7 @@ export type EmailSettings =
      * @description The final url to redirect to after Google OAuth completes
      * @type {string}
      */
-    $redirectFinal?: string;
+    $redirectFinal?: string | null;
     /**
      * **Default Send Account** (ConnectionField)
      *
@@ -5292,13 +5034,13 @@ export type EmailSettings =
      * @description The default email account to use for sending emails
      * @type {string}
      */
-    $defaultSendAccount?: string;
+    $defaultSendAccount?: string | null;
     /**
      * **Default Send Account Title** (EmailField)
      * @description The email account to send emails from
      * @type {string}
      */
-    $defaultSendAccount__title?: string;
+    $defaultSendAccount__title?: string | null;
   };
 
 type OnboardingFields = {
@@ -5307,7 +5049,7 @@ type OnboardingFields = {
    * @description Enable or disable onboarding for new users
    * @type {boolean}
    */
-  enabled: boolean;
+  enabled: boolean | null;
 };
 export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
   _name: "onboarding";
@@ -5317,7 +5059,7 @@ export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
    * @description Enable or disable onboarding for new users
    * @type {boolean}
    */
-  $enabled: boolean;
+  $enabled: boolean | null;
 };
 
 export interface EntryMap {

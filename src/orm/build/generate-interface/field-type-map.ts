@@ -13,7 +13,7 @@ export const fieldTypeMap: Record<InFieldType, string> = {
   EmailField: "string",
   ImageField: "string",
   IntField: "number",
-  JSONField: "Record<string, any>",
+  JSONField: "Record<string, unknown>",
   ListField: "Array<string>",
   TimeStampField: "number",
   TextField: "string",
@@ -25,5 +25,5 @@ export const fieldTypeMap: Record<InFieldType, string> = {
   FileField: "string",
   TimeField: "string",
   CodeField: "string",
-  ArrayField: "Array<any>",
+  ArrayField: "Array<string>",
 };

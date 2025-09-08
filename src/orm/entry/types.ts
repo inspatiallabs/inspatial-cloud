@@ -167,9 +167,11 @@ export type ExtractFieldKeys<E extends EntryName> = keyof {
   [K in keyof EntryMap[E] as K extends `$${string}` ? K : never]: K;
 };
 
-export type UpdateEntry<T> = {
-  [K in keyof T as K extends BannedFieldKeys ? never : K]?:
-    ExtractUpdateChildList<T[K]>;
+export type UpdateEntry<E extends EntryName> = {
+  [
+    K in keyof EntryMap[E]["__fields__"] as K extends BannedFieldKeys ? never
+      : K
+  ]?: ExtractUpdateChildList<EntryMap[E]["__fields__"][K]>;
 };
 export type NewEntry<E extends EntryName> =
   & {

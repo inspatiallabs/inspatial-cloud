@@ -3,7 +3,7 @@ import type { InSpatialORM } from "../mod.ts";
 import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
-import type { ApiAction, EntryName } from "#types/models.ts";
+import type { EntryName } from "#types/models.ts";
 import type { InField } from "../field/field-def-types.ts";
 import type { EntryActionDefinition } from "../entry/types.ts";
 import type { SettingsActionDefinition } from "../settings/types.ts";
@@ -36,7 +36,7 @@ export class InCloudMigrator extends InCloud {
       await this.#syncRoles(orm);
     } catch (e) {
       if (isPgError(e)) {
-        const { info, response, subject } = handlePgError(e);
+        const { response, subject } = handlePgError(e);
         this.inLog.error(response, {
           stackTrace: e.stack,
           subject,

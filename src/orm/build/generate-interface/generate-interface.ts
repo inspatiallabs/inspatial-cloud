@@ -33,7 +33,7 @@ function generateCommon(entryOrSettings: EntryType | SettingsType) {
   const fileName = `_${convertString(es.name, "kebab", true)}.type.ts`;
   const filePath = `${es.dir}/${fileName}`;
   const actionsInfo = buildActions(es, interfaceName);
-  const fields = buildFields(es.fields);
+  const fields = buildFields(es.fields, ["in__tags"]);
   const classFields = [
     `type ${interfaceName}Fields = { \n${fields.join("\n")}`,
   ];
@@ -103,7 +103,7 @@ function buildActions(
       hasNonParamsActions = true;
       typeLines.push(...[
         `  ${action.key}: {`,
-        `    return: ${returnType("any")};`,
+        `    return: ${returnType("unknown")};`,
         "  };",
       ]);
       continue;
@@ -119,7 +119,7 @@ function buildActions(
       `    params: {`,
       ...params,
       "    };",
-      `    return: ${returnType("any")};`,
+      `    return: ${returnType("unknown")};`,
       "  };",
     );
   }
