@@ -8,7 +8,7 @@ import { handleGoogleSignup } from "./handle-google-signup.ts";
 const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,
   description: "Google OAuth2 callback",
-  async run({ inCloud, orm, inRequest, inResponse, params }) {
+  async action({ inCloud, orm, inRequest, inResponse, params }) {
     const { code, state } = params;
     const authSettings = await orm.getSettings(
       "authSettings",

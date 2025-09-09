@@ -6,7 +6,7 @@ import type { EntryName } from "#types/models.ts";
 export const getEntryAction = new CloudAPIAction("getEntry", {
   label: "Get Entry",
   description: "Get a singe entry for a given Entry Type",
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, id } = params;
     const entry = await orm.getEntry(entryType as EntryName, id);
     return entry.clientData;
@@ -30,7 +30,7 @@ export const newEntryAction = new CloudAPIAction("getNewEntry", {
   label: "Get New Entry",
   description:
     "Get the default values for a new entry, not saved to the database",
-  run({ orm, params }) {
+  action({ orm, params }) {
     const { entryType } = params;
     const entry = orm.getNewEntry(entryType as EntryName);
     return entry.clientData;
@@ -48,7 +48,7 @@ export const updateEntryAction = new CloudAPIAction("updateEntry", {
   label: "Update Entry",
   description: "Update an existing entry",
 
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, id, data } = params;
     const entry = await orm.getEntry(entryType as EntryName, id);
     entry.update(data);
@@ -79,7 +79,7 @@ export const updateEntryAction = new CloudAPIAction("updateEntry", {
 export const createEntryAction = new CloudAPIAction("createEntry", {
   label: "Create Entry",
   description: "Create a new entry",
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, data } = params;
     const entry = await orm.createEntry(entryType as EntryName, data as any);
     return entry.clientData;
@@ -102,7 +102,7 @@ export const createEntryAction = new CloudAPIAction("createEntry", {
 export const runEntryAction = new CloudAPIAction("runEntryAction", {
   label: "Run Entry Action",
   description: "Run an action on an entry",
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, id, action, data, enqueue } = params;
 
     const entry = await orm.getEntry(entryType as EntryName, id);
@@ -151,7 +151,7 @@ export const runEntryAction = new CloudAPIAction("runEntryAction", {
 export const deleteEntryAction = new CloudAPIAction("deleteEntry", {
   label: "Delete Entry",
   description: "Delete an existing entry",
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, id } = params;
     await orm.deleteEntry(entryType as EntryName, id);
     return {
@@ -178,7 +178,7 @@ export const deleteEntryAction = new CloudAPIAction("deleteEntry", {
 export const getEntryListAction = new CloudAPIAction("getEntryList", {
   label: "Get Entry List",
   description: "Get a list of entries for a given Entry Type",
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { entryType, options } = params;
     const entryTypeDef = orm.getEntryType(entryType as EntryName);
     // entryTypeDef.hiddenClientFields
@@ -219,7 +219,7 @@ export const getEntryListAction = new CloudAPIAction("getEntryList", {
 export const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
   label: "Get Entry Type Info",
   description: "Get the Entry Type definition for a given Entry Type",
-  run({ orm, params }): EntryTypeInfo {
+  action({ orm, params }): EntryTypeInfo {
     const entryType = orm.getEntryType(params.entryType as EntryName);
     return entryType.info as EntryTypeInfo;
   },
@@ -249,7 +249,7 @@ export const countConnections = new CloudAPIAction("countConnections", {
     description: "The ID of the Entry to count connections for",
     required: true,
   }],
-  async run({ orm, params: { entryType, id } }) {
+  async action({ orm, params: { entryType, id } }) {
     return await orm.countConnections(entryType as EntryName, id);
   },
 });
@@ -281,7 +281,9 @@ export const sum = new CloudAPIAction("sum", {
     required: false,
     description: "The field to group the results by, if any",
   }],
-  async run({ orm, params: { entryType, fields, filter, orFilter, groupBy } }) {
+  async action(
+    { orm, params: { entryType, fields, filter, orFilter, groupBy } },
+  ) {
     if (groupBy === undefined) {
       return await orm.sum(entryType, {
         fields,
@@ -303,7 +305,7 @@ export const count = new CloudAPIAction("count", {
   label: "Count",
   description:
     "Get the count of entries for a given Entry Type, optionally grouped by a field",
-  async run({
+  async action({
     orm,
     params: {
       entryType,

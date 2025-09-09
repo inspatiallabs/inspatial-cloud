@@ -4,7 +4,7 @@ import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 const registerUser = new CloudAPIAction("registerUser", {
   description: "Register a new user",
   hideFromApi: true,
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { $enableSignup } = await orm.getSettings(
       "systemSettings",
     );

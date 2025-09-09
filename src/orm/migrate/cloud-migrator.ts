@@ -96,13 +96,15 @@ export class InCloudMigrator extends InCloud {
       const hooks = Object.entries(entryType.hooks).flatMap((
         [hookName, hookDefs],
       ) =>
-        hookDefs.map((hookDef) => ({
-          hook: hookName,
-          name: hookDef.name,
-          description: hookDef.description || "",
-          handler: hookDef.handler.toString(),
-          active: true,
-        }))
+        Array.from(
+          hookDefs.values().map((hookDef) => ({
+            hook: hookName,
+            name: hookDef.name,
+            description: hookDef.description || "",
+            handler: hookDef.handler.toString(),
+            active: true,
+          })),
+        )
       );
       model.$hooks.update(hooks as any[]);
 
@@ -129,13 +131,15 @@ export class InCloudMigrator extends InCloud {
       const hooks = Object.entries(setting.hooks || {}).flatMap((
         [hookName, hookDefs],
       ) =>
-        hookDefs.map((hookDef) => ({
-          hook: hookName,
-          name: hookDef.name,
-          description: hookDef.description || "",
-          handler: hookDef.handler.toString(),
-          active: true,
-        }))
+        Array.from(
+          hookDefs.values().map((hookDef) => ({
+            hook: hookName,
+            name: hookDef.name,
+            description: hookDef.description || "",
+            handler: hookDef.handler.toString(),
+            active: true,
+          })),
+        )
       );
       model.$hooks.update(hooks as any[]);
       await model.save();

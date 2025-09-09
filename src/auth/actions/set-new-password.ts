@@ -4,7 +4,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 export const setNewPassword = new CloudAPIAction("setNewPassword", {
   description: "Reset user password",
   authRequired: false,
-  async run({ orm, params }) {
+  async action({ orm, params }) {
     const { token, password } = params;
     const user = await orm.findEntry("user", [{
       field: "resetPasswordToken",

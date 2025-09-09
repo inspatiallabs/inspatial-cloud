@@ -24,7 +24,7 @@ export const uploadFile = new CloudAPIAction("upload", {
     key: "optimizeFormat",
     type: "DataField",
   }],
-  async run(
+  async action(
     {
       inCloud,
       orm,

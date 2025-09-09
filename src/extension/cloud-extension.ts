@@ -232,6 +232,6 @@ export function defineExtension<
     label?: string;
     description?: string;
   },
-) {
+): CloudExtension<AG, N, C> {
   return new CloudExtension<AG, N, C>(extensionName, config);
 }

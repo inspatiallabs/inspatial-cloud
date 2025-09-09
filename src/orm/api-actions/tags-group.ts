@@ -11,7 +11,7 @@ tagsGroup.addAction("getAll", {
   description: "Retrieve all tags",
   params: [],
   label: "Get Tags",
-  async run({ orm }) {
+  async action({ orm }) {
     return await orm.getTags();
   },
 });
@@ -36,7 +36,7 @@ tagsGroup.addAction("tagEntry", {
     key: "tagName",
     type: "DataField",
   }],
-  async run({ orm, params: { entryType, entryId, tagId, tagName } }) {
+  async action({ orm, params: { entryType, entryId, tagId, tagName } }) {
     const entry = await orm.getEntry(entryType as EntryName, entryId);
     if (tagId) {
       await entry.addTag(tagId);
@@ -66,7 +66,7 @@ tagsGroup.addAction("untagEntry", {
     type: "IntField",
     required: true,
   }],
-  async run({ orm, params: { entryType, entryId, tagId } }) {
+  async action({ orm, params: { entryType, entryId, tagId } }) {
     const entry = await orm.getEntry(entryType as EntryName, entryId);
     await entry.removeTag(tagId);
     return entry.tags;

@@ -23,7 +23,7 @@ export const getFile = new CloudAPIAction("getFile", {
     label: "Thumbnail",
     type: "BooleanField",
   }],
-  async run({ inCloud, orm, params, inResponse }) {
+  async action({ inCloud, orm, params, inResponse }) {
     const { fileId, global, thumbnail } = params;
     const accountId = global ? "global" : `${orm._accountId}`;
     const accountAndFileId = `${accountId}/${

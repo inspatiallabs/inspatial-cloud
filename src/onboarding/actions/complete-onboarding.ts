@@ -3,7 +3,7 @@ import type { SessionData } from "../../auth/types.ts";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 
 export const completeOnboarding = new CloudAPIAction("completeOnboarding", {
-  async run({ inRequest, params: { obResponse }, inCloud, orm }) {
+  async action({ inRequest, params: { obResponse }, inCloud, orm }) {
     const user = inRequest.context.get<SessionData>("user")!;
     const account = await inCloud.orm.withAccount(user.accountId)
       .getEntry(

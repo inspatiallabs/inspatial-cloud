@@ -6,7 +6,7 @@ const login = new CloudAPIAction("login", {
   label: "Login",
   description: "Login to the system",
   authRequired: false,
-  async run({ inCloud, orm, inRequest, inResponse, params }) {
+  async action({ inCloud, orm, inRequest, inResponse, params }) {
     const { email, password } = params;
 
     const user = await orm.findEntry("user", [{

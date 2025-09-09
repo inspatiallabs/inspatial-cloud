@@ -10,7 +10,7 @@ export const devActions = new CloudAPIGroup("dev", {
 devActions.addAction("generateConfig", {
   description: "Generate the cloud-config.json along with the schema",
   params: [],
-  run({ inCloud }) {
+  action({ inCloud }) {
     inCloud.generateConfigFile();
   },
 });
@@ -20,7 +20,7 @@ devActions.addAction("run", {
     type: "TextField",
   }],
 
-  async run({ inCloud, orm, params: { code } }) {
+  async action({ inCloud, orm, params: { code } }) {
     if (inCloud.getExtensionConfigValue("core", "cloudMode") === "production") {
       raiseORMException(
         "The run action is not available in production mode",
@@ -57,7 +57,7 @@ devActions.addAction("run", {
 devActions.addAction("clearStaticCache", {
   description: "Clear the static files cache",
   params: [],
-  run({ inCloud }) {
+  action({ inCloud }) {
     inCloud.static.cache.clear();
   },
 });
@@ -83,7 +83,7 @@ devActions.addAction("getLog", {
       label: "Debug",
     }],
   }],
-  async run({ inCloud, params: { logType } }) {
+  async action({ inCloud, params: { logType } }) {
     switch (logType) {
       case "info":
       case "warning":
@@ -120,7 +120,7 @@ devActions.addAction("clearLog", {
       label: "Debug",
     }],
   }],
-  async run({ inCloud, params: { logType } }) {
+  async action({ inCloud, params: { logType } }) {
     switch (logType) {
       case "info":
       case "warning":
