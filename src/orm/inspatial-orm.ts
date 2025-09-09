@@ -966,32 +966,35 @@ export class InSpatialORM {
     let libPath = "";
     for (const entryType of adminRole.entryTypes.values()) {
       const entryString = generateEntryInterface(entryType);
-      if (entryType.dir) {
-        switch (entryType.config.extension?.key) {
-          case "core":
-            libPath = entryType.dir;
-            libOut.push(entryString);
-            libEntries.push(entryType.name);
+
+      switch (entryType.config.extension?.key) {
+        case "core":
+          if (!entryType.dir) {
             break;
-          default:
-            output.push(entryString);
-            generatedEntries.push(entryType.name);
-        }
+          }
+          libPath = entryType.dir;
+          libOut.push(entryString);
+          libEntries.push(entryType.name);
+          break;
+        default:
+          output.push(entryString);
+          generatedEntries.push(entryType.name);
       }
     }
     for (const settingsType of adminRole.settingsTypes.values()) {
       const settingsString = generateSettingsInterface(settingsType);
-      if (settingsType.dir) {
-        switch (settingsType.config.extension?.key) {
-          case "core":
-            libPath = settingsType.dir;
-            libOut.push(settingsString);
-            libSettings.push(settingsType.name);
+      switch (settingsType.config.extension?.key) {
+        case "core":
+          if (!settingsType.dir) {
             break;
-          default:
-            output.push(settingsString);
-            generatedSettings.push(settingsType.name);
-        }
+          }
+          libPath = settingsType.dir;
+          libOut.push(settingsString);
+          libSettings.push(settingsType.name);
+          break;
+        default:
+          output.push(settingsString);
+          generatedSettings.push(settingsType.name);
       }
     }
 
