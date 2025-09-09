@@ -23,13 +23,16 @@ export class Entry<
   get id(): any {
     return this._data.get("id");
   }
+  /** Returns the list of tag IDs associated with this entry. If the entry type is not tagable, an exception will be thrown */
   get tags(): Array<number> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
+    this.#assertTaggable();
     if (!this._entryType.config.taggable) {
       return [];
     }
     return this._data.get("in__tags") || [];
   }
+  /** Returns true if this entry does not exist in the database yet */
   get isNew(): boolean {
     return this._data.get("id") === "_new_" || !this._data.has("id") ||
       this._data.get("id") === null;
@@ -47,11 +50,11 @@ export class Entry<
     beforeDelete: [],
     afterDelete: [],
   };
-  get permission(): EntryPermission {
+  get #permission(): EntryPermission {
     return this._entryType.permission;
   }
   get clientData(): Record<string, any> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     const data = this.data;
     for (const fieldName of this._entryType.hiddenClientFields) {
       delete data[fieldName];
@@ -59,7 +62,7 @@ export class Entry<
     return data;
   }
   get data(): Record<string, any> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     const data = Object.fromEntries(this._data.entries());
     const childData: Record<string, any> = {};
     for (const [key, value] of this._childrenData.entries()) {
@@ -96,7 +99,7 @@ export class Entry<
    * Creates a new instance of this entry type, and sets all the fields to their default values.
    * Note: This does not save the entry to the database. You must call the save method to do that.
    */
-  create(): void {
+  _create(): void {
     this._data.clear();
     for (const field of this._fields.values()) {
       if (
@@ -109,11 +112,11 @@ export class Entry<
     }
     this._data.set("id", "_new_");
   }
-
-  async load(id: IDValue): Promise<void> {
+  /** Loads the entry with the given id from the database */
+  async _load(id: IDValue): Promise<void> {
     const role = this._inCloud.roles.getRole(this._user?.role as string);
     const userScopeField = role.entryPermissions.get(this._name)?.userScope;
-    this.assertViewPermission();
+    this.#assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
     // Load the main table row
@@ -141,15 +144,12 @@ export class Entry<
       this._data.set(key, fieldType.parseDbValue(value, fieldDef));
     }
 
-    await this.loadChildren(this.id as string);
+    await this._loadChildren(this.id as string);
   }
+  /** Adds a tag by name. This will first look for an existing tag with this name and if the tag does not exist, it will be created */
   async addTagByName(tagName: string) {
-    this.assertModifyPermission();
-    if (!this._entryType.config.taggable) {
-      raiseORMException(
-        `Entry type ${this._entryType.config.label} is not taggable`,
-      );
-    }
+    this.#assertModifyPermission();
+    this.#assertTaggable();
     let tag = await this._orm.getTagByName(tagName);
     if (!tag) {
       tag = await this._orm.addTag(tagName);
@@ -159,13 +159,10 @@ export class Entry<
     this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
+  /** Adds a tag that already exists in the system by `id` */
   async addTag(tagId: number) {
-    this.assertModifyPermission();
-    if (!this._entryType.config.taggable) {
-      raiseORMException(
-        `Entry type ${this._entryType.config.label} is not taggable`,
-      );
-    }
+    this.#assertModifyPermission();
+    this.#assertTaggable();
     const hasTag = await this._orm.hasTag(tagId);
     if (!hasTag) {
       raiseORMException(`Tag with id ${tagId} does not exist`);
@@ -175,24 +172,29 @@ export class Entry<
     this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
+  /** Removes a tag from this entry by `id` */
   async removeTag(tagId: number) {
-    this.assertModifyPermission();
-    if (!this._entryType.config.taggable) {
-      raiseORMException(
-        `Entry type ${this._entryType.config.label} is not taggable`,
-      );
-    }
+    this.#assertModifyPermission();
+    this.#assertTaggable();
     const tags = new Set(this.tags);
     tags.delete(tagId);
     this["$in__tags" as keyof typeof this] = Array.from(tags) as any;
     await this.save();
   }
+  /** Removes all tags from this entry */
+  async clearTags() {
+    this.#assertModifyPermission();
+    this.#assertTaggable();
+    this["$in__tags" as keyof typeof this] = [] as any;
+    await this.save();
+  }
+  /** Saves the current state of the entry to the database. If this is a new entry, a new database entry will be inserted */
   async save(): Promise<void> {
     if (this.isNew) {
-      this.assertCreatePermission();
+      this.#assertCreatePermission();
     }
-    this.assertModifyPermission();
-    await this.refreshFetchedFields();
+    this.#assertModifyPermission();
+    await this._refreshFetchedFields();
     this["$updatedAt" as keyof typeof this] = Date.now() as any;
     switch (this.isNew) {
       case true:
@@ -202,7 +204,7 @@ export class Entry<
       default:
         await this.#beforeUpdate();
     }
-    await this.refreshFetchedFields();
+    await this._refreshFetchedFields();
     const data: Record<string, any> = {};
     for (const [key, value] of this._modifiedValues.entries()) {
       const fieldDef = this._getFieldDef(key);
@@ -219,20 +221,20 @@ export class Entry<
       this._entryType.config.tableName,
       this.id,
       data,
-    ).catch((e) => this.handlePGError(e));
-    await this.saveChildren().catch((e) => this.handlePGError(e));
+    ).catch((e) => this._handlePGError(e));
+    await this._saveChildren().catch((e) => this._handlePGError(e));
     await this.#afterUpdate();
-    await this.load(this.id);
+    await this._load(this.id);
   }
 
   /**
    * Deletes the entry from the database
    */
   async delete(): Promise<boolean> {
-    this.assertDeletePermission();
+    this.#assertDeletePermission();
     await this.#beforeDelete();
     // Delete all children first
-    await this.deleteChildren();
+    await this._deleteChildren();
     await this._db.deleteRow(this._entryType.config.tableName, this.id);
     await this.#afterDelete();
     return true;
@@ -244,7 +246,7 @@ export class Entry<
    * **Note:** This does not save the entry to the database. You must call the save method to do that.
    */
   update(data: UpdateEntry<E>): void {
-    this.assertModifyPermission();
+    this.#assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
         const childList = this._childrenData.get(key);
@@ -260,9 +262,9 @@ export class Entry<
       this[`$${key}` as keyof typeof this] = value as any;
     }
   }
-
+  /** Checks if a field has been modified since the last load or save */
   isFieldModified(fieldName: EntryFieldKeys<E>): boolean {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     return this._modifiedValues.has(fieldName);
   }
   /* Lifecycle Hooks */
@@ -353,13 +355,13 @@ export class Entry<
     const result = await this._db.insertRow(
       this._entryType.config.tableName,
       data,
-    ).catch((e) => this.handlePGError(e));
+    ).catch((e) => this._handlePGError(e));
     if (!result?.id) {
       return;
     }
 
-    await this.saveChildren(result.id);
-    await this.load(result.id);
+    await this._saveChildren(result.id);
+    await this._load(result.id);
 
     await this.#afterCreate();
   }
@@ -454,20 +456,20 @@ export class Entry<
       }
     }
   }
-  get canCreate(): boolean {
+  get #canCreate(): boolean {
     return this._entryType.permission.create;
   }
-  get canModify(): boolean {
+  get #canModify(): boolean {
     return this._entryType.permission.modify;
   }
-  get canView(): boolean {
+  get #canView(): boolean {
     return this._entryType.permission.view;
   }
-  get canDelete(): boolean {
+  get #canDelete(): boolean {
     return this._entryType.permission.delete;
   }
-  assertCreatePermission(): void {
-    if (!this.canCreate) {
+  #assertCreatePermission(): void {
+    if (!this.#canCreate) {
       raiseORMException(
         `You do not have permission to create a new ${this._entryType.config.label}`,
         "PermissionDenied",
@@ -475,8 +477,8 @@ export class Entry<
       );
     }
   }
-  assertModifyPermission(): void {
-    if (!this.canModify) {
+  #assertModifyPermission(): void {
+    if (!this.#canModify) {
       raiseORMException(
         `You do not have permission to modify ${this._entryType.config.label} Entries`,
         "PermissionDenied",
@@ -484,8 +486,8 @@ export class Entry<
       );
     }
   }
-  assertViewPermission(): void {
-    if (!this.canView) {
+  #assertViewPermission(): void {
+    if (!this.#canView) {
       raiseORMException(
         `You do not have permission to view ${this._entryType.config.label} Entries`,
         "PermissionDenied",
@@ -493,12 +495,21 @@ export class Entry<
       );
     }
   }
-  assertDeletePermission(): void {
-    if (!this.canDelete) {
+  #assertDeletePermission(): void {
+    if (!this.#canDelete) {
       raiseORMException(
         `You do not have permission to delete ${this._entryType.config.label} Entries`,
         "PermissionDenied",
         403,
+      );
+    }
+  }
+  #assertTaggable(): void {
+    if (!this._entryType.config.taggable) {
+      raiseORMException(
+        `Entry type ${this._entryType.config.label} is not taggable`,
+        "NotTaggable",
+        400,
       );
     }
   }

@@ -21,7 +21,7 @@ import { ChildEntryType } from "../child-entry/child-entry.ts";
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  E extends string,
+  E extends string = string,
 > extends BaseType<E> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
@@ -307,7 +307,12 @@ function setupAction(action: EntryActionConfig<any, any, any>): void {
   }
 }
 
-/** Define a new Entry Type for the ORM */
+/** Define a new Entry Type for the ORM
+ *
+ * @param entryName - The camelCase name of the entry type
+ * @param config - The configuration for the entry type
+ * @returns An instance of `EntryType` that can be added to your cloud extension
+ */
 export function defineEntry<
   N extends string,
 >(

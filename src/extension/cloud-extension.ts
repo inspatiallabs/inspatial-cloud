@@ -221,3 +221,17 @@ export class CloudExtension<
     };
   }
 }
+
+export function defineExtension<
+  AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
+  N extends string = string,
+  C extends ConfigDefinition = ConfigDefinition,
+>(
+  extensionName: N,
+  config: Omit<ExtensionOptions<AG, C>, "name"> & {
+    label?: string;
+    description?: string;
+  },
+) {
+  return new CloudExtension<AG, N, C>(extensionName, config);
+}

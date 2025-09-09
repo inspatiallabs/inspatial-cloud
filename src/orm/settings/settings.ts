@@ -103,7 +103,7 @@ export class Settings<S extends SettingsName = SettingsName>
       );
       this.#updatedAt.set(row.field, updatedAt);
     }
-    await this.loadChildren(this._name as string);
+    await this._loadChildren(this._name as string);
   }
 
   async getValue(
@@ -139,7 +139,7 @@ export class Settings<S extends SettingsName = SettingsName>
   }
   async save(): Promise<void> {
     this.assertModifyPermission();
-    await this.refreshFetchedFields();
+    await this._refreshFetchedFields();
     await this.#beforeValidate();
     await this.#validate();
     await this.#beforeUpdate();
@@ -159,11 +159,11 @@ export class Settings<S extends SettingsName = SettingsName>
         },
         updatedAt,
       }).catch((e) => {
-        this.handlePGError(e);
+        this._handlePGError(e);
       });
     }
 
-    await this.saveChildren();
+    await this._saveChildren();
     await this.load();
     await this.#afterUpdate();
   }
@@ -178,7 +178,7 @@ export class Settings<S extends SettingsName = SettingsName>
     return fieldId;
   }
   async #runHooks(hookName: HookName): Promise<void> {
-    for (const hook of this._settingsType.hooks[hookName]) {
+    for (const hook of this._settingsType.hooks[hookName].values()) {
       await hook.handler({
         inCloud: this._inCloud,
         orm: this._orm,

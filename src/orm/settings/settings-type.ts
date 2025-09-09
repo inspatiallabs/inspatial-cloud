@@ -12,14 +12,13 @@ import type {
   SettingsRole,
 } from "../roles/settings-permissions.ts";
 import { getCallerPath } from "../../utils/path-utils.ts";
-import type { SettingsName } from "#types/models.ts";
 import convertString from "../../utils/convert-string.ts";
 
 /**
  * Defines a settings type for the ORM.
  */
 export class SettingsType<
-  S extends SettingsName = SettingsName,
+  S extends string = string,
 > extends BaseType<S> {
   /**
    * Defines a settings type for the ORM.
@@ -29,12 +28,7 @@ export class SettingsType<
   config: SettingsTypeConfig;
 
   actions: Map<string, SettingsActionDefinition<S>> = new Map();
-  hooks: Record<HookName, Array<SettingsHookDefinition<S>>> = {
-    beforeValidate: [],
-    validate: [],
-    beforeUpdate: [],
-    afterUpdate: [],
-  };
+  hooks: Record<HookName, Map<string, SettingsHookDefinition<S>>>;
   roles: Map<string, SettingsRole> = new Map();
   sourceConfig: SettingsConfig<S>;
   permission: SettingsPermission;
@@ -44,6 +38,12 @@ export class SettingsType<
     rm?: boolean,
   ) {
     super(name, config);
+    this.hooks = {
+      beforeUpdate: new Map(),
+      afterUpdate: new Map(),
+      beforeValidate: new Map(),
+      validate: new Map(),
+    };
     if (!rm) {
       this.dir = getCallerPath();
     }
@@ -97,10 +97,24 @@ export class SettingsType<
     if (!hooks) {
       return;
     }
-    this.hooks = {
-      ...this.hooks,
-      ...hooks,
-    };
+    for (
+      const [hookName, hookList] of Object.entries(hooks) as Array<
+        [HookName, Array<SettingsHookDefinition<S>>]
+      >
+    ) {
+      for (const hook of hookList) {
+        this.addHook(hookName, hook);
+      }
+    }
+  }
+  addHook(hookName: HookName, hook: SettingsHookDefinition<S>) {
+    const hookMap = this.hooks[hookName];
+    if (hookMap.has(hook.name)) {
+      raiseORMException(
+        `Hook with name ${hook.name} already exists in SettingsType ${this.name} for ${hookName}`,
+      );
+    }
+    hookMap.set(hook.name, hook);
   }
   addAction(action: SettingsActionDefinition<S>) {
     if (this.actions.has(action.key)) {
@@ -126,4 +140,12 @@ function setupAction(action: SettingsActionDefinition<any>): void {
       param.label = convertString(param.key, "title", true);
     }
   }
+}
+
+/** Defines a settings type for the ORM. */
+export function defineSettings<S extends string>(
+  settingsName: S,
+  config: SettingsConfig<S>,
+): SettingsType<S> {
+  return new SettingsType(settingsName, config);
 }

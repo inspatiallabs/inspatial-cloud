@@ -146,17 +146,17 @@ export class BaseClass<N extends string = string> {
     }
     return this._childrenData.get(childName)!;
   }
-  async saveChildren(withParentId?: string): Promise<void> {
+  async _saveChildren(withParentId?: string): Promise<void> {
     for (const child of this._childrenData.values()) {
       await child.save(withParentId);
     }
   }
-  async deleteChildren() {
+  async _deleteChildren() {
     for (const child of this._childrenData.values()) {
       await child.clear();
     }
   }
-  async loadChildren(parentId: string): Promise<void> {
+  async _loadChildren(parentId: string): Promise<void> {
     for (const child of this._childrenData.values()) {
       await child.load(parentId);
     }
@@ -183,7 +183,7 @@ export class BaseClass<N extends string = string> {
     }
     return action;
   }
-  async refreshFetchedFields(): Promise<void> {
+  async _refreshFetchedFields(): Promise<void> {
     for (const field of this._fields.values()) {
       if (field.fetchField) {
         const def = this._getFieldDef<"ConnectionField">(
@@ -198,7 +198,7 @@ export class BaseClass<N extends string = string> {
       }
     }
   }
-  handlePGError(e: unknown): never {
+  _handlePGError(e: unknown): never {
     if (!(e instanceof PgError)) {
       throw e;
     }

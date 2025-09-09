@@ -142,6 +142,8 @@ export interface EntryTypeConfig extends BaseTypeConfig {
   index: Array<EntryIndex<string>>;
   taggable: boolean;
 }
+
+/** The configuration options for an `EntryType` */
 export type EntryConfig<
   E extends string = string,
 > = BaseConfig & {
@@ -159,6 +161,7 @@ export type EntryConfig<
   taggable?: boolean;
   index?: Array<EntryIndex<EntryFieldKeys<E>>>;
   actions?: Array<EntryActionDefinition<E>>;
+  /** Define hooks to run at various points in the entry lifecycle. */
   hooks?: Partial<Record<EntryHookName, Array<EntryHookDefinition<E>>>>;
 };
 export type IDValue = string | number;

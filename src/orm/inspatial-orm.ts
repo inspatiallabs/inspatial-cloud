@@ -341,7 +341,7 @@ export class InSpatialORM {
     data: NewEntry<E>,
   ): Promise<EntryMap[E]> {
     const entry = this.getEntryInstance(entryType);
-    entry.create();
+    entry._create();
     entry.update(data);
     await entry.save();
     return entry;
@@ -353,7 +353,7 @@ export class InSpatialORM {
     entryType: E,
   ): EntryMap[E] {
     const entry = this.getEntryInstance(entryType);
-    entry.create();
+    entry._create();
     return entry;
   }
 
@@ -365,7 +365,7 @@ export class InSpatialORM {
     id: IDValue,
   ): Promise<EntryMap[E]> {
     const entry = this.getEntryInstance(entryType);
-    await entry.load(id);
+    await entry._load(id);
     return entry;
   }
   /**
