@@ -72,7 +72,7 @@ export const coreExtension = new CloudExtension("core", {
       afterUpdate: [notifySettings],
     },
   },
-  actionGroups: [
+  apiGroups: [
     authGroup,
     entriesGroup,
     ormGroup,

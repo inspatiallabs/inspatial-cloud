@@ -49,7 +49,7 @@ export class Settings<S extends SettingsName = SettingsName>
     });
   }
   get clientData(): Record<string, any> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     const data = this.data;
     for (const fieldName of this._settingsType.hiddenClientFields) {
       delete data[fieldName];
@@ -57,7 +57,7 @@ export class Settings<S extends SettingsName = SettingsName>
     return data;
   }
   get data(): Record<string, any> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     const data = Object.fromEntries(this._data.entries());
     const childData: Record<string, any> = {};
     for (const [key, value] of this._childrenData.entries()) {
@@ -73,8 +73,8 @@ export class Settings<S extends SettingsName = SettingsName>
     return Object.fromEntries(this.#updatedAt.entries());
   }
 
-  async load(): Promise<void> {
-    this.assertViewPermission();
+  async _load(): Promise<void> {
+    this.#assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
     this.#updatedAt.clear();
@@ -105,11 +105,16 @@ export class Settings<S extends SettingsName = SettingsName>
     }
     await this._loadChildren(this._name as string);
   }
-
+  /** Checks if a field has been modified since the last load or save */
+  isFieldModified(fieldKey: string): boolean {
+    this.#assertViewPermission();
+    return this._modifiedValues.has(fieldKey);
+  }
+  /** Gets the value for a specific field directly from the database */
   async getValue(
     fieldKey: string,
   ): Promise<any> {
-    this.assertViewPermission();
+    this.#assertViewPermission();
     const fieldDef = this._getFieldDef(fieldKey);
     const fieldType = this._getFieldType(fieldDef.type);
 
@@ -121,7 +126,7 @@ export class Settings<S extends SettingsName = SettingsName>
     return fieldType.parseDbValue(dbValue.value, fieldDef);
   }
   update(data: Record<string, any>): void {
-    this.assertModifyPermission();
+    this.#assertModifyPermission();
     for (const [key, value] of Object.entries(data)) {
       if (this._childrenData.has(key)) {
         const childList = this._childrenData.get(key);
@@ -138,7 +143,7 @@ export class Settings<S extends SettingsName = SettingsName>
     }
   }
   async save(): Promise<void> {
-    this.assertModifyPermission();
+    this.#assertModifyPermission();
     await this._refreshFetchedFields();
     await this.#beforeValidate();
     await this.#validate();
@@ -164,7 +169,7 @@ export class Settings<S extends SettingsName = SettingsName>
     }
 
     await this._saveChildren();
-    await this.load();
+    await this._load();
     await this.#afterUpdate();
   }
 
@@ -205,14 +210,14 @@ export class Settings<S extends SettingsName = SettingsName>
     await this.#runHooks("afterUpdate");
     await this._orm._runGlobalSettingsHooks("afterUpdate", this);
   }
-  get canModify(): boolean {
+  get #canModify(): boolean {
     return this._settingsType.permission.modify;
   }
-  get canView(): boolean {
+  get #canView(): boolean {
     return this._settingsType.permission.view;
   }
-  assertModifyPermission(): void {
-    if (!this.canModify) {
+  #assertModifyPermission(): void {
+    if (!this.#canModify) {
       raiseORMException(
         `You do not have permission to modify ${this._settingsType.config.label}`,
         "PermissionDenied",
@@ -220,8 +225,8 @@ export class Settings<S extends SettingsName = SettingsName>
       );
     }
   }
-  assertViewPermission(): void {
-    if (!this.canView) {
+  #assertViewPermission(): void {
+    if (!this.#canView) {
       raiseORMException(
         `You do not have permission to view ${this._settingsType.config.label}`,
         "PermissionDenied",

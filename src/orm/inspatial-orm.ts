@@ -289,7 +289,7 @@ export class InSpatialORM {
       }
     }
   }
-  getEntryInstance<E extends EntryName>(
+  _getEntryInstance<E extends EntryName>(
     entryType: E,
   ): EntryMap[E] {
     return this.roles.getEntryInstance<E>(
@@ -298,7 +298,7 @@ export class InSpatialORM {
       this._user || this.systemAdminUser,
     );
   }
-  getSettingsInstance<S extends SettingsName>(
+  _getSettingsInstance<S extends SettingsName>(
     settingsType: S,
   ): SettingsMap[S] {
     return this.roles.getSettingsInstance<S>(
@@ -307,6 +307,7 @@ export class InSpatialORM {
       this._user || this.systemAdminUser,
     );
   }
+  /** Get the entry type definition for a specific entry type. */
   getEntryType<E extends EntryName = EntryName>(
     entryType: E,
   ): EntryType<E> {
@@ -315,6 +316,7 @@ export class InSpatialORM {
       this._user?.role || this.systemAdminUser.role,
     );
   }
+  /** Gets the settings type definition for a specific settings type. */
   getSettingsType<S extends SettingsName>(
     settingsType: S,
   ): SettingsType<S> {
@@ -323,7 +325,7 @@ export class InSpatialORM {
       this._user?.role || this.systemAdminUser.role,
     );
   }
-  getEntryTypeRegistry(
+  _getEntryTypeRegistry(
     entryType: string,
   ): EntryTypeRegistry | undefined {
     return this.roles.getRegistry(
@@ -340,7 +342,7 @@ export class InSpatialORM {
     entryType: E,
     data: NewEntry<E>,
   ): Promise<EntryMap[E]> {
-    const entry = this.getEntryInstance(entryType);
+    const entry = this._getEntryInstance(entryType);
     entry._create();
     entry.update(data);
     await entry.save();
@@ -352,7 +354,7 @@ export class InSpatialORM {
   getNewEntry<E extends EntryName>(
     entryType: E,
   ): EntryMap[E] {
-    const entry = this.getEntryInstance(entryType);
+    const entry = this._getEntryInstance(entryType);
     entry._create();
     return entry;
   }
@@ -364,7 +366,7 @@ export class InSpatialORM {
     entryType: E,
     id: IDValue,
   ): Promise<EntryMap[E]> {
-    const entry = this.getEntryInstance(entryType);
+    const entry = this._getEntryInstance(entryType);
     await entry._load(id);
     return entry;
   }
@@ -402,6 +404,7 @@ export class InSpatialORM {
     return entry;
   }
 
+  /** Counts the how many entries there are in the database for all entry types that reference this one via a `ConnectionField` */
   async countConnections<E extends EntryName>(
     entryName: E,
     id: string,
@@ -771,8 +774,8 @@ export class InSpatialORM {
   async getSettings<S extends SettingsName>(
     settingsType: S,
   ): Promise<SettingsMap[S]> {
-    const settings = this.getSettingsInstance(settingsType);
-    await settings.load();
+    const settings = this._getSettingsInstance(settingsType);
+    await settings._load();
     return settings;
   }
   /**
@@ -800,7 +803,7 @@ export class InSpatialORM {
     settingsType: S,
     field: K,
   ): Promise<SettingsMap[S]["__fields__"][K]> {
-    const settings = this.getSettingsInstance(settingsType);
+    const settings = this._getSettingsInstance(settingsType);
     return await settings.getValue(field as string);
   }
 

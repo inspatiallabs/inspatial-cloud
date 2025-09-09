@@ -18,8 +18,8 @@ export {
   ChildEntryList,
   ChildEntryType,
 } from "~/orm/child-entry/child-entry.ts";
-export { CloudAPIAction } from "~/api/cloud-action.ts";
-export { CloudAPIGroup } from "~/api/cloud-group.ts";
+export { CloudAPIAction, defineAPIAction } from "~/api/cloud-action.ts";
+export { CloudAPIGroup, defineAPIGroup } from "~/api/cloud-group.ts";
 export {
   CloudExtension,
   defineExtension,

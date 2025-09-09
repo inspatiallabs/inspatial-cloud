@@ -421,7 +421,7 @@ export class Entry<
   }
 
   async #syncReferences() {
-    const entryRegistry = this._orm.getEntryTypeRegistry(
+    const entryRegistry = this._orm._getEntryTypeRegistry(
       this._name,
     );
     if (entryRegistry === undefined) {

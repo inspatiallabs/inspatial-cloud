@@ -589,7 +589,7 @@ export class InCloudMigrator extends InCloud {
     }
     const groupNames = new Set<string>(["api"]);
     for (const [key, extension] of this.extensionManager.extensions.entries()) {
-      for (const group of extension.actionGroups) {
+      for (const group of extension.apiGroups) {
         groupNames.add(group.groupName);
         await syncGroup(group, key);
       }
