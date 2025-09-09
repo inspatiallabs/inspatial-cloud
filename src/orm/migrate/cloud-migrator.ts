@@ -96,13 +96,15 @@ export class InCloudMigrator extends InCloud {
       const hooks = Object.entries(entryType.hooks).flatMap((
         [hookName, hookDefs],
       ) =>
-        hookDefs.map((hookDef) => ({
-          hook: hookName,
-          name: hookDef.name,
-          description: hookDef.description || "",
-          handler: hookDef.handler.toString(),
-          active: true,
-        }))
+        Array.from(
+          hookDefs.values().map((hookDef) => ({
+            hook: hookName,
+            name: hookDef.name,
+            description: hookDef.description || "",
+            handler: hookDef.handler.toString(),
+            active: true,
+          })),
+        )
       );
       model.$hooks.update(hooks as any[]);
 
@@ -129,13 +131,15 @@ export class InCloudMigrator extends InCloud {
       const hooks = Object.entries(setting.hooks || {}).flatMap((
         [hookName, hookDefs],
       ) =>
-        hookDefs.map((hookDef) => ({
-          hook: hookName,
-          name: hookDef.name,
-          description: hookDef.description || "",
-          handler: hookDef.handler.toString(),
-          active: true,
-        }))
+        Array.from(
+          hookDefs.values().map((hookDef) => ({
+            hook: hookName,
+            name: hookDef.name,
+            description: hookDef.description || "",
+            handler: hookDef.handler.toString(),
+            active: true,
+          })),
+        )
       );
       model.$hooks.update(hooks as any[]);
       await model.save();
@@ -589,7 +593,7 @@ export class InCloudMigrator extends InCloud {
     }
     const groupNames = new Set<string>(["api"]);
     for (const [key, extension] of this.extensionManager.extensions.entries()) {
-      for (const group of extension.actionGroups) {
+      for (const group of extension.apiGroups) {
         groupNames.add(group.groupName);
         await syncGroup(group, key);
       }

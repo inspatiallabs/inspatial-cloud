@@ -379,3 +379,15 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
 
 export interface ChildEntryTypeInfo extends Omit<BaseTypeInfo, "children"> {
 }
+
+/** Defines a ChildEntryType */
+export function defineChildEntry<N extends string>(
+  name: N,
+  config: {
+    label?: string;
+    description?: string;
+    fields: Array<InField>;
+  },
+): ChildEntryType<N> {
+  return new ChildEntryType(name, config);
+}

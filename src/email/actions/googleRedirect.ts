@@ -7,7 +7,7 @@ import { GoogleOAuth } from "~/auth/providers/google/accessToken.ts";
 export const redirectAction = new CloudAPIAction("redirect", {
   description: "Redirect from Google OAuth",
 
-  async run({ inRequest, params, orm, inResponse }) {
+  async action({ inRequest, params, orm, inResponse }) {
     const emailSettings = await orm.getSettings("emailSettings");
     const authSettings = await orm.getSettings("authSettings");
     if (!authSettings.$googleClientId || !authSettings.$googleClientSecret) {

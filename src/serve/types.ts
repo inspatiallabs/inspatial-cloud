@@ -123,7 +123,7 @@ export interface ExtensionOptions<
     entries: Partial<GlobalEntryHooks>;
     settings: Partial<GlobalSettingsHooks>;
   };
-  actionGroups?: AG;
+  apiGroups?: AG;
   install?(
     inCloud: InCloud,
     config: ExtensionConfig<C>,

@@ -3,7 +3,7 @@ import type { SessionData } from "../types.ts";
 
 export const updateAccount = new CloudAPIAction("updateAccount", {
   description: "Updates the account data for the current authenticated user",
-  async run({ inRequest, params, inCloud }) {
+  async action({ inRequest, params, inCloud }) {
     const user = inRequest.context.get<SessionData>("user");
     if (!user || !user.accountId) {
       return;

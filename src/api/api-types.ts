@@ -1,4 +1,4 @@
-import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type { InValue } from "~/orm/field/types.ts";
 
 /**
@@ -62,16 +62,17 @@ export interface CloudAPIActionDocs {
 /**
  * A typed map of parameters passed to an action handler.
  */
-export type CloudParam<P extends PropertyKey> = Omit<InField, "key"> & {
+export type CloudParam<
+  P extends PropertyKey,
+> = {
   key: P;
-};
+} & InField;
 /**
  * A typed map of required parameters passed to an action handler.
  */
 
 export type ExtractParams<
-  K extends PropertyKey,
-  P extends Array<CloudParam<K>>,
+  P extends Array<InField>,
 > =
   & {
     [S in P[number] as S["required"] extends true ? S["key"] : never]: InValue<

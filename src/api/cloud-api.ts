@@ -100,7 +100,7 @@ export class CloudAPI {
       label: "Get Docs",
       description: "Get API documentation",
       params: [],
-      run({ inCloud, inRequest }) {
+      action({ inCloud, inRequest }) {
         const user = inRequest.context.get<SessionData>("user");
         if (!user) {
           return;
@@ -142,7 +142,7 @@ export class CloudAPI {
       description: "Ping the server",
       authRequired: false,
       params: [],
-      run({ inCloud }) {
+      action({ inCloud }) {
         return {
           message: "pong",
           timestamp: Date.now(),

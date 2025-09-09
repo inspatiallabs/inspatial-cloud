@@ -28,7 +28,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
-import { type RoleConfig, RoleManager } from "~/orm/roles/role.ts";
+import { RoleManager } from "~/orm/roles/role.ts";
 import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
@@ -393,10 +393,10 @@ export class InCloud {
   #installExtension(cloudExtension: CloudExtension): void {
     const config = this.extensionManager.getExtensionConfig(cloudExtension.key);
 
-    const { actionGroups } = cloudExtension;
+    const { apiGroups } = cloudExtension;
 
-    for (const actionGroup of actionGroups) {
-      this.api.addGroup(actionGroup);
+    for (const apiGroup of apiGroups) {
+      this.api.addGroup(apiGroup);
     }
     const extensionObject = cloudExtension.install(
       this,

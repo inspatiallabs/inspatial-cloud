@@ -34,15 +34,29 @@ function parseArgs() {
 }
 
 function makeMainFile(projectName: string) {
-  const mainfile = `import { createInCloud } from "@inspatial/cloud";
+  const mainfile =
+    `import { createInCloud, defineExtension, defineEntry } from "@inspatial/cloud";
 
-createInCloud({
-  name: "${projectName}",
-  description: "My InCloud Project",
-  entryTypes: [], // Define your entry types here
-  settingsTypes: [], // Define your settings types here
-  actionGroups: [], // Define your API action groups here
+const myEntry = defineEntry("myEntry",{
+  label: "My Entry",
+  description: "A sample entry type",
+  titleField: "name",
+  fields: [{
+    key: "name",
+    type: "DataField",
+    required: true,
+  }]
 });
+
+const myExtension = defineExtension("myExtension",{
+  label: "My Extension",
+  description: "A sample extension",
+  entryTypes: [myEntry],
+  settingsTypes: [],
+  actionGroups: [],
+});
+
+createInCloud("${projectName}", [myExtension]);
 
 `;
   return mainfile;

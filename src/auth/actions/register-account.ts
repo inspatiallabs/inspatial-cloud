@@ -5,7 +5,7 @@ export const registerAccount = new CloudAPIAction("registerAccount", {
   label: "Register Account",
   description: "Create a new acount and assign the given user as the owner.",
   authRequired: false,
-  async run({ inCloud, orm, params, inRequest, inResponse }) {
+  async action({ inCloud, orm, params, inRequest, inResponse }) {
     const { $enableSignup } = await orm.getSettings(
       "systemSettings",
     );

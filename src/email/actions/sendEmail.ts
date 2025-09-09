@@ -32,7 +32,7 @@ export const sendEmail = new CloudAPIAction("sendEmail", {
       type: "BooleanField",
     },
   ],
-  async run({ inCloud, params }) {
+  async action({ inCloud, params }) {
     const { body, recipientEmail, subject, now } = params;
     return await inCloud.emailManager.sendEmail({
       body,

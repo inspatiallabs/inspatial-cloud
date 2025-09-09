@@ -4,7 +4,7 @@ export const resetPassword = new CloudAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
   label: "Reset Password",
-  async run({ inCloud, orm, inRequest, params }) {
+  async action({ inCloud, orm, inRequest, params }) {
     const { email, resetUrl } = params;
     const user = await orm.findEntry("user", [{
       field: "email",

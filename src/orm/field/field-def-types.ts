@@ -62,6 +62,7 @@ type DependsOn<FK extends PropertyKey = PropertyKey> =
     value: InValue | Array<InValue>;
   }>;
 type BaseField<FK extends PropertyKey = PropertyKey> = {
+  type: InFieldType;
   key: string;
   label?: string;
   description?: string;
@@ -78,6 +79,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
 
   dependsOn?: DependsOn<FK>;
 };
+
 export interface IDField extends BaseField {
   type: "IDField";
   idMode: IDMode;

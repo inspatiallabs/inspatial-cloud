@@ -3,7 +3,7 @@ import type { SessionData } from "../types.ts";
 
 export const getAccount = new CloudAPIAction("getAccount", {
   description: "Gets the account for the current authenticated user",
-  async run({ inRequest, inCloud }) {
+  async action({ inRequest, inCloud }) {
     const user = inRequest.context.get<SessionData>("user");
     if (!user || !user.accountId) {
       return;

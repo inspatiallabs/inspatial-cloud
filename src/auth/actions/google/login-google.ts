@@ -5,7 +5,7 @@ import { generateId } from "~/utils/mod.ts";
 export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
   authRequired: false,
   description: "Redirect to Google OAuth2 login page",
-  async run({ orm, inRequest, params }) {
+  async action({ orm, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,

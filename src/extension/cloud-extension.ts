@@ -73,7 +73,7 @@ export class CloudExtension<
     account: AfterMigrate[];
     global: AfterMigrate[];
   };
-  actionGroups: AG;
+  apiGroups: AG;
   install: (
     inCloud: InCloud,
     config: ExtensionConfig<C>,
@@ -137,9 +137,9 @@ export class CloudExtension<
     this.#validateConfigEnv();
     this.entryTypes = options.entryTypes || [];
     this.settingsTypes = options.settingsTypes || [];
-    this.actionGroups = [] as any;
-    for (const actionGroup of options.actionGroups || []) {
-      this.actionGroups.push(actionGroup);
+    this.apiGroups = [] as any;
+    for (const actionGroup of options.apiGroups || []) {
+      this.apiGroups.push(actionGroup);
     }
     this.install = options.install || (() => {});
 
@@ -220,4 +220,18 @@ export class CloudExtension<
       accountMigrate,
     };
   }
+}
+
+export function defineExtension<
+  AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
+  N extends string = string,
+  C extends ConfigDefinition = ConfigDefinition,
+>(
+  extensionName: N,
+  config: Omit<ExtensionOptions<AG, C>, "name"> & {
+    label?: string;
+    description?: string;
+  },
+): CloudExtension<AG, N, C> {
+  return new CloudExtension<AG, N, C>(extensionName, config);
 }

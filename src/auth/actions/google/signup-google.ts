@@ -5,7 +5,7 @@ import { generateId } from "../../../utils/misc.ts";
 export const signupWithGoogle = new CloudAPIAction("signupWithGoogle", {
   authRequired: false,
   description: "Sign up with Google",
-  async run({ orm, inRequest, params }) {
+  async action({ orm, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,

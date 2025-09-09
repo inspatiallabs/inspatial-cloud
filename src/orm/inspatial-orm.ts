@@ -289,7 +289,7 @@ export class InSpatialORM {
       }
     }
   }
-  getEntryInstance<E extends EntryName>(
+  _getEntryInstance<E extends EntryName>(
     entryType: E,
   ): EntryMap[E] {
     return this.roles.getEntryInstance<E>(
@@ -298,7 +298,7 @@ export class InSpatialORM {
       this._user || this.systemAdminUser,
     );
   }
-  getSettingsInstance<S extends SettingsName>(
+  _getSettingsInstance<S extends SettingsName>(
     settingsType: S,
   ): SettingsMap[S] {
     return this.roles.getSettingsInstance<S>(
@@ -307,6 +307,7 @@ export class InSpatialORM {
       this._user || this.systemAdminUser,
     );
   }
+  /** Get the entry type definition for a specific entry type. */
   getEntryType<E extends EntryName = EntryName>(
     entryType: E,
   ): EntryType<E> {
@@ -315,6 +316,7 @@ export class InSpatialORM {
       this._user?.role || this.systemAdminUser.role,
     );
   }
+  /** Gets the settings type definition for a specific settings type. */
   getSettingsType<S extends SettingsName>(
     settingsType: S,
   ): SettingsType<S> {
@@ -323,7 +325,7 @@ export class InSpatialORM {
       this._user?.role || this.systemAdminUser.role,
     );
   }
-  getEntryTypeRegistry(
+  _getEntryTypeRegistry(
     entryType: string,
   ): EntryTypeRegistry | undefined {
     return this.roles.getRegistry(
@@ -340,8 +342,8 @@ export class InSpatialORM {
     entryType: E,
     data: NewEntry<E>,
   ): Promise<EntryMap[E]> {
-    const entry = this.getEntryInstance(entryType);
-    entry.create();
+    const entry = this._getEntryInstance(entryType);
+    entry._create();
     entry.update(data);
     await entry.save();
     return entry;
@@ -352,8 +354,8 @@ export class InSpatialORM {
   getNewEntry<E extends EntryName>(
     entryType: E,
   ): EntryMap[E] {
-    const entry = this.getEntryInstance(entryType);
-    entry.create();
+    const entry = this._getEntryInstance(entryType);
+    entry._create();
     return entry;
   }
 
@@ -364,8 +366,8 @@ export class InSpatialORM {
     entryType: E,
     id: IDValue,
   ): Promise<EntryMap[E]> {
-    const entry = this.getEntryInstance(entryType);
-    await entry.load(id);
+    const entry = this._getEntryInstance(entryType);
+    await entry._load(id);
     return entry;
   }
   /**
@@ -384,7 +386,7 @@ export class InSpatialORM {
   }
 
   /**
-   * Deletes an entry from the database.
+   * Deletes an entry from the database by its ID.
    */
   async deleteEntry<E extends EntryName>(
     entryType: E,
@@ -402,6 +404,7 @@ export class InSpatialORM {
     return entry;
   }
 
+  /** Counts the how many entries there are in the database for all entry types that reference this one via a `ConnectionField` */
   async countConnections<E extends EntryName>(
     entryName: E,
     id: string,
@@ -434,6 +437,7 @@ export class InSpatialORM {
     }
     return results;
   }
+  /** Finds and returns an instance of a single entry matching the provided filter. Returns null if no entry is found. */
   async findEntry<E extends EntryName>(
     entryType: E,
     filter: DBFilter,
@@ -452,6 +456,7 @@ export class InSpatialORM {
     const entry = await this.getEntry(entryType, result.rows[0].id);
     return entry;
   }
+  /** Finds and returns the ID of a single entry matching the provided filter. Returns null if no entry is found. */
   async findEntryId<E extends EntryName>(
     entryType: E,
     filter: DBFilter,
@@ -567,14 +572,22 @@ export class InSpatialORM {
 
   /** Tags Section **/
 
+  /** Gets a list of all the tags currently in the system. */
   async getTags(): Promise<Array<Tag>> {
     const { rows } = await this.db.getRows<Tag>("inTag");
     return rows;
   }
+
+  /** Checks if a tag with the given ID exists in the system.
+   *  @param tagId The ID of the tag to check for.
+   */
   async hasTag(tagId: number): Promise<boolean> {
     const result = await this.db.getRow("inTag", tagId);
     return !!result;
   }
+  /** Gets a tag by its name. Returns null if not found.
+   * @param tagName The name of the tag to search for.
+   */
   async getTagByName(tagName: string): Promise<
     {
       id: number;
@@ -595,6 +608,9 @@ export class InSpatialORM {
     }
     return result.rows[0];
   }
+  /** Adds a new tag to the system. Tag names are unique and case insensitive.
+   * @param tagName The name of the tag to add.
+   */
   async addTag(tagName: string): Promise<{
     id: number;
     name: string;
@@ -622,7 +638,7 @@ export class InSpatialORM {
   }
 
   /** End Tags section **/
-
+  /** Sums the values of specified fields for entries of a specific EntryType, with optional filtering and grouping. */
   async sum(entryType: string, options: {
     fields: Array<string>;
     filter?: DBFilter;
@@ -700,6 +716,7 @@ export class InSpatialORM {
       groupBy: Array.from(groupByColumns),
     });
   }
+  /** Counts the number of entries for a specific EntryType, with optional filtering and grouping. */
   async count<E extends EntryName>(
     entryType: E,
     options?: {
@@ -752,13 +769,13 @@ export class InSpatialORM {
   // Settings
 
   /**
-   * Gets the settings for a specific settings type.
+   * Gets all the settings for a specific `SettingsType`.
    */
   async getSettings<S extends SettingsName>(
     settingsType: S,
   ): Promise<SettingsMap[S]> {
-    const settings = this.getSettingsInstance(settingsType);
-    await settings.load();
+    const settings = this._getSettingsInstance(settingsType);
+    await settings._load();
     return settings;
   }
   /**
@@ -786,7 +803,7 @@ export class InSpatialORM {
     settingsType: S,
     field: K,
   ): Promise<SettingsMap[S]["__fields__"][K]> {
-    const settings = this.getSettingsInstance(settingsType);
+    const settings = this._getSettingsInstance(settingsType);
     return await settings.getValue(field as string);
   }
 

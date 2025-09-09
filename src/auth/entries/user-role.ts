@@ -108,7 +108,7 @@ userRole.addAction({
   description: "Generate the role configuration as a JSON object",
   private: false,
   params: [],
-  async action({ userRole, orm, inCloud }) {
+  async action({ userRole, orm }) {
     const roleConfig: RoleConfig = {
       roleName: userRole.$roleKey,
       description: userRole.$description || "",

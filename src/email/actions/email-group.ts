@@ -21,7 +21,7 @@ emailGroup.addAction("getLinks", {
     label: "Entry ID",
     required: false,
   }],
-  async run({ inRequest, params, inCloud }) {
+  async action({ inRequest, params, inCloud }) {
     const { entryId, entryType } = params;
     const user = inRequest.context.get<SessionData>("user");
 

@@ -5,7 +5,7 @@ import { raiseServerException } from "~/serve/server-exception.ts";
 
 const googleTokenLogin = new CloudAPIAction("googleTokenLogin", {
   authRequired: false,
-  async run({ inCloud, orm, inRequest, inResponse, params }) {
+  async action({ inCloud, orm, inRequest, inResponse, params }) {
     const { accessToken } = params;
     const authSettings = await orm.getSettings("authSettings");
     if (!authSettings.$googleClientId || !authSettings.$googleClientSecret) {
