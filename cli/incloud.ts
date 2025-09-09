@@ -121,8 +121,12 @@ async function doInit(_rootPath: string, projectName?: string) {
     const status = await proc.status;
     Deno.writeTextFileSync("main.ts", makeMainFile(projectName));
     if (status.success) {
+      const clean = new Deno.Command(Deno.execPath(), {
+        args: ["clean"],
+      });
+      await clean.output();
       const cmd = new Deno.Command(Deno.execPath(), {
-        args: ["cache", "--reload", "main.ts"],
+        args: ["cache", "main.ts"],
       });
       await cmd.output();
 
