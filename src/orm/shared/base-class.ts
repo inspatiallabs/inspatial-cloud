@@ -110,7 +110,7 @@ export class BaseClass<N extends string = string> {
       taskEntryType,
     );
     for (const [key, value] of Object.entries(fields)) {
-      (task as any)[key] = value;
+      (task as any)[`$${key}`] = value;
     }
     await task.save();
     const info = {
