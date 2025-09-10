@@ -53,7 +53,7 @@ const myExtension = defineExtension("myExtension",{
   description: "A sample extension",
   entryTypes: [myEntry],
   settingsTypes: [],
-  apiActions: [],
+  apiGroups: [],
 });
 
 createInCloud("${projectName}", [myExtension]);
