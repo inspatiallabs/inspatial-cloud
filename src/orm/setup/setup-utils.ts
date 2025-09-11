@@ -31,6 +31,12 @@ export function buildConnectionFields(
         "Invalid Connection",
       );
     }
+    if (
+      !entryOrSettingsOrChildType.systemGlobal &&
+      connectionEntryType.systemGlobal
+    ) {
+      field.global = true;
+    }
     const titleField = buildConnectionTitleField(
       field,
       connectionEntryType,
@@ -185,6 +191,7 @@ function buildConnectionTitleField<E extends EntryType<any>>(
     fetchField: {
       connectionField: field.key,
       fetchField: titleFieldKey,
+      global: field.global || undefined,
     },
   } as InField;
 

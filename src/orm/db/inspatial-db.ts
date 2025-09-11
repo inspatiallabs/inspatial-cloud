@@ -3,6 +3,7 @@ import type {
   DBConfig,
   DBFilter,
   DBListOptions,
+  ForeignKeyConstraint,
   PgColumnDefinition,
   PgDataTypeDefinition,
   PostgresColumn,
@@ -776,6 +777,7 @@ export class InSpatialDB {
     const result = await this.query<TableIndex>(query);
     return result.rows;
   }
+
   /**
    * Run a VACUUM ANALYZE on the database or a specific table
    */
@@ -993,45 +995,30 @@ export class InSpatialDB {
   /**
    * Add a foreign key constraint to a column
    */
-  async addForeignKey(foreignKey: {
-    /**
-     * The name of the table
-     */
-    tableName: string;
-    /**
-     * The name of the column
-     */
-    columnName: string;
-    /**
-     * The name of the foreign table
-     */
-    foreignTableName: string;
-    /**
-     * The name of the foreign column
-     */
-    foreignColumnName: string;
-    /**
-     * The name of the constraint
-     */
-    constraintName: string;
-    options?: {
-      onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
-      onUpdate?: "cascade" | "null" | "restrict" | "no action"; // default no action
-    };
-  }): Promise<void> {
+  async addForeignKey(
+    foreignKey: ForeignKeyConstraint & {
+      options?: {
+        onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
+        onUpdate?: "cascade" | "null" | "restrict" | "no action"; // default no action
+      };
+    },
+  ): Promise<void> {
     let {
       tableName,
       columnName,
       foreignTableName,
       foreignColumnName,
       options,
+      global,
     } = foreignKey;
     tableName = toSnake(tableName);
     const formattedCol = formatColumnName(columnName);
     foreignTableName = toSnake(foreignTableName);
     foreignColumnName = formatColumnName(foreignColumnName);
     let query =
-      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES "${this.schema}".${foreignTableName} (${foreignColumnName})`;
+      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES ${
+        global ? "cloud_global" : '"' + this.schema + '"'
+      }.${foreignTableName} (${foreignColumnName})`;
     if (options?.onDelete) {
       switch (options.onDelete) {
         case "cascade":

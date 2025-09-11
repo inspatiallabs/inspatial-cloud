@@ -816,6 +816,12 @@ export class InSpatialORM {
     value: InValue,
     filters: DBFilter,
   ): Promise<void> {
+    console.log("batchUpdateField", {
+      entryType,
+      fieldOrChildField,
+      value,
+      filters,
+    });
     const entryTypeDef = this.getEntryType(entryType as EntryName);
     if (typeof fieldOrChildField === "string") {
       const field = fieldOrChildField;

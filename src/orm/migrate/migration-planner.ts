@@ -92,9 +92,57 @@ export class MigrationPlanner {
     await this.createMigrationPlan();
     await this.#verifyTagsTable();
     await this.#verifySettingsTable();
+    await this.#createViews();
     await this.#migrateEntryTypes();
     await this.#migrateSettingsTypes();
     return this.#results;
+  }
+  async #createViews(): Promise<void> {
+    if (this.db.schema === "cloud_global") {
+      return; // skip for global schema
+    }
+    if (!await this.db.tableExists("entry_account")) {
+      await this.db.query(
+        `CREATE VIEW "${this.db.schema}".entry_account AS SELECT * FROM cloud_global.entry_account WHERE id = '${this.db.schema}';`,
+      );
+    }
+    if (!await this.db.tableExists("child_account_users")) {
+      await this.db.query(
+        `CREATE VIEW "${this.db.schema}".child_account_users AS SELECT * FROM cloud_global.child_account_users WHERE parent = '${this.db.schema}';`,
+      );
+    }
+    if (!await this.db.tableExists("entry_user")) {
+      await this.db.query(
+        `CREATE VIEW "${this.db.schema}".entry_user AS SELECT * FROM cloud_global.entry_user WHERE (id IN ( SELECT child_account_users."user"
+                   FROM "${this.db.schema}".child_account_users));`,
+      );
+    }
+
+    const { rows: tableNames } = await this.db.query<{ tableName: string }>(
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = 'cloud_global';`,
+    );
+    const skipTables = new Set([
+      "entry_account",
+      "entry_user",
+      "child_account_users",
+      "entry_user_session",
+      "in_settings",
+      "in_tag",
+    ]);
+    const tables = tableNames.filter((table) =>
+      !skipTables.has(table.tableName)
+    ).map((t) => t.tableName);
+
+    for (const tableName of tables) {
+      const viewName = tableName;
+      const exists = await this.db.tableExists(viewName);
+      if (exists) {
+        continue;
+      }
+      await this.db.query(
+        `CREATE VIEW "${this.db.schema}".${viewName} AS SELECT * FROM cloud_global.${tableName};`,
+      );
+    }
   }
   async #validateSchema(): Promise<void> {
     const hasSchema = await this.db.hasSchema(this.db.schema);

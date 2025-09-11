@@ -8,7 +8,7 @@ import type {
   TableIndex,
 } from "~/orm/db/db-types.ts";
 import { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migration-plan.ts";
-import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
@@ -183,7 +183,8 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   }
 
   #loadTargetColumns(): void {
-    for (const field of this.entryType.fields.values()) {
+    for (const inField of this.entryType.fields.values()) {
+      const field = inField as InField<InFieldType> & { global?: boolean };
       if (field.key == "id") {
         const idField = field as InField<"IDField">;
         this.migrationPlan.table.idMode = idField.idMode;
@@ -221,10 +222,13 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
       this.targetConstraints.foreignKey.set(field.key, {
         columnName: field.key,
-        constraintName: `${this.#tableName}_${field.key}_fk`,
+        constraintName: `${
+          field.global ? "global_" : ""
+        }${this.#tableName}_${field.key}_fk`,
         foreignColumnName: "id",
         foreignTableName: connectionEntryType.config.tableName,
         tableName: this.#tableName,
+        global: field?.global,
       });
     }
   }

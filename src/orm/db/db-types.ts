@@ -94,11 +94,15 @@ export interface TableConstraint {
   nullsDistinct: null;
 }
 export interface ForeignKeyConstraint {
+  /**
+   * The name of the table
+   */
   tableName: string;
   columnName: string;
   foreignTableName: string;
   constraintName: string;
   foreignColumnName: string;
+  global?: boolean;
 }
 export interface PostgresColumn extends PgDataTypeDefinition {
   tableCatalog: string;
