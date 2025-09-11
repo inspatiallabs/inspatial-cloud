@@ -1,7 +1,7 @@
 import type {
-  ActionParam,
   EntryActionConfig,
   EntryActionDefinition,
+  EntryActionMethod,
   EntryConfig,
   EntryConnection,
   EntryHookDefinition,
@@ -233,7 +233,13 @@ export class EntryType<
       >
     ) {
       for (const hook of hookList) {
-        this.addHook(hookName, hook);
+        const hookMap = this.hooks[hookName];
+        if (hookMap.has(hook.name)) {
+          raiseORMException(
+            `Hook with name ${hook.name} already exists for ${hookName} in EntryType ${this.name}`,
+          );
+        }
+        hookMap.set(hook.name, hook);
       }
     }
   }
@@ -261,6 +267,15 @@ export class EntryType<
         `Hook with name ${hook.name} already exists for ${hookName} in EntryType ${this.name}`,
       );
     }
+    this.sourceConfig.hooks = {
+      ...(this.sourceConfig.hooks || {}),
+      [hookName]: [
+        ...((this.sourceConfig.hooks?.[hookName] as Array<
+          EntryHookDefinition<E>
+        >) || []),
+        hook,
+      ],
+    };
     hookMap.set(hook.name, hook);
   }
   addChild(childName: string, config: {
@@ -277,16 +292,30 @@ export class EntryType<
     child.setParentEntryType(this.name);
   }
   addAction<
-    K extends PropertyKey = PropertyKey,
-    P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
-  >(action: EntryActionConfig<E, K, P>): void {
-    if (this.actions.has(action.key)) {
+    K extends string,
+    AP extends Array<InField & { key: K }> | undefined,
+  >(actionName: string, config: {
+    label?: string;
+    description?: string;
+    private?: boolean;
+    params?: AP extends undefined ? never : AP;
+    action: EntryActionMethod<E, AP>;
+  }): void {
+    if (this.actions.has(actionName)) {
       raiseORMException(
-        `Action with key ${action.key} already exists in EntryType ${this.name}`,
+        `Action with key ${actionName} already exists in EntryType ${this.name}`,
       );
     }
+    const action = {
+      key: actionName,
+      action: config.action,
+      params: config.params,
+      label: config.label,
+      description: config.description,
+      private: config.private,
+    };
     setupAction(action);
-    this.actions.set(action.key, action as any);
+    this.actions.set(actionName, action as any);
     this.info = {
       ...this.info,
       actions: Array.from(this.actions.values()).filter((action) =>
@@ -296,11 +325,11 @@ export class EntryType<
   }
 }
 
-function setupAction(action: EntryActionConfig<any, any, any>): void {
+function setupAction(action: EntryActionConfig | EntryActionDefinition): void {
   if (!action.label) {
     action.label = convertString(action.key, "title", true);
   }
-  for (const param of action.params) {
+  for (const param of action.params || []) {
     if (!param.label) {
       param.label = convertString(param.key, "title", true);
     }

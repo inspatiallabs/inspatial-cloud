@@ -75,17 +75,17 @@ export class BaseClass<N extends string = string> {
     this._childrenData = new Map();
   }
 
-  async runAction<T = unknown>(
+  async runAction(
     actionKey: string,
     data?: Record<string, any>,
-  ): Promise<T> {
+  ): Promise<unknown> {
     const action = this.#getAndValidateAction(actionKey, data);
 
     data = data || {};
     return await action.action({
       orm: this._orm,
       inCloud: this._inCloud,
-      data,
+      params: data,
       [this._name]: this as any,
       [this._type]: this as any,
     } as any);
@@ -110,7 +110,7 @@ export class BaseClass<N extends string = string> {
       taskEntryType,
     );
     for (const [key, value] of Object.entries(fields)) {
-      (task as any)[key] = value;
+      (task as any)[`$${key}`] = value;
     }
     await task.save();
     const info = {

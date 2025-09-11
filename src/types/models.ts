@@ -134,7 +134,7 @@ type UserFields = {
    */
   profilePicture__title?: string | null;
 };
-export type User = EntryBase<"user", UserFields> & {
+export interface User extends EntryBase<"user", UserFields> {
   _name: "user";
   __fields__: UserFields;
   /**
@@ -273,7 +273,7 @@ export type User = EntryBase<"user", UserFields> & {
     actionName: N,
     params: UserParamsActionMap[N]["params"],
   ): UserParamsActionMap[N]["return"];
-};
+}
 type UserActionMap = {
   generateApiToken: {
     return: Promise<unknown>;
@@ -362,7 +362,8 @@ type UserSessionFields = {
    */
   user__title?: string | null;
 };
-export type UserSession = EntryBase<"userSession", UserSessionFields> & {
+export interface UserSession
+  extends EntryBase<"userSession", UserSessionFields> {
   _name: "userSession";
   __fields__: UserSessionFields;
   /**
@@ -413,7 +414,7 @@ export type UserSession = EntryBase<"userSession", UserSessionFields> & {
    * @type {string}
    */
   $user__title?: string | null;
-};
+}
 
 type AccountFields = {
   /**
@@ -506,7 +507,7 @@ type AccountFields = {
     role__title?: string | null;
   }>;
 };
-export type Account = EntryBase<"account", AccountFields> & {
+export interface Account extends EntryBase<"account", AccountFields> {
   _name: "account";
   __fields__: AccountFields;
   /**
@@ -605,7 +606,7 @@ export type Account = EntryBase<"account", AccountFields> & {
     actionName: N,
     params: AccountParamsActionMap[N]["params"],
   ): AccountParamsActionMap[N]["return"];
-};
+}
 type AccountActionMap = {
   queueInitialize: {
     return: Promise<unknown>;
@@ -735,7 +736,8 @@ type InTaskGlobalFields = {
    */
   updatedAt: number;
 };
-export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
+export interface InTaskGlobal
+  extends EntryBase<"inTaskGlobal", InTaskGlobalFields> {
   _name: "inTaskGlobal";
   __fields__: InTaskGlobalFields;
   /**
@@ -826,7 +828,7 @@ export type InTaskGlobal = EntryBase<"inTaskGlobal", InTaskGlobalFields> & {
   runAction<N extends keyof InTaskGlobalActionMap>(
     actionName: N,
   ): InTaskGlobalActionMap[N]["return"];
-};
+}
 type InTaskGlobalActionMap = {
   runTask: {
     return: Promise<unknown>;
@@ -920,7 +922,7 @@ type InTaskFields = {
    */
   updatedAt: number;
 };
-export type InTask = EntryBase<"inTask", InTaskFields> & {
+export interface InTask extends EntryBase<"inTask", InTaskFields> {
   _name: "inTask";
   __fields__: InTaskFields;
   /**
@@ -1011,7 +1013,7 @@ export type InTask = EntryBase<"inTask", InTaskFields> & {
   runAction<N extends keyof InTaskActionMap>(
     actionName: N,
   ): InTaskActionMap[N]["return"];
-};
+}
 type InTaskActionMap = {
   runTask: {
     return: Promise<unknown>;
@@ -1206,7 +1208,7 @@ type CloudFileFields = {
    */
   updatedAt: number;
 };
-export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
+export interface CloudFile extends EntryBase<"cloudFile", CloudFileFields> {
   _name: "cloudFile";
   __fields__: CloudFileFields;
   /**
@@ -1395,6 +1397,14 @@ export type CloudFile = EntryBase<"cloudFile", CloudFileFields> & {
    * @required true
    */
   $updatedAt: number;
+  runAction<N extends keyof CloudFileActionMap>(
+    actionName: N,
+  ): CloudFileActionMap[N]["return"];
+}
+type CloudFileActionMap = {
+  getContent: {
+    return: Promise<unknown>;
+  };
 };
 
 type GlobalCloudFileFields = {
@@ -1585,198 +1595,214 @@ type GlobalCloudFileFields = {
    */
   updatedAt: number;
 };
-export type GlobalCloudFile =
-  & EntryBase<"globalCloudFile", GlobalCloudFileFields>
-  & {
-    _name: "globalCloudFile";
-    __fields__: GlobalCloudFileFields;
-    /**
-     * **File Name** (DataField)
-     * @type {string}
-     * @required true
-     */
-    $fileName: string;
-    /**
-     * **File Size** (IntField)
-     * @type {number}
-     * @required true
-     */
-    $fileSize: number;
-    /**
-     * **File Type** (ChoicesField)
-     * @type {'audio' | 'image' | 'video' | 'document' | 'application' | 'code' | 'text' | 'font' | 'archive' | 'unknown'}
-     * @required true
-     */
-    $fileType:
-      | "audio"
-      | "image"
-      | "video"
-      | "document"
-      | "application"
-      | "code"
-      | "text"
-      | "font"
-      | "archive"
-      | "unknown";
-    /**
-     * **File Extension** (ChoicesField)
-     * @type {'aac' | 'apng' | 'avif' | 'avi' | 'azw' | 'bin' | 'bmp' | 'csh' | 'css' | 'csv' | 'doc' | 'docx' | 'eot' | 'epub' | 'gz' | 'gif' | 'htm' | 'html' | 'ico' | 'ics' | 'jar' | 'jpeg' | 'jpg' | 'js' | 'json' | 'jsonld' | 'mid' | 'midi' | 'mjs' | 'mp3' | 'mp4' | 'mpeg' | 'mpkg' | 'odp' | 'ods' | 'odt' | 'oga' | 'ogv' | 'ogx' | 'opus' | 'otf' | 'png' | 'pdf' | 'php' | 'ppt' | 'pptx' | 'rar' | 'rtf' | 'sh' | 'svg' | 'tar' | 'tif' | 'tiff' | 'ts' | 'ttf' | 'txt' | 'wav' | 'weba' | 'webm' | 'webp' | 'woff' | 'woff2' | 'xhtml' | 'xls' | 'xlsx' | 'xml' | 'zip' | 'arc'}
-     */
-    $fileExtension?:
-      | "aac"
-      | "apng"
-      | "avif"
-      | "avi"
-      | "azw"
-      | "bin"
-      | "bmp"
-      | "csh"
-      | "css"
-      | "csv"
-      | "doc"
-      | "docx"
-      | "eot"
-      | "epub"
-      | "gz"
-      | "gif"
-      | "htm"
-      | "html"
-      | "ico"
-      | "ics"
-      | "jar"
-      | "jpeg"
-      | "jpg"
-      | "js"
-      | "json"
-      | "jsonld"
-      | "mid"
-      | "midi"
-      | "mjs"
-      | "mp3"
-      | "mp4"
-      | "mpeg"
-      | "mpkg"
-      | "odp"
-      | "ods"
-      | "odt"
-      | "oga"
-      | "ogv"
-      | "ogx"
-      | "opus"
-      | "otf"
-      | "png"
-      | "pdf"
-      | "php"
-      | "ppt"
-      | "pptx"
-      | "rar"
-      | "rtf"
-      | "sh"
-      | "svg"
-      | "tar"
-      | "tif"
-      | "tiff"
-      | "ts"
-      | "ttf"
-      | "txt"
-      | "wav"
-      | "weba"
-      | "webm"
-      | "webp"
-      | "woff"
-      | "woff2"
-      | "xhtml"
-      | "xls"
-      | "xlsx"
-      | "xml"
-      | "zip"
-      | "arc"
-      | null;
-    /**
-     * **Mime Type** (DataField)
-     * @type {string}
-     */
-    $mimeType?: string | null;
-    /**
-     * **File Type Description** (DataField)
-     * @type {string}
-     */
-    $fileTypeDescription?: string | null;
-    /**
-     * **File Path** (TextField)
-     * @type {string}
-     * @required true
-     */
-    $filePath: string;
-    /**
-     * **Public File** (BooleanField)
-     * @description If enabled, this file can be accessed publicly without authentication.
-     * @type {boolean}
-     */
-    $publicFile: boolean;
-    /**
-     * **Optimize Image** (BooleanField)
-     * @description If enabled, images will be optimized
-     * @type {boolean}
-     */
-    $optimizeImage: boolean;
-    /**
-     * **Optimized** (BooleanField)
-     * @description Indicates if the image has been optimized.
-     * @type {boolean}
-     */
-    $optimized: boolean;
-    /**
-     * **Optimize Width** (IntField)
-     * @type {number}
-     */
-    $optimizeWidth?: number | null;
-    /**
-     * **Optimize Height** (IntField)
-     * @type {number}
-     */
-    $optimizeHeight?: number | null;
-    /**
-     * **Optimize Format** (ChoicesField)
-     * @type {'jpeg' | 'png'}
-     */
-    $optimizeFormat?: "jpeg" | "png" | null;
-    /**
-     * **Has Thumbnail** (BooleanField)
-     * @type {boolean}
-     */
-    $hasThumbnail: boolean;
-    /**
-     * **Thumbnail Size** (IntField)
-     * @type {number}
-     */
-    $thumbnailSize?: number | null;
-    /**
-     * **Thumbnail Path** (TextField)
-     * @type {string}
-     */
-    $thumbnailPath?: string | null;
-    /**
-     * **System File** (IDField)
-     * @type {string}
-     * @required true
-     */
-    $id: string;
-    /**
-     * **Created At** (TimeStampField)
-     * @description The date and time this entry was created
-     * @type {number}
-     * @required true
-     */
-    $createdAt: number;
-    /**
-     * **Updated At** (TimeStampField)
-     * @description The date and time this entry was last updated
-     * @type {number}
-     * @required true
-     */
-    $updatedAt: number;
+export interface GlobalCloudFile
+  extends EntryBase<"globalCloudFile", GlobalCloudFileFields> {
+  _name: "globalCloudFile";
+  __fields__: GlobalCloudFileFields;
+  /**
+   * **File Name** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $fileName: string;
+  /**
+   * **File Size** (IntField)
+   * @type {number}
+   * @required true
+   */
+  $fileSize: number;
+  /**
+   * **File Type** (ChoicesField)
+   * @type {'audio' | 'image' | 'video' | 'document' | 'application' | 'code' | 'text' | 'font' | 'archive' | 'unknown'}
+   * @required true
+   */
+  $fileType:
+    | "audio"
+    | "image"
+    | "video"
+    | "document"
+    | "application"
+    | "code"
+    | "text"
+    | "font"
+    | "archive"
+    | "unknown";
+  /**
+   * **File Extension** (ChoicesField)
+   * @type {'aac' | 'apng' | 'avif' | 'avi' | 'azw' | 'bin' | 'bmp' | 'csh' | 'css' | 'csv' | 'doc' | 'docx' | 'eot' | 'epub' | 'gz' | 'gif' | 'htm' | 'html' | 'ico' | 'ics' | 'jar' | 'jpeg' | 'jpg' | 'js' | 'json' | 'jsonld' | 'mid' | 'midi' | 'mjs' | 'mp3' | 'mp4' | 'mpeg' | 'mpkg' | 'odp' | 'ods' | 'odt' | 'oga' | 'ogv' | 'ogx' | 'opus' | 'otf' | 'png' | 'pdf' | 'php' | 'ppt' | 'pptx' | 'rar' | 'rtf' | 'sh' | 'svg' | 'tar' | 'tif' | 'tiff' | 'ts' | 'ttf' | 'txt' | 'wav' | 'weba' | 'webm' | 'webp' | 'woff' | 'woff2' | 'xhtml' | 'xls' | 'xlsx' | 'xml' | 'zip' | 'arc'}
+   */
+  $fileExtension?:
+    | "aac"
+    | "apng"
+    | "avif"
+    | "avi"
+    | "azw"
+    | "bin"
+    | "bmp"
+    | "csh"
+    | "css"
+    | "csv"
+    | "doc"
+    | "docx"
+    | "eot"
+    | "epub"
+    | "gz"
+    | "gif"
+    | "htm"
+    | "html"
+    | "ico"
+    | "ics"
+    | "jar"
+    | "jpeg"
+    | "jpg"
+    | "js"
+    | "json"
+    | "jsonld"
+    | "mid"
+    | "midi"
+    | "mjs"
+    | "mp3"
+    | "mp4"
+    | "mpeg"
+    | "mpkg"
+    | "odp"
+    | "ods"
+    | "odt"
+    | "oga"
+    | "ogv"
+    | "ogx"
+    | "opus"
+    | "otf"
+    | "png"
+    | "pdf"
+    | "php"
+    | "ppt"
+    | "pptx"
+    | "rar"
+    | "rtf"
+    | "sh"
+    | "svg"
+    | "tar"
+    | "tif"
+    | "tiff"
+    | "ts"
+    | "ttf"
+    | "txt"
+    | "wav"
+    | "weba"
+    | "webm"
+    | "webp"
+    | "woff"
+    | "woff2"
+    | "xhtml"
+    | "xls"
+    | "xlsx"
+    | "xml"
+    | "zip"
+    | "arc"
+    | null;
+  /**
+   * **Mime Type** (DataField)
+   * @type {string}
+   */
+  $mimeType?: string | null;
+  /**
+   * **File Type Description** (DataField)
+   * @type {string}
+   */
+  $fileTypeDescription?: string | null;
+  /**
+   * **File Path** (TextField)
+   * @type {string}
+   * @required true
+   */
+  $filePath: string;
+  /**
+   * **Public File** (BooleanField)
+   * @description If enabled, this file can be accessed publicly without authentication.
+   * @type {boolean}
+   */
+  $publicFile: boolean;
+  /**
+   * **Optimize Image** (BooleanField)
+   * @description If enabled, images will be optimized
+   * @type {boolean}
+   */
+  $optimizeImage: boolean;
+  /**
+   * **Optimized** (BooleanField)
+   * @description Indicates if the image has been optimized.
+   * @type {boolean}
+   */
+  $optimized: boolean;
+  /**
+   * **Optimize Width** (IntField)
+   * @type {number}
+   */
+  $optimizeWidth?: number | null;
+  /**
+   * **Optimize Height** (IntField)
+   * @type {number}
+   */
+  $optimizeHeight?: number | null;
+  /**
+   * **Optimize Format** (ChoicesField)
+   * @type {'jpeg' | 'png'}
+   */
+  $optimizeFormat?: "jpeg" | "png" | null;
+  /**
+   * **Has Thumbnail** (BooleanField)
+   * @type {boolean}
+   */
+  $hasThumbnail: boolean;
+  /**
+   * **Thumbnail Size** (IntField)
+   * @type {number}
+   */
+  $thumbnailSize?: number | null;
+  /**
+   * **Thumbnail Path** (TextField)
+   * @type {string}
+   */
+  $thumbnailPath?: string | null;
+  /**
+   * **System File** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  runAction<N extends keyof GlobalCloudFileParamsActionMap>(
+    actionName: N,
+    params: GlobalCloudFileParamsActionMap[N]["params"],
+  ): GlobalCloudFileParamsActionMap[N]["return"];
+}
+type GlobalCloudFileParamsActionMap = {
+  getContent: {
+    params: {
+      /**
+       * **As String** (BooleanField)
+       * @description Return the content as a string instead of a byte array
+       * @type {boolean}
+       */
+      asText: boolean;
+    };
+    return: Promise<unknown>;
   };
+};
 
 type EmailFields = {
   /**
@@ -1891,7 +1917,7 @@ type EmailFields = {
    */
   linkAccount__title?: string | null;
 };
-export type Email = EntryBase<"email", EmailFields> & {
+export interface Email extends EntryBase<"email", EmailFields> {
   _name: "email";
   __fields__: EmailFields;
   /**
@@ -2008,7 +2034,7 @@ export type Email = EntryBase<"email", EmailFields> & {
   runAction<N extends keyof EmailActionMap>(
     actionName: N,
   ): EmailActionMap[N]["return"];
-};
+}
 type EmailActionMap = {
   enqueueSend: {
     return: Promise<unknown>;
@@ -2131,7 +2157,8 @@ type EmailAccountFields = {
    */
   updatedAt: number;
 };
-export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
+export interface EmailAccount
+  extends EntryBase<"emailAccount", EmailAccountFields> {
   _name: "emailAccount";
   __fields__: EmailAccountFields;
   /**
@@ -2248,7 +2275,7 @@ export type EmailAccount = EntryBase<"emailAccount", EmailAccountFields> & {
   runAction<N extends keyof EmailAccountActionMap>(
     actionName: N,
   ): EmailAccountActionMap[N]["return"];
-};
+}
 type EmailAccountActionMap = {
   refreshToken: {
     return: Promise<unknown>;
@@ -2293,7 +2320,8 @@ type EmailTemplateFields = {
    */
   updatedAt: number;
 };
-export type EmailTemplate = EntryBase<"emailTemplate", EmailTemplateFields> & {
+export interface EmailTemplate
+  extends EntryBase<"emailTemplate", EmailTemplateFields> {
   _name: "emailTemplate";
   __fields__: EmailTemplateFields;
   /**
@@ -2336,7 +2364,7 @@ export type EmailTemplate = EntryBase<"emailTemplate", EmailTemplateFields> & {
     actionName: N,
     params: EmailTemplateParamsActionMap[N]["params"],
   ): EmailTemplateParamsActionMap[N]["return"];
-};
+}
 type EmailTemplateParamsActionMap = {
   renderTemplate: {
     params: {
@@ -2451,110 +2479,109 @@ type OnboardingStepFields = {
     choices?: Record<string, unknown> | null;
   }>;
 };
-export type OnboardingStep =
-  & EntryBase<"onboardingStep", OnboardingStepFields>
-  & {
-    _name: "onboardingStep";
-    __fields__: OnboardingStepFields;
+export interface OnboardingStep
+  extends EntryBase<"onboardingStep", OnboardingStepFields> {
+  _name: "onboardingStep";
+  __fields__: OnboardingStepFields;
+  /**
+   * **Title** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $title: string;
+  /**
+   * **Description** (TextField)
+   * @type {string}
+   */
+  $description?: string | null;
+  /**
+   * **Order** (IntField)
+   * @type {number}
+   * @required true
+   */
+  $order: number;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  $onboardingField: ChildList<{
     /**
-     * **Title** (DataField)
+     * **Key** (DataField)
+     * @description The unique identifier for the field, used in forms and data processing.
      * @type {string}
      * @required true
      */
-    $title: string;
+    key: string;
+    /**
+     * **Label** (DataField)
+     * @description The label for the field, displayed to the user.
+     * @type {string}
+     */
+    label?: string | null;
+    /**
+     * **Placeholder** (DataField)
+     * @description Placeholder text for the field, providing a hint to the user about what to enter.
+     * @type {string}
+     */
+    placeholder?: string | null;
+    /**
+     * **Required** (BooleanField)
+     * @description Indicates whether the field is required to be filled out by the user.
+     * @type {boolean}
+     */
+    required: boolean;
     /**
      * **Description** (TextField)
+     * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
      * @type {string}
      */
-    $description?: string | null;
+    description?: string | null;
     /**
-     * **Order** (IntField)
-     * @type {number}
+     * **Type** (ChoicesField)
+     * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'TimeStampField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
      * @required true
      */
-    $order: number;
+    type:
+      | "DataField"
+      | "TextField"
+      | "EmailField"
+      | "PasswordField"
+      | "PhoneField"
+      | "URLField"
+      | "DateField"
+      | "TimeField"
+      | "TimeStampField"
+      | "BooleanField"
+      | "ChoicesField"
+      | "MultiChoiceField"
+      | "ListField"
+      | "JSONField"
+      | "ImageField"
+      | "FileField"
+      | "CurrencyField";
     /**
-     * **ID** (IDField)
-     * @type {string}
-     * @required true
+     * **Choices** (JSONField)
+     * @type {Record<string, unknown>}
      */
-    $id: string;
-    /**
-     * **Created At** (TimeStampField)
-     * @description The date and time this entry was created
-     * @type {number}
-     * @required true
-     */
-    $createdAt: number;
-    /**
-     * **Updated At** (TimeStampField)
-     * @description The date and time this entry was last updated
-     * @type {number}
-     * @required true
-     */
-    $updatedAt: number;
-    $onboardingField: ChildList<{
-      /**
-       * **Key** (DataField)
-       * @description The unique identifier for the field, used in forms and data processing.
-       * @type {string}
-       * @required true
-       */
-      key: string;
-      /**
-       * **Label** (DataField)
-       * @description The label for the field, displayed to the user.
-       * @type {string}
-       */
-      label?: string | null;
-      /**
-       * **Placeholder** (DataField)
-       * @description Placeholder text for the field, providing a hint to the user about what to enter.
-       * @type {string}
-       */
-      placeholder?: string | null;
-      /**
-       * **Required** (BooleanField)
-       * @description Indicates whether the field is required to be filled out by the user.
-       * @type {boolean}
-       */
-      required: boolean;
-      /**
-       * **Description** (TextField)
-       * @description A short description of the field, explaining its purpose and usage. This will be displayed to the user under the field input.
-       * @type {string}
-       */
-      description?: string | null;
-      /**
-       * **Type** (ChoicesField)
-       * @type {'DataField' | 'TextField' | 'EmailField' | 'PasswordField' | 'PhoneField' | 'URLField' | 'DateField' | 'TimeField' | 'TimeStampField' | 'BooleanField' | 'ChoicesField' | 'MultiChoiceField' | 'ListField' | 'JSONField' | 'ImageField' | 'FileField' | 'CurrencyField'}
-       * @required true
-       */
-      type:
-        | "DataField"
-        | "TextField"
-        | "EmailField"
-        | "PasswordField"
-        | "PhoneField"
-        | "URLField"
-        | "DateField"
-        | "TimeField"
-        | "TimeStampField"
-        | "BooleanField"
-        | "ChoicesField"
-        | "MultiChoiceField"
-        | "ListField"
-        | "JSONField"
-        | "ImageField"
-        | "FileField"
-        | "CurrencyField";
-      /**
-       * **Choices** (JSONField)
-       * @type {Record<string, unknown>}
-       */
-      choices?: Record<string, unknown> | null;
-    }>;
-  };
+    choices?: Record<string, unknown> | null;
+  }>;
+}
 
 type UserRoleFields = {
   /**
@@ -2609,7 +2636,7 @@ type UserRoleFields = {
    */
   extendsRole__title?: string | null;
 };
-export type UserRole = EntryBase<"userRole", UserRoleFields> & {
+export interface UserRole extends EntryBase<"userRole", UserRoleFields> {
   _name: "userRole";
   __fields__: UserRoleFields;
   /**
@@ -2666,7 +2693,7 @@ export type UserRole = EntryBase<"userRole", UserRoleFields> & {
   runAction<N extends keyof UserRoleActionMap>(
     actionName: N,
   ): UserRoleActionMap[N]["return"];
-};
+}
 type UserRoleActionMap = {
   syncWithSystem: {
     return: Promise<unknown>;
@@ -2721,7 +2748,8 @@ type ExtensionMetaFields = {
    */
   updatedAt: number;
 };
-export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
+export interface ExtensionMeta
+  extends EntryBase<"extensionMeta", ExtensionMetaFields> {
   _name: "extensionMeta";
   __fields__: ExtensionMetaFields;
   /**
@@ -2767,7 +2795,7 @@ export type ExtensionMeta = EntryBase<"extensionMeta", ExtensionMetaFields> & {
    * @required true
    */
   $updatedAt: number;
-};
+}
 
 type EntryMetaFields = {
   /**
@@ -2875,7 +2903,7 @@ type EntryMetaFields = {
     active: boolean;
   }>;
 };
-export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
+export interface EntryMeta extends EntryBase<"entryMeta", EntryMetaFields> {
   _name: "entryMeta";
   __fields__: EntryMetaFields;
   /**
@@ -2982,7 +3010,7 @@ export type EntryMeta = EntryBase<"entryMeta", EntryMetaFields> & {
      */
     active: boolean;
   }>;
-};
+}
 
 type SettingsMetaFields = {
   /**
@@ -3077,7 +3105,8 @@ type SettingsMetaFields = {
     active: boolean;
   }>;
 };
-export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
+export interface SettingsMeta
+  extends EntryBase<"settingsMeta", SettingsMetaFields> {
   _name: "settingsMeta";
   __fields__: SettingsMetaFields;
   /**
@@ -3171,7 +3200,7 @@ export type SettingsMeta = EntryBase<"settingsMeta", SettingsMetaFields> & {
      */
     active: boolean;
   }>;
-};
+}
 
 type FieldMetaFields = {
   /**
@@ -3354,7 +3383,7 @@ type FieldMetaFields = {
       | null;
   }>;
 };
-export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
+export interface FieldMeta extends EntryBase<"fieldMeta", FieldMetaFields> {
   _name: "fieldMeta";
   __fields__: FieldMetaFields;
   /**
@@ -3536,7 +3565,7 @@ export type FieldMeta = EntryBase<"fieldMeta", FieldMetaFields> & {
       | "muted"
       | null;
   }>;
-};
+}
 
 type ActionMetaFields = {
   /**
@@ -3684,7 +3713,7 @@ type ActionMetaFields = {
     entryType__title?: string | null;
   }>;
 };
-export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
+export interface ActionMeta extends EntryBase<"actionMeta", ActionMetaFields> {
   _name: "actionMeta";
   __fields__: ActionMetaFields;
   /**
@@ -3831,7 +3860,7 @@ export type ActionMeta = EntryBase<"actionMeta", ActionMetaFields> & {
      */
     entryType__title?: string | null;
   }>;
-};
+}
 
 type EntryPermissionFields = {
   /**
@@ -3971,148 +4000,147 @@ type EntryPermissionFields = {
     action__title?: string | null;
   }>;
 };
-export type EntryPermission =
-  & EntryBase<"entryPermission", EntryPermissionFields>
-  & {
-    _name: "entryPermission";
-    __fields__: EntryPermissionFields;
+export interface EntryPermission
+  extends EntryBase<"entryPermission", EntryPermissionFields> {
+  _name: "entryPermission";
+  __fields__: EntryPermissionFields;
+  /**
+   * **User Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @description The user role this permission applies to
+   * @type {string}
+   * @required true
+   */
+  $userRole: string;
+  /**
+   * **Entry** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @description The entry type this permission applies to
+   * @type {string}
+   * @required true
+   */
+  $entryMeta: string;
+  /**
+   * **Can View** (BooleanField)
+   * @description Whether users with this role can view entries of this type
+   * @type {boolean}
+   */
+  $canView: boolean;
+  /**
+   * **Can Modify** (BooleanField)
+   * @description Whether users with this role can modify entries of this type
+   * @type {boolean}
+   */
+  $canModify: boolean;
+  /**
+   * **Can Create** (BooleanField)
+   * @description Whether users with this role can create entries of this type
+   * @type {boolean}
+   */
+  $canCreate: boolean;
+  /**
+   * **Can Delete** (BooleanField)
+   * @description Whether users with this role can delete entries of this type
+   * @type {boolean}
+   */
+  $canDelete: boolean;
+  /**
+   * **Allow All Actions** (BooleanField)
+   * @description If true, all actions will be allowed. If false, actions can be set individually.
+   * @type {boolean}
+   */
+  $allowAllActions: boolean;
+  /**
+   * **User Scope Field** (ConnectionField)
+   *
+   * **EntryType** `fieldMeta`
+   * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
+   * @type {string}
+   */
+  $userScope?: string | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Role Title** (DataField)
+   * @type {string}
+   */
+  $userRole__title?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryMeta__title?: string | null;
+  /**
+   * **User Scope Field Title** (DataField)
+   * @type {string}
+   */
+  $userScope__title?: string | null;
+  $fieldPermissions: ChildList<{
     /**
-     * **User Role** (ConnectionField)
-     *
-     * **EntryType** `userRole`
-     * @description The user role this permission applies to
-     * @type {string}
-     * @required true
-     */
-    $userRole: string;
-    /**
-     * **Entry** (ConnectionField)
-     *
-     * **EntryType** `entryMeta`
-     * @description The entry type this permission applies to
-     * @type {string}
-     * @required true
-     */
-    $entryMeta: string;
-    /**
-     * **Can View** (BooleanField)
-     * @description Whether users with this role can view entries of this type
-     * @type {boolean}
-     */
-    $canView: boolean;
-    /**
-     * **Can Modify** (BooleanField)
-     * @description Whether users with this role can modify entries of this type
-     * @type {boolean}
-     */
-    $canModify: boolean;
-    /**
-     * **Can Create** (BooleanField)
-     * @description Whether users with this role can create entries of this type
-     * @type {boolean}
-     */
-    $canCreate: boolean;
-    /**
-     * **Can Delete** (BooleanField)
-     * @description Whether users with this role can delete entries of this type
-     * @type {boolean}
-     */
-    $canDelete: boolean;
-    /**
-     * **Allow All Actions** (BooleanField)
-     * @description If true, all actions will be allowed. If false, actions can be set individually.
-     * @type {boolean}
-     */
-    $allowAllActions: boolean;
-    /**
-     * **User Scope Field** (ConnectionField)
+     * **Field** (ConnectionField)
      *
      * **EntryType** `fieldMeta`
-     * @description Optional field to scope the permissions to the user's own entries. The field must be a ConnectionField to the user entry.
-     * @type {string}
-     */
-    $userScope?: string | null;
-    /**
-     * **ID** (IDField)
      * @type {string}
      * @required true
      */
-    $id: string;
+    field: string;
     /**
-     * **Created At** (TimeStampField)
-     * @description The date and time this entry was created
-     * @type {number}
+     * **Can View** (BooleanField)
+     * @type {boolean}
+     */
+    canView: boolean;
+    /**
+     * **Can Modify** (BooleanField)
+     * @type {boolean}
+     */
+    canModify: boolean;
+    /**
+     * **Field Title** (DataField)
+     * @type {string}
+     */
+    field__title?: string | null;
+  }>;
+  $actionPermissions: ChildList<{
+    /**
+     * **Action** (ConnectionField)
+     *
+     * **EntryType** `actionMeta`
+     * @type {string}
      * @required true
      */
-    $createdAt: number;
+    action: string;
     /**
-     * **Updated At** (TimeStampField)
-     * @description The date and time this entry was last updated
-     * @type {number}
-     * @required true
+     * **Can Execute** (BooleanField)
+     * @type {boolean}
      */
-    $updatedAt: number;
+    canExecute: boolean;
     /**
-     * **User Role Title** (DataField)
+     * **Action Title** (DataField)
      * @type {string}
      */
-    $userRole__title?: string | null;
-    /**
-     * **Entry Title** (DataField)
-     * @type {string}
-     */
-    $entryMeta__title?: string | null;
-    /**
-     * **User Scope Field Title** (DataField)
-     * @type {string}
-     */
-    $userScope__title?: string | null;
-    $fieldPermissions: ChildList<{
-      /**
-       * **Field** (ConnectionField)
-       *
-       * **EntryType** `fieldMeta`
-       * @type {string}
-       * @required true
-       */
-      field: string;
-      /**
-       * **Can View** (BooleanField)
-       * @type {boolean}
-       */
-      canView: boolean;
-      /**
-       * **Can Modify** (BooleanField)
-       * @type {boolean}
-       */
-      canModify: boolean;
-      /**
-       * **Field Title** (DataField)
-       * @type {string}
-       */
-      field__title?: string | null;
-    }>;
-    $actionPermissions: ChildList<{
-      /**
-       * **Action** (ConnectionField)
-       *
-       * **EntryType** `actionMeta`
-       * @type {string}
-       * @required true
-       */
-      action: string;
-      /**
-       * **Can Execute** (BooleanField)
-       * @type {boolean}
-       */
-      canExecute: boolean;
-      /**
-       * **Action Title** (DataField)
-       * @type {string}
-       */
-      action__title?: string | null;
-    }>;
-  };
+    action__title?: string | null;
+  }>;
+}
 
 type SettingsPermissionFields = {
   /**
@@ -4224,120 +4252,119 @@ type SettingsPermissionFields = {
     action__title?: string | null;
   }>;
 };
-export type SettingsPermission =
-  & EntryBase<"settingsPermission", SettingsPermissionFields>
-  & {
-    _name: "settingsPermission";
-    __fields__: SettingsPermissionFields;
+export interface SettingsPermission
+  extends EntryBase<"settingsPermission", SettingsPermissionFields> {
+  _name: "settingsPermission";
+  __fields__: SettingsPermissionFields;
+  /**
+   * **User Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @description The user role this permission applies to
+   * @type {string}
+   * @required true
+   */
+  $userRole: string;
+  /**
+   * **Settings** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @description The settings type this permission applies to
+   * @type {string}
+   * @required true
+   */
+  $settingsMeta: string;
+  /**
+   * **Can View** (BooleanField)
+   * @type {boolean}
+   */
+  $canView: boolean;
+  /**
+   * **Can Modify** (BooleanField)
+   * @type {boolean}
+   */
+  $canModify: boolean;
+  /**
+   * **Allow All Actions** (BooleanField)
+   * @type {boolean}
+   */
+  $allowAllActions: boolean;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Role Title** (DataField)
+   * @type {string}
+   */
+  $userRole__title?: string | null;
+  /**
+   * **Settings Title** (DataField)
+   * @type {string}
+   */
+  $settingsMeta__title?: string | null;
+  $fieldPermissions: ChildList<{
     /**
-     * **User Role** (ConnectionField)
+     * **Field** (ConnectionField)
      *
-     * **EntryType** `userRole`
-     * @description The user role this permission applies to
+     * **EntryType** `fieldMeta`
      * @type {string}
      * @required true
      */
-    $userRole: string;
-    /**
-     * **Settings** (ConnectionField)
-     *
-     * **EntryType** `settingsMeta`
-     * @description The settings type this permission applies to
-     * @type {string}
-     * @required true
-     */
-    $settingsMeta: string;
+    field: string;
     /**
      * **Can View** (BooleanField)
      * @type {boolean}
      */
-    $canView: boolean;
+    canView: boolean;
     /**
      * **Can Modify** (BooleanField)
      * @type {boolean}
      */
-    $canModify: boolean;
+    canModify: boolean;
     /**
-     * **Allow All Actions** (BooleanField)
+     * **Field Title** (DataField)
+     * @type {string}
+     */
+    field__title?: string | null;
+  }>;
+  $actionPermissions: ChildList<{
+    /**
+     * **Action** (ConnectionField)
+     *
+     * **EntryType** `actionMeta`
+     * @type {string}
+     * @required true
+     */
+    action: string;
+    /**
+     * **Can Execute** (BooleanField)
      * @type {boolean}
      */
-    $allowAllActions: boolean;
+    canExecute: boolean;
     /**
-     * **ID** (IDField)
-     * @type {string}
-     * @required true
-     */
-    $id: string;
-    /**
-     * **Created At** (TimeStampField)
-     * @description The date and time this entry was created
-     * @type {number}
-     * @required true
-     */
-    $createdAt: number;
-    /**
-     * **Updated At** (TimeStampField)
-     * @description The date and time this entry was last updated
-     * @type {number}
-     * @required true
-     */
-    $updatedAt: number;
-    /**
-     * **User Role Title** (DataField)
+     * **Action Title** (DataField)
      * @type {string}
      */
-    $userRole__title?: string | null;
-    /**
-     * **Settings Title** (DataField)
-     * @type {string}
-     */
-    $settingsMeta__title?: string | null;
-    $fieldPermissions: ChildList<{
-      /**
-       * **Field** (ConnectionField)
-       *
-       * **EntryType** `fieldMeta`
-       * @type {string}
-       * @required true
-       */
-      field: string;
-      /**
-       * **Can View** (BooleanField)
-       * @type {boolean}
-       */
-      canView: boolean;
-      /**
-       * **Can Modify** (BooleanField)
-       * @type {boolean}
-       */
-      canModify: boolean;
-      /**
-       * **Field Title** (DataField)
-       * @type {string}
-       */
-      field__title?: string | null;
-    }>;
-    $actionPermissions: ChildList<{
-      /**
-       * **Action** (ConnectionField)
-       *
-       * **EntryType** `actionMeta`
-       * @type {string}
-       * @required true
-       */
-      action: string;
-      /**
-       * **Can Execute** (BooleanField)
-       * @type {boolean}
-       */
-      canExecute: boolean;
-      /**
-       * **Action Title** (DataField)
-       * @type {string}
-       */
-      action__title?: string | null;
-    }>;
-  };
+    action__title?: string | null;
+  }>;
+}
 
 type ApiGroupFields = {
   /**
@@ -4392,7 +4419,7 @@ type ApiGroupFields = {
    */
   extensionMeta__title?: string | null;
 };
-export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
+export interface ApiGroup extends EntryBase<"apiGroup", ApiGroupFields> {
   _name: "apiGroup";
   __fields__: ApiGroupFields;
   /**
@@ -4446,7 +4473,7 @@ export type ApiGroup = EntryBase<"apiGroup", ApiGroupFields> & {
    * @type {string}
    */
   $extensionMeta__title?: string | null;
-};
+}
 
 type ApiActionFields = {
   /**
@@ -4597,7 +4624,7 @@ type ApiActionFields = {
     entryType__title?: string | null;
   }>;
 };
-export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
+export interface ApiAction extends EntryBase<"apiAction", ApiActionFields> {
   _name: "apiAction";
   __fields__: ApiActionFields;
   /**
@@ -4747,7 +4774,7 @@ export type ApiAction = EntryBase<"apiAction", ApiActionFields> & {
      */
     entryType__title?: string | null;
   }>;
-};
+}
 
 type ApiGroupPermissionFields = {
   /**
@@ -4830,91 +4857,259 @@ type ApiGroupPermissionFields = {
     apiAction__title?: string | null;
   }>;
 };
-export type ApiGroupPermission =
-  & EntryBase<"apiGroupPermission", ApiGroupPermissionFields>
-  & {
-    _name: "apiGroupPermission";
-    __fields__: ApiGroupPermissionFields;
+export interface ApiGroupPermission
+  extends EntryBase<"apiGroupPermission", ApiGroupPermissionFields> {
+  _name: "apiGroupPermission";
+  __fields__: ApiGroupPermissionFields;
+  /**
+   * **User Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @type {string}
+   * @required true
+   */
+  $userRole: string;
+  /**
+   * **Api Group** (ConnectionField)
+   *
+   * **EntryType** `apiGroup`
+   * @type {string}
+   * @required true
+   */
+  $apiGroup: string;
+  /**
+   * **Can Access** (BooleanField)
+   * @description Whether the role can access this API group. Turns off all actions if false.
+   * @type {boolean}
+   */
+  $canAccess: boolean;
+  /**
+   * **Access All** (BooleanField)
+   * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
+   * @type {boolean}
+   */
+  $accessAll: boolean;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Role Title** (DataField)
+   * @type {string}
+   */
+  $userRole__title?: string | null;
+  /**
+   * **Api Group Title** (DataField)
+   * @type {string}
+   */
+  $apiGroup__title?: string | null;
+  $actions: ChildList<{
     /**
-     * **User Role** (ConnectionField)
+     * **Action** (ConnectionField)
      *
-     * **EntryType** `userRole`
+     * **EntryType** `apiAction`
      * @type {string}
      * @required true
      */
-    $userRole: string;
-    /**
-     * **Api Group** (ConnectionField)
-     *
-     * **EntryType** `apiGroup`
-     * @type {string}
-     * @required true
-     */
-    $apiGroup: string;
+    apiAction: string;
     /**
      * **Can Access** (BooleanField)
-     * @description Whether the role can access this API group. Turns off all actions if false.
+     * @description Whether the role can access this API action
      * @type {boolean}
      */
-    $canAccess: boolean;
+    canAccess: boolean;
     /**
-     * **Access All** (BooleanField)
-     * @description If enabled, the role will have access to all actions within this group. Individual action permissions will be ignored.
-     * @type {boolean}
+     * **Action Title** (DataField)
+     * @type {string}
      */
-    $accessAll: boolean;
+    apiAction__title?: string | null;
+  }>;
+}
+
+type DataImportFields = {
+  /**
+   * **Csv** (FileField)
+   * @type {string}
+   */
+  csv?: string | null;
+  /**
+   * **Entry** (DataField)
+   * @type {string}
+   * @required true
+   */
+  entryType: string;
+  /**
+   * **Status** (ChoicesField)
+   * @type {'pending' | 'processing' | 'completed' | 'failed'}
+   */
+  status?: "pending" | "processing" | "completed" | "failed" | null;
+  /**
+   * **Total Records** (IntField)
+   * @type {number}
+   */
+  totalRecords?: number | null;
+  /**
+   * **Successful Records** (IntField)
+   * @type {number}
+   */
+  successfulRecords?: number | null;
+  /**
+   * **Failed Records** (IntField)
+   * @type {number}
+   */
+  failedRecords?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **Csv Title** (DataField)
+   * @type {string}
+   */
+  csv__title?: string | null;
+  columnMap: ChildList<{
     /**
-     * **ID** (IDField)
+     * **Column Name** (DataField)
      * @type {string}
      * @required true
      */
-    $id: string;
+    columnName: string;
     /**
-     * **Created At** (TimeStampField)
-     * @description The date and time this entry was created
-     * @type {number}
-     * @required true
-     */
-    $createdAt: number;
-    /**
-     * **Updated At** (TimeStampField)
-     * @description The date and time this entry was last updated
-     * @type {number}
-     * @required true
-     */
-    $updatedAt: number;
-    /**
-     * **User Role Title** (DataField)
+     * **Example Data** (DataField)
      * @type {string}
      */
-    $userRole__title?: string | null;
+    exampleData?: string | null;
     /**
-     * **Api Group Title** (DataField)
+     * **Map To** (DataField)
      * @type {string}
      */
-    $apiGroup__title?: string | null;
-    $actions: ChildList<{
-      /**
-       * **Action** (ConnectionField)
-       *
-       * **EntryType** `apiAction`
-       * @type {string}
-       * @required true
-       */
-      apiAction: string;
-      /**
-       * **Can Access** (BooleanField)
-       * @description Whether the role can access this API action
-       * @type {boolean}
-       */
-      canAccess: boolean;
-      /**
-       * **Action Title** (DataField)
-       * @type {string}
-       */
-      apiAction__title?: string | null;
-    }>;
+    mapTo?: string | null;
+  }>;
+};
+export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
+  _name: "dataImport";
+  __fields__: DataImportFields;
+  /**
+   * **Csv** (FileField)
+   * @type {string}
+   */
+  $csv?: string | null;
+  /**
+   * **Entry** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $entryType: string;
+  /**
+   * **Status** (ChoicesField)
+   * @type {'pending' | 'processing' | 'completed' | 'failed'}
+   */
+  $status?: "pending" | "processing" | "completed" | "failed" | null;
+  /**
+   * **Total Records** (IntField)
+   * @type {number}
+   */
+  $totalRecords?: number | null;
+  /**
+   * **Successful Records** (IntField)
+   * @type {number}
+   */
+  $successfulRecords?: number | null;
+  /**
+   * **Failed Records** (IntField)
+   * @type {number}
+   */
+  $failedRecords?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **Csv Title** (DataField)
+   * @type {string}
+   */
+  $csv__title?: string | null;
+  $columnMap: ChildList<{
+    /**
+     * **Column Name** (DataField)
+     * @type {string}
+     * @required true
+     */
+    columnName: string;
+    /**
+     * **Example Data** (DataField)
+     * @type {string}
+     */
+    exampleData?: string | null;
+    /**
+     * **Map To** (DataField)
+     * @type {string}
+     */
+    mapTo?: string | null;
+  }>;
+  runAction<N extends keyof DataImportActionMap>(
+    actionName: N,
+  ): DataImportActionMap[N]["return"];
+}
+type DataImportActionMap = {
+  getContent: {
+    return: Promise<unknown>;
   };
+  processInfo: {
+    return: Promise<unknown>;
+  };
+  import: {
+    return: Promise<unknown>;
+  };
+};
 
 type SystemSettingsFields = {
   /**
@@ -4931,25 +5126,24 @@ type SystemSettingsFields = {
    */
   serverHost: string;
 };
-export type SystemSettings =
-  & SettingsBase<"systemSettings", SystemSettingsFields>
-  & {
-    _name: "systemSettings";
-    __fields__: SystemSettingsFields;
-    /**
-     * **Enable User Signup** (BooleanField)
-     * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
-     * @type {boolean}
-     */
-    $enableSignup: boolean;
-    /**
-     * **Server Host** (URLField)
-     * @description The host URL of the server. This is used for generating links and API endpoints.
-     * @type {string}
-     * @required true
-     */
-    $serverHost: string;
-  };
+export interface SystemSettings
+  extends SettingsBase<"systemSettings", SystemSettingsFields> {
+  _name: "systemSettings";
+  __fields__: SystemSettingsFields;
+  /**
+   * **Enable User Signup** (BooleanField)
+   * @description Enable user signup for new accounts. Turn off to prevent new users from signing up.
+   * @type {boolean}
+   */
+  $enableSignup: boolean;
+  /**
+   * **Server Host** (URLField)
+   * @description The host URL of the server. This is used for generating links and API endpoints.
+   * @type {string}
+   * @required true
+   */
+  $serverHost: string;
+}
 
 type AuthSettingsFields = {
   /**
@@ -4971,7 +5165,8 @@ type AuthSettingsFields = {
    */
   hostname?: string | null;
 };
-export type AuthSettings = SettingsBase<"authSettings", AuthSettingsFields> & {
+export interface AuthSettings
+  extends SettingsBase<"authSettings", AuthSettingsFields> {
   _name: "authSettings";
   __fields__: AuthSettingsFields;
   /**
@@ -4992,7 +5187,7 @@ export type AuthSettings = SettingsBase<"authSettings", AuthSettingsFields> & {
    * @type {string}
    */
   $hostname?: string | null;
-};
+}
 
 type EmailSettingsFields = {
   /**
@@ -5016,32 +5211,31 @@ type EmailSettingsFields = {
    */
   defaultSendAccount__title?: string | null;
 };
-export type EmailSettings =
-  & SettingsBase<"emailSettings", EmailSettingsFields>
-  & {
-    _name: "emailSettings";
-    __fields__: EmailSettingsFields;
-    /**
-     * **Final Redirect** (URLField)
-     * @description The final url to redirect to after Google OAuth completes
-     * @type {string}
-     */
-    $redirectFinal?: string | null;
-    /**
-     * **Default Send Account** (ConnectionField)
-     *
-     * **EntryType** `emailAccount`
-     * @description The default email account to use for sending emails
-     * @type {string}
-     */
-    $defaultSendAccount?: string | null;
-    /**
-     * **Default Send Account Title** (EmailField)
-     * @description The email account to send emails from
-     * @type {string}
-     */
-    $defaultSendAccount__title?: string | null;
-  };
+export interface EmailSettings
+  extends SettingsBase<"emailSettings", EmailSettingsFields> {
+  _name: "emailSettings";
+  __fields__: EmailSettingsFields;
+  /**
+   * **Final Redirect** (URLField)
+   * @description The final url to redirect to after Google OAuth completes
+   * @type {string}
+   */
+  $redirectFinal?: string | null;
+  /**
+   * **Default Send Account** (ConnectionField)
+   *
+   * **EntryType** `emailAccount`
+   * @description The default email account to use for sending emails
+   * @type {string}
+   */
+  $defaultSendAccount?: string | null;
+  /**
+   * **Default Send Account Title** (EmailField)
+   * @description The email account to send emails from
+   * @type {string}
+   */
+  $defaultSendAccount__title?: string | null;
+}
 
 type OnboardingFields = {
   /**
@@ -5051,7 +5245,8 @@ type OnboardingFields = {
    */
   enabled: boolean;
 };
-export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
+export interface Onboarding
+  extends SettingsBase<"onboarding", OnboardingFields> {
   _name: "onboarding";
   __fields__: OnboardingFields;
   /**
@@ -5060,7 +5255,7 @@ export type Onboarding = SettingsBase<"onboarding", OnboardingFields> & {
    * @type {boolean}
    */
   $enabled: boolean;
-};
+}
 
 export interface EntryMap {
   user: User;
@@ -5085,6 +5280,7 @@ export interface EntryMap {
   apiGroup: ApiGroup;
   apiAction: ApiAction;
   apiGroupPermission: ApiGroupPermission;
+  dataImport: DataImport;
 }
 export interface SettingsMap {
   systemSettings: SystemSettings;

@@ -1,11 +1,12 @@
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { InField, InFieldMap } from "~/orm/field/field-def-types.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
-import { raiseORMException } from "~/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "~/orm/orm-exception.ts";
 import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
 import type { RegisterFieldConfig } from "../registry/connection-registry.ts";
 import type { EntryName } from "#types/models.ts";
+import { getInLog } from "#inLog";
 
 export function buildConnectionFields(
   role: Role,
@@ -25,12 +26,20 @@ export function buildConnectionFields(
     let connectionEntryType: EntryType;
     try {
       connectionEntryType = role.getEntryType(field.entryType as EntryName);
-    } catch (_e) {
-      raiseORMException(
-        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist for role '${role.label}'`,
-        "Invalid Connection",
-      );
+    } catch (e) {
+      if (e instanceof ORMException && e.subject === "NoEntryType") {
+        // If the connection entry type does not exist, it's likely because the role doesn't have permission to it
+        // So we just remove the field from this entry type and warn about it
+
+        entryOrSettingsOrChildType.fields.delete(field.key);
+        getInLog("cloud").warn(
+          `Connection field '${field.key}' in '${entryOrSettingsOrChildType.name}' references non-existent entry type '${field.entryType}'. The field has been removed.`,
+        );
+        continue;
+      }
+      throw e;
     }
+
     const titleField = buildConnectionTitleField(
       field,
       connectionEntryType,

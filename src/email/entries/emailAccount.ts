@@ -218,11 +218,9 @@ export const emailAccountEntry = new EntryType(
   },
 );
 
-emailAccountEntry.addAction({
-  key: "refreshToken",
+emailAccountEntry.addAction("refreshToken", {
   private: true,
   label: "Refresh Token",
-  params: [],
   description: "Refresh the access token for this email account",
   async action({ orm, emailAccount }) {
     const { $googleClientId, $googleClientSecret } = await orm.getSettings(

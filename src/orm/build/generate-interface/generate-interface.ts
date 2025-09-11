@@ -38,7 +38,7 @@ function generateCommon(entryOrSettings: EntryType | SettingsType) {
     `type ${interfaceName}Fields = { \n${fields.join("\n")}`,
   ];
   const outLines: string[] = [
-    `export type ${interfaceName} = ${baseType}<"${es.name}", ${interfaceName}Fields> & {`,
+    `export interface ${interfaceName} extends ${baseType}<"${es.name}", ${interfaceName}Fields>  {`,
     ` _name:"${convertString(es.name, "camel", true)}"`,
     ` __fields__: ${interfaceName}Fields;`,
     ...hashFields(fields),
@@ -99,7 +99,7 @@ function buildActions(
       }
       return input;
     };
-    if (action.params.length == 0) {
+    if (action.params?.length == 0 || !action.params) {
       hasNonParamsActions = true;
       typeLines.push(...[
         `  ${action.key}: {`,

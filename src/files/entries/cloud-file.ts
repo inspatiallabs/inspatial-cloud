@@ -5,6 +5,7 @@ import MimeTypes from "../mime-types/mime-types.ts";
 import type { InCloud } from "../../in-cloud.ts";
 import type { InSpatialORM } from "../../orm/mod.ts";
 import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
+import { defineEntry } from "../../orm/entry/entry-type.ts";
 const config = {
   label: "File",
   titleField: "fileName",
@@ -169,8 +170,23 @@ const config = {
     }],
   },
 } as any;
-export const cloudFile = new EntryType("cloudFile", config);
-export const globalCloudFile = new EntryType(
+export const cloudFile = defineEntry("cloudFile", config);
+cloudFile.addAction("getContent", {
+  private: true,
+  async action({ cloudFile, inCloud }) {
+    try {
+      const data = await Deno.readFile(cloudFile.$filePath);
+      return { success: true, data };
+    } catch (e) {
+      inCloud.inLog.error("Error reading file", {
+        stackTrace: e instanceof Error ? e.stack : undefined,
+        subject: "cloudFile.getContent",
+      });
+      return { success: false, message: "Error reading file" };
+    }
+  },
+});
+export const globalCloudFile = defineEntry(
   "globalCloudFile",
   {
     ...config,
@@ -179,3 +195,27 @@ export const globalCloudFile = new EntryType(
     systemGlobal: true,
   },
 );
+
+globalCloudFile.addAction("getContent", {
+  private: true,
+  params: [{
+    key: "asText",
+    label: "As String",
+    type: "BooleanField",
+    description: "Return the content as a string instead of a byte array",
+  }],
+  async action({ globalCloudFile, inCloud, params }) {
+    try {
+      if (params.asText) {
+        return await Deno.readTextFile(globalCloudFile.$filePath);
+      }
+      return await Deno.readFile(globalCloudFile.$filePath);
+    } catch (e) {
+      inCloud.inLog.error("Error reading file", {
+        stackTrace: e instanceof Error ? e.stack : undefined,
+        subject: "cloudFile.getContent",
+      });
+      return { success: false, message: "Error reading file" };
+    }
+  },
+});

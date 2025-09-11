@@ -82,10 +82,8 @@ export const userRole = new EntryType("userRole", {
     }],
   },
 });
-userRole.addAction({
-  key: "syncWithSystem",
+userRole.addAction("syncWithSystem", {
   label: "Sync with System Roles",
-  params: [],
   async action({ userRole, inCloud }) {
     const roleConfig = await userRole.runAction<RoleConfig>("generateConfig");
     try {
@@ -102,12 +100,10 @@ userRole.addAction({
     }
   },
 });
-userRole.addAction({
-  key: "generateConfig",
+userRole.addAction("generateConfig", {
   label: "Generate Config",
   description: "Generate the role configuration as a JSON object",
   private: false,
-  params: [],
   async action({ userRole, orm }) {
     const roleConfig: RoleConfig = {
       roleName: userRole.$roleKey,

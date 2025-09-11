@@ -18,14 +18,12 @@ export const emailTemplate = new EntryType("emailTemplate", {
   }],
 });
 
-emailTemplate.addAction({
-  key: "renderTemplate",
+emailTemplate.addAction("renderTemplate", {
   label: "Render Template",
   description: "Render email template with parameters",
-  action({ emailTemplate, data }) {
+  action({ emailTemplate, params }) {
     let content = emailTemplate.$content || "";
     let subject = emailTemplate.$subject || "";
-    const params = data.params as Record<string, any>;
     for (const [key, value] of Object.entries(params)) {
       const regex = new RegExp(`\\{\\s*${key}\\s*\\}`, "g");
       content = content.replace(regex, `${value}` || "");
