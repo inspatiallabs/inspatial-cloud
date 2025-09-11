@@ -57,6 +57,7 @@ import { apiAction } from "../build/apiAction.ts";
 import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts";
 import { settingsMeta } from "../build/settingsMeta.ts";
 import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
+import { dataImport } from "../data-import/data-import.ts";
 
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -111,6 +112,7 @@ export const coreExtension = new CloudExtension("core", {
     apiGroup,
     apiAction,
     apiGroupPermission,
+    dataImport,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],
