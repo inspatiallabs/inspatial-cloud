@@ -270,10 +270,7 @@ export class Entry<
   /* Lifecycle Hooks */
 
   async #runHooks(hookName: EntryHookName): Promise<void> {
-    console.log("running hook", hookName, this._name);
-
     for (const hook of this._entryType.hooks[hookName].values()) {
-      console.log(hook.name);
       await hook.handler({
         orm: this._orm,
         inCloud: this._inCloud,
