@@ -221,12 +221,46 @@ export class InCloud {
       Deno.exit(0);
     };
 
-    Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
     if (IS_WINDOWS) {
-      return; // Windows does not support Deno.addSignalListener for SIGTERM
+      // const reader = Deno.stdin.readable.getReader();
+      // const read = async () => {
+      //   while (true) {
+      //     this.inLog.info(
+      //       "waiting for stdin",
+      //     );
+      //     const { value, done } = await reader.read();
+      //     this.inLog.info("got stdin");
+      //     console.log({ value, done });
+      //     if (done) {
+      //       break;
+      //     }
+      //     const input = new TextDecoder().decode(value).trim();
+      //     console.log({ input });
+      //   }
+      // };
+      // Deno.stdin.readable.pipeThrough(
+      //   new TransformStream({
+      //     transform(chunk, controller) {
+      //       console.log({ chunk });
+      //       const input = new TextDecoder().decode(chunk).trim();
+      //       if (input === "\u0003") {
+      //         // Ctrl+C
+      //         shutdown("SIGINT").catch((e) => {
+      //           console.error("Error during shutdown:", e);
+      //           Deno.exit(1);
+      //         });
+      //       } else {
+      //         controller.enqueue(chunk);
+      //       }
+      //     },
+      //   }),
+      // );
+      // read();
     }
-
-    Deno.addSignalListener("SIGTERM", async () => await shutdown("SIGTERM"));
+    if (!IS_WINDOWS) {
+      Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
+      Deno.addSignalListener("SIGTERM", async () => await shutdown("SIGTERM"));
+    }
   }
   onShutdown(callback: () => void | Promise<void>): void {
     this.#shutdownCallbacks.push(callback);

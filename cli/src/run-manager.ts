@@ -258,42 +258,37 @@ export class RunManager {
         );
         this.reload();
         return;
-        // Here you can add logic to handle the file change, like restarting servers
       }
     }
   }
-  reload() {
+  async reload() {
     this.isReloading = true;
-    this.serveProcs.forEach((proc) => {
+    for (const [pid, proc] of this.serveProcs.entries()) {
       if (proc.pid) {
-        proc.kill("SIGINT");
-        proc.status.then((_status) => {
-          this.serveProcs.delete(proc.pid);
-        });
+        killProc(proc);
+        await proc.status;
       }
-    });
+      this.serveProcs.delete(pid);
+    }
 
     if (this.queueProc && this.queueProc.pid) {
-      this.queueProc.kill("SIGINT");
+      killProc(this.queueProc);
+      await this.queueProc.status;
     }
     this.queueProc = undefined;
-    this.spawnMigrator().then((success) => {
-      if (!success) {
-        this.isReloading = false;
-        //this.inLog.error(
-        //   "Migration failed. Please check the logs for details.",
-        //   convertString(this.appName, "title", true),
-        // );
-        return;
-      }
-      this.spawnServers();
-      this.spawnQueue();
+    const success = await this.spawnMigrator();
+    if (!success) {
       this.isReloading = false;
-      this.inLogSmall.info(
-        "Reloaded successfully.",
-        this.appTitle,
-      );
-    });
+      return;
+    }
+
+    this.spawnServers();
+    this.spawnQueue();
+    this.isReloading = false;
+    this.inLogSmall.info(
+      "Reloaded successfully.",
+      this.appTitle,
+    );
   }
 
   spawnServers(): number {
@@ -515,4 +510,11 @@ function makeRunning(
       ).content(port.toString()).color("brightYellow").end();
   }
   return output.content("Not running").color("brightRed").end();
+}
+
+function killProc(process: Deno.ChildProcess) {
+  if (process.pid) {
+    Deno.kill(process.pid, "SIGINT");
+    // process.kill("SIGINT");
+  }
 }
