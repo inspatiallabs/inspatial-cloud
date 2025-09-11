@@ -318,6 +318,7 @@ export class MigrationPlanner {
             foreignTableName: create.foreignTableName,
             constraintName: create.constraintName,
             tableName: create.tableName,
+            global: create.global,
           });
           this.#logResult(
             `Added foreign key constraint ${create.constraintName} to column ${create.columnName}`,

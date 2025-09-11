@@ -15,8 +15,9 @@ export const dataImport = defineEntry("dataImport", {
   }, {
     key: "entryType",
     label: "Entry",
-    type: "DataField",
+    type: "ConnectionField",
     required: true,
+    entryType: "entryMeta",
   }, {
     key: "status",
     label: "Status",

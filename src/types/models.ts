@@ -4949,7 +4949,9 @@ type DataImportFields = {
    */
   csv?: string | null;
   /**
-   * **Entry** (DataField)
+   * **Entry** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
    * @type {string}
    * @required true
    */
@@ -4999,6 +5001,11 @@ type DataImportFields = {
    * @type {string}
    */
   csv__title?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryType__title?: string | null;
   columnMap: ChildList<{
     /**
      * **Column Name** (DataField)
@@ -5027,7 +5034,9 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    */
   $csv?: string | null;
   /**
-   * **Entry** (DataField)
+   * **Entry** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
    * @type {string}
    * @required true
    */
@@ -5077,6 +5086,11 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    * @type {string}
    */
   $csv__title?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryType__title?: string | null;
   $columnMap: ChildList<{
     /**
      * **Column Name** (DataField)
