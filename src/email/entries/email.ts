@@ -189,10 +189,8 @@ const _attachementFields = [{
     label: "PDF",
   }],
 }];
-emailEntry.addAction({
-  key: "enqueueSend",
+emailEntry.addAction("enqueueSend", {
   label: "Send Email",
-  params: [],
   async action({ email }) {
     switch (email.$status) {
       case "sent":
@@ -220,9 +218,7 @@ emailEntry.addAction({
     };
   },
 });
-emailEntry.addAction({
-  key: "send",
-  params: [],
+emailEntry.addAction("send", {
   private: false,
   description: "Send the email",
   label: "Send",

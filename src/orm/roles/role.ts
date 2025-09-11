@@ -102,7 +102,7 @@ export class Role {
     if (!this.entryTypes.has(entryType)) {
       raiseORMException(
         `EntryType ${entryType} does not exist in ORM`,
-        "EntryType",
+        "NoEntryType",
         400,
       );
     }

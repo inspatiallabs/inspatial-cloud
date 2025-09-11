@@ -69,27 +69,30 @@ export type EntryActionDefinition<
 };
 export type EntryActionMethod<
   E extends EntryName | string = EntryName,
-  K extends PropertyKey = PropertyKey,
-  P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
+  P extends Array<InField> | undefined = undefined,
 > = (
-  args:
-    & {
-      orm: InSpatialORM;
-      data: ExtractParams<K, P>;
-      inCloud: InCloud;
-    }
-    & {
-      [L in E | "entry"]: L extends keyof EntryMap ? EntryMap[L]
-        : GenericEntry;
-    },
+  args: P extends undefined ?
+      & {
+        orm: InSpatialORM;
+        inCloud: InCloud;
+      }
+      & {
+        [L in E]: L extends keyof EntryMap ? EntryMap[L]
+          : GenericEntry;
+      }
+    :
+      & {
+        orm: InSpatialORM;
+        params: P extends Array<infer F> ? ExtractParams<P> : never;
+        inCloud: InCloud;
+      }
+      & {
+        [L in E]: L extends keyof EntryMap ? EntryMap[L]
+          : GenericEntry;
+      },
 ) => Promise<any> | any;
 
-export type EntryActionConfig<
-  E extends EntryName | string = EntryName,
-  K extends PropertyKey = PropertyKey,
-  P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
-  R extends EntryActionMethod<E, K, P> = EntryActionMethod<E, K, P>,
-> = {
+export type EntryActionConfig = {
   key: string;
   label?: string;
   description?: string;
@@ -98,23 +101,12 @@ export type EntryActionConfig<
    * This means it can only be called from server side code.
    */
   private?: boolean;
-  action: R;
-  params: P;
+  action: EntryActionMethod<any, any>;
+  params?: Array<InField>;
 };
 
-/**
- * A typed map of parameters passed to an action handler.
- */
-export type ActionParam<P extends PropertyKey> = Omit<InField, "key"> & {
-  key: P;
-};
-/**
- * A typed map of required parameters passed to an action handler.
- */
-
-export type ExtractParams<
-  K extends PropertyKey,
-  P extends Array<ActionParam<K>>,
+type ExtractParams<
+  P extends Array<InField>,
 > =
   & {
     [S in P[number] as S["required"] extends true ? S["key"] : never]: InValue<
@@ -126,6 +118,10 @@ export type ExtractParams<
       S["type"]
     >;
   };
+
+/**
+ * A typed map of required parameters passed to an action handler.
+ */
 
 export interface EntryTypeInfo extends BaseTypeInfo {
   config: EntryTypeConfig;

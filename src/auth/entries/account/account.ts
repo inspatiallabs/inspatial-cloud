@@ -111,18 +111,15 @@ export const account = new EntryType("account", {
     }],
   },
 });
-account.addAction({
-  key: "queueInitialize",
+account.addAction("queueInitialize", {
   label: "Schedule Account Initialization",
   private: false,
   async action({ account }) {
     if (account.$initialized) return;
     await account.enqueueAction("initialize");
   },
-  params: [],
 });
-account.addAction({
-  key: "initialize",
+account.addAction("initialize", {
   label: "Initialize Account",
   private: true,
   async action({ account, inCloud }) {
@@ -133,11 +130,9 @@ account.addAction({
     account.$initialized = true;
     await account.save();
   },
-  params: [],
 });
 
-account.addAction({
-  key: "addUser",
+account.addAction("addUser", {
   description: "Add a user to the account",
   // label: "Add User",
   params: [{
@@ -160,9 +155,9 @@ account.addAction({
     required: true,
   }],
 
-  async action({ account, data, orm }) {
-    const { firstName, lastName, email } = data;
-    const role = data.role as any;
+  async action({ account, params, orm }) {
+    const { firstName, lastName, email } = params;
+    const role = params.role as any;
     let user = await orm.findEntry("user", {
       email,
     });
