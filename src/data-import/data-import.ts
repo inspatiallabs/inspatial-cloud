@@ -1,6 +1,9 @@
 import { defineEntry } from "../orm/entry/entry-type.ts";
-import type { EntryName } from "#types/models.ts";
+import type { EntryMap, EntryName } from "#types/models.ts";
 import { csvUtils } from "./csv-utils.ts";
+import type { GenericEntry } from "../orm/entry/entry-base.ts";
+import type { Entry } from "../orm/entry/entry.ts";
+import { handlePgError, isPgError } from "../orm/db/postgres/pgError.ts";
 
 export const dataImport = defineEntry("dataImport", {
   label: "",
@@ -31,6 +34,32 @@ export const dataImport = defineEntry("dataImport", {
     defaultValue: "pending",
     readOnly: true,
   }, {
+    key: "importType",
+    type: "ChoicesField",
+    choices: [{
+      key: "create",
+      label: "Create",
+      description: "Create new records only",
+    }, {
+      key: "update",
+      label: "Update",
+      description: "Update existing records only",
+    }, {
+      key: "upsert",
+      label: "Create or Update",
+      description: "Create new records or update existing records",
+    }],
+  }, {
+    key: "matchFrom",
+    type: "ConnectionField",
+    entryType: "fieldMeta",
+    filterBy: {
+      entryMeta: "entryType",
+    },
+    label: "Match Column",
+    description:
+      "Column to match existing records on when updating or upserting. Only used if import type is 'update' or 'upsert'.",
+  }, {
     key: "totalRecords",
     label: "Total Records",
     type: "IntField",
@@ -48,6 +77,11 @@ export const dataImport = defineEntry("dataImport", {
     type: "IntField",
     defaultValue: 0,
     readOnly: true,
+  }, {
+    key: "errorMessage",
+    label: "Error Message",
+    type: "TextField",
+    readOnly: true,
   }],
 });
 
@@ -56,7 +90,6 @@ dataImport.addHook("validate", {
   handler({ dataImport, orm }) {
     const entryType = dataImport.$entryType;
     const result = orm.getEntryType(entryType as EntryName);
-    console.log({ result });
   },
 });
 dataImport.addChild("columnMap", {
@@ -74,7 +107,11 @@ dataImport.addChild("columnMap", {
   }, {
     key: "mapTo",
     label: "Map To",
-    type: "DataField",
+    type: "ConnectionField",
+    entryType: "fieldMeta",
+    filterBy: {
+      entryMeta: "entryType",
+    },
   }],
 });
 dataImport.addAction("getContent", {
@@ -82,7 +119,7 @@ dataImport.addAction("getContent", {
     if (!dataImport.$csv) {
       return { success: false, message: "No CSV file provided" };
     }
-    const file = await orm.getEntry("globalCloudFile", dataImport.$csv);
+    const file = await orm.getEntry("cloudFile", dataImport.$csv);
     const content = await file.runAction("getContent", {
       asText: true,
     }) as string;
@@ -109,12 +146,20 @@ dataImport.addAction("processInfo", {
       await dataImport.save();
       return { success: false, message: "No data found in CSV" };
     }
+    const entryType = orm.getEntryType(dataImport.$entryType as EntryName);
+    const fieldKeys = new Map(
+      entryType.fields.keys().map((
+        key,
+      ) => [key, `${dataImport.$entryType}:${key}`]),
+    );
     const firstRecord = new Map<string, any>(Object.entries(records[0] || {}));
-    dataImport.$columnMap.update(headers.map((header) => ({
+    const columnMapData = headers.map((header) => ({
       columnName: header,
       exampleData: (firstRecord.get(header) || "").toString().slice(0, 255),
-      mapTo: null,
-    })));
+      mapTo: fieldKeys.get(header) || null,
+    })).sort((a, b) => a.mapTo ? b.mapTo ? 0 : -1 : 1);
+
+    dataImport.$columnMap.update(columnMapData);
     dataImport.$totalRecords = records.length;
     await dataImport.save();
   },
@@ -151,27 +196,61 @@ dataImport.addAction("import", {
     const entriesToCreate = [];
     for (const record of records) {
       const recordMap = new Map<string, any>(Object.entries(record));
-      console.log(recordMap);
       const entryData = new Map<string, any>();
       for (const map of dataMap) {
-        console.log(map);
-        entryData.set(map.mapTo, recordMap.get(map.columnName));
+        const val = recordMap.get(map.columnName);
+        entryData.set(map.mapTo, val === "" ? null : val);
       }
       entriesToCreate.push(Object.fromEntries(entryData));
     }
+    const entryType = dataImport.$entryType as EntryName;
+    const matchFieldKey = dataImport.$matchFrom?.split(":")[1] || null;
+    const errors: Array<string> = [];
     for (const entryData of entriesToCreate) {
-      try {
-        const entry = orm.getNewEntry(dataImport.$entryMeta as EntryName);
-        for (const [key, value] of Object.entries(entryData)) {
-          (entry as any)[`$${key}`] = value;
+      let entry: EntryMap[EntryName] | null = null;
+      switch (dataImport.$importType) {
+        case "update":
+        case "upsert": {
+          if (!matchFieldKey) {
+            break;
+          }
+          const value = entryData[matchFieldKey];
+          if (!value) {
+            break;
+          }
+          entry = await orm.findEntry(entryType, [{
+            field: matchFieldKey,
+            op: "=",
+            value,
+          }]);
+          break;
         }
+        case "create":
+          break;
+      }
+      if (!entry) {
+        entry = orm.getNewEntry(entryType);
+      }
+      for (const [key, value] of Object.entries(entryData)) {
+        (entry as any)[`$${key}`] = value;
+      }
+      try {
         await entry.save();
         successfulRecords++;
       } catch (e) {
-        console.error("Error creating entry", e);
+        if (isPgError(e)) {
+          const { info, response, subject } = handlePgError(e);
+          errors.push(
+            `${subject} - ${JSON.stringify(info)} - ${response.join(", ")}`,
+          );
+        } else {
+          errors.push(e.message);
+        }
+
         failedRecords++;
       }
     }
+    dataImport.$errorMessage = errors.join("\n");
     dataImport.$successfulRecords = successfulRecords;
     dataImport.$failedRecords = failedRecords;
     dataImport.$status = "completed";

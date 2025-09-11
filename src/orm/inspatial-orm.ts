@@ -891,6 +891,10 @@ export class InSpatialORM {
    * The schema passed to this method is the account ID of the account/tenant to be migrated.
    */
   async migrate(schema: IDValue): Promise<Array<string> | undefined> {
+    const droptables = this._inCloud.getExtensionConfigValue(
+      "core",
+      "dropTables",
+    );
     if (typeof schema !== "string") {
       schema = schema.toString();
     }
@@ -900,6 +904,7 @@ export class InSpatialORM {
       settingsTypes: adminRole.accountSettingsTypes,
       orm: this,
       db: this.db.withSchema(schema),
+      dropObsoleteTables: droptables === true,
       onOutput: (message) => {
         this.inLog.info(message);
       },
@@ -921,12 +926,16 @@ export class InSpatialORM {
    */
   async migrateGlobal(): Promise<Array<string>> {
     const adminRole = this.roles.getRole("systemAdmin");
-
+    const droptables = this._inCloud.getExtensionConfigValue(
+      "core",
+      "dropTables",
+    );
     const migrationPlanner = new MigrationPlanner({
       entryTypes: adminRole.globalEntryTypes,
       settingsTypes: adminRole.globalSettingsTypes,
       orm: this,
       db: this.systemDb,
+      dropObsoleteTables: droptables === true,
       onOutput: (message) => {
         this.inLog.info(message);
       },

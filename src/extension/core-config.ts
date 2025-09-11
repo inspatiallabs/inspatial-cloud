@@ -17,6 +17,7 @@ export type CoreConfig = {
   cacheStatic: boolean;
   autoTypes: boolean;
   autoMigrate: boolean;
+  dropTables: boolean;
   embeddedDb: boolean;
   embeddedDbPort: number;
   ormDebugMode: boolean;

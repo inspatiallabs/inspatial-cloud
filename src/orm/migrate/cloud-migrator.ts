@@ -22,10 +22,48 @@ export class InCloudMigrator extends InCloud {
   }
 
   async #migrateGlobal() {
+    const withTime = async (name: string, callback: () => Promise<any>) => {
+      console.time(name);
+      await callback();
+      console.timeEnd(name);
+    };
     const orm = this.orm.withUser(this.orm.systemGobalUser);
-
+    // await withTime("Global migration", async () => await orm.migrateGlobal());
     await orm.migrateGlobal();
     try {
+      // await withTime(
+      //   "Delete Obsolete",
+      //   async () => await this.#deleteObsoleteMeta(orm),
+      // );
+      // await withTime(
+      //   "Sync Extension Meta",
+      //   async () => await this.#syncExtensionMeta(orm),
+      // );
+      // await withTime(
+      //   "Sync Entry Meta",
+      //   async () => await this.#syncEntryMeta(orm),
+      // );
+      // await withTime(
+      //   "Sync Settings Meta",
+      //   async () => await this.#syncSettingsMeta(orm),
+      // );
+      // await withTime(
+      //   "Sync Field Meta",
+      //   async () => await this.#syncFieldMeta(orm),
+      // );
+      // await withTime(
+      //   "Sync Action Meta",
+      //   async () => await this.#syncActionMeta(orm),
+      // );
+
+      // await withTime(
+      //   "Sync Api Groups",
+      //   async () => await this.#syncApiGroups(orm),
+      // );
+      // await withTime(
+      //   "Sync Roles",
+      //   async () => await this.#syncRoles(orm),
+      // );
       await this.#deleteObsoleteMeta(orm);
       await this.#syncExtensionMeta(orm);
       await this.#syncEntryMeta(orm);
@@ -301,7 +339,11 @@ export class InCloudMigrator extends InCloud {
         columns: ["id"],
       });
       for (const { id } of entries) {
-        await orm.deleteEntry(entryType, id);
+        await orm.deleteEntry(entryType, id).catch((e) => {
+          this.inLog.error(`Error deleting ${entryType} ${id}: ${e.message}`, {
+            stackTrace: e.stack,
+          });
+        });
       }
     };
     const { rows: fieldMetas } = await orm.getEntryList(
@@ -310,35 +352,31 @@ export class InCloudMigrator extends InCloud {
     );
     const fieldMetaIds = fieldMetas.map((f) => f.id);
     if (fieldMetaIds.length > 0) {
-      [
-        "childEntryPermissionFieldPermissions",
-        "childSettingsPermissionFieldPermissions",
-      ].forEach(
-        async (table) => {
-          await orm.db.deleteRows(table, [{
-            field: "field",
-            op: "inList",
-            value: fieldMetaIds,
-          }]);
-        },
-      );
+      for (
+        const table of [
+          "childEntryPermissionFieldPermissions",
+          "childSettingsPermissionFieldPermissions",
+        ]
+      ) {
+        await orm.db.deleteRows(table, [{
+          field: "field",
+          op: "inList",
+          value: fieldMetaIds,
+        }]);
+      }
     }
-    const { rows: actionMetas } = await orm.getEntryList(
-      "actionMeta",
-      { orFilter: entrySettingsOrFilter, columns: ["id"] },
-    );
-    const actionMetaIds = actionMetas.map((a) => a.id);
-    if (actionMetaIds.length > 0) {
-      [
+
+    for (
+      const table of [
         "childEntryPermissionActionPermissions",
         "childSettingsPermissionActionPermissions",
-      ].forEach(async (table) => {
-        await orm.db.deleteRows(table, [{
-          field: "action",
-          op: "inList",
-          value: actionMetaIds,
-        }]);
-      });
+      ]
+    ) {
+      await orm.db.deleteRows(table, [{
+        field: "action",
+        op: "notInList",
+        value: Array.from(actionKeys),
+      }]);
     }
 
     await deleteEntries("entryPermission", { filter: [entryMetaFilter] });

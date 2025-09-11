@@ -403,6 +403,13 @@ export const coreExtension = new CloudExtension("core", {
       type: "boolean",
       default: true,
     },
+    dropTables: {
+      description:
+        "Drop tables that are not in the current ORM model during auto-migrate. WARNING: This will delete all data in the dropped tables!",
+      required: false,
+      type: "boolean",
+      default: false,
+    },
     defaultCurrency: {
       description: "Sets the default currency for the system",
       type: "string",

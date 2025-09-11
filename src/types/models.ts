@@ -1397,12 +1397,21 @@ export interface CloudFile extends EntryBase<"cloudFile", CloudFileFields> {
    * @required true
    */
   $updatedAt: number;
-  runAction<N extends keyof CloudFileActionMap>(
+  runAction<N extends keyof CloudFileParamsActionMap>(
     actionName: N,
-  ): CloudFileActionMap[N]["return"];
+    params: CloudFileParamsActionMap[N]["params"],
+  ): CloudFileParamsActionMap[N]["return"];
 }
-type CloudFileActionMap = {
+type CloudFileParamsActionMap = {
   getContent: {
+    params: {
+      /**
+       * **As String** (BooleanField)
+       * @description Return the content as a string instead of a byte array
+       * @type {boolean}
+       */
+      asText: boolean;
+    };
     return: Promise<unknown>;
   };
 };
@@ -4962,6 +4971,19 @@ type DataImportFields = {
    */
   status?: "pending" | "processing" | "completed" | "failed" | null;
   /**
+   * **Import Type** (ChoicesField)
+   * @type {'create' | 'update' | 'upsert'}
+   */
+  importType?: "create" | "update" | "upsert" | null;
+  /**
+   * **Match Column** (ConnectionField)
+   *
+   * **EntryType** `fieldMeta`
+   * @description Column to match existing records on when updating or upserting. Only used if import type is 'update' or 'upsert'.
+   * @type {string}
+   */
+  matchFrom?: string | null;
+  /**
    * **Total Records** (IntField)
    * @type {number}
    */
@@ -4976,6 +4998,11 @@ type DataImportFields = {
    * @type {number}
    */
   failedRecords?: number | null;
+  /**
+   * **Error Message** (TextField)
+   * @type {string}
+   */
+  errorMessage?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5006,6 +5033,11 @@ type DataImportFields = {
    * @type {string}
    */
   entryType__title?: string | null;
+  /**
+   * **Match Column Title** (DataField)
+   * @type {string}
+   */
+  matchFrom__title?: string | null;
   columnMap: ChildList<{
     /**
      * **Column Name** (DataField)
@@ -5019,10 +5051,17 @@ type DataImportFields = {
      */
     exampleData?: string | null;
     /**
-     * **Map To** (DataField)
+     * **Map To** (ConnectionField)
+     *
+     * **EntryType** `fieldMeta`
      * @type {string}
      */
     mapTo?: string | null;
+    /**
+     * **Map To Title** (DataField)
+     * @type {string}
+     */
+    mapTo__title?: string | null;
   }>;
 };
 export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
@@ -5047,6 +5086,19 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    */
   $status?: "pending" | "processing" | "completed" | "failed" | null;
   /**
+   * **Import Type** (ChoicesField)
+   * @type {'create' | 'update' | 'upsert'}
+   */
+  $importType?: "create" | "update" | "upsert" | null;
+  /**
+   * **Match Column** (ConnectionField)
+   *
+   * **EntryType** `fieldMeta`
+   * @description Column to match existing records on when updating or upserting. Only used if import type is 'update' or 'upsert'.
+   * @type {string}
+   */
+  $matchFrom?: string | null;
+  /**
    * **Total Records** (IntField)
    * @type {number}
    */
@@ -5061,6 +5113,11 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    * @type {number}
    */
   $failedRecords?: number | null;
+  /**
+   * **Error Message** (TextField)
+   * @type {string}
+   */
+  $errorMessage?: string | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5091,6 +5148,11 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    * @type {string}
    */
   $entryType__title?: string | null;
+  /**
+   * **Match Column Title** (DataField)
+   * @type {string}
+   */
+  $matchFrom__title?: string | null;
   $columnMap: ChildList<{
     /**
      * **Column Name** (DataField)
@@ -5104,10 +5166,17 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
      */
     exampleData?: string | null;
     /**
-     * **Map To** (DataField)
+     * **Map To** (ConnectionField)
+     *
+     * **EntryType** `fieldMeta`
      * @type {string}
      */
     mapTo?: string | null;
+    /**
+     * **Map To Title** (DataField)
+     * @type {string}
+     */
+    mapTo__title?: string | null;
   }>;
   runAction<N extends keyof DataImportActionMap>(
     actionName: N,

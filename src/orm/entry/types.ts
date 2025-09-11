@@ -62,7 +62,7 @@ export type EntryActionDefinition<
           : GenericEntry;
       }
       & {
-        data: Record<string, unknown>;
+        params: Record<string, unknown>;
       },
   ) => Promise<any> | any;
   params: Array<InField>;

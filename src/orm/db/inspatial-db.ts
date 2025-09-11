@@ -306,9 +306,24 @@ export class InSpatialDB {
    */
   async getTableNames(): Promise<string[]> {
     const query =
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}';`;
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_type != 'VIEW';`;
     const result = await this.query<{ tableName: string }>(query);
     return result.rows.map((row) => snakeToCamel(row.tableName));
+  }
+
+  async getViewNames(): Promise<string[]> {
+    const query =
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_type = 'VIEW';`;
+    const result = await this.query<{ tableName: string }>(query);
+    return result.rows.map((row) => snakeToCamel(row.tableName));
+  }
+
+  async hasView(viewName: string): Promise<boolean> {
+    viewName = toSnake(viewName);
+    const query =
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${viewName}' AND table_type = 'VIEW';`;
+    const result = await this.query<{ tableName: string }>(query);
+    return result.rowCount > 0;
   }
 
   async getSchemaList(): Promise<string[]> {
@@ -322,7 +337,7 @@ export class InSpatialDB {
   async tableExists(tableName: string): Promise<boolean> {
     tableName = toSnake(tableName);
     const query =
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${tableName}';`;
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${tableName}' AND table_type != 'VIEW';`;
     const result = await this.query<{ tableName: string }>(query);
     return result.rowCount > 0;
   }
@@ -700,9 +715,11 @@ export class InSpatialDB {
   /**
    * Drop a table from the database
    */
-  dropTable(tableName: string): Promise<void> {
+  async dropTable(tableName: string): Promise<void> {
     tableName = toSnake(tableName);
-    throw new Error(`dropTable not implemented for postgres`);
+    const query = `DROP TABLE IF EXISTS "${this.schema}".${tableName} CASCADE;`;
+
+    await this.query(query);
   }
   /**
    * Create an index on a table based on the provided columns

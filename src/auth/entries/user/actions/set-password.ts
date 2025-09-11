@@ -4,8 +4,8 @@ import { generateSalt, hashPassword } from "../../../security.ts";
 export const setPassword: EntryActionDefinition<"user"> = {
   key: "setPassword",
   description: "Set the user's password",
-  async action({ user, data }): Promise<void> {
-    const password = data.password as string;
+  async action({ user, params }): Promise<void> {
+    const password = params.password as string;
     const salt = generateSalt();
     const hashed = await hashPassword(password, salt);
     user.$password = `${salt}:${hashed}`;

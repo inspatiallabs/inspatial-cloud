@@ -8,6 +8,7 @@ import type { PgColumnDefinition } from "~/orm/db/db-types.ts";
 import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import type { InSpatialORM } from "../inspatial-orm.ts";
 import { setupTagsTable } from "../../tags/tags.ts";
+import convertString from "../../utils/convert-string.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
@@ -15,6 +16,7 @@ export class MigrationPlanner {
   db: InSpatialDB;
   migrationPlan: MigrationPlan;
   onOutput: (message: string) => void;
+  dropObsoleteTables = false;
   #results: Array<string>;
   constructor(config: {
     entryTypes: Array<EntryType>;
@@ -22,8 +24,11 @@ export class MigrationPlanner {
     db: InSpatialDB;
     orm: InSpatialORM;
     onOutput: (message: string) => void;
+    dropObsoleteTables?: boolean;
   }) {
-    const { entryTypes, settingsTypes, onOutput, orm, db } = config;
+    const { entryTypes, settingsTypes, onOutput, orm, db, dropObsoleteTables } =
+      config;
+    this.dropObsoleteTables = dropObsoleteTables || false;
     this.entryTypes = new Map();
     this.settingsTypes = new Map();
     this.migrationPlan = new MigrationPlan();
@@ -50,17 +55,24 @@ export class MigrationPlanner {
   }
 
   async createMigrationPlan(): Promise<MigrationPlan> {
+    const toCamel = (str: string) => convertString(str, "camel");
+    const tables = new Set(await this.db.getTableNames());
+    tables.delete("inSettings");
+    tables.delete("inTag");
     this.migrationPlan = new MigrationPlan();
+    this.migrationPlan.dropObsoleteTables = this.dropObsoleteTables;
     this.migrationPlan.database = this.db.dbName || "";
     this.migrationPlan.schema = this.db.schema;
 
     for (const migrator of this.entryTypes.values()) {
       const plan = await migrator.planMigration();
+      tables.delete(toCamel(plan.table.tableName));
       this.migrationPlan.summary.addColumns += plan.columns.create.length;
       this.migrationPlan.summary.dropColumns += plan.columns.drop.length;
       this.migrationPlan.summary.modifyColumns += plan.columns.modify.length;
       this.migrationPlan.summary.createTables += plan.table.create ? 1 : 0;
       plan.children.forEach((child) => {
+        tables.delete(toCamel(child.table.tableName));
         this.migrationPlan.summary.createTables += child.table.create ? 1 : 0;
         this.migrationPlan.summary.addColumns += child.columns.create.length;
         this.migrationPlan.summary.dropColumns += child.columns.drop.length;
@@ -83,35 +95,41 @@ export class MigrationPlanner {
         plan.fields.modify.length;
       this.migrationPlan.settings.push(plan);
     }
-
+    if (this.migrationPlan.dropObsoleteTables) {
+      this.migrationPlan.dropTables = Array.from(tables);
+      this.migrationPlan.summary.dropTables =
+        this.migrationPlan.dropTables.length;
+    }
     return this.migrationPlan;
   }
 
   async migrate(): Promise<Array<string>> {
     await this.#validateSchema();
     await this.createMigrationPlan();
+    await this.#dropTables();
     await this.#verifyTagsTable();
     await this.#verifySettingsTable();
-    await this.#createViews();
+    await this.#syncViews();
     await this.#migrateEntryTypes();
     await this.#migrateSettingsTypes();
     return this.#results;
   }
-  async #createViews(): Promise<void> {
+  async #syncViews(): Promise<void> {
     if (this.db.schema === "cloud_global") {
       return; // skip for global schema
     }
-    if (!await this.db.tableExists("entry_account")) {
+    const existingViews = new Set(await this.db.getViewNames());
+    if (!existingViews.has("entryAccount")) {
       await this.db.query(
         `CREATE VIEW "${this.db.schema}".entry_account AS SELECT * FROM cloud_global.entry_account WHERE id = '${this.db.schema}';`,
       );
     }
-    if (!await this.db.tableExists("child_account_users")) {
+    if (!await this.db.hasView("childAccountUsers")) {
       await this.db.query(
         `CREATE VIEW "${this.db.schema}".child_account_users AS SELECT * FROM cloud_global.child_account_users WHERE parent = '${this.db.schema}';`,
       );
     }
-    if (!await this.db.tableExists("entry_user")) {
+    if (!await this.db.hasView("entryUser")) {
       await this.db.query(
         `CREATE VIEW "${this.db.schema}".entry_user AS SELECT * FROM cloud_global.entry_user WHERE (id IN ( SELECT child_account_users."user"
                    FROM "${this.db.schema}".child_account_users));`,
@@ -119,28 +137,33 @@ export class MigrationPlanner {
     }
 
     const { rows: tableNames } = await this.db.query<{ tableName: string }>(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = 'cloud_global';`,
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = 'cloud_global' AND table_type = 'BASE TABLE';`,
     );
+    const tables = tableNames.map((t) => convertString(t.tableName, "camel"));
     const skipTables = new Set([
-      "entry_account",
-      "entry_user",
-      "child_account_users",
-      "entry_user_session",
-      "in_settings",
-      "in_tag",
+      "entryAccount",
+      "entryUser",
+      "childAccountUsers",
+      "entryUserSession",
+      "inSettings",
+      "inTag",
     ]);
-    const tables = tableNames.filter((table) =>
-      !skipTables.has(table.tableName)
-    ).map((t) => t.tableName);
 
     for (const tableName of tables) {
-      const viewName = tableName;
-      const exists = await this.db.tableExists(viewName);
-      if (exists) {
+      if (skipTables.has(tableName)) {
+        existingViews.delete(tableName);
         continue;
       }
+      if (!existingViews.has(tableName)) {
+        await this.db.query(
+          `CREATE VIEW "${this.db.schema}".${viewName} AS SELECT * FROM cloud_global.${tableName};`,
+        );
+      }
+      existingViews.delete(tableName);
+    }
+    for (const viewName of existingViews) {
       await this.db.query(
-        `CREATE VIEW "${this.db.schema}".${viewName} AS SELECT * FROM cloud_global.${tableName};`,
+        `DROP VIEW IF EXISTS "${this.db.schema}".${viewName};`,
       );
     }
   }
@@ -159,7 +182,15 @@ export class MigrationPlanner {
     await this.#syncColumns();
     await this.#syncIndexes();
   }
-
+  async #dropTables(): Promise<void> {
+    if (!this.migrationPlan.dropObsoleteTables) {
+      return;
+    }
+    for (const tableName of this.migrationPlan.dropTables) {
+      await this.db.dropTable(tableName);
+      this.#logResult(`Dropped obsolete table ${tableName}`);
+    }
+  }
   async #migrateSettingsTypes(): Promise<void> {
     for (const plan of this.migrationPlan.settings) {
       for (const field of plan.fields.create) {

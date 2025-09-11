@@ -173,10 +173,18 @@ const config = {
 export const cloudFile = defineEntry("cloudFile", config);
 cloudFile.addAction("getContent", {
   private: true,
-  async action({ cloudFile, inCloud }) {
+  params: [{
+    key: "asText",
+    label: "As String",
+    type: "BooleanField",
+    description: "Return the content as a string instead of a byte array",
+  }],
+  async action({ cloudFile, inCloud, params }) {
     try {
-      const data = await Deno.readFile(cloudFile.$filePath);
-      return { success: true, data };
+      if (params.asText) {
+        return await Deno.readTextFile(cloudFile.$filePath);
+      }
+      return await Deno.readFile(cloudFile.$filePath);
     } catch (e) {
       inCloud.inLog.error("Error reading file", {
         stackTrace: e instanceof Error ? e.stack : undefined,
