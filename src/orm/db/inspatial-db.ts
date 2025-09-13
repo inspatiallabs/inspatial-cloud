@@ -559,7 +559,7 @@ export class InSpatialDB {
     }
 
     return {
-      rowCount: totalCount,
+      rowCount: result.rowCount,
       rows: result.rows,
       columns: result.columns,
       totalCount,

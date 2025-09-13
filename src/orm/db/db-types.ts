@@ -1,6 +1,5 @@
 import type { PgPoolConfig } from "~/orm/db/postgres/pgTypes.ts";
-import type { EntryBase } from "~/orm/entry/entry-base.ts";
-import type { ExtractFieldKeys } from "~/orm/entry/types.ts";
+import type { EntryMap, EntryName } from "#types/models.ts";
 
 interface DBConnectionConfig {
   user: string;
@@ -137,8 +136,8 @@ export type ValueType<Join> = Join extends false ? Array<string>
   : string | number;
 
 type BaseKeys = "id" | "createdAt" | "updatedAt";
-export interface ListOptions<T extends EntryBase = EntryBase> {
-  columns?: (keyof T["__fields__"] | BaseKeys)[];
+export interface ListOptions<E extends EntryName = EntryName> {
+  columns?: (keyof EntryMap[E]["__fields__"] | BaseKeys)[];
   filter?: DBFilter;
   limit?: number;
   orFilter?: DBFilter;

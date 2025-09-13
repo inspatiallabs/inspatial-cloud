@@ -483,7 +483,7 @@ export class InSpatialORM {
     E extends EntryName,
   >(
     entryType: E,
-    options?: ListOptions<EntryMap[E]>,
+    options?: ListOptions<E>,
   ): Promise<GetListResponse<EntryMap[E]["__fields__"]>> {
     const entryTypeObj = this.getEntryType(entryType);
     const tableName = entryTypeObj.config.tableName;
