@@ -155,15 +155,17 @@ export class MigrationPlanner {
         continue;
       }
       if (!existingViews.has(tableName)) {
+        const snakeName = convertString(tableName, "snake", true);
         await this.db.query(
-          `CREATE VIEW "${this.db.schema}".${viewName} AS SELECT * FROM cloud_global.${tableName};`,
+          `CREATE VIEW "${this.db.schema}".${snakeName} AS SELECT * FROM cloud_global.${snakeName};`,
         );
       }
       existingViews.delete(tableName);
     }
     for (const viewName of existingViews) {
+      const snakeName = convertString(viewName, "snake", true);
       await this.db.query(
-        `DROP VIEW IF EXISTS "${this.db.schema}".${viewName};`,
+        `DROP VIEW IF EXISTS "${this.db.schema}".${snakeName};`,
       );
     }
   }
