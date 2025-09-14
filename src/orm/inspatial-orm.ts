@@ -54,6 +54,7 @@ import type {
   SettingsName,
 } from "#types/models.ts";
 import type { EntryFieldKeys } from "#types/mod.ts";
+import type { GenericEntry } from "./entry/entry-base.ts";
 
 export class InSpatialORM {
   inLog: InLog;
@@ -362,13 +363,13 @@ export class InSpatialORM {
   /**
    * Gets an entry from the database by its ID.
    */
-  async getEntry<E extends EntryName>(
+  async getEntry<E extends string>(
     entryType: E,
     id: IDValue,
-  ): Promise<EntryMap[E]> {
-    const entry = this._getEntryInstance(entryType);
+  ): Promise<E extends EntryName ? EntryMap[E] : GenericEntry> {
+    const entry = this._getEntryInstance(entryType as EntryName);
     await entry._load(id);
-    return entry;
+    return entry as E extends EntryName ? EntryMap[E] : GenericEntry;
   }
   /**
    * Updates an entry in the database with the provided data.

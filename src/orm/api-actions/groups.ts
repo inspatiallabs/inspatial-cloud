@@ -1,9 +1,11 @@
+import { defineAPIGroup } from "@inspatial/cloud";
 import { CloudAPIGroup } from "../../api/cloud-group.ts";
 import {
   count,
   countConnections,
   createEntryAction,
   deleteEntryAction,
+  exportEntry,
   getEntryAction,
   getEntryListAction,
   getEntryTypeInfoAction,
@@ -25,7 +27,7 @@ import {
   updateSettings,
 } from "./settings-group.ts";
 
-export const entriesGroup = new CloudAPIGroup("entry", {
+export const entriesGroup = defineAPIGroup("entry", {
   description: "CRUD actions for InSpatial ORM Entries",
   actions: [
     getEntryTypeInfoAction,
@@ -36,13 +38,14 @@ export const entriesGroup = new CloudAPIGroup("entry", {
     createEntryAction,
     deleteEntryAction,
     getEntryListAction,
+    exportEntry,
     countConnections,
     sum,
     count,
   ],
 });
 
-export const ormGroup = new CloudAPIGroup("orm", {
+export const ormGroup = defineAPIGroup("orm", {
   description: "ORM related actions",
   label: "ORM",
   actions: [
@@ -53,7 +56,7 @@ export const ormGroup = new CloudAPIGroup("orm", {
   ],
 });
 
-export const settingsGroup = new CloudAPIGroup("settings", {
+export const settingsGroup = defineAPIGroup("settings", {
   description: "Actions for managing settings",
   actions: [
     getSettingsInfo,

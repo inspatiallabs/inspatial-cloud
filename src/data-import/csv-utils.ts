@@ -1,6 +1,9 @@
 import convertString from "../utils/convert-string.ts";
 
-function makeCSV(data: Array<Record<string, any>>) {
+function createCSV(
+  data: Array<Record<string, any>>,
+  columnMap?: Record<string, string>,
+) {
   const headers = Object.keys(data[0]);
   const csv = [headers.join(",")];
   data.forEach((record) => {
@@ -93,5 +96,5 @@ function sanitizeValue(str: string) {
 
 export const csvUtils = {
   parseCSV,
-  makeCSV,
+  createCSV,
 };

@@ -2,8 +2,11 @@ import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { EntryTypeInfo } from "~/orm/entry/types.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import type { EntryName } from "#types/models.ts";
+import { defineAPIAction } from "@inspatial/cloud";
+import type { GenericEntry } from "../entry/entry-base.ts";
+import { csvUtils } from "../../data-import/csv-utils.ts";
 
-export const getEntryAction = new CloudAPIAction("getEntry", {
+export const getEntryAction = defineAPIAction("getEntry", {
   label: "Get Entry",
   description: "Get a singe entry for a given Entry Type",
   async action({ orm, params }) {
@@ -26,7 +29,7 @@ export const getEntryAction = new CloudAPIAction("getEntry", {
   }],
 });
 
-export const newEntryAction = new CloudAPIAction("getNewEntry", {
+export const newEntryAction = defineAPIAction("getNewEntry", {
   label: "Get New Entry",
   description:
     "Get the default values for a new entry, not saved to the database",
@@ -44,7 +47,7 @@ export const newEntryAction = new CloudAPIAction("getNewEntry", {
   }],
 });
 
-export const updateEntryAction = new CloudAPIAction("updateEntry", {
+export const updateEntryAction = defineAPIAction("updateEntry", {
   label: "Update Entry",
   description: "Update an existing entry",
 
@@ -76,7 +79,7 @@ export const updateEntryAction = new CloudAPIAction("updateEntry", {
   }],
 });
 
-export const createEntryAction = new CloudAPIAction("createEntry", {
+export const createEntryAction = defineAPIAction("createEntry", {
   label: "Create Entry",
   description: "Create a new entry",
   async action({ orm, params }) {
@@ -99,13 +102,13 @@ export const createEntryAction = new CloudAPIAction("createEntry", {
   }],
 });
 
-export const runEntryAction = new CloudAPIAction("runEntryAction", {
+export const runEntryAction = defineAPIAction("runEntryAction", {
   label: "Run Entry Action",
   description: "Run an action on an entry",
   async action({ orm, params }) {
     const { entryType, id, action, data, enqueue } = params;
 
-    const entry = await orm.getEntry(entryType as EntryName, id);
+    const entry = await orm.getEntry(entryType, id);
     if (enqueue) {
       await entry.enqueueAction(action, data);
       return {
@@ -148,7 +151,7 @@ export const runEntryAction = new CloudAPIAction("runEntryAction", {
   }],
 });
 
-export const deleteEntryAction = new CloudAPIAction("deleteEntry", {
+export const deleteEntryAction = defineAPIAction("deleteEntry", {
   label: "Delete Entry",
   description: "Delete an existing entry",
   async action({ orm, params }) {
@@ -175,7 +178,7 @@ export const deleteEntryAction = new CloudAPIAction("deleteEntry", {
   }],
 });
 
-export const getEntryListAction = new CloudAPIAction("getEntryList", {
+export const getEntryListAction = defineAPIAction("getEntryList", {
   label: "Get Entry List",
   description: "Get a list of entries for a given Entry Type",
   async action({ orm, params }) {
@@ -216,7 +219,7 @@ export const getEntryListAction = new CloudAPIAction("getEntryList", {
   }],
 });
 
-export const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
+export const getEntryTypeInfoAction = defineAPIAction("getEntryTypeInfo", {
   label: "Get Entry Type Info",
   description: "Get the Entry Type definition for a given Entry Type",
   action({ orm, params }): EntryTypeInfo {
@@ -232,7 +235,7 @@ export const getEntryTypeInfoAction = new CloudAPIAction("getEntryTypeInfo", {
   }],
 });
 
-export const countConnections = new CloudAPIAction("countConnections", {
+export const countConnections = defineAPIAction("countConnections", {
   label: "Count Entry Connections",
   description:
     "Count the total entries referencing the provided entry id, grouped by entry type",
@@ -254,7 +257,7 @@ export const countConnections = new CloudAPIAction("countConnections", {
   },
 });
 
-export const sum = new CloudAPIAction("sum", {
+export const sum = defineAPIAction("sum", {
   label: "Sum",
   description: "Get the sum of the selected fields for a given Entry Type",
   params: [{
@@ -340,5 +343,126 @@ export const count = new CloudAPIAction("count", {
     key: "groupBy",
     type: "ListField",
     required: false,
+  }],
+});
+
+export const exportEntry = defineAPIAction("export", {
+  label: "Export Entry List",
+  description:
+    "Export a list of entries for a given Entry Type as CSV,PDF or JSON",
+  async action({ orm, params, inResponse }) {
+    const {
+      entryType,
+      columns,
+      order,
+      filter,
+      orFilter,
+      orderBy,
+      format,
+    } = params;
+    const response = await orm.getEntryList(entryType as EntryName, {
+      columns: columns as any[] | undefined,
+      filter: filter as DBFilter | undefined,
+      orFilter: orFilter as DBFilter | undefined,
+      order: order as "asc" | "desc" | undefined,
+      orderBy: orderBy as string | undefined,
+      limit: 0,
+    });
+
+    const { columns: exportedColumns, rowCount, rows } = response;
+    switch (format) {
+      case "csv":
+        {
+          const csvContent = csvUtils.createCSV(rows);
+          inResponse.setFile({
+            content: csvContent,
+            fileName: `${entryType}-export-${new Date().toISOString()}.csv`,
+            download: true,
+          });
+          return inResponse;
+        }
+        break;
+      case "json":
+        break;
+      case "pdf":
+        break;
+    }
+
+    return {
+      exportedColumns,
+      rowCount,
+    };
+  },
+  params: [{
+    key: "entryType",
+    type: "ConnectionField",
+    entryType: "entryMeta",
+    label: "Entry Type",
+    description: "The Entry Type to export",
+    required: true,
+  }, {
+    key: "columns",
+    type: "ListField",
+    label: "Columns",
+    description:
+      "The columns to include in the export, if not provided all default list fields will be used",
+    required: false,
+  }, {
+    key: "filter",
+    type: "JSONField",
+    label: "Filter",
+    description: "Filter to apply to the exported list",
+    required: false,
+  }, {
+    key: "orFilter",
+    type: "JSONField",
+    label: "Or Filter",
+    description: "Or Filter to apply to the exported list",
+    required: false,
+  }, {
+    key: "orderBy",
+    type: "ConnectionField",
+    entryType: "fieldMeta",
+    label: "Order By",
+    filterBy: {
+      entryMeta: "entryType",
+    },
+  }, {
+    key: "order",
+    type: "ChoicesField",
+    label: "Order",
+    description: "Order direction",
+    required: false,
+    defaultValue: "asc",
+    choices: [{
+      key: "asc",
+      label: "Ascending",
+      description: "Sort in ascending order",
+    }, {
+      key: "desc",
+      label: "Descending",
+      description: "Sort in descending order",
+    }],
+  }, {
+    key: "format",
+    type: "ChoicesField",
+    required: true,
+    choices: [
+      {
+        key: "csv",
+        label: "CSV",
+        description: "Export as CSV",
+      },
+      {
+        key: "pdf",
+        label: "PDF",
+        description: "Export as PDF",
+      },
+      {
+        key: "json",
+        label: "JSON",
+        description: "Export as JSON",
+      },
+    ],
   }],
 });

@@ -65,7 +65,9 @@ export const coreExtension = new CloudExtension("core", {
   version: "0.0.1",
   ormGlobalHooks: {
     entries: {
-      afterUpdate: [notifyUpdate],
+      afterUpdate: [
+        notifyUpdate,
+      ],
       afterCreate: [notifyCreate],
       afterDelete: [notifyDelete],
     },
@@ -151,6 +153,7 @@ export const coreExtension = new CloudExtension("core", {
       orm: ["entryTypes", "settingsTypes"],
       settings: true,
       tags: true,
+      files: true,
     },
     entryTypes: {
       cloudFile: {
@@ -161,8 +164,8 @@ export const coreExtension = new CloudExtension("core", {
       },
       globalCloudFile: {
         view: true,
-        modify: false,
-        create: false,
+        modify: true,
+        create: true,
         delete: false,
       },
       onboardingStep: {
@@ -196,7 +199,7 @@ export const coreExtension = new CloudExtension("core", {
 
       user: {
         view: true,
-        modify: false,
+        modify: true,
         create: false,
         delete: false,
         userScope: "id",

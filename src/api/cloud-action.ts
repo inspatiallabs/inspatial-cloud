@@ -75,7 +75,14 @@ export class CloudAPIAction<
     if (config.hideFromApi === true) {
       this.includeInAPI = false;
     }
-    this.params = new Map(config.params?.map((p) => [p.key as string, p]));
+    this.params = new Map(
+      config.params?.map((
+        p,
+      ) => [p.key as string, {
+        ...p,
+        label: p.label || convertString(p.key, "title", true),
+      }]),
+    );
     this.requiredParams = config.params?.filter((param) => param.required).map(
       (p) => p.key as string,
     ) || [];
