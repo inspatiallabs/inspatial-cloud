@@ -22,6 +22,7 @@ import { AUTH } from "~/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "~/orm/db/postgres/scram.ts";
 import { convertString } from "~/utils/mod.ts";
 import { InPgConn } from "./in-pg/in-pg-conn.ts";
+import { getInLog } from "#inLog";
 
 export class PostgresClient {
   conn!: Deno.Conn;
@@ -75,7 +76,20 @@ export class PostgresClient {
     }
     return message;
   }
-
+  async write(data: Uint8Array<ArrayBufferLike>): Promise<void> {
+    let totalBytesWritten = 0;
+    while (totalBytesWritten < data.length) {
+      const bytesWritten = await this.conn.write(
+        data.subarray(totalBytesWritten),
+      );
+      if (bytesWritten === 0) {
+        throw new PgError({
+          message: "Failed to write data to the connection",
+        });
+      }
+      totalBytesWritten += bytesWritten;
+    }
+  }
   async connect(): Promise<void> {
     if (this.connected) {
       return;
@@ -130,7 +144,8 @@ export class PostgresClient {
       }
     }
     writer.addCString("");
-    await this.conn.write(writer.message);
+
+    await this.write(writer.message);
     // const data = await reader(this.conn)
     // messageParser(data)
     // return
@@ -152,7 +167,7 @@ export class PostgresClient {
               const password = this.connectionParams.password;
               this.writer.setMessageType("p");
               this.writer.addCString(password);
-              await this.conn.write(this.writer.message);
+              await this.write(this.writer.message);
               break;
             }
             case AUTH.MD5: {
@@ -170,7 +185,7 @@ export class PostgresClient {
               this.writer.addInt32(clientFirstMessage.length);
               this.writer.addString(clientFirstMessage);
 
-              await this.conn.write(this.writer.message);
+              await this.write(this.writer.message);
 
               break;
             }
@@ -183,7 +198,7 @@ export class PostgresClient {
               this.writer.reset();
               this.writer.setMessageType("p");
               this.writer.addString(clientFinalMessage);
-              await this.conn.write(this.writer.message);
+              await this.write(this.writer.message);
 
               break;
             }
@@ -245,9 +260,15 @@ export class PostgresClient {
     this.writer.reset();
     this.writer.setMessageType("X");
 
-    await this.conn.write(this.writer.message);
-    this.conn.close();
-    this.status = "notConnected";
+    await this.write(this.writer.message).catch((e) => {
+      if (!(e instanceof Deno.errors.BrokenPipe)) {
+        throw e;
+      }
+    }).finally(() => {
+      this.conn.close();
+      this.status = "notConnected";
+      this.conn = null as any;
+    });
     this.reader = new MessageReader(this.conn);
     throw new PgError({
       name: "terminate",
@@ -257,11 +278,16 @@ export class PostgresClient {
   async shutdown(): Promise<void> {
     this.writer.reset();
     this.writer.setMessageType("X");
-
-    await this.conn.write(this.writer.message);
-    this.conn.close();
-    this.conn = null as any;
-    this.status = "notConnected";
+    await this.write(this.writer.message)
+      .catch((e) => {
+        if (!(e instanceof Deno.errors.BrokenPipe)) {
+          throw e;
+        }
+      }).finally(() => {
+        this.conn.close();
+        this.status = "notConnected";
+        this.conn = null as any;
+      });
   }
   async reset(): Promise<void> {
     this.writer.reset();
@@ -270,7 +296,8 @@ export class PostgresClient {
     this.conn.writable.close();
 
     this.status = "notConnected";
-
+    this.conn = null as any;
+    this.reader = null as any;
     await this.connect();
   }
 
@@ -355,7 +382,8 @@ export class PostgresClient {
     writer.setMessageType("Q");
     writer.addCString(query);
     const message = writer.message;
-    await this.conn.write(message);
+    await this.write(message);
+
     let readyForQuery;
     const fields: ColumnDescription[] = [];
     const data: T[] = [];
