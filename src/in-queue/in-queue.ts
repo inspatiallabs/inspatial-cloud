@@ -352,7 +352,7 @@ export class InQueue extends InCloud {
         },
       });
     }
-    const optimizeOptions: ListOptions = {
+    const optimizeOptions: ListOptions<"cloudFile" | "globalCloudFile"> = {
       columns: [
         "id",
         "filePath",

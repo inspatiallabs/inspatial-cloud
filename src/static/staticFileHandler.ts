@@ -10,7 +10,7 @@ import {
 } from "./content.ts";
 import { raiseServerException } from "../serve/server-exception.ts";
 import type { CacheControlResponseOptions } from "../serve/types.ts";
-type MaybeNullFileContent = Promise<Uint8Array<ArrayBufferLike> | null>;
+type MaybeNullFileContent = Promise<Uint8Array<ArrayBuffer> | null>;
 export const CacheTime = {
   none: 0, // No caching
   day: 86400, // 60 * 60 * 24 = 1 day
@@ -51,7 +51,7 @@ export class StaticFileHandler {
   notFoundPage?: string;
   cacheTime: typeof CacheTime[keyof typeof CacheTime] = 0;
   cacheHeader: string = "";
-  cache: Map<string, { content: Uint8Array<ArrayBufferLike>; time: number }> =
+  cache: Map<string, { content: Uint8Array<ArrayBuffer>; time: number }> =
     new Map();
   spa?: boolean;
   spaRootPaths: Set<string> = new Set();
@@ -160,7 +160,7 @@ export class StaticFileHandler {
     const path = inRequest.path;
     let fileName = inRequest.fileName || "";
 
-    let fileContent: string | Uint8Array<ArrayBufferLike> | null;
+    let fileContent: string | Uint8Array<ArrayBuffer> | null;
     if (inRequest.isFile) {
       fileContent = await this
         .getFile(path);

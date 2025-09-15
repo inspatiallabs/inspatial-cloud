@@ -115,7 +115,7 @@ async function runEntryTask(args: {
   orm: InSpatialORM;
 }) {
   const { entryType, id, actionName, taskData, orm } = args;
-  const entry = await orm.getEntry(entryType as EntryName, id);
+  const entry = await orm.getEntry(entryType, id);
   return await entry.runAction(actionName, taskData);
 }
 async function runSettingsTask(

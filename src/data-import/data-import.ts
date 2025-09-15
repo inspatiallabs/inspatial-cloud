@@ -244,7 +244,13 @@ dataImport.addAction("import", {
             `${subject} - ${JSON.stringify(info)} - ${response.join(", ")}`,
           );
         } else {
-          errors.push(e.message);
+          let message = "Unknown error";
+          if (e instanceof Error) {
+            message = e.message;
+          } else if (typeof e === "string") {
+            message = e;
+          }
+          errors.push(message);
         }
 
         failedRecords++;

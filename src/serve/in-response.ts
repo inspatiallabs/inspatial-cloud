@@ -51,7 +51,7 @@ export class InResponse {
   /**
    * The content of the response.
    */
-  #content?: string | Uint8Array | ArrayBuffer | ReadableStream;
+  #content?: string | Uint8Array<ArrayBuffer> | ArrayBuffer | ReadableStream;
   /**
    * A map of cookies to set in the response.
    */
@@ -220,7 +220,7 @@ export class InResponse {
   }
 
   setFile(options: {
-    content: string | Uint8Array | ArrayBuffer | ReadableStream;
+    content: string | Uint8Array<ArrayBuffer> | ArrayBuffer | ReadableStream;
     fileName: string;
     download?: boolean;
   }): void {

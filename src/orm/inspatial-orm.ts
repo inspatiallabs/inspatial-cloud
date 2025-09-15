@@ -363,7 +363,7 @@ export class InSpatialORM {
   /**
    * Gets an entry from the database by its ID.
    */
-  async getEntry<E extends string>(
+  async getEntry<E extends EntryName | string>(
     entryType: E,
     id: IDValue,
   ): Promise<E extends EntryName ? EntryMap[E] : GenericEntry> {
@@ -383,7 +383,7 @@ export class InSpatialORM {
     const entry = await this.getEntry<E>(entryType, id);
     entry.update(data);
     await entry.save();
-    return entry;
+    return entry as EntryMap[E];
   }
 
   /**
@@ -402,7 +402,7 @@ export class InSpatialORM {
       }
       return this.handlePgError(e);
     }
-    return entry;
+    return entry as EntryMap[E];
   }
 
   /** Counts the how many entries there are in the database for all entry types that reference this one via a `ConnectionField` */
@@ -455,7 +455,7 @@ export class InSpatialORM {
       return null;
     }
     const entry = await this.getEntry(entryType, result.rows[0].id);
-    return entry;
+    return entry as EntryMap[E];
   }
   /** Finds and returns the ID of a single entry matching the provided filter. Returns null if no entry is found. */
   async findEntryId<E extends EntryName>(

@@ -50,6 +50,7 @@ export interface FetchOptions {
    * The field in the fetched entry to get the value from.
    */
   fetchField: string;
+  global?: boolean;
 }
 type DependsOn<FK extends PropertyKey = PropertyKey> =
   | FK
@@ -72,6 +73,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
   defaultValue?: any;
   hidden?: boolean;
   placeholder?: string;
+  global?: boolean;
   /**
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */

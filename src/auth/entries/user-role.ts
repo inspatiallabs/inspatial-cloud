@@ -85,7 +85,7 @@ export const userRole = new EntryType("userRole", {
 userRole.addAction("syncWithSystem", {
   label: "Sync with System Roles",
   async action({ userRole, inCloud }) {
-    const roleConfig = await userRole.runAction<RoleConfig>("generateConfig");
+    const roleConfig = await userRole.runAction("generateConfig") as RoleConfig;
     try {
       inCloud.roles.updateRole(roleConfig);
     } catch (e) {
@@ -118,9 +118,9 @@ userRole.addAction("generateConfig", {
     const apiGroups = new Map<string, string[] | true>();
     if (userRole.$extendsRole) {
       const parentRole = await orm.getEntry("userRole", userRole.$extendsRole);
-      const parentConfig = await parentRole.runAction<RoleConfig>(
+      const parentConfig = await parentRole.runAction(
         "generateConfig",
-      );
+      ) as RoleConfig;
       if (parentConfig.entryTypes) {
         for (
           const [key, entryPerm] of Object.entries(parentConfig.entryTypes)

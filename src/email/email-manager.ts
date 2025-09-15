@@ -74,7 +74,7 @@ export class EmailManager {
       templateId,
     );
     const rendered: { content: string; subject: string } = await template
-      .runAction("renderTemplate", { params });
+      .runAction("renderTemplate", { params }) as any;
     return await this.sendEmail({
       recipientEmail,
       subject: rendered.subject || "",
