@@ -198,7 +198,7 @@ type ComparisonOp =
   | ">="
   | "lessThanOrEqual"
   | "lessThan"
-  | "greaterTan"
+  | "greaterThan"
   | "greaterThanOrEqual";
 type BetweenOps = "between" | "notBetween";
 type EmptyOps = "isEmpty" | "isNotEmpty";

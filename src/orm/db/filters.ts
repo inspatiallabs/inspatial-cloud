@@ -80,7 +80,7 @@ export function makeFilter(field: string, filter: FilterAll): string {
       break;
 
     case ">":
-    case "greaterTan":
+    case "greaterThan":
       filterString = `${column} >${formatDbValue(filter.value)}`;
       break;
     case "<":
