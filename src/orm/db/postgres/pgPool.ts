@@ -92,7 +92,6 @@ export class PostgresPool {
       this.maxClients = this.size;
     }
     this.lazy = pool.lazy || false;
-
     for (let i = 0; i < this.size; i++) {
       this.clients.push(new PostgresPoolClient(this.clientConfig));
     }

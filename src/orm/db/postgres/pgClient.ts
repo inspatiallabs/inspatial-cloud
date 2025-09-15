@@ -22,7 +22,6 @@ import { AUTH } from "~/orm/db/postgres/pgAuth.ts";
 import { ScramClient } from "~/orm/db/postgres/scram.ts";
 import { convertString } from "~/utils/mod.ts";
 import { InPgConn } from "./in-pg/in-pg-conn.ts";
-import { getInLog } from "#inLog";
 
 export class PostgresClient {
   conn!: Deno.Conn;
@@ -63,18 +62,19 @@ export class PostgresClient {
     };
   }
   private decode(data: Uint8Array): string {
-    const chunkSize = 512;
-    let offset = 0;
-    let message = "";
-    while (offset < data.length) {
-      const chunk = data.subarray(offset, offset + chunkSize);
+    return this.decoder.decode(data);
+    // const chunkSize = 512;
+    // let offset = 0;
+    // let message = "";
+    // while (offset < data.length) {
+    //   const chunk = data.subarray(offset, offset + chunkSize);
 
-      message += this.decoder.decode(chunk, {
-        stream: true,
-      });
-      offset += chunkSize;
-    }
-    return message;
+    //   message += this.decoder.decode(chunk, {
+    //     stream: true,
+    //   });
+    //   offset += chunkSize;
+    // }
+    // return message;
   }
   async write(data: Uint8Array<ArrayBufferLike>): Promise<void> {
     let totalBytesWritten = 0;
