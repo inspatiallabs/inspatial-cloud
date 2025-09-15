@@ -94,10 +94,12 @@ function buildActions(
     const symbol = Deno.inspect(action.action);
     const isAsync = symbol.includes("Async");
     const returnType = (input: string): string => {
-      if (isAsync) {
-        return `Promise<${input}>`;
-      }
-      return input;
+      return `Promise<${input}>`;
+
+      // if (isAsync) {
+      //   return `Promise<${input}>`;
+      // }
+      // return input;
     };
     if (action.params?.length == 0 || !action.params) {
       hasNonParamsActions = true;

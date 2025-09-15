@@ -2384,7 +2384,7 @@ type EmailTemplateParamsActionMap = {
        */
       params: Record<string, unknown>;
     };
-    return: unknown;
+    return: Promise<unknown>;
   };
 };
 
