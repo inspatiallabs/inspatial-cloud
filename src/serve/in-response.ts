@@ -246,7 +246,10 @@ export class InResponse {
       this.#content = options.content;
       return;
     }
-    this.#content = new TextEncoder().encode(options.content);
+    const content = new TextEncoder().encode(options.content) as Uint8Array<
+      ArrayBuffer
+    >;
+    this.#content = content;
   }
 
   /**

@@ -90,7 +90,10 @@ export class WasmLoader {
       ) as WebAssembly.ModuleImports,
     };
 
-    const result = await WebAssembly.instantiate(this.inPg.wasmData, info) as
+    const result = await WebAssembly.instantiate(
+      this.inPg.wasmData,
+      info,
+    ) as unknown as
       & WebAssembly.Instance
       & { instance: WebAssembly.Instance };
 
