@@ -14,6 +14,11 @@ export default new ORMFieldConfig("ListField", {
     return true;
   },
   dbSave(value, _fieldDef) {
+    if (Array.isArray(value)) {
+      value = JSON.stringify(value);
+    } else {
+      value = JSON.stringify([]);
+    }
     return value;
   },
 });

@@ -4953,6 +4953,12 @@ export interface ApiGroupPermission
 
 type DataImportFields = {
   /**
+   * **Title** (DataField)
+   * @type {string}
+   * @required true
+   */
+  title: string;
+  /**
    * **Csv** (FileField)
    * @type {string}
    */
@@ -4967,9 +4973,16 @@ type DataImportFields = {
   entryType: string;
   /**
    * **Status** (ChoicesField)
-   * @type {'pending' | 'processing' | 'completed' | 'failed'}
+   * @type {'pending' | 'processing' | 'readyForImport' | 'importing' | 'completed' | 'failed'}
    */
-  status?: "pending" | "processing" | "completed" | "failed" | null;
+  status?:
+    | "pending"
+    | "processing"
+    | "readyForImport"
+    | "importing"
+    | "completed"
+    | "failed"
+    | null;
   /**
    * **Import Type** (ChoicesField)
    * @type {'create' | 'update' | 'upsert'}
@@ -4999,10 +5012,20 @@ type DataImportFields = {
    */
   failedRecords?: number | null;
   /**
+   * **Sample Data** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  sampleData?: Record<string, unknown> | null;
+  /**
    * **Error Message** (TextField)
    * @type {string}
    */
   errorMessage?: string | null;
+  /**
+   * **Import Columns** (ListField)
+   * @type {Array<string>}
+   */
+  importColumns?: Array<string> | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5068,6 +5091,12 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
   _name: "dataImport";
   __fields__: DataImportFields;
   /**
+   * **Title** (DataField)
+   * @type {string}
+   * @required true
+   */
+  $title: string;
+  /**
    * **Csv** (FileField)
    * @type {string}
    */
@@ -5082,9 +5111,16 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
   $entryType: string;
   /**
    * **Status** (ChoicesField)
-   * @type {'pending' | 'processing' | 'completed' | 'failed'}
+   * @type {'pending' | 'processing' | 'readyForImport' | 'importing' | 'completed' | 'failed'}
    */
-  $status?: "pending" | "processing" | "completed" | "failed" | null;
+  $status?:
+    | "pending"
+    | "processing"
+    | "readyForImport"
+    | "importing"
+    | "completed"
+    | "failed"
+    | null;
   /**
    * **Import Type** (ChoicesField)
    * @type {'create' | 'update' | 'upsert'}
@@ -5114,10 +5150,20 @@ export interface DataImport extends EntryBase<"dataImport", DataImportFields> {
    */
   $failedRecords?: number | null;
   /**
+   * **Sample Data** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  $sampleData?: Record<string, unknown> | null;
+  /**
    * **Error Message** (TextField)
    * @type {string}
    */
   $errorMessage?: string | null;
+  /**
+   * **Import Columns** (ListField)
+   * @type {Array<string>}
+   */
+  $importColumns?: Array<string> | null;
   /**
    * **ID** (IDField)
    * @type {string}

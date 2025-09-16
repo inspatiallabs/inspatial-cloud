@@ -1,29 +1,19 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "~/api/cloud-action.ts";
 import MimeTypes from "../mime-types/mime-types.ts";
 import { joinPath } from "~/utils/path-utils.ts";
 import type { CloudFile, GlobalCloudFile } from "#types/models.ts";
-export const uploadFile = new CloudAPIAction("upload", {
+
+export const uploadFile = defineAPIAction("upload", {
   label: "Upload File",
   raw: true,
-  params: [{
-    key: "global",
-    type: "BooleanField",
-  }, {
-    key: "publicFile",
-    type: "BooleanField",
-  }, {
-    key: "optimizeImage",
-    type: "BooleanField",
-  }, {
-    key: "optimizeWidth",
-    type: "IntField",
-  }, {
-    key: "optimizeHeight",
-    type: "IntField",
-  }, {
-    key: "optimizeFormat",
-    type: "DataField",
-  }],
+  params: [
+    { key: "global", type: "BooleanField" },
+    { key: "publicFile", type: "BooleanField" },
+    { key: "optimizeImage", type: "BooleanField" },
+    { key: "optimizeWidth", type: "IntField" },
+    { key: "optimizeHeight", type: "IntField" },
+    { key: "optimizeFormat", type: "DataField" },
+  ],
   async action(
     {
       inCloud,

@@ -37,8 +37,13 @@ function parseCSV(data: string) {
     currentLine += char;
     i++;
   }
+  let unnamed = 1;
   const headers: Array<string> = (lines[0] || []).map((header) => {
-    const snake = convertString(header.trim(), "snake").replace(/_+/g, "_");
+    let snake = convertString(header.trim(), "snake").replace(/_+/g, "_");
+    if (!snake) {
+      snake = `unnamed_${unnamed}`;
+      unnamed++;
+    }
     return convertString(snake, "camel");
   });
   const records: Array<Record<string, unknown>> = [];

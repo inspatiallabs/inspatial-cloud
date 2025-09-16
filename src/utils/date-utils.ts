@@ -35,7 +35,8 @@ export type DateFormat =
   | "compact"
   | "y/m/d"
   | "full"
-  | "dd.mm.yy";
+  | "dd.mm.yy"
+  | "yyyy-mm-dd";
 
 function formatTime(value: string | undefined, options: {
   showSeconds?: boolean;
@@ -123,6 +124,18 @@ function getPrettyDate(value: string | number | undefined, options?: {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
+  const formatymd = (date: Date, withTime?: boolean) => {
+    const day = padZeros(date.getDate());
+    const month = padZeros(date.getMonth() + 1);
+    const year = date.getFullYear();
+    return `${year}-${month}-${day} ${
+      withTime
+        ? ` at ${padZeros(date.getHours())}:${padZeros(date.getMinutes())}${
+          options?.showSeconds ? `:${padZeros(date.getSeconds())}` : ""
+        }`
+        : ""
+    }`;
+  };
   const formatCompact = (date: Date) => {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -173,6 +186,8 @@ function getPrettyDate(value: string | number | undefined, options?: {
         month: "2-digit",
         year: "2-digit",
       }).replace(/\//g, ".");
+    case "yyyy-mm-dd":
+      return formatymd(date, options?.showTime);
     default: {
       const day = padZeros(date.getDate());
       const month = padZeros(date.getMonth() + 1);

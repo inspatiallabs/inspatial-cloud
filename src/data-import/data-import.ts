@@ -4,11 +4,29 @@ import { csvUtils } from "./csv-utils.ts";
 import type { GenericEntry } from "../orm/entry/entry-base.ts";
 import type { Entry } from "../orm/entry/entry.ts";
 import { handlePgError, isPgError } from "../orm/db/postgres/pgError.ts";
+import { dateUtils } from "@inspatial/cloud/utils";
 
 export const dataImport = defineEntry("dataImport", {
   label: "",
   description: "",
+  titleField: "title",
+  defaultListFields: [
+    "title",
+    "entryType",
+    "status",
+    "importType",
+    "totalRecords",
+    "successfulRecords",
+    "failedRecords",
+  ],
   fields: [{
+    key: "title",
+    label: "Title",
+    type: "DataField",
+    required: true,
+    readOnly: true,
+    defaultValue: "",
+  }, {
     key: "csv",
     label: "",
     type: "FileField",
@@ -26,10 +44,12 @@ export const dataImport = defineEntry("dataImport", {
     label: "Status",
     type: "ChoicesField",
     choices: [
-      { key: "pending", label: "Pending" },
-      { key: "processing", label: "Processing" },
-      { key: "completed", label: "Completed" },
-      { key: "failed", label: "Failed" },
+      { key: "pending", label: "Pending", color: "primary" },
+      { key: "processing", label: "Processing", color: "warning" },
+      { key: "readyForImport", label: "Ready to Import", color: "info" },
+      { key: "importing", label: "Importing", color: "warning" },
+      { key: "completed", label: "Completed", color: "success" },
+      { key: "failed", label: "Failed", color: "error" },
     ],
     defaultValue: "pending",
     readOnly: true,
@@ -78,9 +98,18 @@ export const dataImport = defineEntry("dataImport", {
     defaultValue: 0,
     readOnly: true,
   }, {
+    key: "sampleData",
+    label: "Sample Data",
+    type: "JSONField",
+    readOnly: true,
+  }, {
     key: "errorMessage",
     label: "Error Message",
     type: "TextField",
+    readOnly: true,
+  }, {
+    key: "importColumns",
+    type: "ListField",
     readOnly: true,
   }],
 });
@@ -90,6 +119,17 @@ dataImport.addHook("validate", {
   handler({ dataImport, orm }) {
     const entryType = dataImport.$entryType;
     const result = orm.getEntryType(entryType as EntryName);
+  },
+});
+dataImport.addHook("beforeUpdate", {
+  name: "generateTitle",
+  description: "Generates the title from the create date and entry type",
+  handler({ dataImport }) {
+    const date = dateUtils.getPrettyDate(dataImport.$createdAt, {
+      format: "yyyy-mm-dd",
+      showTime: true,
+    });
+    dataImport.$title = `Import ${dataImport.$entryType__title} - ${date}`;
   },
 });
 dataImport.addChild("columnMap", {
@@ -115,6 +155,7 @@ dataImport.addChild("columnMap", {
   }],
 });
 dataImport.addAction("getContent", {
+  private: true,
   async action({ dataImport, orm }) {
     if (!dataImport.$csv) {
       return { success: false, message: "No CSV file provided" };
@@ -128,13 +169,29 @@ dataImport.addAction("getContent", {
   },
 });
 dataImport.addAction("processInfo", {
+  label: "Process CSV",
+  description:
+    "Reads the contents of the uploaded CSV and creates the column map and sets the total row count available for import.",
   async action({ dataImport, orm }) {
-    const result = await dataImport.runAction("getContent") as {
+    dataImport.$errorMessage = "";
+    dataImport.$totalRecords = null;
+    dataImport.$successfulRecords = null;
+    dataImport.$failedRecords = null;
+    dataImport.$status = "processing";
+    await dataImport.save();
+
+    const result = await dataImport.runAction("getContent").catch((e) => {
+      return {
+        success: false,
+        message: e instanceof Error ? e.message : "Unknown error",
+      };
+    }) as {
       success: boolean;
       message?: string;
       headers?: Array<string>;
       records?: Array<Record<string, unknown>>;
     };
+
     if (!result.success) {
       dataImport.$status = "failed";
       await dataImport.save();
@@ -153,6 +210,10 @@ dataImport.addAction("processInfo", {
       ) => [key, `${dataImport.$entryType}:${key}`]),
     );
     const firstRecord = new Map<string, any>(Object.entries(records[0] || {}));
+
+    const sampleData = records.slice(0, 10);
+    dataImport.$sampleData = { data: sampleData };
+
     const columnMapData = headers.map((header) => ({
       columnName: header,
       exampleData: (firstRecord.get(header) || "").toString().slice(0, 255),
@@ -161,10 +222,14 @@ dataImport.addAction("processInfo", {
 
     dataImport.$columnMap.update(columnMapData);
     dataImport.$totalRecords = records.length;
+    dataImport.$status = "readyForImport";
+    dataImport.$importColumns = headers;
     await dataImport.save();
   },
 });
 dataImport.addAction("import", {
+  label: "Run Import",
+  description: "Imports the data from the CSV based on the current settings.",
   async action({ dataImport, orm }) {
     const dataMap = dataImport.$columnMap.data.filter((col) => col.mapTo).map(
       (col) => ({
