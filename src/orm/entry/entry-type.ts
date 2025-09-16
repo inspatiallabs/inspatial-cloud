@@ -180,6 +180,7 @@ export class EntryType<
         );
       }
       this.imageField = field;
+      this.defaultListFields.add(field.key);
     }
 
     this.info = {

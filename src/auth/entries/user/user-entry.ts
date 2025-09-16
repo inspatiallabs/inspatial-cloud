@@ -13,6 +13,7 @@ export const userEntry = new EntryType("user", {
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
   searchFields: ["email"],
+  imageField: "profilePicture",
   fields: [
     ...userFields,
     ...googleFields,
