@@ -35,6 +35,9 @@ export const getFile = new CloudAPIAction("getFile", {
         global ? "globalCloudFile" : "cloudFile",
         fileId,
       );
+      if (file.$optimizeImage && !file.$optimized) {
+        raiseServerException(404, "File not optimized yet");
+      }
       let fileName = "";
       if (thumbnail) {
         fileName = file.$thumbnailPath

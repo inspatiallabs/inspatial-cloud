@@ -230,6 +230,7 @@ export class InQueue extends InCloud {
       }
       if (result.thumbnailPath) {
         fileEntry.$thumbnailPath = result.thumbnailPath;
+        fileEntry.$hasThumbnail = true;
       }
       fileEntry.$fileSize = result.fileSize;
       fileEntry.$fileExtension = format;
