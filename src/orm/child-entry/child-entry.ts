@@ -74,17 +74,17 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     };
   }
 
-  get data(): Array<T> {
+  get data(): Array<T & { id?: string; order: number }> {
     const data = Array.from(
       this._data.values().map((child) => {
         const childData = Object.fromEntries(child._data.entries());
-        return childData as T;
+        return childData as T & { id: string; order: number };
       }),
     );
     const newData = Array.from(
       this._newData.values().map((child) => {
         const childData = Object.fromEntries(child._data.entries());
-        return childData as T;
+        return childData as T & { order: number };
       }),
     );
     return [...data, ...newData];

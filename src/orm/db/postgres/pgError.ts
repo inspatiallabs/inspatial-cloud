@@ -90,6 +90,8 @@ export function handlePgError(error: PgError) {
     case PGErrorCode.StringDataRightTruncation:
       response.push(error.detail);
       break;
+    case PGErrorCode.OutOfMemory:
+      throw error; // rethrow since this is likely the embedded db during migrate and will be caught in the runner;
     default:
       raiseORMException(
         `Unhandled PG error: ${JSON.stringify(error.fullMessage)}`,

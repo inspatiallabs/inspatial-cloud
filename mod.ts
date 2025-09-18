@@ -17,6 +17,7 @@ export {
   ChildEntry,
   ChildEntryList,
   ChildEntryType,
+  defineChildEntry,
 } from "~/orm/child-entry/child-entry.ts";
 export { CloudAPIAction, defineAPIAction } from "~/api/cloud-action.ts";
 export { CloudAPIGroup, defineAPIGroup } from "~/api/cloud-group.ts";

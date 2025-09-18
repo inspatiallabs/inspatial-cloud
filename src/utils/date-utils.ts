@@ -67,7 +67,7 @@ function formatTime(value: string | undefined, options: {
     options.showSeconds ? `:${second}` : ""
   }`;
 }
-function getPrettyDate(value: string | number | undefined, options?: {
+function getPrettyDate(value: string | number | null | undefined, options?: {
   format?: DateFormat;
   showSeconds?: boolean;
   showTime?: boolean;
