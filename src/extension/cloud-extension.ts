@@ -35,8 +35,6 @@ export type AfterMigrate = {
 export class CloudExtension<
   AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
   N extends string = string,
-  E extends Array<EntryType<any>> = Array<EntryType<any>>,
-  ST extends Array<SettingsType<any>> = Array<SettingsType<any>>,
   C extends ConfigDefinition = ConfigDefinition,
 > {
   key: string;
@@ -75,7 +73,7 @@ export class CloudExtension<
     account: AfterMigrate[];
     global: AfterMigrate[];
   };
-  actionGroups: AG;
+  apiGroups: AG;
   install: (
     inCloud: InCloud,
     config: ExtensionConfig<C>,
@@ -83,7 +81,7 @@ export class CloudExtension<
 
   constructor(
     extensionName: N,
-    options: Omit<ExtensionOptions<AG, E, ST, C>, "name"> & {
+    options: Omit<ExtensionOptions<AG, C>, "name"> & {
       label?: string;
       description?: string;
     },
@@ -139,9 +137,9 @@ export class CloudExtension<
     this.#validateConfigEnv();
     this.entryTypes = options.entryTypes || [];
     this.settingsTypes = options.settingsTypes || [];
-    this.actionGroups = [] as any;
-    for (const actionGroup of options.actionGroups || []) {
-      this.actionGroups.push(actionGroup);
+    this.apiGroups = [] as any;
+    for (const actionGroup of options.apiGroups || []) {
+      this.apiGroups.push(actionGroup);
     }
     this.install = options.install || (() => {});
 
@@ -222,4 +220,18 @@ export class CloudExtension<
       accountMigrate,
     };
   }
+}
+
+export function defineExtension<
+  AG extends Array<CloudAPIGroup> = Array<CloudAPIGroup>,
+  N extends string = string,
+  C extends ConfigDefinition = ConfigDefinition,
+>(
+  extensionName: N,
+  config: Omit<ExtensionOptions<AG, C>, "name"> & {
+    label?: string;
+    description?: string;
+  },
+): CloudExtension<AG, N, C> {
+  return new CloudExtension<AG, N, C>(extensionName, config);
 }

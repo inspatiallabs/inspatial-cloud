@@ -56,6 +56,12 @@ export const userFields = [{
   description:
     "Is the user a system administrator? (admin users have access to all parts of the system)",
 }, {
+  key: "adminPortalAccess",
+  label: "Admin Portal Access",
+  type: "BooleanField",
+  description: "Does the user have access to the admin portal?",
+  defaultValue: false,
+}, {
   key: "enabled",
   label: "Enabled",
   type: "BooleanField",

@@ -1,10 +1,12 @@
 import type { EntryType } from "~/orm/entry/entry-type.ts";
 import type { InField, InFieldMap } from "~/orm/field/field-def-types.ts";
 import type { SettingsType } from "~/orm/settings/settings-type.ts";
-import { raiseORMException } from "~/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "~/orm/orm-exception.ts";
 import type { ChildEntryType } from "~/orm/child-entry/child-entry.ts";
 import type { Role } from "../roles/role.ts";
 import type { RegisterFieldConfig } from "../registry/connection-registry.ts";
+import type { EntryName } from "#types/models.ts";
+import { getInLog } from "#inLog";
 
 export function buildConnectionFields(
   role: Role,
@@ -23,12 +25,25 @@ export function buildConnectionFields(
     }
     let connectionEntryType: EntryType;
     try {
-      connectionEntryType = role.getEntryType(field.entryType);
-    } catch (_e) {
-      raiseORMException(
-        `Connection entry '${field.entryType}' of field '${field.key}', in '${entryOrSettingsOrChildType.name}' does not exist for role '${role.label}'`,
-        "Invalid Connection",
-      );
+      connectionEntryType = role.getEntryType(field.entryType as EntryName);
+    } catch (e) {
+      if (e instanceof ORMException && e.subject === "NoEntryType") {
+        // If the connection entry type does not exist, it's likely because the role doesn't have permission to it
+        // So we just remove the field from this entry type and warn about it
+
+        entryOrSettingsOrChildType.fields.delete(field.key);
+        getInLog("cloud").warn(
+          `Connection field '${field.key}' in '${entryOrSettingsOrChildType.name}' references non-existent entry type '${field.entryType}'. The field has been removed.`,
+        );
+        continue;
+      }
+      throw e;
+    }
+    if (
+      !entryOrSettingsOrChildType.systemGlobal &&
+      connectionEntryType.systemGlobal
+    ) {
+      field.global = true;
     }
     const titleField = buildConnectionTitleField(
       field,
@@ -82,12 +97,11 @@ export function validateConnectionFields(
     if (field.type !== "ConnectionField") {
       continue;
     }
-    if (field.type === "ConnectionField") {
-      if (!field.entryType) {
-        raiseORMException(
-          `Connection field '${field.key}' in '${entryOrSettingsType.name}' is missing a connection EntryType`,
-        );
-      }
+    const key = field.key || "(unknown)";
+    if (!field.entryType) {
+      raiseORMException(
+        `Connection field '${key}' in '${entryOrSettingsType.name}' is missing a connection EntryType`,
+      );
     }
 
     if (!role.entryTypes.has(field.entryType)) {
@@ -133,7 +147,9 @@ function registerField(role: Role, args: {
   const connectionIdField = childOrEntryType.fields.get(
     fetchOptions.connectionField,
   ) as InField<"ConnectionField">;
-  const referencedEntryType = role.getEntryType(connectionIdField.entryType);
+  const referencedEntryType = role.getEntryType(
+    connectionIdField.entryType as EntryName,
+  );
   const referencedField = referencedEntryType.fields.get(
     fetchOptions.fetchField,
   );
@@ -156,12 +172,12 @@ function registerField(role: Role, args: {
     role.registry.registerField(config);
   }
 }
-function buildConnectionTitleField(
+function buildConnectionTitleField<E extends EntryType<any>>(
   field:
     | InFieldMap["ConnectionField"]
     | InFieldMap["FileField"]
     | InFieldMap["ImageField"],
-  connectionEntryType: EntryType,
+  connectionEntryType: E,
 ): InField | undefined {
   const titleFieldKey = connectionEntryType.config.titleField;
   if (!titleFieldKey || titleFieldKey === "id") {
@@ -183,6 +199,7 @@ function buildConnectionTitleField(
     fetchField: {
       connectionField: field.key,
       fetchField: titleFieldKey,
+      global: field.global || undefined,
     },
   } as InField;
 

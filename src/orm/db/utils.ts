@@ -1,5 +1,4 @@
 import type { ValueType } from "~/orm/db/db-types.ts";
-import { raiseORMException } from "~/orm/orm-exception.ts";
 import convertString from "~/utils/convert-string.ts";
 /**
  * Format a column name for use in a query. Keywords are escaped with double quotes
@@ -15,6 +14,7 @@ export function formatColumnName(column: string): string {
     "column",
     "to",
     "unique",
+    "create",
   ];
   if (reservedWords.includes(column)) {
     return `"${column}"`;

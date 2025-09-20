@@ -157,7 +157,7 @@ export class RunManager {
       await this.shutdown("SIGTERM");
     });
   }
-  async shutdown(signal: Deno.Signal): Promise<void> {
+  async shutdown(_signal: Deno.Signal): Promise<void> {
     this.inLogSmall.warn(
       `Shutting down gracefully...`,
       {
@@ -165,32 +165,24 @@ export class RunManager {
         subject: this.appTitle,
       },
     );
-    this.serveProcs.forEach((proc) => {
-      if (proc.pid) {
-        proc.kill(signal);
-      }
-    });
-    if (this.queueProc && this.queueProc.pid) {
-      this.queueProc.kill(signal);
-    }
-    if (this.brokerProc && this.brokerProc.pid) {
-      this.brokerProc.kill(signal);
-    }
-    if (this.dbProc && this.dbProc.pid) {
-      this.dbProc.kill(signal);
-    }
     for (const proc of this.serveProcs.values()) {
+      // await killProc(proc, signal);
       await proc.status;
     }
-    if (this.queueProc) {
+
+    if (this.queueProc && this.queueProc.pid) {
+      // await killProc(this.queueProc, signal);
       await this.queueProc.status;
     }
-    if (this.brokerProc) {
+    if (this.brokerProc && this.brokerProc.pid) {
+      // await killProc(this.brokerProc, signal);
       await this.brokerProc.status;
     }
-    if (this.dbProc) {
+    if (this.dbProc && this.dbProc.pid) {
+      // await killProc(this.dbProc, signal);
       await this.dbProc.status;
     }
+
     this.inLogSmall.info(
       "All processes have been shut down.",
       this.appTitle,
@@ -198,19 +190,33 @@ export class RunManager {
     Deno.exit(0);
   }
   async setupWatcher() {
+    const paths: string[] = [];
+    const setupPaths = (
+      root: string,
+      dirs: IteratorObject<Deno.DirEntry, unknown, unknown>,
+    ) => {
+      for (const item of dirs) {
+        if (item.isDirectory && !item.name.startsWith(".")) {
+          paths.push(joinPath(root, item.name));
+        }
+        if (item.name.endsWith(".type.ts")) {
+          continue;
+        }
+        if (item.isFile && item.name.endsWith("ts")) {
+          paths.push(joinPath(root, item.name));
+        }
+      }
+    };
     const dirs = Deno.readDirSync(this.rootPath);
-    const paths = [];
-    for (const item of dirs) {
-      if (item.isDirectory && item.name != ".inspatial") {
-        paths.push(joinPath(this.rootPath, item.name));
-      }
-      if (item.name.endsWith(".type.ts")) {
-        continue;
-      }
-      if (item.isFile && item.name.endsWith("ts")) {
-        paths.push(joinPath(this.rootPath, item.name));
-      }
+    setupPaths(this.rootPath, dirs);
+    try {
+      const cloudPath = joinPath(this.rootPath, "..", "inspatial-cloud", "src");
+      const cloudDirs = Deno.readDirSync(cloudPath);
+      setupPaths(cloudPath, cloudDirs);
+    } catch (_e) {
+      // No inspatial-cloud directory, skip it
     }
+
     const watcher = Deno.watchFs(paths, {
       recursive: true,
     });
@@ -244,42 +250,35 @@ export class RunManager {
         );
         this.reload();
         return;
-        // Here you can add logic to handle the file change, like restarting servers
       }
     }
   }
-  reload() {
+  async reload() {
     this.isReloading = true;
-    this.serveProcs.forEach((proc) => {
+    for (const [pid, proc] of this.serveProcs.entries()) {
       if (proc.pid) {
-        proc.kill("SIGINT");
-        proc.status.then((_status) => {
-          this.serveProcs.delete(proc.pid);
-        });
+        await killProc(proc, "SIGINT");
       }
-    });
+      this.serveProcs.delete(pid);
+    }
 
     if (this.queueProc && this.queueProc.pid) {
-      this.queueProc.kill("SIGINT");
+      await killProc(this.queueProc, "SIGINT");
     }
     this.queueProc = undefined;
-    this.spawnMigrator().then((success) => {
-      if (!success) {
-        this.isReloading = false;
-        //this.inLog.error(
-        //   "Migration failed. Please check the logs for details.",
-        //   convertString(this.appName, "title", true),
-        // );
-        return;
-      }
-      this.spawnServers();
-      this.spawnQueue();
+    const success = await this.spawnMigrator();
+    if (!success) {
       this.isReloading = false;
-      this.inLogSmall.info(
-        "Reloaded successfully.",
-        this.appTitle,
-      );
-    });
+      return;
+    }
+
+    this.spawnServers();
+    this.spawnQueue();
+    this.isReloading = false;
+    this.inLogSmall.info(
+      "Reloaded successfully.",
+      this.appTitle,
+    );
   }
 
   spawnServers(): number {
@@ -382,22 +381,22 @@ export class RunManager {
           }
           break;
         case 174: // SIGSEGV
-          if (mode === "migrator" && this.usingEmbeddedDb) {
-            if (this.dbProc?.pid) {
-              this.dbProc.kill("SIGINT");
-              this.dbProc.status.then(() => {
-                this.inLogSmall.error(
-                  "Database process was killed due to a segmentation fault.",
-                  `${this.appTitle}: ${mode}`,
-                );
-              });
-            }
-            if (this.embeddedDbPort) {
-              this.spawnDB(this.embeddedDbPort);
-            }
-            this.reload();
+          if (mode === "migrator" && this.usingEmbeddedDb && this.dbProc) {
+            killProc(this.dbProc, "SIGINT").then(() => {
+              this.spawnDB(this.embeddedDbPort!);
+              this.reload();
+            });
           }
           return;
+        case 1:
+          if (
+            IS_WINDOWS && mode === "server" ||
+            mode === "queue" && this.isReloading
+          ) {
+            // Ignore exit code 1 on Windows for server and queue processes during reload, it's because we used taskkill to kill the process
+            return;
+          }
+          break;
       }
       const message = ColorMe.standard();
       message.content("Exit code ").color("white").content(
@@ -501,4 +500,19 @@ function makeRunning(
       ).content(port.toString()).color("brightYellow").end();
   }
   return output.content("Not running").color("brightRed").end();
+}
+
+async function killProc(process: Deno.ChildProcess, signal: Deno.Signal) {
+  if (!process.pid) {
+    return;
+  }
+  if (IS_WINDOWS) {
+    const kill = new Deno.Command("taskkill", {
+      args: ["/PID", process.pid.toString(), "/f", "/t"],
+    });
+    return await kill.output();
+  }
+
+  process.kill(signal);
+  await process.status;
 }

@@ -1,7 +1,7 @@
 import { sendEmail } from "./sendEmail.ts";
 import { redirectAction } from "./googleRedirect.ts";
 import { CloudAPIGroup } from "~/api/cloud-group.ts";
-import { SessionData } from "../../auth/types.ts";
+import type { SessionData } from "../../auth/types.ts";
 
 export const emailGroup: CloudAPIGroup<"email"> = new CloudAPIGroup("email", {
   label: "Email",
@@ -21,7 +21,7 @@ emailGroup.addAction("getLinks", {
     label: "Entry ID",
     required: false,
   }],
-  async run({ inRequest, params, inCloud }) {
+  async action({ inRequest, params, inCloud }) {
     const { entryId, entryType } = params;
     const user = inRequest.context.get<SessionData>("user");
 

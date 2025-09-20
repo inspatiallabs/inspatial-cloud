@@ -9,7 +9,6 @@ export interface EntryPermission<FK extends PropertyKey = PropertyKey>
   extends BasePermission<FK> {
   create: boolean;
   delete: boolean;
-  userScoped?: {
-    userIdField: string;
-  };
+  /** Only allow access to entries where this field = the user id */
+  userScope?: string;
 }

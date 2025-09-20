@@ -6,7 +6,7 @@ import type { SessionData } from "~/auth/types.ts";
 export const entryTypesInfo = new CloudAPIAction("entryTypes", {
   description: "Get EntryType Definitions",
   label: "Entry Types",
-  run({ inCloud, inRequest }): Array<EntryTypeInfo> {
+  action({ inCloud, inRequest }): Array<EntryTypeInfo> {
     const user = inRequest.context.get<SessionData>("user");
     if (!user) {
       return [];
@@ -22,7 +22,7 @@ export const entryTypesInfo = new CloudAPIAction("entryTypes", {
 export const settingsTypesInfo = new CloudAPIAction("settingsTypes", {
   description: "Get SettingsType Definitions",
   label: "Settings Types",
-  run({ inCloud, inRequest }): Array<SettingsTypeInfo> {
+  action({ inCloud, inRequest }): Array<SettingsTypeInfo> {
     const user = inRequest.context.get<SessionData>("user");
     if (!user) {
       return [];
@@ -38,7 +38,7 @@ export const settingsTypesInfo = new CloudAPIAction("settingsTypes", {
 export const generateInterfaces = new CloudAPIAction("generateInterfaces", {
   description: "Generate Entry Typescript Interfaces",
   label: "Generate Interfaces",
-  async run({ orm }): Promise<{
+  async action({ orm }): Promise<{
     generatedEntries: Array<string>;
     generatedSettings: Array<string>;
   }> {
@@ -50,7 +50,7 @@ export const generateInterfaces = new CloudAPIAction("generateInterfaces", {
 export const getClientInterfaces = new CloudAPIAction("getClientInterfaces", {
   description: "Get Client Typescript Interfaces",
   label: "Get Client Interfaces",
-  run({ orm, inResponse }) {
+  action({ orm, inResponse }) {
     const result = orm.generateClientInterfaces();
     return inResponse.setFile({
       content: result,

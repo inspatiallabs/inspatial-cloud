@@ -16,7 +16,6 @@ import type {
 import type { InCloud } from "~/in-cloud.ts";
 
 import type { UserID } from "~/auth/types.ts";
-import type { InTaskGlobal } from "~/in-queue/entry-types/in-task/_in-task-global.type.ts";
 
 export class BaseClass<N extends string = string> {
   readonly _type: "settings" | "entry";
@@ -76,20 +75,20 @@ export class BaseClass<N extends string = string> {
     this._childrenData = new Map();
   }
 
-  async runAction<T = unknown>(
+  async runAction(
     actionKey: string,
     data?: Record<string, any>,
-  ): Promise<T> {
+  ): Promise<unknown> {
     const action = this.#getAndValidateAction(actionKey, data);
 
     data = data || {};
     return await action.action({
       orm: this._orm,
       inCloud: this._inCloud,
-      data,
+      params: data,
       [this._name]: this as any,
       [this._type]: this as any,
-    });
+    } as any);
   }
   async enqueueAction(
     actionKey: string,
@@ -111,7 +110,7 @@ export class BaseClass<N extends string = string> {
       taskEntryType,
     );
     for (const [key, value] of Object.entries(fields)) {
-      (task as any)[key] = value;
+      (task as any)[`$${key}`] = value;
     }
     await task.save();
     const info = {
@@ -147,17 +146,17 @@ export class BaseClass<N extends string = string> {
     }
     return this._childrenData.get(childName)!;
   }
-  async saveChildren(withParentId?: string): Promise<void> {
+  async _saveChildren(withParentId?: string): Promise<void> {
     for (const child of this._childrenData.values()) {
       await child.save(withParentId);
     }
   }
-  async deleteChildren() {
+  async _deleteChildren() {
     for (const child of this._childrenData.values()) {
       await child.clear();
     }
   }
-  async loadChildren(parentId: string): Promise<void> {
+  async _loadChildren(parentId: string): Promise<void> {
     for (const child of this._childrenData.values()) {
       await child.load(parentId);
     }
@@ -184,7 +183,7 @@ export class BaseClass<N extends string = string> {
     }
     return action;
   }
-  async refreshFetchedFields(): Promise<void> {
+  async _refreshFetchedFields(): Promise<void> {
     for (const field of this._fields.values()) {
       if (field.fetchField) {
         const def = this._getFieldDef<"ConnectionField">(
@@ -195,11 +194,11 @@ export class BaseClass<N extends string = string> {
           this._data.get(def.key),
           field.fetchField.fetchField,
         );
-        (this as any)[field.key] = value;
+        this[`$${field.key}` as keyof typeof this] = value;
       }
     }
   }
-  handlePGError(e: unknown): never {
+  _handlePGError(e: unknown): never {
     if (!(e instanceof PgError)) {
       throw e;
     }

@@ -19,6 +19,8 @@ export class MigrationPlan {
   };
   entries: Array<EntryMigrationPlan>;
   settings: Array<SettingsMigrationPlan>;
+  dropObsoleteTables?: boolean;
+  dropTables: Array<string>;
 
   constructor() {
     this.summary = {
@@ -38,5 +40,6 @@ export class MigrationPlan {
     };
     this.entries = [];
     this.settings = [];
+    this.dropTables = [];
   }
 }

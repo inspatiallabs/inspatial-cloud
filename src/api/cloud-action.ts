@@ -9,55 +9,48 @@ import type { SessionData } from "~/auth/types.ts";
 import type { InCloud } from "~/in-cloud.ts";
 
 export type ActionMethod<
-  K extends PropertyKey = PropertyKey,
-  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
-> = (args: {
+  P extends Array<InField> | undefined = undefined,
+> = (
+  args: P extends undefined ? ActionMethodNoParams : {
+    inCloud: InCloud;
+    orm: InSpatialORM;
+    params: P extends Array<infer F> ? ExtractParams<P> : never;
+    inRequest: InRequest;
+    inResponse: InResponse;
+  },
+) => Promise<any> | any;
+
+type ActionMethodNoParams = {
   inCloud: InCloud;
   orm: InSpatialORM;
-  params: ExtractParams<K, P>;
   inRequest: InRequest;
   inResponse: InResponse;
-}) => Promise<any> | any;
+};
 
-export type ActionConfig<
-  K extends PropertyKey = PropertyKey,
-  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
-  R extends ActionMethod<K, P> = ActionMethod<K, P>,
-> = {
-  run: R;
-  /**
-   * Whether to skip reading the request body. Should be set to true if the action
-   * will be reading the request body itself, such as when uploading files.
-   */
-  raw?: boolean;
-  description?: string;
+export interface ActionConfigBase {
   label?: string;
+  description?: string;
+  raw?: boolean;
   authRequired?: boolean;
   hideFromApi?: boolean;
-  params: P;
-};
+}
+
 export class CloudAPIAction<
-  K extends PropertyKey = PropertyKey,
-  P extends Array<CloudParam<K>> = Array<CloudParam<K>>,
-  R extends ActionMethod<K, P> = ActionMethod<K, P>,
+  K extends string = string,
+  AP extends Array<InField & { key: K }> | undefined = any,
 > {
   description: string = "This is a Cloud API action";
   label?: string;
   raw: boolean = false;
   actionName: string;
+  groupName: string = "";
   authRequired: boolean = true;
 
   includeInAPI: boolean = true;
   params: Map<string, CloudParam<PropertyKey>>;
   requiredParams: string[] = [];
 
-  #_run: (args: {
-    inCloud: InCloud;
-    orm: InSpatialORM;
-    params: any;
-    inRequest: InRequest;
-    inResponse: InResponse;
-  }) => Promise<any> | any;
+  #_run: ActionMethod<AP>;
 
   raiseError(message: string): never {
     raiseServerException(400, message);
@@ -65,9 +58,12 @@ export class CloudAPIAction<
 
   constructor(
     actionName: string,
-    config: ActionConfig<K, P, R>,
+    config: ActionConfigBase & {
+      params?: AP extends undefined ? never : AP;
+      action: ActionMethod<AP>;
+    },
   ) {
-    this.#_run = config.run;
+    this.#_run = config.action;
     this.actionName = actionName;
     this.raw = config.raw || false;
     this.label = config.label || this.label ||
@@ -79,10 +75,17 @@ export class CloudAPIAction<
     if (config.hideFromApi === true) {
       this.includeInAPI = false;
     }
-    this.params = new Map(config.params.map((p) => [p.key as string, p]));
-    this.requiredParams = config.params.filter((param) => param.required).map(
-      (p) => p.key as string,
+    this.params = new Map(
+      config.params?.map((
+        p,
+      ) => [p.key as string, {
+        ...p,
+        label: p.label || convertString(p.key, "title", true),
+      }]),
     );
+    this.requiredParams = config.params?.filter((param) => param.required).map(
+      (p) => p.key as string,
+    ) || [];
   }
 
   #validateParams(
@@ -144,7 +147,12 @@ export class CloudAPIAction<
 
     return Object.fromEntries(incomingParams);
   }
-
+  #raisePermissionError(): never {
+    raiseServerException(
+      403,
+      "User does not have permission to access this action",
+    );
+  }
   async run(args: {
     inCloud: InCloud;
     params?: Record<string, any>;
@@ -162,9 +170,43 @@ export class CloudAPIAction<
       if (!user) {
         raiseServerException(401, "User is not authenticated");
       }
+      const role = args.inCloud.roles.getRole(user.role);
+      const groupPermission = role.apiGroups.get(this.groupName);
+
+      switch (groupPermission) {
+        case true:
+          break;
+        case undefined:
+          this.#raisePermissionError();
+          break;
+        default:
+          if (!groupPermission.has(this.actionName)) {
+            this.#raisePermissionError();
+          }
+      }
+
       runObject.orm = args.inCloud.orm.withUser(user);
     }
 
-    return await this.#_run(runObject);
+    return await this.#_run(runObject as any);
   }
+}
+
+/** Define a Cloud API Action
+ *
+ * @param actionName The name of the action
+ * @param config The configuration for the action
+ * @returns A new CloudAPIAction instance
+ */
+export function defineAPIAction<
+  K extends string,
+  AP extends Array<InField & { key: K }> | undefined,
+>(
+  actionName: string,
+  config: ActionConfigBase & {
+    params?: AP extends undefined ? never : AP;
+    action: ActionMethod<AP>;
+  },
+): CloudAPIAction<K, AP> {
+  return new CloudAPIAction(actionName, config);
 }

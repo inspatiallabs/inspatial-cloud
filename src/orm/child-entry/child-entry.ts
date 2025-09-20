@@ -13,8 +13,10 @@ import { dateUtils } from "~/utils/date-utils.ts";
 import type { InSpatialDB } from "../db/inspatial-db.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import { getInLog } from "#inLog";
+import type { EntryName } from "#types/models.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
-  [key: string]: any;
+  _name?: string;
+  [key: `$${string}`]: any;
 }
 type BuiltInFields = "id" | "createdAt" | "updatedAt" | "parent" | "order";
 export class ChildEntry<
@@ -72,17 +74,17 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     };
   }
 
-  get data(): Array<T> {
+  get data(): Array<T & { id?: string; order: number }> {
     const data = Array.from(
       this._data.values().map((child) => {
         const childData = Object.fromEntries(child._data.entries());
-        return childData as T;
+        return childData as T & { id: string; order: number };
       }),
     );
     const newData = Array.from(
       this._newData.values().map((child) => {
         const childData = Object.fromEntries(child._data.entries());
-        return childData as T;
+        return childData as T & { order: number };
       }),
     );
     return [...data, ...newData];
@@ -154,6 +156,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     this.rowsToRemove.clear();
   }
   update(data: Array<T>): void {
+    this._newData.clear();
     const rowsToRemove = new Set(this._data.keys());
     for (const row of data) {
       switch (typeof row.id) {
@@ -184,7 +187,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     const child = this.getChild(id);
     for (const [key, value] of Object.entries(data)) {
       if (this._fields.has(key)) {
-        child[key as keyof typeof child] = value;
+        child[`$${key}`] = value;
       }
     }
   }
@@ -196,12 +199,12 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
 
     for (const [key, value] of Object.entries(data)) {
       if (this._fields.has(key)) {
-        child[key as keyof typeof child] = value;
+        child[`$${key}`] = value;
       }
     }
-    child.parent = this._parentId;
-    if (typeof child.order != "number") {
-      child.order = this._newData.size + 1;
+    child.$parent = this._parentId;
+    if (typeof child.$order != "number") {
+      child.$order = this._newData.size + 1;
     }
     this._newData.set(this._newData.size.toString(), child);
   }
@@ -226,9 +229,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
         continue;
       }
 
-      childEntry.updatedAt = dateUtils.nowTimestamp();
+      childEntry.$updatedAt = dateUtils.nowTimestamp();
       if (withParentId) {
-        childEntry.parent = this._parentId;
+        childEntry.$parent = this._parentId;
       }
       const data: Record<string, any> = {};
       for (const [key, value] of childEntry._modifiedValues.entries()) {
@@ -238,18 +241,18 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       }
       await this._db.updateRow(
         this._tableName,
-        childEntry.id,
+        childEntry.$id,
         data,
       );
     }
     for (const childEntry of this._newData.values()) {
       await this.#refreshFetchedFields(childEntry);
       if (withParentId) {
-        childEntry.parent = this._parentId;
+        childEntry.$parent = this._parentId;
       }
-      childEntry.createdAt = dateUtils.nowTimestamp();
-      childEntry.updatedAt = dateUtils.nowTimestamp();
-      childEntry.id = ulid();
+      childEntry.$createdAt = dateUtils.nowTimestamp();
+      childEntry.$updatedAt = dateUtils.nowTimestamp();
+      childEntry.$id = ulid();
       const data: Record<string, any> = {};
       for (const [key, value] of childEntry._data.entries()) {
         const fieldDef = this._getFieldDef(key);
@@ -260,7 +263,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
         this._tableName,
         data,
       );
-      this._data.set(childEntry.id, childEntry);
+      this._data.set(childEntry.$id, childEntry);
     }
 
     await this.deleteStaleRecords();
@@ -277,7 +280,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
           child._data.get(def.key),
           field.fetchField.fetchField,
         );
-        child[field.key] = value;
+        child[`$${field.key}`] = value;
       }
     }
   }
@@ -354,7 +357,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       key: "parent",
       label: "Parent",
       type: "ConnectionField",
-      entryType: parentEntryType,
+      entryType: parentEntryType as EntryName,
       required: true,
     });
   }
@@ -375,4 +378,16 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
 }
 
 export interface ChildEntryTypeInfo extends Omit<BaseTypeInfo, "children"> {
+}
+
+/** Defines a ChildEntryType */
+export function defineChildEntry<N extends string>(
+  name: N,
+  config: {
+    label?: string;
+    description?: string;
+    fields: Array<InField>;
+  },
+): ChildEntryType<N> {
+  return new ChildEntryType(name, config);
 }

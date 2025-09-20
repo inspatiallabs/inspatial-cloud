@@ -41,6 +41,7 @@ import { raiseCloudException } from "./serve/exeption/cloud-exception.ts";
 import { InQueueClient } from "./in-queue/in-queue-client.ts";
 import { EmailManager } from "./email/email-manager.ts";
 import convertString from "./utils/convert-string.ts";
+import { BrokerClient } from "./in-live/broker-client.ts";
 
 export class InCloud {
   appName: string;
@@ -65,6 +66,7 @@ export class InCloud {
   privateFiles: StaticFileHandler;
   auth: AuthHandler;
   inLive: InLiveHandler;
+  inChannel: BrokerClient;
   inCache: InCache;
   inQueue: InQueueClient;
   emailManager: EmailManager;
@@ -96,12 +98,15 @@ export class InCloud {
     this.filesPath = joinPath(this.inRoot, "files");
     this.publicFilesPath = joinPath(this.inRoot, "public-files");
     this.appName = appName;
-
+    const inChannel = new BrokerClient();
+    this.inChannel = inChannel;
     this.#config = config;
-    this.inLive = new InLiveHandler(this);
-    this.inCache = new InCache();
+    this.inLive = new InLiveHandler(this, inChannel);
+    this.inCache = new InCache(inChannel);
     this.api = new CloudAPI();
-    this.roles = new RoleManager();
+    const roles = new RoleManager(inChannel);
+    this.roles = roles;
+
     this.static = new StaticFileHandler();
     this.publicFiles = new StaticFileHandler({
       staticFilesRoot: this.publicFilesPath,
@@ -124,6 +129,7 @@ export class InCloud {
       description: "System Administrator",
       label: "System Admin",
     });
+
     this.auth = new AuthHandler(this);
     this.inQueue = new InQueueClient();
     this.inLog = createInLog("cloud", {
@@ -214,10 +220,14 @@ export class InCloud {
 
       Deno.exit(0);
     };
-
     Deno.addSignalListener("SIGINT", async () => await shutdown("SIGINT"));
     if (IS_WINDOWS) {
-      return; // Windows does not support Deno.addSignalListener for SIGTERM
+      Deno.addSignalListener(
+        "SIGBREAK",
+        async () => await shutdown("SIGBREAK"),
+      );
+      Deno.addSignalListener("SIGHUP", async () => await shutdown("SIGHUP"));
+      return;
     }
 
     Deno.addSignalListener("SIGTERM", async () => await shutdown("SIGTERM"));
@@ -361,8 +371,9 @@ export class InCloud {
     const { brokerPort, queuePort } = this.getExtensionConfig(
       "core",
     );
-    this.inLive.init(brokerPort);
-    this.inCache.init(brokerPort);
+    this.inChannel.connect(brokerPort);
+    this.inLive.init();
+
     this.inQueue.init(queuePort);
   }
   #initExtensions() {
@@ -386,10 +397,10 @@ export class InCloud {
   #installExtension(cloudExtension: CloudExtension): void {
     const config = this.extensionManager.getExtensionConfig(cloudExtension.key);
 
-    const { actionGroups } = cloudExtension;
+    const { apiGroups } = cloudExtension;
 
-    for (const actionGroup of actionGroups) {
-      this.api.addGroup(actionGroup);
+    for (const apiGroup of apiGroups) {
+      this.api.addGroup(apiGroup);
     }
     const extensionObject = cloudExtension.install(
       this,
@@ -442,8 +453,23 @@ export class InCloud {
     this.auth.allowPath(apiPathHandler.match);
     this.auth.allowPath(staticFilesHandler.match);
     const allowAll = this.getExtensionConfigValue("core", "authAllowAll");
+    const adminRole = this.roles.getRole("systemAdmin");
+    const coreExtension = this.extensionManager.extensions.get("core");
+    const basicUserConfig = coreExtension?.roles.find((r) =>
+      r.roleName === "basicUser"
+    );
+    if (basicUserConfig) {
+      this.roles.addRole({
+        ...basicUserConfig,
+        roleName: "accountAdmin",
+        description: "Account Administrator",
+        label: "Account Admin",
+      });
+    }
     for (const group of this.actionGroups.values()) {
+      const actionsSet = new Set<string>();
       for (const action of group.actions.values()) {
+        actionsSet.add(action.actionName);
         if (allowAll === true) {
           this.auth.allowAction(group.groupName, action.actionName);
           continue;
@@ -452,6 +478,7 @@ export class InCloud {
           this.auth.allowAction(group.groupName, action.actionName);
         }
       }
+      adminRole.apiGroups.set(group.groupName, actionsSet);
     }
   }
   #setupOrm() {

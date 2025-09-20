@@ -105,7 +105,7 @@ const commandHandlers: {
     }
     const outputFilePath = filePath.replace(
       /\.[^.]+$/,
-      `.${format === "jpeg" ? "jpg" : "png"}`,
+      `.${format === "png" ? "png" : "jpg"}`,
     );
 
     await Deno.writeFile(outputFilePath, resized);

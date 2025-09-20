@@ -44,8 +44,28 @@ export class InCloudServer extends InCloud {
       },
     });
   }
+  async #syncUserRoles() {
+    const orm = this.orm.withUser(this.orm.systemGobalUser);
+    const { rows: roles } = await orm.getEntryList("userRole", {
+      columns: ["id"],
+      filter: [{
+        field: "id",
+        op: "!=",
+        value: "accountOwner",
+      }],
+    });
+    for (const { id } of roles) {
+      const role = await orm.getEntry("userRole", id);
+      try {
+        await role.runAction("syncWithSystem");
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
   override async run() {
     await super.run();
+    await this.#syncUserRoles();
     this.inQueue.onMessageReceived((message) => {
       switch (message.type) {
         case "status":

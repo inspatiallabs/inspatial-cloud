@@ -5,6 +5,7 @@ import type {
   QueryResponse,
 } from "~/orm/db/postgres/pgTypes.ts";
 import { PgError } from "~/orm/db/postgres/pgError.ts";
+import { getInLog } from "#inLog";
 
 class PostgresPoolClient {
   locked: boolean;
@@ -35,16 +36,22 @@ class PostgresPoolClient {
   async query<T extends Record<string, any>>(
     query: string,
   ): Promise<QueryResponse<T>> {
-    const response = await this.client.query<T>(query).catch(async (e) => {
-      if (e instanceof PgError && e.name === "terminate") {
-        this.client = new PostgresClient(this.config);
-        await this.client.connect();
-        return await this.query<T>(query);
-      }
-      throw e;
-    }).finally(() => {
-      this.locked = false;
-    });
+    const response = await this.client.query<T>(query)
+      .catch(async (e) => {
+        if (e instanceof PgError && e.name === "terminate") {
+          this.client = new PostgresClient(this.config);
+          await this.client.connect();
+          return await this.query<T>(query);
+        }
+        if (e instanceof Deno.errors.BrokenPipe) {
+          this.client = new PostgresClient(this.config);
+          await this.client.connect();
+          return await this.query<T>(query);
+        }
+        throw e;
+      }).finally(() => {
+        this.locked = false;
+      });
     return response;
   }
   get connected(): boolean {
@@ -85,7 +92,6 @@ export class PostgresPool {
       this.maxClients = this.size;
     }
     this.lazy = pool.lazy || false;
-
     for (let i = 0; i < this.size; i++) {
       this.clients.push(new PostgresPoolClient(this.clientConfig));
     }
@@ -125,7 +131,6 @@ export class PostgresPool {
       }
     }
     client.locked = true;
-    // await client.connect();
     return client;
   }
 

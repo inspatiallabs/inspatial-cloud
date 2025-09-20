@@ -90,7 +90,13 @@ export class WasmLoader {
       ) as WebAssembly.ModuleImports,
     };
 
-    const result = await WebAssembly.instantiate(this.inPg.wasmData, info);
+    const result = await WebAssembly.instantiate(
+      this.inPg.wasmData,
+      info,
+    ) as unknown as
+      & WebAssembly.Instance
+      & { instance: WebAssembly.Instance };
+
     this.wasmExports = result.instance.exports;
 
     for (const [sym, exp] of Object.entries(result.instance.exports)) {
@@ -379,7 +385,7 @@ export class WasmLoader {
     return this.wasmTable.length - 1;
   }
   loadWebAssemblyModule(
-    binary: Int8Array,
+    binary: Int8Array<ArrayBuffer>,
     flags: any,
     _libName: any,
     localScope: any,

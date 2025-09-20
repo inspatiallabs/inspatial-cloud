@@ -45,13 +45,29 @@ import { Currencies } from "../orm/field/field-def-types.ts";
 import { inLiveLifecycle } from "../in-live/in-live-lifecycle.ts";
 import { publicFilesHandler } from "../files/public-files-handler.ts";
 import { emailTemplate } from "../email/entries/emailTemplate.ts";
+import { userRole } from "../auth/entries/user-role.ts";
+import { entryMeta } from "../build/entryMeta.ts";
+import { extensionMeta } from "../build/extensionMeta.ts";
+import { tagsGroup } from "../orm/api-actions/tags-group.ts";
+import { entryPermission } from "../auth/entries/permission/entry-permission.ts";
+import { fieldMeta } from "../build/fieldMeta.ts";
+import { actionMeta } from "../build/actionMeta.ts";
+import { apiGroup } from "../build/apiGroup.ts";
+import { apiAction } from "../build/apiAction.ts";
+import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts";
+import { settingsMeta } from "../build/settingsMeta.ts";
+import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
+import { dataImport } from "../data-import/data-import.ts";
+
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
   version: "0.0.1",
   ormGlobalHooks: {
     entries: {
-      afterUpdate: [notifyUpdate],
+      afterUpdate: [
+        notifyUpdate,
+      ],
       afterCreate: [notifyCreate],
       afterDelete: [notifyDelete],
     },
@@ -59,7 +75,7 @@ export const coreExtension = new CloudExtension("core", {
       afterUpdate: [notifySettings],
     },
   },
-  actionGroups: [
+  apiGroups: [
     authGroup,
     entriesGroup,
     ormGroup,
@@ -67,6 +83,7 @@ export const coreExtension = new CloudExtension("core", {
     devActions,
     filesGroup,
     emailGroup,
+    tagsGroup,
   ],
   settingsTypes: [
     systemSettings,
@@ -86,6 +103,18 @@ export const coreExtension = new CloudExtension("core", {
     emailAccountEntry,
     emailTemplate,
     onboardingStep,
+    userRole,
+    extensionMeta,
+    entryMeta,
+    settingsMeta,
+    fieldMeta,
+    actionMeta,
+    entryPermission,
+    settingsPermission,
+    apiGroup,
+    apiAction,
+    apiGroupPermission,
+    dataImport,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],
@@ -100,9 +129,32 @@ export const coreExtension = new CloudExtension("core", {
     },
   },
   roles: [{
-    roleName: "accountOwner",
-    label: "Account Owner",
+    roleName: "basicUser",
+    label: "Basic User",
     description: "The default role assigned to a user",
+
+    apiGroups: {
+      auth: [
+        "authCheck",
+        "completeOnboarding",
+        "getAccount",
+        "googleAuthCallback",
+        "googleTokenLogin",
+        "login",
+        "logout",
+        "resetPassword",
+        "setNewPassword",
+        "signInWithGoogle",
+        "signupWithGoogle",
+        "updateAccount",
+      ],
+      api: true,
+      entry: true,
+      orm: ["entryTypes", "settingsTypes"],
+      settings: true,
+      tags: true,
+      files: true,
+    },
     entryTypes: {
       cloudFile: {
         view: true,
@@ -112,8 +164,8 @@ export const coreExtension = new CloudExtension("core", {
       },
       globalCloudFile: {
         view: true,
-        modify: false,
-        create: false,
+        modify: true,
+        create: true,
         delete: false,
       },
       onboardingStep: {
@@ -128,16 +180,35 @@ export const coreExtension = new CloudExtension("core", {
         create: false,
         delete: false,
       },
-      user: {
+      account: {
         view: true,
         modify: false,
         create: false,
         delete: false,
-        userScoped: {
-          userIdField: "id",
+        userScope: "owner",
+        actions: {
+          include: ["addUser"],
         },
+      },
+      userRole: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+
+      user: {
+        view: true,
+        modify: true,
+        create: false,
+        delete: false,
+        userScope: "id",
         fields: {
           systemAdmin: {
+            view: false,
+            modify: false,
+          },
+          adminPortalAccess: {
             view: false,
             modify: false,
           },
@@ -154,8 +225,15 @@ export const coreExtension = new CloudExtension("core", {
             view: true,
           },
         },
+
         actions: {
-          include: [],
+          include: [
+            "findAccounts",
+            "generateApiToken",
+            "generateResetToken",
+            "setPassword",
+            "validatePassword",
+          ],
         },
       },
     },
@@ -328,6 +406,13 @@ export const coreExtension = new CloudExtension("core", {
       type: "boolean",
       default: true,
     },
+    dropTables: {
+      description:
+        "Drop tables that are not in the current ORM model during auto-migrate. WARNING: This will delete all data in the dropped tables!",
+      required: false,
+      type: "boolean",
+      default: false,
+    },
     defaultCurrency: {
       description: "Sets the default currency for the system",
       type: "string",
@@ -477,6 +562,7 @@ export const coreExtension = new CloudExtension("core", {
         value: false,
       },
     },
+
     authAllowAll: {
       type: "boolean",
       description:

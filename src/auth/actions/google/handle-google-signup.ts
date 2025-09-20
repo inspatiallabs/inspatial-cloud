@@ -7,10 +7,7 @@ import type {
   GoogleIdToken,
 } from "~/auth/providers/google/accessToken.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
-import type { User } from "../../entries/user/_user.type.ts";
-import type { Account } from "../../entries/account/_account.type.ts";
 import { handleGoogleLogin } from "./handle-google-login.ts";
-import type { SystemSettings } from "../../../extension/settings/_system-settings.type.ts";
 
 export async function handleGoogleSignup(args: {
   accessToken: GoogleAccessTokenResponse;
@@ -34,11 +31,11 @@ export async function handleGoogleSignup(args: {
     inRequest,
     inResponse,
   } = args;
-  const { enableSignup } = await orm.getSettings<SystemSettings>(
+  const { $enableSignup } = await orm.getSettings(
     "systemSettings",
   );
   const redirectUrl = new URL(redirectTo);
-  if (!enableSignup) {
+  if (!$enableSignup) {
     return inResponse.redirect(redirectUrl.toString());
   }
   const authHandler = inCloud.auth;
@@ -62,23 +59,25 @@ export async function handleGoogleSignup(args: {
       csrfToken,
     });
   }
-  const user = orm.getNewEntry<User>("user");
-  user.firstName = givenName;
-  user.lastName = familyName;
-  user.email = email;
-  user.googlePicture = picture;
-  user.googleCredential = accessToken;
-  user.googleAccessToken = accessToken.accessToken;
-  user.googleRefreshToken = accessToken.refreshToken;
-  user.googlePicture = picture;
-  user.googleId = sub;
-  user.googleAuthStatus = "authenticated";
+  const user = orm.getNewEntry("user");
+  user.$firstName = givenName;
+  user.$lastName = familyName;
+  user.$email = email;
+  user.$googlePicture = picture;
+  user.$googleCredential = accessToken as any;
+  user.$googleAccessToken = accessToken.accessToken;
+  user.$googleRefreshToken = accessToken.refreshToken;
+  user.$googlePicture = picture;
+  user.$googleId = sub;
+  user.$googleAuthStatus = "authenticated";
   await user.save();
-  await orm.createEntry<Account>("account", {
+  await orm.createEntry("account", {
     name: `${givenName} ${familyName}`.trim() || email,
     initialized: true,
     users: [{
-      user: user.id,
+      user: user.$id,
+      isOwner: true,
+      role: "accountOwner",
     }],
   });
   await authHandler.createUserSession(

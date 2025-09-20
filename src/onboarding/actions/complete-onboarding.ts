@@ -1,17 +1,16 @@
 import { CloudAPIAction } from "../../api/cloud-action.ts";
-import type { Account } from "../../auth/entries/account/_account.type.ts";
 import type { SessionData } from "../../auth/types.ts";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 
 export const completeOnboarding = new CloudAPIAction("completeOnboarding", {
-  async run({ inRequest, params: { obResponse }, inCloud, orm }) {
+  async action({ inRequest, params: { obResponse }, inCloud, orm }) {
     const user = inRequest.context.get<SessionData>("user")!;
     const account = await inCloud.orm.withAccount(user.accountId)
-      .getEntry<Account>(
+      .getEntry(
         "account",
         user.accountId,
       );
-    if (account.onboardingComplete) {
+    if (account.$onboardingComplete) {
       raiseCloudException(
         "Onboarding is already complete for this account.",
         {
@@ -30,8 +29,8 @@ export const completeOnboarding = new CloudAPIAction("completeOnboarding", {
         responses: obResponse,
       });
     }
-    account.onboardingComplete = true;
-    account.obResponse = obResponse;
+    account.$onboardingComplete = true;
+    account.$obResponse = obResponse;
     await account.save();
     return {
       message: "Onboarding completed successfully.",

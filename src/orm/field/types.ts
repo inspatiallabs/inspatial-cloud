@@ -26,16 +26,20 @@ type InValueTypeMap = {
   FileField: string;
   JSONField: Record<string, unknown>;
   PhoneField: string;
-  ConnectionField: {
-    id: string;
-    display: string;
-  };
+  ConnectionField: string;
   RichTextField: Record<string, unknown>;
   URLField: string;
   ListField: string[];
   CurrencyField: number;
   TimeField: string;
   CodeField: string;
+  ArrayField: any[];
 };
 
-export type IDMode = "uuid" | "ulid" | "auto";
+export type IDMode = "uuid" | "ulid" | "auto" | {
+  type: "field";
+  field: string;
+} | {
+  type: "fields";
+  fields: string[];
+};

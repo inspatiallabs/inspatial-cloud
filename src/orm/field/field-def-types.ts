@@ -3,7 +3,8 @@ import type {
   FileTypes,
   ImageFileType,
 } from "~/files/mime-types/file-types.ts";
-import { InFilter } from "../db/db-types.ts";
+import type { InFilter } from "../db/db-types.ts";
+import type { EntryName } from "#types/models.ts";
 
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
@@ -32,6 +33,7 @@ export type InFieldMap = {
   FileField: FileField;
   TimeField: TimeField;
   CodeField: CodeField;
+  ArrayField: ArrayField;
 };
 
 export type InFieldType = keyof InFieldMap;
@@ -48,6 +50,7 @@ export interface FetchOptions {
    * The field in the fetched entry to get the value from.
    */
   fetchField: string;
+  global?: boolean;
 }
 type DependsOn<FK extends PropertyKey = PropertyKey> =
   | FK
@@ -60,6 +63,7 @@ type DependsOn<FK extends PropertyKey = PropertyKey> =
     value: InValue | Array<InValue>;
   }>;
 type BaseField<FK extends PropertyKey = PropertyKey> = {
+  type: InFieldType;
   key: string;
   label?: string;
   description?: string;
@@ -69,6 +73,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
   defaultValue?: any;
   hidden?: boolean;
   placeholder?: string;
+  global?: boolean;
   /**
    * Fetch the value from another entry, based on the id in a `ConnectionField` in this entry.
    */
@@ -76,6 +81,7 @@ type BaseField<FK extends PropertyKey = PropertyKey> = {
 
   dependsOn?: DependsOn<FK>;
 };
+
 export interface IDField extends BaseField {
   type: "IDField";
   idMode: IDMode;
@@ -204,7 +210,7 @@ export interface ConnectionField extends BaseField {
   /**
    * The `EntryType` that this field connects to.
    */
-  entryType: string;
+  entryType: EntryName;
 
   connectionIdMode?: IDMode;
   filter?: InFilter | Array<InFilter>;
@@ -230,6 +236,11 @@ export interface URLField extends BaseField {
 export interface ListField extends BaseField {
   type: "ListField";
   defaultValue?: InValue<"ListField">;
+}
+
+export interface ArrayField extends BaseField {
+  type: "ArrayField";
+  arrayType: keyof Pick<InFieldMap, "IntField" | "DataField">;
 }
 
 export interface CodeField extends BaseField {

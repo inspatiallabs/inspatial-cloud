@@ -1,13 +1,13 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.6.19",
+  "version": "0.7.13",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
-    "./extensions": "./extensions/mod.ts",
     "./utils": "./src/utils/mod.ts",
     "./types": "./types.ts",
-    "./incloud": "./cli/incloud.ts"
+    "./incloud": "./cli/incloud.ts",
+    "./models": "./src/types/models.ts"
   },
 
   "publish": {
@@ -30,9 +30,12 @@
     "@inspatial/cloud-client": "jsr:@inspatial/cloud-client@^0.1.22",
     "~/": "./src/",
     "#cli/": "./cli/src/",
-    "#extensions/": "./extensions/",
     "#types/": "./src/types/",
     "#inLog": "./src/in-log/in-log.ts"
+  },
+  "compilerOptions": {
+    "types": ["./types.ts", "./src/types/models.ts"],
+    "verbatimModuleSyntax": true
   },
   "tasks": {
     "check": "deno publish --dry-run",

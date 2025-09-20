@@ -1,12 +1,13 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { SettingsType } from "~/orm/mod.ts";
+import type { SettingsName } from "#types/models.ts";
 
 export const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
   label: "Get Settings Info",
   description: "Get the settings info for a given settings type",
-  run({ orm, params }): SettingsType["info"] {
+  action({ orm, params }): SettingsType["info"] {
     const { settingsType } = params;
-    const settingsTypeDef = orm.getSettingsType(settingsType);
+    const settingsTypeDef = orm.getSettingsType(settingsType as SettingsName);
     return settingsTypeDef.info;
   },
   params: [{
@@ -21,8 +22,9 @@ export const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
 export const getSettings = new CloudAPIAction("getSettings", {
   label: "Get Settings",
   description: "Get the settings for a given settings type",
-  async run({ orm, params }): Promise<any> {
-    const { settingsType, withModifiedTime } = params;
+  async action({ orm, params }): Promise<any> {
+    const { withModifiedTime } = params;
+    const settingsType = params.settingsType as SettingsName;
     const settings = await orm.getSettings(settingsType);
     if (withModifiedTime) {
       return {
@@ -50,8 +52,9 @@ export const getSettings = new CloudAPIAction("getSettings", {
 export const updateSettings = new CloudAPIAction("updateSettings", {
   label: "Update Settings",
   description: "Update the settings for a given settings type",
-  async run({ orm, params }): Promise<any> {
-    const { settingsType, data } = params;
+  async action({ orm, params }): Promise<any> {
+    const { data } = params;
+    const settingsType = params.settingsType as SettingsName;
     const settings = await orm.updateSettings(settingsType, data);
     return settings.data;
   },
@@ -73,8 +76,9 @@ export const updateSettings = new CloudAPIAction("updateSettings", {
 export const runSettingsAction = new CloudAPIAction("runSettingsAction", {
   label: "Run Settings Action",
   description: "Run a settings action for a given settings type",
-  async run({ orm, params }): Promise<any> {
-    const settings = await orm.getSettings(params.settingsType);
+  async action({ orm, params }): Promise<any> {
+    const settingsType = params.settingsType as SettingsName;
+    const settings = await orm.getSettings(settingsType);
     return await settings.runAction(params.action, params.data);
   },
   params: [{

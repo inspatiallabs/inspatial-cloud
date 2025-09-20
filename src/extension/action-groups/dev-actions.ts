@@ -1,4 +1,5 @@
 import { CloudAPIGroup } from "@inspatial/cloud";
+import { raiseORMException } from "../../orm/mod.ts";
 
 export const devActions = new CloudAPIGroup("dev", {
   description: "Development actions",
@@ -9,15 +10,54 @@ export const devActions = new CloudAPIGroup("dev", {
 devActions.addAction("generateConfig", {
   description: "Generate the cloud-config.json along with the schema",
   params: [],
-  run({ inCloud }) {
+  action({ inCloud }) {
     inCloud.generateConfigFile();
   },
 });
+devActions.addAction("run", {
+  params: [{
+    key: "code",
+    type: "TextField",
+  }],
 
+  async action({ inCloud, orm, params: { code } }) {
+    if (inCloud.getExtensionConfigValue("core", "cloudMode") === "production") {
+      raiseORMException(
+        "The run action is not available in production mode",
+        "Dev",
+        403,
+      );
+    }
+    const resultRows: Array<any> = [];
+    const log = (...args: any[]) => {
+      for (const arg of args) {
+        resultRows.push(arg);
+      }
+    };
+    const func = new Function(
+      "inCloud",
+      "orm",
+      "log",
+      `return (async () => { ${code} })()`,
+    );
+    try {
+      const result = await func(inCloud, orm, log);
+      return {
+        result,
+        log: resultRows,
+      };
+    } catch (error) {
+      return {
+        result: { error: (error as Error).message },
+        log: resultRows,
+      };
+    }
+  },
+});
 devActions.addAction("clearStaticCache", {
   description: "Clear the static files cache",
   params: [],
-  run({ inCloud }) {
+  action({ inCloud }) {
     inCloud.static.cache.clear();
   },
 });
@@ -43,7 +83,7 @@ devActions.addAction("getLog", {
       label: "Debug",
     }],
   }],
-  async run({ inCloud, params: { logType } }) {
+  async action({ inCloud, params: { logType } }) {
     switch (logType) {
       case "info":
       case "warning":
@@ -80,7 +120,7 @@ devActions.addAction("clearLog", {
       label: "Debug",
     }],
   }],
-  async run({ inCloud, params: { logType } }) {
+  async action({ inCloud, params: { logType } }) {
     switch (logType) {
       case "info":
       case "warning":

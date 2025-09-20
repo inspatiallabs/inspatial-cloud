@@ -33,12 +33,13 @@ export interface BaseTypeConfig {
 }
 
 export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
+  /** A human readable label. If not provided, one will be generated from the name. */
   label?: string;
+  /** A brief description of this type. */
   description?: string;
-  /**
-   * If true, this will exist in the shared schema of the database that all tenants can reference.
-   */
+  /** Setting this to `true` will add this to the globally available schema that all accounts can reference. */
   systemGlobal?: boolean;
+  /** An array of `InField` definitions  */
   fields: Array<InField>;
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;

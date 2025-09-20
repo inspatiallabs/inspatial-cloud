@@ -1,7 +1,6 @@
 import { EntryType } from "@inspatial/cloud";
-import type { EmailTemplate } from "./_email-template.type.ts";
 
-export const emailTemplate = new EntryType<EmailTemplate>("emailTemplate", {
+export const emailTemplate = new EntryType("emailTemplate", {
   systemGlobal: true,
   titleField: "title",
   fields: [{
@@ -19,14 +18,12 @@ export const emailTemplate = new EntryType<EmailTemplate>("emailTemplate", {
   }],
 });
 
-emailTemplate.addAction({
-  key: "renderTemplate",
+emailTemplate.addAction("renderTemplate", {
   label: "Render Template",
   description: "Render email template with parameters",
-  action({ emailTemplate, data }) {
-    let content = emailTemplate.content || "";
-    let subject = emailTemplate.subject || "";
-    const params = data.params as Record<string, any>;
+  action({ emailTemplate, params }) {
+    let content = emailTemplate.$content || "";
+    let subject = emailTemplate.$subject || "";
     for (const [key, value] of Object.entries(params)) {
       const regex = new RegExp(`\\{\\s*${key}\\s*\\}`, "g");
       content = content.replace(regex, `${value}` || "");

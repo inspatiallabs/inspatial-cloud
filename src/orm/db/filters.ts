@@ -80,7 +80,7 @@ export function makeFilter(field: string, filter: FilterAll): string {
       break;
 
     case ">":
-    case "greaterTan":
+    case "greaterThan":
       filterString = `${column} >${formatDbValue(filter.value)}`;
       break;
     case "<":
@@ -141,6 +141,18 @@ export function makeFilter(field: string, filter: FilterAll): string {
         } AND ${formatDbValue(filter.value[1])}`;
       }
       break;
+    case "arrayContainsAny": {
+      if (!Array.isArray(filter.value)) {
+        raiseORMException(
+          `filter operation ${filter} requires an array value`,
+        );
+      }
+      if (filter.value.length === 0) {
+        break;
+      }
+      filterString = `${column} && ARRAY[${formatDbValue(filter.value, true)}]`;
+      break;
+    }
     default:
       raiseORMException(
         `filter operation ${filter} is not an valid option`,

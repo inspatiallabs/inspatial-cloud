@@ -34,15 +34,29 @@ function parseArgs() {
 }
 
 function makeMainFile(projectName: string) {
-  const mainfile = `import { createInCloud } from "@inspatial/cloud";
+  const mainfile =
+    `import { createInCloud, defineExtension, defineEntry } from "@inspatial/cloud";
 
-createInCloud({
-  name: "${projectName}",
-  description: "My InCloud Project",
-  entryTypes: [], // Define your entry types here
-  settingsTypes: [], // Define your settings types here
-  actionGroups: [], // Define your API action groups here
+const myEntry = defineEntry("myEntry",{
+  label: "My Entry",
+  description: "A sample entry type",
+  titleField: "name",
+  fields: [{
+    key: "name",
+    type: "DataField",
+    required: true,
+  }]
 });
+
+const myExtension = defineExtension("myExtension",{
+  label: "My Extension",
+  description: "A sample extension",
+  entryTypes: [myEntry],
+  settingsTypes: [],
+  apiGroups: [],
+});
+
+createInCloud("${projectName}", [myExtension]);
 
 `;
   return mainfile;
@@ -54,7 +68,7 @@ function doRun(rootPath: string, file?: string) {
   runner.init();
 }
 
-function doInit(_rootPath: string, projectName?: string) {
+async function doInit(_rootPath: string, projectName?: string) {
   if (!projectName) {
     cliLog.warn("Project name is required for initialization.");
     Deno.exit(1);
@@ -103,9 +117,19 @@ function doInit(_rootPath: string, projectName?: string) {
       },
     }),
   );
-  proc.status.then((status) => {
+  try {
+    const status = await proc.status;
     Deno.writeTextFileSync("main.ts", makeMainFile(projectName));
     if (status.success) {
+      const clean = new Deno.Command(Deno.execPath(), {
+        args: ["clean"],
+      });
+      await clean.output();
+      const cmd = new Deno.Command(Deno.execPath(), {
+        args: ["cache", "main.ts"],
+      });
+      await cmd.output();
+
       cliLog.info([
         `Project ${name} initialized successfully!`,
         "",
@@ -117,10 +141,11 @@ function doInit(_rootPath: string, projectName?: string) {
       cliLog.error(`Failed to initialize project ${name}.`);
       Deno.exit(1);
     }
-  }).catch((err) => {
-    cliLog.error(`Error initializing project: ${err.message}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    cliLog.error(`Error initializing project: ${message}`);
     Deno.exit(1);
-  });
+  }
 }
 
 async function init() {
@@ -142,7 +167,7 @@ async function init() {
       doRun(rootPath, file);
       break;
     case "init":
-      doInit(rootPath, file);
+      await doInit(rootPath, file);
       break;
     case "syncClient":
       await syncEntryInterface();

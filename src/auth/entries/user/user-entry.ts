@@ -1,5 +1,4 @@
 import { EntryType } from "~/orm/entry/entry-type.ts";
-import type { User } from "./_user.type.ts";
 import { findAccounts } from "./actions/find-accounts.ts";
 import { userFields } from "./fields/fields.ts";
 import { googleFields } from "./fields/google-fields.ts";
@@ -8,12 +7,13 @@ import { validatePassword } from "./actions/validate-password.ts";
 import { generateApiToken } from "./actions/generate-api-token.ts";
 import { generateResetToken } from "./actions/generate-reset-token.ts";
 
-export const userEntry = new EntryType<User>("user", {
+export const userEntry = new EntryType("user", {
   titleField: "fullName",
   systemGlobal: true,
   defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
   description: "A user of the system",
   searchFields: ["email"],
+  imageField: "profilePicture",
   fields: [
     ...userFields,
     ...googleFields,
@@ -27,7 +27,7 @@ export const userEntry = new EntryType<User>("user", {
     key: "security",
     label: "Security",
     description: "Security related information",
-    fields: ["systemAdmin", "apiToken", "enabled"],
+    fields: ["systemAdmin", "adminPortalAccess", "apiToken", "enabled"],
   }, {
     key: "google",
     label: "Google Account",
@@ -49,7 +49,8 @@ export const userEntry = new EntryType<User>("user", {
       handler({
         user,
       }) {
-        user.fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+        user.$fullName = `${user.$firstName ?? ""} ${user.$lastName ?? ""}`
+          .trim();
       },
     }],
     beforeDelete: [{

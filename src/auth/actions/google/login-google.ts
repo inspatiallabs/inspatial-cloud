@@ -1,22 +1,21 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseServerException } from "~/serve/server-exception.ts";
 import { generateId } from "~/utils/mod.ts";
-import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
 
 export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
   authRequired: false,
   description: "Redirect to Google OAuth2 login page",
-  async run({ orm, inRequest, params }) {
+  async action({ orm, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,
       csrfToken,
       type: "login",
     });
-    const authSettings = await orm.getSettings<AuthSettings>(
+    const authSettings = await orm.getSettings(
       "authSettings",
     );
-    const clientId = authSettings.googleClientId;
+    const clientId = authSettings.$googleClientId;
     if (!clientId) {
       raiseServerException(
         400,
@@ -25,7 +24,7 @@ export const signInWithGoogle = new CloudAPIAction("signInWithGoogle", {
     }
 
     const redirectUri = `${
-      authSettings.hostname || inRequest.fullHost
+      authSettings.$hostname || inRequest.fullHost
     }/api?group=auth&action=googleAuthCallback`;
 
     const url = new URL(

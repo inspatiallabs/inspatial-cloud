@@ -50,3 +50,11 @@ export type EntryHookFunction = (app: InCloud, hookParams: {
 export type UniqueArray<T> = T extends ReadonlyArray<infer U>
   ? U[] & { __unique: never }
   : never;
+
+/** A `Tag` in the orm. These are globally available to tag entries that are defined as `taggable`  */
+export type Tag = {
+  /** The unique identifier for this tag. */
+  id: number;
+  /** The human-readable name of this tag. */
+  name: string;
+};

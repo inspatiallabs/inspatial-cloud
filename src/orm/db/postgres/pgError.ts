@@ -1,5 +1,6 @@
 import ColorMe from "../../../terminal/color-me.ts";
 import { convertString } from "../../../utils/mod.ts";
+import { raiseORMException } from "../../orm-exception.ts";
 import { PGErrorCode } from "./maps/errorMap.ts";
 
 export class PgError extends Error {
@@ -43,7 +44,7 @@ export function handlePgError(error: PgError) {
     case PGErrorCode.ForeignKeyViolation: {
       response.push(error.detail);
       const match = error.detail.match(
-        /\(id\)=\((?<id>[\w\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
+        /\(id\)=\((?<id>[\w:\d]+)\)[\w\s]+"(?<table>[\w_]+)"/,
       );
       if (match?.groups) {
         info.set("id", match.groups.id);
@@ -79,9 +80,23 @@ export function handlePgError(error: PgError) {
         }`,
       );
       break;
+    case PGErrorCode.UndefinedFunction:
+      response.push(
+        `Query: ${error.query} \n ${
+          ColorMe.fromOptions(error.message, { color: "brightRed" })
+        }`,
+      );
+      break;
+    case PGErrorCode.StringDataRightTruncation:
+      response.push(error.detail);
+      break;
+    case PGErrorCode.OutOfMemory:
+      throw error; // rethrow since this is likely the embedded db during migrate and will be caught in the runner;
     default:
-      console.log(error);
-      throw error;
+      raiseORMException(
+        `Unhandled PG error: ${JSON.stringify(error.fullMessage)}`,
+        "PgError",
+      );
   }
   return { subject, response, info: Object.fromEntries(info) };
 }

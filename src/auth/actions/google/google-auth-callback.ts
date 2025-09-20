@@ -1,7 +1,6 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 
 import { raiseServerException } from "~/serve/server-exception.ts";
-import type { AuthSettings } from "~/auth/settings/_auth-settings.type.ts";
 import { GoogleOAuth } from "../../providers/google/accessToken.ts";
 import { handleGoogleLogin } from "./handle-google-login.ts";
 import { handleGoogleSignup } from "./handle-google-signup.ts";
@@ -9,25 +8,25 @@ import { handleGoogleSignup } from "./handle-google-signup.ts";
 const googleAuthCallback = new CloudAPIAction("googleAuthCallback", {
   authRequired: false,
   description: "Google OAuth2 callback",
-  async run({ inCloud, orm, inRequest, inResponse, params }) {
+  async action({ inCloud, orm, inRequest, inResponse, params }) {
     const { code, state } = params;
-    const authSettings = await orm.getSettings<AuthSettings>(
+    const authSettings = await orm.getSettings(
       "authSettings",
     );
-    if (!authSettings.googleClientId || !authSettings.googleClientSecret) {
+    if (!authSettings.$googleClientId || !authSettings.$googleClientSecret) {
       raiseServerException(
         400,
         "Google auth: Client ID or Client Secret not set in settings",
       );
     }
     const redirectUri = `${
-      authSettings.hostname || inRequest.fullHost
+      authSettings.$hostname || inRequest.fullHost
     }/api?group=auth&action=googleAuthCallback`;
     const parsedState = JSON.parse(state);
     const { redirectTo, csrfToken, type } = parsedState;
     const googleAuth = new GoogleOAuth({
-      clientId: authSettings.googleClientId,
-      clientSecret: authSettings.googleClientSecret,
+      clientId: authSettings.$googleClientId,
+      clientSecret: authSettings.$googleClientSecret,
     });
     const accessToken = await googleAuth.getAccessToken({
       code: code,

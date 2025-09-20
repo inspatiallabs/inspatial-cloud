@@ -8,7 +8,7 @@ import type {
   TableIndex,
 } from "~/orm/db/db-types.ts";
 import { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migration-plan.ts";
-import type { InField } from "~/orm/field/field-def-types.ts";
+import type { InField, InFieldType } from "~/orm/field/field-def-types.ts";
 import type {
   ColumnCreatePlan,
   ColumnMigrationPlan,
@@ -24,6 +24,7 @@ import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
 import type { EntryIndex } from "~/orm/entry/types.ts";
 import { convertString } from "~/utils/mod.ts";
 import type { InSpatialDB } from "../../db/inspatial-db.ts";
+import type { EntryName } from "#types/models.ts";
 
 export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   extends BaseMigrator<EntryType> {
@@ -182,7 +183,8 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
   }
 
   #loadTargetColumns(): void {
-    for (const field of this.entryType.fields.values()) {
+    for (const inField of this.entryType.fields.values()) {
+      const field = inField as InField<InFieldType> & { global?: boolean };
       if (field.key == "id") {
         const idField = field as InField<"IDField">;
         this.migrationPlan.table.idMode = idField.idMode;
@@ -194,7 +196,9 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       let connectionEntryType: EntryType | undefined;
       switch (field.type) {
         case "ConnectionField":
-          connectionEntryType = this.orm.getEntryType(field.entryType);
+          connectionEntryType = this.orm.getEntryType(
+            field.entryType as EntryName,
+          );
           break;
         case "ImageField":
         case "FileField":
@@ -203,7 +207,9 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
               `Field ${field.key} in EntryType ${this.entryType.name} is a ${field.type} but does not have an entryType defined.`,
             );
           }
-          connectionEntryType = this.orm.getEntryType(field.entryType);
+          connectionEntryType = this.orm.getEntryType(
+            field.entryType as EntryName,
+          );
           break;
         default:
           continue;
@@ -216,10 +222,13 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
       this.targetConstraints.foreignKey.set(field.key, {
         columnName: field.key,
-        constraintName: `${this.#tableName}_${field.key}_fk`,
+        constraintName: `${
+          field.global ? "global_" : ""
+        }${this.#tableName}_${field.key}_fk`,
         foreignColumnName: "id",
         foreignTableName: connectionEntryType.config.tableName,
         tableName: this.#tableName,
+        global: field?.global,
       });
     }
   }
@@ -236,6 +245,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
     }
   }
+
   #checkForColumnsToCreate(): void {
     for (const column of this.targetColumns.values()) {
       if (!this.existingColumns.has(column.columnName)) {

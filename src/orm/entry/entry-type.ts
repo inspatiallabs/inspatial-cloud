@@ -1,15 +1,13 @@
 import type {
-  ActionParam,
   EntryActionConfig,
   EntryActionDefinition,
+  EntryActionMethod,
   EntryConfig,
   EntryConnection,
   EntryHookDefinition,
   EntryIndex,
   EntryTypeConfig,
-  ExtractFieldKeys,
 } from "~/orm/entry/types.ts";
-import type { EntryBase, GenericEntry } from "~/orm/entry/entry-base.ts";
 import type { EntryHookName } from "~/orm/orm-types.ts";
 import { BaseType } from "~/orm/shared/base-type-class.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
@@ -17,41 +15,37 @@ import convertString from "~/utils/convert-string.ts";
 import type { EntryPermission } from "~/orm/roles/entry-permissions.ts";
 import type { InField } from "@inspatial/cloud/types";
 import { getCallerPath } from "../../utils/path-utils.ts";
-
+import type { EntryFieldKeys } from "#types/mod.ts";
+import { ChildEntryType } from "../child-entry/child-entry.ts";
 /**
  * This class is used to define an Entry Type in the ORM.
  */
 export class EntryType<
-  E extends EntryBase = GenericEntry,
-  N extends string = string,
-  A extends Array<EntryActionDefinition<E>> = Array<
-    EntryActionDefinition<E>
-  >,
-  FK extends PropertyKey = ExtractFieldKeys<E>,
-> extends BaseType<N> {
+  E extends string = string,
+> extends BaseType<E> {
   config: EntryTypeConfig;
   statusField: InField<"ChoicesField"> | undefined;
   imageField?: InField<"ImageField">;
   defaultListFields: Set<string> = new Set(["id"]);
-  defaultSortField?: FK;
+  defaultSortField?: EntryFieldKeys<E>;
   defaultSortDirection?: "asc" | "desc" = "asc";
-  actions: Map<string, EntryActionDefinition> = new Map();
+  actions: Map<string, EntryActionDefinition<E>> = new Map();
   connections: Array<EntryConnection> = [];
-  hooks: Record<EntryHookName, Array<EntryHookDefinition<E>>> = {
-    beforeUpdate: [],
-    afterCreate: [],
-    afterDelete: [],
-    afterUpdate: [],
-    beforeCreate: [],
-    beforeDelete: [],
-    beforeValidate: [],
-    validate: [],
+  hooks: Record<EntryHookName, Map<string, EntryHookDefinition<E>>> = {
+    beforeUpdate: new Map(),
+    afterCreate: new Map(),
+    afterDelete: new Map(),
+    afterUpdate: new Map(),
+    beforeCreate: new Map(),
+    beforeDelete: new Map(),
+    beforeValidate: new Map(),
+    validate: new Map(),
   };
   permission: EntryPermission;
-  sourceConfig: EntryConfig<E, A, FK>;
+  sourceConfig: EntryConfig<E>;
   constructor(
-    name: N,
-    config: EntryConfig<E, A, FK>,
+    name: E,
+    config: EntryConfig<E>,
     rm?: boolean,
   ) {
     super(name, config);
@@ -62,7 +56,8 @@ export class EntryType<
     this.sourceConfig = {
       ...config,
     };
-    this.defaultSortField = config.defaultSortField || "id" as FK;
+    this.defaultSortField = config.defaultSortField ||
+      "id" as EntryFieldKeys<E>;
     this.defaultSortDirection = config.defaultSortDirection || "asc";
     this.permission = {
       create: true,
@@ -80,6 +75,26 @@ export class EntryType<
       required: true,
     });
 
+    if (
+      config.idMode && typeof config.idMode === "object" &&
+      config.idMode.type === "field"
+    ) {
+      const field = config.idMode.field;
+      const fieldDef = this.fields.get(field);
+      if (!fieldDef) {
+        raiseORMException(
+          `ID field ${field} does not exist in EntryType ${this.name}`,
+        );
+      }
+      if (fieldDef.type !== "DataField") {
+        raiseORMException(
+          `ID field ${field.toString()} must be of type 'DataField' in EntryType ${this.name}`,
+        );
+      }
+      fieldDef.unique = true;
+      fieldDef.required = true;
+    }
+
     this.fields.set("createdAt", {
       key: "createdAt",
       label: "Created At",
@@ -96,6 +111,18 @@ export class EntryType<
       description: "The date and time this entry was last updated",
       required: true,
     });
+    this.fields.set("in__tags", {
+      key: "in__tags",
+      label: "Tags",
+      type: "ArrayField",
+      arrayType: "IntField",
+      readOnly: true,
+      description: `Tags associated with this ${this.label}`,
+      required: false,
+    });
+    if (config.taggable) {
+      this.defaultListFields.add("in__tags");
+    }
     const searchFields = new Set<PropertyKey>(config.searchFields);
     searchFields.add("id");
     if (config.titleField) {
@@ -108,6 +135,7 @@ export class EntryType<
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",
       searchFields: Array.from(searchFields),
+      taggable: config.taggable || false,
       description: this.description ||
         `${this.label} entry type for InSpatial ORM`,
     };
@@ -152,6 +180,7 @@ export class EntryType<
         );
       }
       this.imageField = field;
+      this.defaultListFields.add(field.key);
     }
 
     this.info = {
@@ -199,10 +228,21 @@ export class EntryType<
     if (!hooks) {
       return;
     }
-    this.hooks = {
-      ...this.hooks,
-      ...hooks,
-    };
+    for (
+      const [hookName, hookList] of Object.entries(hooks) as Array<
+        [EntryHookName, Array<EntryHookDefinition<E>>]
+      >
+    ) {
+      for (const hook of hookList) {
+        const hookMap = this.hooks[hookName];
+        if (hookMap.has(hook.name)) {
+          raiseORMException(
+            `Hook with name ${hook.name} already exists for ${hookName} in EntryType ${this.name}`,
+          );
+        }
+        hookMap.set(hook.name, hook);
+      }
+    }
   }
 
   #generateTableName(): string {
@@ -221,18 +261,62 @@ export class EntryType<
       });
     }
   }
-
-  addAction<
-    K extends PropertyKey = PropertyKey,
-    P extends Array<ActionParam<K>> = Array<ActionParam<K>>,
-  >(action: EntryActionConfig<E, K, P>): void {
-    if (this.actions.has(action.key)) {
+  addHook(hookName: EntryHookName, hook: EntryHookDefinition<E>): void {
+    const hookMap = this.hooks[hookName];
+    if (hookMap.has(hook.name)) {
       raiseORMException(
-        `Action with key ${action.key} already exists in EntryType ${this.name}`,
+        `Hook with name ${hook.name} already exists for ${hookName} in EntryType ${this.name}`,
       );
     }
+    this.sourceConfig.hooks = {
+      ...(this.sourceConfig.hooks || {}),
+      [hookName]: [
+        ...((this.sourceConfig.hooks?.[hookName] as Array<
+          EntryHookDefinition<E>
+        >) || []),
+        hook,
+      ],
+    };
+    hookMap.set(hook.name, hook);
+  }
+  addChild(childName: string, config: {
+    label?: string;
+    description?: string;
+    fields: InField[];
+  }): void {
+    const child = new ChildEntryType(childName, config);
+    this.sourceConfig.children = [
+      ...(this.sourceConfig.children || []),
+      child,
+    ];
+    this._addChild(child);
+    child.setParentEntryType(this.name);
+  }
+  addAction<
+    K extends string,
+    AP extends Array<InField & { key: K }> | undefined,
+  >(actionName: string, config: {
+    label?: string;
+    description?: string;
+    private?: boolean;
+    params?: AP extends undefined ? never : AP;
+    action: EntryActionMethod<E, AP>;
+  }): void {
+    if (this.actions.has(actionName)) {
+      raiseORMException(
+        `Action with key ${actionName} already exists in EntryType ${this.name}`,
+      );
+    }
+    const action = {
+      key: actionName,
+      action: config.action,
+      params: config.params,
+      label: config.label,
+      description: config.description,
+      private: config.private,
+    };
     setupAction(action);
-    this.actions.set(action.key, action as any);
+    this.actions.set(actionName, action as any);
     this.info = {
       ...this.info,
       actions: Array.from(this.actions.values()).filter((action) =>
@@ -242,13 +326,28 @@ export class EntryType<
   }
 }
 
-function setupAction(action: EntryActionConfig<any, any, any>): void {
+function setupAction(action: EntryActionConfig | EntryActionDefinition): void {
   if (!action.label) {
     action.label = convertString(action.key, "title", true);
   }
-  for (const param of action.params) {
+  for (const param of action.params || []) {
     if (!param.label) {
       param.label = convertString(param.key, "title", true);
     }
   }
+}
+
+/** Define a new Entry Type for the ORM
+ *
+ * @param entryName - The camelCase name of the entry type
+ * @param config - The configuration for the entry type
+ * @returns An instance of `EntryType` that can be added to your cloud extension
+ */
+export function defineEntry<
+  N extends string,
+>(
+  entryName: N,
+  config: EntryConfig<N>,
+): EntryType<N> {
+  return new EntryType(entryName, config);
 }

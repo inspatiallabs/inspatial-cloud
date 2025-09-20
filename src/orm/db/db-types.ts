@@ -1,6 +1,5 @@
 import type { PgPoolConfig } from "~/orm/db/postgres/pgTypes.ts";
-import type { EntryBase } from "~/orm/entry/entry-base.ts";
-import type { ExtractFieldKeys } from "~/orm/entry/types.ts";
+import type { EntryMap, EntryName } from "#types/models.ts";
 
 interface DBConnectionConfig {
   user: string;
@@ -44,9 +43,11 @@ export interface DBConfig {
 export type PgDataType =
   | "boolean"
   | "text"
+  | "text[]"
   | "character varying"
   | "timestamp with time zone"
   | "integer"
+  | "integer[]"
   | "jsonb"
   | "numeric"
   | "bigint"
@@ -55,6 +56,7 @@ export type PgDataType =
   | "date";
 export interface PgDataTypeDefinition {
   dataType: PgDataType;
+  array?: boolean;
   characterMaximumLength?: number | null;
   characterOctetLength?: number | null;
   numericPrecision?: number | null;
@@ -91,11 +93,15 @@ export interface TableConstraint {
   nullsDistinct: null;
 }
 export interface ForeignKeyConstraint {
+  /**
+   * The name of the table
+   */
   tableName: string;
   columnName: string;
   foreignTableName: string;
   constraintName: string;
   foreignColumnName: string;
+  global?: boolean;
 }
 export interface PostgresColumn extends PgDataTypeDefinition {
   tableCatalog: string;
@@ -130,10 +136,11 @@ export type ValueType<Join> = Join extends false ? Array<string>
   : string | number;
 
 type BaseKeys = "id" | "createdAt" | "updatedAt";
-export interface ListOptions<T extends EntryBase = EntryBase> {
-  columns?: (ExtractFieldKeys<T> | BaseKeys)[];
+export interface ListOptions<E extends EntryName = EntryName> {
+  columns?: (keyof EntryMap[E]["__fields__"] | BaseKeys)[];
   filter?: DBFilter;
   limit?: number;
+  orFilter?: DBFilter;
   offset?: number;
   orderBy?: string;
   order?: "asc" | "desc";
@@ -191,19 +198,23 @@ type ComparisonOp =
   | ">="
   | "lessThanOrEqual"
   | "lessThan"
-  | "greaterTan"
+  | "greaterThan"
   | "greaterThanOrEqual";
 type BetweenOps = "between" | "notBetween";
 type EmptyOps = "isEmpty" | "isNotEmpty";
 type ListOps = "notInList" | "inList";
 type ContainsOps = "contains" | "notContains" | "startsWith" | "endsWith";
+
+type ArrayOps = "arrayContains" | "arrayNotContains" | "arrayContainsAny";
+
 export type FilterOps =
   | EqualsOp
   | ComparisonOp
   | BetweenOps
   | EmptyOps
   | ListOps
-  | ContainsOps;
+  | ContainsOps
+  | ArrayOps;
 
 type FilterInList = {
   op: ListOps;
@@ -232,13 +243,19 @@ type FilterContains = {
   value: string;
   caseSensitive?: boolean;
 };
+
+type FilterArray = {
+  op: ArrayOps;
+  value: string | number | Array<string> | Array<number>;
+};
 export type FilterAll =
   | FilterInList
   | FilterEqual
   | FilterBetween
   | FilterEmpty
   | FilterCompare
-  | FilterContains;
+  | FilterContains
+  | FilterArray;
 
 export type InFilter =
   | FilterAll

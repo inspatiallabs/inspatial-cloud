@@ -3,6 +3,7 @@ import type {
   DBConfig,
   DBFilter,
   DBListOptions,
+  ForeignKeyConstraint,
   PgColumnDefinition,
   PgDataTypeDefinition,
   PostgresColumn,
@@ -23,7 +24,7 @@ import { makeFilterQuery } from "~/orm/db/filters.ts";
 import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import { generateId } from "../../utils/misc.ts";
-import { getInLog, InLog } from "#inLog";
+import { getInLog, type InLog } from "#inLog";
 
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
@@ -202,7 +203,9 @@ export class InSpatialDB {
   /**
    * Get a list of column definitions for a table
    */
-  async getTableColumns(tableName: string): Promise<PostgresColumn[]> {
+  async getTableColumns(
+    tableName: string,
+  ): Promise<Array<PostgresColumn & { array?: boolean }>> {
     tableName = toSnake(tableName);
     const columns = [
       "tableCatalog",
@@ -256,9 +259,24 @@ export class InSpatialDB {
     } FROM information_schema.columns WHERE table_schema = '${this.schema}' AND table_name = '${tableName}';`;
     const result = await this.query<PostgresColumn>(query);
     return result.rows.map((row) => {
+      let array: true | undefined;
+      if (row.dataType as string === "ARRAY") {
+        array = true;
+        switch (row.udtName) {
+          case "_int4":
+            row.dataType = "integer";
+            break;
+          case "_text":
+            row.dataType = "text";
+            break;
+          default:
+            raiseORMException(`Unsupported array type: ${row.udtName}`);
+        }
+      }
       return {
         ...row,
         columnName: snakeToCamel(row.columnName),
+        array,
       };
     });
   }
@@ -288,9 +306,24 @@ export class InSpatialDB {
    */
   async getTableNames(): Promise<string[]> {
     const query =
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}';`;
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_type != 'VIEW';`;
     const result = await this.query<{ tableName: string }>(query);
     return result.rows.map((row) => snakeToCamel(row.tableName));
+  }
+
+  async getViewNames(): Promise<string[]> {
+    const query =
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_type = 'VIEW';`;
+    const result = await this.query<{ tableName: string }>(query);
+    return result.rows.map((row) => snakeToCamel(row.tableName));
+  }
+
+  async hasView(viewName: string): Promise<boolean> {
+    viewName = toSnake(viewName);
+    const query =
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${viewName}' AND table_type = 'VIEW';`;
+    const result = await this.query<{ tableName: string }>(query);
+    return result.rowCount > 0;
   }
 
   async getSchemaList(): Promise<string[]> {
@@ -304,7 +337,7 @@ export class InSpatialDB {
   async tableExists(tableName: string): Promise<boolean> {
     tableName = toSnake(tableName);
     const query =
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${tableName}';`;
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.schema}' AND table_name = '${tableName}' AND table_type != 'VIEW';`;
     const result = await this.query<{ tableName: string }>(query);
     return result.rowCount > 0;
   }
@@ -333,7 +366,8 @@ export class InSpatialDB {
         query += ` UUID`;
         break;
       case "manual":
-        query += ` CHAR(255)`;
+      default:
+        query += ` VARCHAR(255)`;
     }
     query += ` PRIMARY KEY );`;
     await this.query(query);
@@ -525,7 +559,7 @@ export class InSpatialDB {
     }
 
     return {
-      rowCount: totalCount,
+      rowCount: result.rowCount,
       rows: result.rows,
       columns: result.columns,
       totalCount,
@@ -681,9 +715,11 @@ export class InSpatialDB {
   /**
    * Drop a table from the database
    */
-  dropTable(tableName: string): Promise<void> {
+  async dropTable(tableName: string): Promise<void> {
     tableName = toSnake(tableName);
-    throw new Error(`dropTable not implemented for postgres`);
+    const query = `DROP TABLE IF EXISTS "${this.schema}".${tableName} CASCADE;`;
+
+    await this.query(query);
   }
   /**
    * Create an index on a table based on the provided columns
@@ -758,6 +794,7 @@ export class InSpatialDB {
     const result = await this.query<TableIndex>(query);
     return result.rows;
   }
+
   /**
    * Run a VACUUM ANALYZE on the database or a specific table
    */
@@ -792,7 +829,10 @@ export class InSpatialDB {
     let nullQuery = "";
     let createColumnQuery =
       `ALTER TABLE "${this.schema}".${tableName} ADD "${columnName}"`;
-
+    if (column.array) {
+      column.dataType =
+        `${column.dataType}[]` as PgDataTypeDefinition["dataType"];
+    }
     switch (column.dataType) {
       case "character varying":
         createColumnQuery += ` VARCHAR`;
@@ -933,7 +973,7 @@ export class InSpatialDB {
     tableName = toSnake(tableName);
     columnName = toSnake(columnName);
     const query =
-      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique`;
+      `ALTER TABLE "${this.schema}".${tableName} DROP CONSTRAINT IF EXISTS ${tableName}_${columnName}_unique;`;
     await this.query(query);
   }
 
@@ -972,45 +1012,30 @@ export class InSpatialDB {
   /**
    * Add a foreign key constraint to a column
    */
-  async addForeignKey(foreignKey: {
-    /**
-     * The name of the table
-     */
-    tableName: string;
-    /**
-     * The name of the column
-     */
-    columnName: string;
-    /**
-     * The name of the foreign table
-     */
-    foreignTableName: string;
-    /**
-     * The name of the foreign column
-     */
-    foreignColumnName: string;
-    /**
-     * The name of the constraint
-     */
-    constraintName: string;
-    options?: {
-      onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
-      onUpdate?: "cascade" | "null" | "restrict" | "no action"; // default no action
-    };
-  }): Promise<void> {
+  async addForeignKey(
+    foreignKey: ForeignKeyConstraint & {
+      options?: {
+        onDelete?: "cascade" | "null" | "restrict" | "no action"; // default no action
+        onUpdate?: "cascade" | "null" | "restrict" | "no action"; // default no action
+      };
+    },
+  ): Promise<void> {
     let {
       tableName,
       columnName,
       foreignTableName,
       foreignColumnName,
       options,
+      global,
     } = foreignKey;
     tableName = toSnake(tableName);
     const formattedCol = formatColumnName(columnName);
     foreignTableName = toSnake(foreignTableName);
     foreignColumnName = formatColumnName(foreignColumnName);
     let query =
-      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES "${this.schema}".${foreignTableName} (${foreignColumnName})`;
+      `ALTER TABLE "${this.schema}".${tableName} ADD CONSTRAINT ${foreignKey.constraintName} FOREIGN KEY (${formattedCol}) REFERENCES ${
+        global ? "cloud_global" : '"' + this.schema + '"'
+      }.${foreignTableName} (${foreignColumnName})`;
     if (options?.onDelete) {
       switch (options.onDelete) {
         case "cascade":

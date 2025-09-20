@@ -1,8 +1,8 @@
-function encodeBase64(data: Uint8Array): string {
+function encodeBase64(data: Uint8Array<ArrayBuffer>): string {
   return btoa(String.fromCharCode(...data));
 }
 
-function decodeBase64(data: string): Uint8Array {
+function decodeBase64(data: string): Uint8Array<ArrayBuffer> {
   return new Uint8Array(atob(data).split("").map((c) => c.charCodeAt(0)));
 }
 
@@ -24,9 +24,9 @@ enum AuthenticationState {
  * in HMAC-derived binary format
  */
 interface KeySignatures {
-  client: Uint8Array;
-  server: Uint8Array;
-  stored: Uint8Array;
+  client: Uint8Array<ArrayBuffer>;
+  server: Uint8Array<ArrayBuffer>;
+  stored: Uint8Array<ArrayBuffer>;
 }
 
 /**
@@ -63,8 +63,8 @@ function assertValidScramString(str: string) {
 
 async function computeScramSignature(
   message: string,
-  rawKey: Uint8Array,
-): Promise<Uint8Array> {
+  rawKey: Uint8Array<ArrayBuffer>,
+): Promise<Uint8Array<ArrayBuffer>> {
   const key = await crypto.subtle.importKey(
     "raw",
     rawKey,
@@ -82,7 +82,10 @@ async function computeScramSignature(
   );
 }
 
-function computeScramProof(signature: Uint8Array, key: Uint8Array): Uint8Array {
+function computeScramProof(
+  signature: Uint8Array<ArrayBuffer>,
+  key: Uint8Array<ArrayBuffer>,
+): Uint8Array<ArrayBuffer> {
   const digest = new Uint8Array(signature.length);
   for (let i = 0; i < digest.length; i++) {
     digest[i] = signature[i] ^ key[i];
@@ -95,7 +98,7 @@ function computeScramProof(signature: Uint8Array, key: Uint8Array): Uint8Array {
  */
 async function deriveKeySignatures(
   password: string,
-  salt: Uint8Array,
+  salt: Uint8Array<ArrayBuffer>,
   iterations: number,
 ): Promise<KeySignatures> {
   const pbkdf2Password = await crypto.subtle.importKey(
@@ -217,7 +220,7 @@ export class ScramClient {
       }
       this.#serverNonce = nonce;
 
-      let salt: Uint8Array | undefined;
+      let salt: Uint8Array<ArrayBuffer> | undefined;
       if (!attrs.s) {
         throw new Error(Reason.BadSalt);
       }

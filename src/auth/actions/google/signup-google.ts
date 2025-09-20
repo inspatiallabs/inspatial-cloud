@@ -1,22 +1,21 @@
 import { CloudAPIAction } from "@inspatial/cloud";
 import { raiseServerException } from "../../../serve/server-exception.ts";
 import { generateId } from "../../../utils/misc.ts";
-import type { AuthSettings } from "../../settings/_auth-settings.type.ts";
 
 export const signupWithGoogle = new CloudAPIAction("signupWithGoogle", {
   authRequired: false,
   description: "Sign up with Google",
-  async run({ orm, inRequest, params }) {
+  async action({ orm, inRequest, params }) {
     const { csrfToken, redirectTo } = params;
     const state = JSON.stringify({
       redirectTo,
       csrfToken,
       type: "signup",
     });
-    const authSettings = await orm.getSettings<AuthSettings>(
+    const authSettings = await orm.getSettings(
       "authSettings",
     );
-    const clientId = authSettings.googleClientId;
+    const clientId = authSettings.$googleClientId;
     if (!clientId) {
       raiseServerException(
         400,
@@ -24,7 +23,7 @@ export const signupWithGoogle = new CloudAPIAction("signupWithGoogle", {
       );
     }
     const redirectUri = `${
-      authSettings.hostname || inRequest.fullHost
+      authSettings.$hostname || inRequest.fullHost
     }/api?group=auth&action=googleAuthCallback`;
 
     const url = new URL(
