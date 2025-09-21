@@ -88,9 +88,12 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     };
     this.migrationPlan = new EntryMigrationPlan(this.entryType.name);
   }
-  async migrate(): Promise<EntryMigrationPlan> {
+  async migrate(): Promise<any> {
     await this.planMigration();
-    return this.migrationPlan as EntryMigrationPlan;
+    await this.#createTableIfNotExists();
+    await this.#syncTableDescription();
+    await this.#migrateColumns();
+    await this.#syncIndexes();
   }
 
   async planMigration(): Promise<EntryMigrationPlan> {
@@ -115,6 +118,102 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     return this.migrationPlan;
   }
 
+  async #createTableIfNotExists() {
+    const { table } = this.migrationPlan;
+    if (table.create) {
+      await this.db.createTable(table.tableName, table.idMode);
+    }
+  }
+  async #syncTableDescription() {
+    const { table } = this.migrationPlan;
+    if (table.updateDescription) {
+      await this.db.addTableComment(
+        table.tableName,
+        table.updateDescription.to,
+      );
+    }
+  }
+  async #migrateColumns(): Promise<void> {
+    const plan = this.migrationPlan;
+    // create missing columns
+    for (const columnPlan of plan.columns.create) {
+      await this.db.addColumn(plan.table.tableName, columnPlan.column);
+      if (columnPlan.foreignKey?.create) {
+        await this.db.addForeignKey(columnPlan.foreignKey.create);
+      }
+    }
+    // modify existing columns
+    const tableName = plan.table.tableName;
+
+    for (const column of plan.columns.modify) {
+      const { nullable, dataType, unique, foreignKey } = column;
+      if (unique) {
+        switch (unique.to) {
+          case true:
+            await this.db.makeColumnUnique(
+              tableName,
+              column.columnName,
+            );
+            break;
+          case false:
+            await this.db.removeColumnUnique(
+              tableName,
+              column.columnName,
+            );
+            break;
+        }
+      }
+      if (nullable) {
+        await this.db.setColumnNull(
+          tableName,
+          column.columnName,
+          nullable.to === "YES",
+          nullable.defaultValue,
+        );
+      }
+      if (dataType) {
+        await this.db.changeColumnDataType(
+          tableName,
+          column.columnName,
+          dataType.to,
+        );
+      }
+      if (foreignKey) {
+        const { drop, create } = foreignKey;
+        if (create) {
+          await this.db.addForeignKey({
+            columnName: create.columnName,
+            foreignColumnName: create.foreignColumnName,
+            foreignTableName: create.foreignTableName,
+            constraintName: create.constraintName,
+            tableName: create.tableName,
+            global: create.global,
+          });
+        }
+        if (drop) {
+          await this.db.removeForeignKey(tableName, drop);
+        }
+      }
+    }
+    // drop extra columns
+    for (const column of plan.columns.drop) {
+      await this.db.removeColumn(plan.table.tableName, column.columnName);
+    }
+  }
+  async #syncIndexes() {
+    const plan = this.migrationPlan;
+    for (const indexName of plan.indexes.drop) {
+      await this.db.dropIndex(plan.table.tableName, indexName);
+    }
+    for (const index of plan.indexes.create) {
+      await this.db.createIndex({
+        tableName: plan.table.tableName,
+        indexName: index.indexName,
+        columns: index.fields,
+        unique: index.unique,
+      });
+    }
+  }
   async #loadExistingColumns(): Promise<void> {
     const columns = await this.db.getTableColumns(this.#tableName);
     for (const column of columns) {

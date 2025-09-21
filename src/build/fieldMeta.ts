@@ -1,9 +1,10 @@
-import { ChildEntryType } from "../orm/child-entry/child-entry.ts";
-import { EntryType } from "../orm/entry/entry-type.ts";
+import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
+import { defineEntry } from "../orm/entry/entry-type.ts";
 import { ormFields } from "../orm/field/fields.ts";
+import type { EntryName } from "@inspatial/cloud/models";
 import convertString from "../utils/convert-string.ts";
 
-const choices = new ChildEntryType("choices", {
+const choices = defineChildEntry("choices", {
   label: "Choice",
   description: "A list of Choices for the ChoicesField",
   fields: [{
@@ -41,7 +42,7 @@ const choices = new ChildEntryType("choices", {
   }],
 });
 
-export const fieldMeta = new EntryType("fieldMeta", {
+export const fieldMeta = defineEntry("fieldMeta", {
   systemGlobal: true,
   label: "Field Meta",
   description: "",
@@ -154,4 +155,66 @@ export const fieldMeta = new EntryType("fieldMeta", {
     }],
   }],
   children: [choices],
+});
+
+fieldMeta.addAction("generateConfig", {
+  action({ fieldMeta, orm }) {
+    const {
+      $key,
+      $label,
+      $description,
+      $required,
+      $type,
+      $unique,
+      $choices,
+      $hidden,
+      $readOnly,
+      $defaultValue,
+      $placeholder,
+      $entryType,
+    } = fieldMeta;
+
+    const config = new Map<string, any>();
+    config.set("key", $key);
+    config.set("type", $type);
+    config.set("required", $required || false);
+    config.set("unique", $unique || false);
+    config.set("hidden", $hidden || false);
+    config.set("readyOnly", $readOnly || false);
+    if ($defaultValue !== undefined && $defaultValue !== null) {
+      config.set("defualtValue", $defaultValue);
+    }
+    if ($label) {
+      config.set("lable", $label);
+    }
+    if ($description) {
+      config.set("description", $description);
+    }
+    if ($placeholder) {
+      config.set("placeholder", $placeholder);
+    }
+    switch ($type) {
+      case "ChoicesField":
+        config.set(
+          "choices",
+          $choices.data.map((c) => ({
+            key: c.key,
+            label: c.label,
+            color: c.color,
+            description: c.description,
+          })),
+        );
+        break;
+      case "ConnectionField":
+        {
+          config.set("entryType", $entryType);
+          const connectionEntry = orm.getEntryType($entryType as EntryName);
+          if (connectionEntry.systemGlobal) {
+            config.set("global", true);
+          }
+        }
+        break;
+    }
+    return Object.fromEntries(config);
+  },
 });
