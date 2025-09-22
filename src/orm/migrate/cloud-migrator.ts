@@ -101,6 +101,7 @@ export class InCloudMigrator extends InCloud {
       model.$label = extension.label;
       model.$description = extension.description;
       model.$version = extension.version;
+      model.$icon = extension.icon || "extension";
       await model.save();
     }
     const extensionKeys = Array.from(

@@ -116,6 +116,7 @@ export interface ExtensionOptions<
   name: string;
   description?: string;
   version?: string;
+  icon?: string;
   config?: C;
   entryTypes?: Array<EntryType<any>>;
   settingsTypes?: Array<SettingsType<any>>;

@@ -2731,6 +2731,11 @@ type ExtensionMetaFields = {
    */
   description?: string | null;
   /**
+   * **Icon** (DataField)
+   * @type {string}
+   */
+  icon?: string | null;
+  /**
    * **Version** (DataField)
    * @description The version of this extension
    * @type {string}
@@ -2778,6 +2783,11 @@ export interface ExtensionMeta
    * @type {string}
    */
   $description?: string | null;
+  /**
+   * **Icon** (DataField)
+   * @type {string}
+   */
+  $icon?: string | null;
   /**
    * **Version** (DataField)
    * @description The version of this extension
