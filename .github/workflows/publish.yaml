@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      - name: Replace $CLOUD_VERSION with deno.json version
+        run: |
+          sed -i "s/\$CLOUD_VERSION/$(jq -r '.version' deno.json)/" src/extension/core-extension.ts
       - name: Publish package
         run: npx jsr publish
