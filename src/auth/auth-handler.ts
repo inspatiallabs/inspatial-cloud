@@ -91,8 +91,7 @@ export class AuthHandler {
       }]);
 
       if (user) {
-        const { accounts, sessionData: session } = await makeSessiondata(user);
-        sessionData = session;
+        const sessionData = await makeSessiondata(user);
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
     }
