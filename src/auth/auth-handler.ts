@@ -91,8 +91,8 @@ export class AuthHandler {
       }]);
 
       if (user) {
-        sessionData = await makeSessiondata(user);
-
+        const { accounts, sessionData: session } = await makeSessiondata(user);
+        sessionData = session;
         this.#inCloud.inCache.setValue("authToken", authToken, sessionData);
       }
     }
@@ -130,11 +130,7 @@ export class AuthHandler {
     user: User,
     inRequest: InRequest,
     inResponse: InResponse,
-  ): Promise<
-    SessionData & {
-      sessionId: string;
-    }
-  > {
+  ): Promise<SessionData & { sessionId: string }> {
     const sessionData = await makeSessiondata(user);
 
     const session = await this.orm.createEntry(
@@ -167,9 +163,12 @@ export class AuthHandler {
   }
 }
 
-async function makeSessiondata(user: User): Promise<SessionData> {
+async function makeSessiondata(
+  user: User,
+): Promise<SessionData> {
   const accounts = await user.runAction("findAccounts") as Array<{
     accountId: string;
+    accountName: string;
     role: string;
   }>;
   // Pick the first account as the default account
@@ -183,6 +182,7 @@ async function makeSessiondata(user: User): Promise<SessionData> {
     systemAdmin,
     adminPortalAccess,
     profilePicture: user.$profilePicture || undefined,
+    accounts,
     accountId: "",
     role: "",
   };

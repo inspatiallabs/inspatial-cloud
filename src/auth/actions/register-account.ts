@@ -1,7 +1,7 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "~/serve/exeption/cloud-exception.ts";
+import { defineAPIAction } from "@inspatial/cloud";
 
-export const registerAccount = new CloudAPIAction("registerAccount", {
+export const registerAccount = defineAPIAction("registerAccount", {
   label: "Register Account",
   description: "Create a new acount and assign the given user as the owner.",
   authRequired: false,
@@ -33,11 +33,10 @@ export const registerAccount = new CloudAPIAction("registerAccount", {
     });
     await user.save();
     await user.runAction("setPassword", { password });
-    const account = await orm.createEntry("account", {
+    await orm.createEntry("account", {
       name: `${firstName} ${lastName}'s Account`,
       users: [{ user: user.$id, isOwner: true }],
     });
-    await account.enqueueAction("initialize");
     return await inCloud.auth.createUserSession(user, inRequest, inResponse);
   },
   params: [{

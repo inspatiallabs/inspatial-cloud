@@ -1,8 +1,8 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "~/api/cloud-action.ts";
 
 import { raiseServerException } from "~/serve/server-exception.ts";
 
-const login = new CloudAPIAction("login", {
+const login = defineAPIAction("login", {
   label: "Login",
   description: "Login to the system",
   authRequired: false,

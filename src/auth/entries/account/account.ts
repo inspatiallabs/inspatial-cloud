@@ -1,11 +1,8 @@
-import {
-  ChildEntryType,
-  EntryType,
-  raiseCloudException,
-} from "@inspatial/cloud";
+import { ChildEntryType, raiseCloudException } from "@inspatial/cloud";
 import { raiseORMException } from "../../../orm/mod.ts";
+import { defineEntry } from "../../../orm/entry/entry-type.ts";
 
-export const account = new EntryType("account", {
+export const account = defineEntry("account", {
   label: "Account",
   systemGlobal: true,
   titleField: "name",
@@ -38,77 +35,76 @@ export const account = new EntryType("account", {
     label: "Onboarding Response",
     type: "JSONField",
   }],
-  children: [
-    new ChildEntryType("users", {
-      label: "Users",
-      fields: [{
-        key: "user",
-        label: "User",
-        type: "ConnectionField",
-        entryType: "user",
-        required: true,
-      }, {
-        key: "role",
-        label: "Role",
-        type: "ConnectionField",
-        entryType: "userRole",
-      }, {
-        key: "isOwner",
-        label: "Is Owner",
-        type: "BooleanField",
-        defaultValue: false,
-      }],
-      description: "Users associated with this account",
-    }),
-  ],
-  hooks: {
-    validate: [{
-      name: "validateAccountOwner",
-      handler({
-        account,
-      }) {
-        let ownerCount = 0;
-        const users = account.getChild("users");
-        const setOwner = (user: Map<string, any>) => {
-          const isOwner = user.get("isOwner");
-          if (isOwner) {
-            const owner = user.get("user");
-            if (owner) {
-              account.$owner = owner;
-            }
-            if (!account.$name) {
-              account.$name = user.get("user__title") || account.id;
-            }
-            ownerCount++;
-          }
-        };
-        for (const user of users._data.values()) {
-          setOwner(user._data);
+});
+
+account.addChild("users", {
+  label: "Users",
+  fields: [{
+    key: "user",
+    label: "User",
+    type: "ConnectionField",
+    entryType: "user",
+    required: true,
+  }, {
+    key: "role",
+    label: "Role",
+    type: "ConnectionField",
+    entryType: "userRole",
+  }, {
+    key: "isOwner",
+    label: "Is Owner",
+    type: "BooleanField",
+    defaultValue: false,
+  }],
+  description: "Users associated with this account",
+});
+
+account.addHook("validate", {
+  name: "validateAccountOwner",
+  handler({
+    account,
+  }) {
+    let ownerCount = 0;
+    const users = account.getChild("users");
+    const setOwner = (user: Map<string, any>) => {
+      const isOwner = user.get("isOwner");
+      if (isOwner) {
+        const owner = user.get("user");
+        if (owner) {
+          account.$owner = owner;
         }
-        for (const user of users._newData.values()) {
-          setOwner(user._data);
+        if (!account.$name) {
+          account.$name = user.get("user__title") || account.id;
         }
-        if (ownerCount > 1) {
-          raiseCloudException("Only one user can be the account owner.");
-        }
-      },
-    }, {
-      name: "noDuplicateUsers",
-      handler({ account }) {
-        const userIds = new Set<string>();
-        for (const { user, user__title } of account.$users.data) {
-          if (!user) continue; // Skip if user is not set
-          if (userIds.has(user)) {
-            raiseORMException(
-              `User with ID ${user} is already associated with this account.`,
-              `Duplicate user: ${user__title || user}`,
-              400,
-            );
-          }
-          userIds.add(user);
-        }
-      },
-    }],
+        ownerCount++;
+      }
+    };
+    for (const user of users._data.values()) {
+      setOwner(user._data);
+    }
+    for (const user of users._newData.values()) {
+      setOwner(user._data);
+    }
+    if (ownerCount > 1) {
+      raiseCloudException("Only one user can be the account owner.");
+    }
+  },
+});
+account.addHook("validate", {
+  name: "noDuplicateUsers",
+  handler({ account }) {
+    const userIds = new Set<string>();
+    for (const { user, user__title } of account.$users.data) {
+      if (!user) continue; // Skip if user is not set
+      if (userIds.has(user)) {
+        raiseORMException(
+          `User with ID ${user} is already associated with this account.`,
+          `Duplicate user: ${user__title || user}`,
+          400,
+        );
+      }
+      userIds.add(user);
+    }
   },
 });
 account.addAction("queueInitialize", {
@@ -131,7 +127,13 @@ account.addAction("initialize", {
     await account.save();
   },
 });
-
+account.addHook("afterCreate", {
+  name: "initializeAccount",
+  async handler({ account, inCloud }) {
+    if (account.$initialized) return;
+    await account.enqueueAction("initialize");
+  },
+});
 account.addAction("addUser", {
   description: "Add a user to the account",
   // label: "Add User",
