@@ -1,4 +1,4 @@
-import { CloudAPIGroup } from "~/api/cloud-group.ts";
+import { defineAPIGroup } from "~/api/cloud-group.ts";
 import { resetPassword } from "./actions/reset-password.ts";
 import { setNewPassword } from "./actions/set-new-password.ts";
 import login from "./actions/login.ts";
@@ -14,8 +14,9 @@ import { getAccount } from "./actions/get-account.ts";
 import { updateAccount } from "./actions/update-account.ts";
 import { completeOnboarding } from "../onboarding/actions/complete-onboarding.ts";
 import { registerAccount } from "./actions/register-account.ts";
+import { switchAccount } from "./actions/switch-account.ts";
 
-const authGroup = new CloudAPIGroup("auth", {
+const authGroup = defineAPIGroup("auth", {
   description: "User, Account and Authentication related actions",
   label: "Authentication",
   actions: [
@@ -33,6 +34,7 @@ const authGroup = new CloudAPIGroup("auth", {
     updateAccount,
     registerAccount,
     completeOnboarding,
+    switchAccount,
   ],
 });
 
