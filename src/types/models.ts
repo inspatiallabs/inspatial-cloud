@@ -443,6 +443,21 @@ type AccountFields = {
    */
   initialized: boolean;
   /**
+   * **Profile Picture** (ImageField)
+   * @type {string}
+   */
+  profilePicture?: string | null;
+  /**
+   * **Logo** (ImageField)
+   * @type {string}
+   */
+  logo?: string | null;
+  /**
+   * **Favicon** (ImageField)
+   * @type {string}
+   */
+  favicon?: string | null;
+  /**
    * **Onboarding Response** (JSONField)
    * @type {Record<string, unknown>}
    */
@@ -473,6 +488,21 @@ type AccountFields = {
    * @type {string}
    */
   owner__title?: string | null;
+  /**
+   * **Profile Picture Title** (DataField)
+   * @type {string}
+   */
+  profilePicture__title?: string | null;
+  /**
+   * **Logo Title** (DataField)
+   * @type {string}
+   */
+  logo__title?: string | null;
+  /**
+   * **Favicon Title** (DataField)
+   * @type {string}
+   */
+  favicon__title?: string | null;
   users: ChildList<{
     /**
      * **User** (ConnectionField)
@@ -536,6 +566,21 @@ export interface Account extends EntryBase<"account", AccountFields> {
    */
   $initialized: boolean;
   /**
+   * **Profile Picture** (ImageField)
+   * @type {string}
+   */
+  $profilePicture?: string | null;
+  /**
+   * **Logo** (ImageField)
+   * @type {string}
+   */
+  $logo?: string | null;
+  /**
+   * **Favicon** (ImageField)
+   * @type {string}
+   */
+  $favicon?: string | null;
+  /**
    * **Onboarding Response** (JSONField)
    * @type {Record<string, unknown>}
    */
@@ -566,6 +611,21 @@ export interface Account extends EntryBase<"account", AccountFields> {
    * @type {string}
    */
   $owner__title?: string | null;
+  /**
+   * **Profile Picture Title** (DataField)
+   * @type {string}
+   */
+  $profilePicture__title?: string | null;
+  /**
+   * **Logo Title** (DataField)
+   * @type {string}
+   */
+  $logo__title?: string | null;
+  /**
+   * **Favicon Title** (DataField)
+   * @type {string}
+   */
+  $favicon__title?: string | null;
   $users: ChildList<{
     /**
      * **User** (ConnectionField)

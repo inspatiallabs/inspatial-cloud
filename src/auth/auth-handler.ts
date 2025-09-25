@@ -169,6 +169,7 @@ async function makeSessiondata(
   const accounts = await user.runAction("findAccounts") as Array<{
     accountId: string;
     accountName: string;
+    profilePicture?: string;
     role: string;
   }>;
   // Pick the first account as the default account
