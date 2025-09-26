@@ -83,7 +83,12 @@ function sanitizeValue(str: string) {
   // Step 1: Remove single double quotes
   let cleanedStr = str.replace(/(?<!")"(?!")/g, "");
   // Step 2: Replace double double quotes with single quotes
-  cleanedStr = cleanedStr.replace(/""/g, '"');
+  cleanedStr = cleanedStr.replace(/""/g, '"').trim();
+
+  // If the string is empty, return null
+  if (cleanedStr === "") {
+    return null;
+  }
 
   // Step 3: Check if the string is a JSON object and parse it
   if (/^\{.*\}$/.test(cleanedStr)) {

@@ -57,13 +57,20 @@ export function makeFields<ForType extends keyof ForTypeMap>(
           to: value,
         });
         const isValid = fieldType.validate(value, fieldDef);
-        if (!isValid) {
-          raiseORMException(
-            `${value} is not a valid value for field ${field.key} in ${forType} ${instance._name}`,
-          );
+        if (isValid === true) {
+          instance._data.set(field.key, value);
+          return;
         }
-
-        instance._data.set(field.key, value);
+        let message = "";
+        if (typeof isValid === "string") {
+          message = `: ${isValid}`;
+        }
+        message =
+          `${value} is not a valid value for field ${field.key} in ${forType} ${instance._name}${message}`;
+        raiseORMException(
+          message,
+          "InvalidValue",
+        );
       },
     });
   }
