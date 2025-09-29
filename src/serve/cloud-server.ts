@@ -82,17 +82,21 @@ export class InCloudServer extends InCloud {
       });
     });
     this.server = this.#serve();
-    this.onShutdown(async () => {
+    this.onShutdown(() => {
       let resolve = () => {};
       let reject = (err: unknown) => {
         console.error(err);
       };
-      await new Promise<void>((res, rej) => {
+      return new Promise<void>((res, rej) => {
         resolve = res;
         reject = rej;
         this.server?.shutdown().then(() => {
           resolve();
-        }).catch(reject);
+        });
+        setTimeout(() => {
+          resolve();
+          // reject(new Error("Server shutdown timed out"));
+        }, 2000);
       });
     });
   }
