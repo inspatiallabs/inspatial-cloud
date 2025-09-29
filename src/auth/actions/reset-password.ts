@@ -1,6 +1,6 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "~/api/cloud-action.ts";
 
-export const resetPassword = new CloudAPIAction("resetPassword", {
+export const resetPassword = defineAPIAction("resetPassword", {
   description: "Reset user password",
   authRequired: false,
   label: "Reset Password",

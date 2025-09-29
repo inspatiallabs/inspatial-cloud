@@ -71,7 +71,18 @@ export const uploadFile = defineAPIAction("upload", {
       recursive: true,
     });
     cloudFile.$filePath = path;
-    if (optimizeImage) {
+    let shouldOptimize = optimizeImage === true;
+    switch (extensionInfo?.extension) {
+      case "png":
+      case "jpg":
+      case "jpeg":
+        break;
+      default:
+        shouldOptimize = false;
+    }
+    if (
+      shouldOptimize
+    ) {
       path = joinPath(originalFolder, newFileName);
       const defaultSize = 1000;
       cloudFile.$optimizeImage = true;

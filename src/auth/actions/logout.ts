@@ -1,6 +1,6 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "@inspatial/cloud";
 
-const logout = new CloudAPIAction("logout", {
+const logout = defineAPIAction("logout", {
   label: "Logout",
   description: "Logout user",
   async action({ inCloud, inRequest, inResponse }) {

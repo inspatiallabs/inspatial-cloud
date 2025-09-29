@@ -1,9 +1,9 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "~/api/cloud-action.ts";
 
 import { joinPath } from "../../utils/path-utils.ts";
 import { raiseServerException } from "@inspatial/cloud";
 
-export const getFile = new CloudAPIAction("getFile", {
+export const getFile = defineAPIAction("getFile", {
   params: [{
     key: "fileId",
     label: "File ID",
@@ -39,7 +39,7 @@ export const getFile = new CloudAPIAction("getFile", {
         raiseServerException(404, "File not optimized yet");
       }
       let fileName = "";
-      if (thumbnail) {
+      if (thumbnail && file.$optimizeImage) {
         fileName = file.$thumbnailPath
           ? file.$thumbnailPath.split("/").pop() || ""
           : "";

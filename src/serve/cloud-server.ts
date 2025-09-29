@@ -17,8 +17,6 @@ export class InCloudServer extends InCloud {
   ) {
     super(appName, config, "server");
     this.instanceNumber = instanceNumber || "_";
-    this.abortController = new AbortController();
-    this.signal = this.abortController.signal;
   }
   handleQueueStatus(message: QueueStatus) {
     const { status } = message;
