@@ -1,5 +1,5 @@
 import { ChildEntryType } from "../orm/child-entry/child-entry.ts";
-import { EntryType } from "../orm/entry/entry-type.ts";
+import { defineEntry, EntryType } from "../orm/entry/entry-type.ts";
 
 const entryHooks = new ChildEntryType("hooks", {
   label: "Lifecycle Hooks",
@@ -62,7 +62,7 @@ const entryHooks = new ChildEntryType("hooks", {
   }],
 });
 
-export const entryMeta = new EntryType("entryMeta", {
+export const entryMeta = defineEntry("entryMeta", {
   systemGlobal: true,
   idMode: {
     type: "field",
@@ -75,7 +75,7 @@ export const entryMeta = new EntryType("entryMeta", {
     key: "name",
     type: "DataField",
     required: true,
-    readOnly: true,
+    readOnly: false,
     description: "The unique name of this entry type",
     unique: true,
   }, {

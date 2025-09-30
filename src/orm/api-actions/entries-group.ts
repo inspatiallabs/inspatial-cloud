@@ -1,9 +1,7 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { CloudAPIAction, defineAPIAction } from "~/api/cloud-action.ts";
 import type { EntryTypeInfo } from "~/orm/entry/types.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import type { EntryName } from "#types/models.ts";
-import { defineAPIAction } from "@inspatial/cloud";
-import type { GenericEntry } from "../entry/entry-base.ts";
 import { csvUtils } from "../../data-import/csv-utils.ts";
 
 export const getEntryAction = defineAPIAction("getEntry", {
@@ -189,6 +187,12 @@ export const getEntryListAction = defineAPIAction("getEntryList", {
     const fields = new Set(
       options?.columns as string[] | undefined || defaultListFields,
     );
+    if (fields.has("*")) {
+      fields.clear();
+      for (const f of entryTypeDef.displayFields.keys()) {
+        fields.add(f);
+      }
+    }
     for (const field of fields) {
       if (entryTypeDef.hiddenClientFields.has(field)) {
         fields.delete(field);
