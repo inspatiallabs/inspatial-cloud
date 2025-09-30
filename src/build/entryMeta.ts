@@ -1,6 +1,5 @@
 import type { InField } from "@inspatial/cloud/types";
 import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
-import { defineEntry } from "../orm/entry/entry-type.ts";
 import type { EntryConfig } from "../orm/entry/types.ts";
 import { EntryTypeMigrator } from "../orm/migrate/entry-type/entry-type-migrator.ts";
 import { convertString } from "../utils/convert-string.ts";
