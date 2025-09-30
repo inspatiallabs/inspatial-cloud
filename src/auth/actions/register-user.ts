@@ -1,7 +1,7 @@
-import { CloudAPIAction } from "~/api/cloud-action.ts";
+import { defineAPIAction } from "~/api/cloud-action.ts";
 import { raiseCloudException } from "../../serve/exeption/cloud-exception.ts";
 
-const registerUser = new CloudAPIAction("registerUser", {
+const registerUser = defineAPIAction("registerUser", {
   description: "Register a new user",
   hideFromApi: true,
   async action({ orm, params }) {

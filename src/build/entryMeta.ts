@@ -4,6 +4,7 @@ import { defineEntry } from "../orm/entry/entry-type.ts";
 import type { EntryConfig } from "../orm/entry/types.ts";
 import { EntryTypeMigrator } from "../orm/migrate/entry-type/entry-type-migrator.ts";
 import { convertString } from "../utils/convert-string.ts";
+import { defineEntry } from "../orm/entry/entry-type.ts";
 
 const entryHooks = defineChildEntry("hooks", {
   label: "Lifecycle Hooks",
@@ -79,7 +80,7 @@ export const entryMeta = defineEntry("entryMeta", {
     key: "name",
     type: "DataField",
     required: true,
-    readOnly: true,
+    readOnly: false,
     description: "The unique name of this entry type",
     unique: true,
   }, {

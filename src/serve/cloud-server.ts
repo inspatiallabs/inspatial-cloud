@@ -10,8 +10,6 @@ import type {
 export class InCloudServer extends InCloud {
   instanceNumber: string;
   server: Deno.HttpServer<Deno.NetAddr> | undefined;
-  signal: AbortSignal | undefined;
-  abortController: AbortController | undefined;
   constructor(
     appName: string,
     config: CloudConfig,
@@ -19,8 +17,6 @@ export class InCloudServer extends InCloud {
   ) {
     super(appName, config, "server");
     this.instanceNumber = instanceNumber || "_";
-    this.abortController = new AbortController();
-    this.signal = this.abortController.signal;
   }
   handleQueueStatus(message: QueueStatus) {
     const { status } = message;
@@ -84,15 +80,22 @@ export class InCloudServer extends InCloud {
       });
     });
     this.server = this.#serve();
-    this.onShutdown(async () => {
-      this.server?.shutdown();
-      setTimeout(() => {
-        if (this.server?.finished) {
-          return;
-        }
-        this.abortController?.abort();
-      }, 5000);
-      await this.server?.finished;
+    this.onShutdown(() => {
+      let resolve = () => {};
+      let reject = (err: unknown) => {
+        console.error(err);
+      };
+      return new Promise<void>((res, rej) => {
+        resolve = res;
+        reject = rej;
+        this.server?.shutdown().then(() => {
+          resolve();
+        });
+        setTimeout(() => {
+          resolve();
+          // reject(new Error("Server shutdown timed out"));
+        }, 2000);
+      });
     });
   }
 
@@ -105,7 +108,6 @@ export class InCloudServer extends InCloud {
         hostname: config.hostName,
         port: config.servePort,
         reusePort,
-        signal: this.signal,
         onListen: (_addr) => {
           // Hide stdout message
         },

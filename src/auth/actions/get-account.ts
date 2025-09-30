@@ -1,7 +1,7 @@
-import { CloudAPIAction } from "../../api/cloud-action.ts";
+import { defineAPIAction } from "../../api/cloud-action.ts";
 import type { SessionData } from "../types.ts";
 
-export const getAccount = new CloudAPIAction("getAccount", {
+export const getAccount = defineAPIAction("getAccount", {
   description: "Gets the account for the current authenticated user",
   async action({ inRequest, inCloud }) {
     const user = inRequest.context.get<SessionData>("user");

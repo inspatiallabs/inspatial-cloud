@@ -5,6 +5,7 @@ export const extensionMeta = new EntryType("extensionMeta", {
   description: "",
   systemGlobal: true,
   titleField: "label",
+  defaultListFields: ["key", "label", "icon", "description", "version"],
   idMode: {
     type: "field",
     field: "key",
@@ -21,6 +22,9 @@ export const extensionMeta = new EntryType("extensionMeta", {
   }, {
     key: "description",
     type: "TextField",
+  }, {
+    key: "icon",
+    type: "DataField",
   }, {
     key: "version",
     type: "DataField",

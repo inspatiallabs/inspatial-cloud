@@ -41,6 +41,7 @@ export class CloudExtension<
   label: string;
   description: string;
   version?: string;
+  icon?: string;
   /**
    * The lifecycle handlers for incoming requests.
    */
@@ -94,9 +95,9 @@ export class CloudExtension<
     this.key = extensionName;
     this.label = options.label || convertString(extensionName, "title", true);
     this.description = options.description || "";
-    this.version = options.version;
+    this.version = options.version || "1.0.0";
     this.roles = options.roles || [];
-
+    this.icon = options.icon || "extension";
     const { settings, entries } = options.ormGlobalHooks || {};
 
     this.ormGlobalEntryHooks = {

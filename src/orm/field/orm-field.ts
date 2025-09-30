@@ -28,7 +28,7 @@ export class ORMFieldConfig<T extends InFieldType = InFieldType> {
      * before saving it to the database.
      */
 
-    validate: (value: any, fieldDef: InFieldMap[T]) => boolean;
+    validate: (value: any, fieldDef: InFieldMap[T]) => boolean | string;
 
     /**
      * A normalizer function that will be used to convert the field

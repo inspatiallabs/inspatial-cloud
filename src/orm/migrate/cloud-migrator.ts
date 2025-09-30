@@ -16,11 +16,35 @@ export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {
     super(appName, config, "migrator");
   }
+  coreSynced = false;
   async migrate(): Promise<void> {
     await this.#migrateGlobal();
     await this.#migrateAccounts();
   }
+  async #checkCoreVersion(orm: InSpatialORM) {
+    const coreExtension = this.extensionManager.extensions.get("core");
+    const coreVersion = coreExtension?.version;
+    if (coreVersion === "$CLOUD_VERSION") {
+      // we're running from source, skip version check
 
+      return;
+    }
+    const tableExists = await orm.systemDb.tableExists("entryExtensionMeta");
+    if (!tableExists) {
+      return;
+    }
+    const coreRow = await orm.systemDb.getRow("entryExtensionMeta", "core");
+    if (!coreRow) {
+      return;
+    }
+    if (coreRow.version === coreVersion) {
+      this.coreSynced = true;
+      return;
+    }
+    console.log(
+      `Core version is out of date: ${coreRow.version} -> ${coreVersion}`,
+    );
+  }
   async #migrateGlobal() {
     const withTime = async (name: string, callback: () => Promise<any>) => {
       console.time(name);
@@ -28,6 +52,7 @@ export class InCloudMigrator extends InCloud {
       console.timeEnd(name);
     };
     const orm = this.orm.withUser(this.orm.systemGobalUser);
+    await this.#checkCoreVersion(orm);
     // await withTime("Global migration", async () => await orm.migrateGlobal());
     await orm.migrateGlobal();
     try {
@@ -101,6 +126,7 @@ export class InCloudMigrator extends InCloud {
       model.$label = extension.label;
       model.$description = extension.description;
       model.$version = extension.version;
+      model.$icon = extension.icon || "extension";
       await model.save();
     }
     const extensionKeys = Array.from(
@@ -116,6 +142,9 @@ export class InCloudMigrator extends InCloud {
     const adminRole = orm.roles.getRole("systemAdmin"); // ensure admin role exists
     const entryNames = new Set<string>();
     for (const entryType of adminRole.entryTypes.values()) {
+      if (entryType.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core entries if core is already synced
+      }
       const name = entryType.name;
       entryNames.add(name);
       let model = await orm.findEntry("entryMeta", {
@@ -153,6 +182,9 @@ export class InCloudMigrator extends InCloud {
     const adminRole = orm.roles.getRole("systemAdmin");
     const settingsNames = new Set<string>();
     for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      if (setting.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core settings if core is already synced
+      }
       settingsNames.add(key);
       let model = await orm.findEntry("settingsMeta", {
         id: key,
@@ -241,9 +273,15 @@ export class InCloudMigrator extends InCloud {
       }
     };
     for (const entryType of adminRole.entryTypes.values()) {
+      if (entryType.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core entries if core is already synced
+      }
       await syncFields(entryType.fields, entryType.name, "entry");
     }
     for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      if (setting.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core settings if core is already synced
+      }
       await syncFields(setting.fields, key, "settings");
     }
   }
@@ -284,9 +322,15 @@ export class InCloudMigrator extends InCloud {
       }
     };
     for (const entryType of adminRole.entryTypes.values()) {
+      if (entryType.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core entries if core is already synced
+      }
       await syncActions(entryType.actions, entryType.name, "entry");
     }
     for (const [key, setting] of adminRole.settingsTypes.entries()) {
+      if (setting.config.extension?.key === "core" && this.coreSynced) {
+        continue; // skip core settings if core is already synced
+      }
       await syncActions(setting.actions, key, "settings");
     }
   }

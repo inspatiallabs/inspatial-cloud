@@ -58,11 +58,12 @@ import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts
 import { settingsMeta } from "../build/settingsMeta.ts";
 import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
 import { dataImport } from "../data-import/data-import.ts";
-
+const version = "$CLOUD_VERSION";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
   label: "Core",
-  version: "0.0.1",
+  icon: "cloud",
+  version,
   ormGlobalHooks: {
     entries: {
       afterUpdate: [
