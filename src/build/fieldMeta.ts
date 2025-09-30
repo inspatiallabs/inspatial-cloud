@@ -1,7 +1,7 @@
 import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 import { defineEntry } from "../orm/entry/entry-type.ts";
 import { ormFields } from "../orm/field/fields.ts";
-import type { EntryName } from "@inspatial/cloud/models";
+import type { EntryName } from "#types/models.ts";
 import convertString from "../utils/convert-string.ts";
 
 const choices = defineChildEntry("choices", {

@@ -2904,10 +2904,13 @@ type EntryMetaFields = {
    */
   extension?: string | null;
   /**
-   * **Title Field** (ConnectionField)
-   *
-   * **EntryType** `fieldMeta`
-   * @description The field to use as the title when displaying this entry type
+   * **Custom** (BooleanField)
+   * @description Whether this entry type is custom or not
+   * @type {boolean}
+   */
+  custom: boolean;
+  /**
+   * **Title Field** (DataField)
    * @type {string}
    */
   titleField?: string | null;
@@ -2941,11 +2944,6 @@ type EntryMetaFields = {
    * @type {string}
    */
   extension__title?: string | null;
-  /**
-   * **Title Field Title** (DataField)
-   * @type {string}
-   */
-  titleField__title?: string | null;
   hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3019,10 +3017,13 @@ export interface EntryMeta extends EntryBase<"entryMeta", EntryMetaFields> {
    */
   $extension?: string | null;
   /**
-   * **Title Field** (ConnectionField)
-   *
-   * **EntryType** `fieldMeta`
-   * @description The field to use as the title when displaying this entry type
+   * **Custom** (BooleanField)
+   * @description Whether this entry type is custom or not
+   * @type {boolean}
+   */
+  $custom: boolean;
+  /**
+   * **Title Field** (DataField)
    * @type {string}
    */
   $titleField?: string | null;
@@ -3056,11 +3057,6 @@ export interface EntryMeta extends EntryBase<"entryMeta", EntryMetaFields> {
    * @type {string}
    */
   $extension__title?: string | null;
-  /**
-   * **Title Field Title** (DataField)
-   * @type {string}
-   */
-  $titleField__title?: string | null;
   $hooks: ChildList<{
     /**
      * **Hook** (ChoicesField)
@@ -3112,6 +3108,9 @@ type EntryMetaActionMap = {
     return: Promise<unknown>;
   };
   generateConfig: {
+    return: Promise<unknown>;
+  };
+  bootSync: {
     return: Promise<unknown>;
   };
   migrate: {

@@ -95,14 +95,12 @@ export const entryMeta = defineEntry("entryMeta", {
     entryType: "extensionMeta",
     description: "The extension this entry type belongs to",
   }, {
+    key: "custom",
+    type: "BooleanField",
+    description: "Whether this entry type is custom or not",
+  }, {
     key: "titleField",
-    type: "ConnectionField",
-    entryType: "fieldMeta",
-    filterBy: {
-      entryMeta: "id",
-    },
-    description:
-      "The field to use as the title when displaying this entry type",
+    type: "DataField",
   }, {
     key: "systemGlobal",
     type: "BooleanField",
@@ -117,6 +115,29 @@ entryMeta.addHook("beforeCreate", {
       return;
     }
     entryMeta.$name = convertString(entryMeta.$label, "camel");
+  },
+});
+entryMeta.addHook("afterCreate", {
+  name: "migrateCustomAfterUpdate",
+  async handler({
+    entryMeta,
+  }) {
+    if (entryMeta.$custom) {
+      await entryMeta.runAction("migrate");
+    }
+  },
+});
+entryMeta.addHook("afterUpdate", {
+  name: "migrateCustomAfterUpdate",
+  async handler({
+    entryMeta,
+  }) {
+    if (entryMeta._user?.userId === "systemAdmin") {
+      return;
+    }
+    if (entryMeta.$custom) {
+      await entryMeta.runAction("migrate");
+    }
   },
 });
 entryMeta.addAction("generateCode", {
@@ -165,16 +186,25 @@ entryMeta.addAction("generateConfig", {
     return config;
   },
 });
-entryMeta.addAction("migrate", {
-  description: "Syncs the database schema",
+entryMeta.addAction("bootSync", {
+  description: "Synce on boot if custom",
+  private: true,
   async action({ entryMeta, inCloud, orm }) {
+    if (!entryMeta.$custom) {
+      return;
+    }
     const config = await entryMeta.runAction("generateConfig") as EntryConfig<
       any
     >;
-    const entryType = defineEntry(entryMeta.$name, config);
-    for (const hook of entryMeta.$hooks.data) {
+
+    const { $name, $extension, $extension__title, $hooks } = entryMeta;
+    if (!entryMeta.id || !entryMeta.$name) {
+      return;
+    }
+    const entryType = defineEntry($name, config);
+    for (const hook of $hooks.data) {
       const func = new Function(
-        entryMeta.$name,
+        $name,
         "orm",
         "inCloud",
         "entry",
@@ -184,22 +214,38 @@ entryMeta.addAction("migrate", {
         name: hook.name,
         description: hook.description || undefined,
         handler: async (args) => {
-          await func(args[entryMeta.$name], args.orm, args.inCloud, args.entry);
+          await func(args[$name], args.orm, args.inCloud, args.entry);
         },
       });
     }
-
-    /// set default currency
-    entryType.extension = entryMeta.$extension || "";
+    entryType.extension = $extension || "";
     entryType.config.extension = {
-      key: entryMeta.$extension || "",
-      label: entryMeta.$extension__title || "",
+      key: $extension || "",
+      label: $extension__title || "",
       description: "",
       extensionType: {
         key: "cloud",
         label: "Cloud Extension",
       },
     };
+    inCloud.roles.updateEntryType(entryType);
+    return entryType;
+  },
+});
+entryMeta.addAction("migrate", {
+  description: "Syncs the database schema",
+  async action({ entryMeta, inCloud, orm }) {
+    if (!entryMeta.$custom) {
+      console.log("Not a custom entry type, skipping migrate");
+      return;
+    }
+    const entryType = await entryMeta.runAction("bootSync") as ReturnType<
+      typeof defineEntry
+    >;
+    if (!entryType) {
+      console.log("No entry type returned from bootSync");
+      return;
+    }
     const migrator = new EntryTypeMigrator({
       entryType,
       db: entryMeta.$systemGlobal ? inCloud.orm.systemDb : orm.db,
@@ -211,7 +257,6 @@ entryMeta.addAction("migrate", {
       },
     });
     await migrator.migrate();
-    inCloud.roles.updateEntryType(entryType);
     inCloud.inLive.announce({
       system: "refresh",
     });
