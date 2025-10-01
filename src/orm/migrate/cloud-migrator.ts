@@ -159,7 +159,24 @@ export class InCloudMigrator extends InCloud {
       model.$description = entryType.description || "";
       model.$titleField = entryType.config.titleField || "";
       model.$extension = entryType.config.extension?.key || "";
+      const parseHookFunc = (funcString: string) => {
+        const regex = /handler[^\)]+[^\{]+\{(.*)\}$/s;
+        const match = funcString.match(regex);
+        if (match) {
+          let smallesSpaceCount = Infinity;
+          for (const line of match[1].split("\n")) {
+            const spaceCount = line.match(/^\s*/)?.[0].length || 0;
+            if (spaceCount < smallesSpaceCount && line.trim().length > 0) {
+              smallesSpaceCount = spaceCount;
+            }
+          }
+          funcString = match[1].split("\n").map((l) =>
+            l.slice(smallesSpaceCount)
+          ).join("\n");
+        }
 
+        return funcString;
+      };
       const hooks = Object.entries(entryType.hooks).flatMap((
         [hookName, hookDefs],
       ) =>
@@ -168,7 +185,7 @@ export class InCloudMigrator extends InCloud {
             hook: hookName,
             name: hookDef.name,
             description: hookDef.description || "",
-            handler: hookDef.handler.toString(),
+            handler: parseHookFunc(hookDef.handler.toString()),
             active: true,
           })),
         )
@@ -287,6 +304,24 @@ export class InCloudMigrator extends InCloud {
   }
   async #syncActionMeta(orm: InSpatialORM) {
     const adminRole = orm.roles.getRole("systemAdmin");
+    const formatFunction = (funcString: string) => {
+      const regex = /action[^\)]+[^\{]+\{(.*)\}$/s;
+      const match = funcString.match(regex);
+      if (match) {
+        let smallesSpaceCount = Infinity;
+        for (const line of match[1].split("\n")) {
+          const spaceCount = line.match(/^\s*/)?.[0].length || 0;
+          if (spaceCount < smallesSpaceCount && line.trim().length > 0) {
+            smallesSpaceCount = spaceCount;
+          }
+        }
+        funcString = match[1].split("\n").map((l) => l.slice(smallesSpaceCount))
+          .filter((l) => l.trim().length > 0)
+          .join("\n");
+      }
+
+      return funcString;
+    };
     const syncActions = async (
       actions: Map<string, EntryActionDefinition | SettingsActionDefinition>,
       name: string,
@@ -313,7 +348,7 @@ export class InCloudMigrator extends InCloud {
         actionMeta.$label = action.label || convertString(key, "title", true);
         actionMeta.$description = action.description || "";
         actionMeta.$private = action.private || false;
-        actionMeta.$code = action.action.toString();
+        actionMeta.$code = formatFunction(action.action.toString());
 
         if (action.params) {
           actionMeta.$parameters.update(action.params as any[]);
