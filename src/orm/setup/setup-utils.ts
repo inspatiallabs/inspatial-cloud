@@ -33,7 +33,7 @@ export function buildConnectionFields(
 
         entryOrSettingsOrChildType.fields.delete(field.key);
         getInLog("cloud").warn(
-          `Connection field '${field.key}' in '${entryOrSettingsOrChildType.name}' references non-existent entry type '${field.entryType}'. The field has been removed.`,
+          `Connection field '${field.key}' in '${entryOrSettingsOrChildType.name}' references non-existent entry type '${field.entryType}' for role '${role.roleName}'. The field has been removed.`,
         );
         continue;
       }
