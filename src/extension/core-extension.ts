@@ -197,7 +197,36 @@ export const coreExtension = new CloudExtension("core", {
         create: false,
         delete: false,
       },
-
+      entryMeta: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      fieldMeta: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      actionMeta: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      extensionMeta: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
+      settingsMeta: {
+        view: true,
+        modify: false,
+        create: false,
+        delete: false,
+      },
       user: {
         view: true,
         modify: true,
