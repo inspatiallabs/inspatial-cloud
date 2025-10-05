@@ -1,7 +1,11 @@
-import { ChildEntryType } from "../orm/child-entry/child-entry.ts";
-import { EntryType } from "../orm/entry/entry-type.ts";
+import type { InField } from "@inspatial/cloud/types";
+import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
+import type { EntryConfig } from "../orm/entry/types.ts";
+import { EntryTypeMigrator } from "../orm/migrate/entry-type/entry-type-migrator.ts";
+import { convertString } from "../utils/convert-string.ts";
+import { defineEntry } from "../orm/entry/entry-type.ts";
 
-const entryHooks = new ChildEntryType("hooks", {
+const entryHooks = defineChildEntry("hooks", {
   label: "Lifecycle Hooks",
   fields: [{
     key: "hook",
@@ -62,7 +66,7 @@ const entryHooks = new ChildEntryType("hooks", {
   }],
 });
 
-export const entryMeta = new EntryType("entryMeta", {
+export const entryMeta = defineEntry("entryMeta", {
   systemGlobal: true,
   idMode: {
     type: "field",
@@ -75,7 +79,7 @@ export const entryMeta = new EntryType("entryMeta", {
     key: "name",
     type: "DataField",
     required: true,
-    readOnly: true,
+    readOnly: false,
     description: "The unique name of this entry type",
     unique: true,
   }, {
@@ -91,13 +95,172 @@ export const entryMeta = new EntryType("entryMeta", {
     entryType: "extensionMeta",
     description: "The extension this entry type belongs to",
   }, {
+    key: "custom",
+    type: "BooleanField",
+    description: "Whether this entry type is custom or not",
+  }, {
     key: "titleField",
     type: "DataField",
-    description:
-      "The field to use as the title when displaying this entry type",
   }, {
     key: "systemGlobal",
     type: "BooleanField",
   }],
   children: [entryHooks],
+});
+
+entryMeta.addHook("beforeCreate", {
+  name: "generateName",
+  handler({ entryMeta }) {
+    if (entryMeta.$name) {
+      return;
+    }
+    entryMeta.$name = convertString(entryMeta.$label, "camel");
+  },
+});
+entryMeta.addHook("afterCreate", {
+  name: "migrateCustomAfterUpdate",
+  async handler({
+    entryMeta,
+  }) {
+    if (entryMeta.$custom) {
+      await entryMeta.runAction("migrate");
+    }
+  },
+});
+entryMeta.addHook("afterUpdate", {
+  name: "migrateCustomAfterUpdate",
+  async handler({
+    entryMeta,
+  }) {
+    if (entryMeta._user?.userId === "systemAdmin") {
+      return;
+    }
+    if (entryMeta.$custom) {
+      await entryMeta.runAction("migrate");
+    }
+  },
+});
+entryMeta.addAction("generateCode", {
+  label: "Generate Code",
+  description: "Generates the code for this entry type",
+  action(
+    {
+      entryMeta,
+    },
+  ) {
+  },
+});
+entryMeta.addAction("generateConfig", {
+  async action({ entryMeta, orm }) {
+    const { $label, $name, $systemGlobal, $hooks, $description, $titleField } =
+      entryMeta;
+    const { rows: fieldIds } = await orm.getEntryList("fieldMeta", {
+      columns: ["id"],
+      filter: {
+        entryMeta: entryMeta.id,
+      },
+    });
+    const fields: Array<InField> = [];
+    for (const { id } of fieldIds) {
+      const fieldMeta = await orm.getEntry("fieldMeta", id);
+      const fieldConfig = await fieldMeta.runAction(
+        "generateConfig",
+      ) as InField;
+      fields.push(fieldConfig);
+    }
+
+    const config: EntryConfig<any> = {
+      label: $label,
+      description: $description || "",
+      systemGlobal: $systemGlobal || false,
+      fields,
+      children: [],
+      actions: [],
+    };
+    if ($titleField) {
+      const fieldName = $titleField.match(/:(\w+)$/);
+      if (fieldName) {
+        config.titleField = fieldName[1];
+      }
+    }
+    return config;
+  },
+});
+entryMeta.addAction("bootSync", {
+  description: "Synce on boot if custom",
+  private: true,
+  async action({ entryMeta, inCloud, orm }) {
+    if (!entryMeta.$custom) {
+      return;
+    }
+    const config = await entryMeta.runAction("generateConfig") as EntryConfig<
+      any
+    >;
+
+    const { $name, $extension, $extension__title, $hooks } = entryMeta;
+    if (!entryMeta.id || !entryMeta.$name) {
+      return;
+    }
+    const entryType = defineEntry($name, config);
+    for (const hook of $hooks.data) {
+      const func = new Function(
+        $name,
+        "orm",
+        "inCloud",
+        "entry",
+        hook.handler,
+      );
+      entryType.addHook(hook.hook, {
+        name: hook.name,
+        description: hook.description || undefined,
+        handler: async (args) => {
+          await func(args[$name], args.orm, args.inCloud, args.entry);
+        },
+      });
+    }
+    entryType.extension = $extension || "";
+    entryType.config.extension = {
+      key: $extension || "",
+      label: $extension__title || "",
+      description: "",
+      extensionType: {
+        key: "cloud",
+        label: "Cloud Extension",
+      },
+    };
+    inCloud.roles.updateEntryType(entryType);
+    return entryType;
+  },
+});
+entryMeta.addAction("migrate", {
+  description: "Syncs the database schema",
+  async action({ entryMeta, inCloud, orm }) {
+    if (!entryMeta.$custom) {
+      console.log("Not a custom entry type, skipping migrate");
+      return;
+    }
+    const entryType = await entryMeta.runAction("bootSync") as ReturnType<
+      typeof defineEntry
+    >;
+    if (!entryType) {
+      console.log("No entry type returned from bootSync");
+      return;
+    }
+    const migrator = new EntryTypeMigrator({
+      entryType,
+      db: entryMeta.$systemGlobal ? inCloud.orm.systemDb : orm.db,
+      orm,
+      onOutput: (message) => {
+        inCloud.inLog.info(message, {
+          subject: `Migrate ${entryMeta.$label}`,
+        });
+      },
+    });
+    await migrator.migrate();
+    inCloud.inLive.announce({
+      system: "refresh",
+    });
+
+    // return await migrator.planMigration();
+  },
 });

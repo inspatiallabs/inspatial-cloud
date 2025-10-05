@@ -169,8 +169,8 @@ function registerField(role: Role, args: {
   };
   if ("isChild" in childOrEntryType && childOrEntryType.isChild) {
     config.referencingChildFieldKey = childOrEntryType.name;
-    role.registry.registerField(config);
   }
+  role.registry.registerField(config);
 }
 function buildConnectionTitleField<E extends EntryType<any>>(
   field:

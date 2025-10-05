@@ -125,6 +125,20 @@ export class Role {
     }
     this.entryTypes.set(entryType.name, entryType);
   }
+  /** replaces an existing entryType or adds a new one */
+  updateEntryType(entryType: EntryType) {
+    this.entryTypes.set(entryType.name, entryType);
+    buildEntryType(this, entryType);
+    validateEntryType(this, entryType);
+    registerFetchFields(
+      this,
+      entryType,
+    ); /*  TODO: unregister existing fetch fields from role.registry */
+
+    this.#setupEntryConnections();
+    const entryClass = buildEntry(entryType);
+    this.#entryClasses.set(entryType.name, entryClass);
+  }
   addSettingsType(settingsType: SettingsType): void {
     if (this.#locked) return;
     if (this.settingsTypes.has(settingsType.name)) {
@@ -161,7 +175,6 @@ export class Role {
         if (!connections.has(field.entryType)) {
           connections.set(field.entryType, []);
         }
-        // const connectionEntryType = this.getEntryType(field.entryType);
         connections.get(field.entryType)!.push({
           referencingEntry: entryType.name,
           referencingEntryLabel: entryType.label,
@@ -305,6 +318,24 @@ export class RoleManager {
     }
 
     this.#rootEntryTypes.set(entryType.name, entryType);
+  }
+  /**
+   * replaces an existing entryType or creates a new one
+   */
+
+  updateEntryType(entryType: EntryType) {
+    this.addEntryType(entryType);
+    for (const role of this.roles.values()) {
+      const permission = role.entryPermissions.get(entryType.name);
+      if (!permission) {
+        continue;
+      }
+      const roleEntryType = buildEntryTypeForRole(
+        entryType,
+        permission,
+      );
+      role.updateEntryType(roleEntryType);
+    }
   }
   addSettingsType(settingsType: SettingsType): void {
     const permission: SettingsPermission = {

@@ -10,7 +10,7 @@ import type {
   Tag,
 } from "~/orm/orm-types.ts";
 import type { Entry } from "~/orm/entry/entry.ts";
-import { raiseORMException } from "~/orm/orm-exception.ts";
+import { ORMException, raiseORMException } from "~/orm/orm-exception.ts";
 
 import type {
   DBConfig,
@@ -216,6 +216,33 @@ export class InSpatialORM {
   }
   async init(): Promise<void> {
     await this.db.init();
+    await this.setupCustomEntryTypes();
+  }
+  async setupCustomEntryTypes() {
+    if (!await this.systemDb.tableExists("entryEntryMeta")) {
+      return; // First time setup, tables don't exist yet
+    }
+    try {
+      const { rows: entries } = await this.getEntryList("entryMeta", {
+        columns: ["id"],
+        filter: {
+          custom: true,
+        },
+        limit: 0,
+      });
+      for (const { id } of entries) {
+        const entryMeta = await this.getEntry("entryMeta", id);
+        await entryMeta.runAction("bootSync");
+      }
+    } catch (e) {
+      if (
+        e instanceof ORMException && e.subject === "undefined_column" &&
+        e.message.includes("custom")
+      ) {
+        return;
+      }
+      throw e;
+    }
   }
   #setupGlobalSettingsHooks(
     globalHooks: GlobalSettingsHooks,
