@@ -80,10 +80,10 @@ export function generateClientEntryInterface(
     ` _name:"${convertString(entryOrSettingsType.name, "camel", true)}"`,
   ];
 
-  const fields = buildFields(entryOrSettingsType.fields);
+  const fields = buildFields(entryOrSettingsType.fields, [], true);
   outLines.push(...fields);
   for (const child of entryOrSettingsType.children?.values() || []) {
-    const childFields = buildFields(child.fields);
+    const childFields = buildFields(child.fields, [], true);
     outLines.push(
       `${child.name}: Array<{ ${childFields.join("\n")}}>`,
     );

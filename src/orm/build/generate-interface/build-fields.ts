@@ -2,7 +2,7 @@ import { fieldTypeMap } from "~/orm/build/generate-interface/field-type-map.ts";
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import type { InField } from "~/orm/field/field-def-types.ts";
 
-export function buildField(field: InField): string {
+export function buildField(field: InField, forClient?: boolean): string {
   const { label, description, required } = field;
   let fieldType = fieldTypeMap[field.type];
   if (field.type === "ChoicesField") {
@@ -38,7 +38,13 @@ export function buildField(field: InField): string {
   lines.push(
     `${field.key}${
       required || field.type === "BooleanField" ? "" : "?"
-    }: ${fieldType};`,
+    }: ${fieldType}${
+      forClient
+        ? ""
+        : field.type === "BooleanField" || required
+        ? ""
+        : " | null"
+    };`,
   );
   return lines.join("\n");
 }
@@ -46,12 +52,13 @@ export function buildField(field: InField): string {
 export function buildFields(
   fieldDefs: Map<string, InField>,
   excludeFields: Array<string> = [],
+  forClient = false,
 ): Array<string> {
   const exclude = new Set<string>(excludeFields);
   const fields: string[] = [];
   fieldDefs.forEach((field) => {
     if (exclude.has(field.key)) return;
-    fields.push(buildField(field));
+    fields.push(buildField(field, forClient));
   });
   return fields;
 }
