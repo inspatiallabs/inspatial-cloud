@@ -9,7 +9,7 @@ export class ORMFieldConfig<T extends InFieldType = InFieldType> {
   readonly type: T;
   description?: string;
   #dbLoad: (value: any, fieldDef: InFieldMap[T]) => InValue<T>;
-  #validate: (value: any, fieldDef: InFieldMap[T]) => boolean;
+  #validate: (value: any, fieldDef: InFieldMap[T]) => boolean | string;
   #dbSave: (value: any, fieldDef: InFieldMap[T]) => any;
   #dbColumn: (fieldDef: InFieldMap[T]) => PgColumnDefinition;
   #normalize: (value: any, fieldDef: InFieldMap[T]) => InValue<T>;
@@ -68,7 +68,7 @@ export class ORMFieldConfig<T extends InFieldType = InFieldType> {
     return this.#dbLoad(value, fieldDef);
   }
 
-  validate(value: unknown, fieldDef: InFieldMap[T]): boolean {
+  validate(value: unknown, fieldDef: InFieldMap[T]): boolean | string {
     return this.#validate(value, fieldDef);
   }
 
