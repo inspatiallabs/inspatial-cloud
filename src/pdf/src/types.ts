@@ -1,5 +1,3 @@
-import type { FontFamily, FontStyle, StandardFont } from "./pages/fonts.ts";
-
 export type PDFVersion =
   | "1.1"
   | "1.2"
@@ -14,12 +12,4 @@ export interface TableEntry {
   byteOffset: number;
   genNumber: number;
   inUse: boolean;
-}
-
-export interface TextOptions {
-  x?: number;
-  y?: number;
-  fontSize?: number;
-  fontFamily?: FontFamily;
-  fontStyle?: FontStyle;
 }

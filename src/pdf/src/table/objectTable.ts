@@ -34,27 +34,27 @@ export class ObjectTable {
     }
     obj.byteOffset = offset;
   }
-  writeObjects(file: Deno.FsFile) {
-    let currentOffset = file.seekSync(0, Deno.SeekMode.Current);
+  async writeObjects(file: Deno.FsFile) {
+    let currentOffset = await file.seek(0, Deno.SeekMode.Current);
     for (const obj of this.#objects.values()) {
       obj.byteOffset = currentOffset;
       const data = obj.generateBytes();
       currentOffset += data.byteLength;
-      file.writeSync(data);
+      await file.write(data);
     }
   }
-  writeTable(file: Deno.FsFile): number {
-    const currentOffset = file.seekSync(0, Deno.SeekMode.Current);
+  async writeTable(file: Deno.FsFile): Promise<number> {
+    const currentOffset = await file.seek(0, Deno.SeekMode.Current);
     const encoder = new TextEncoder();
     const header = `xref\r\n0 ${this.#objects.size}\r\n`;
-    file.writeSync(encoder.encode(header));
+    await file.write(encoder.encode(header));
 
     const rows = Array.from(this.#objects.values()).sort((a, b) => {
       return a.objNumber > b.objNumber ? a.objNumber : b.objNumber;
     });
     for (const row of rows) {
       const data = row.generateTableEntry();
-      file.writeSync(data);
+      await file.write(data);
     }
     return currentOffset;
   }

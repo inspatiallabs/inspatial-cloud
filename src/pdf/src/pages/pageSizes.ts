@@ -1,4 +1,4 @@
-import type { FontDefaults, FontFamily, FontStyle } from "./fonts.ts";
+import type { FontDefaults } from "../resources/fonts/fontRegistry.ts";
 
 export const pageSize = {
   /**US-Letter: 8.5in x 11.0in (816px x 1056px) */

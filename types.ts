@@ -19,6 +19,7 @@ export type {
   IntFormat,
 } from "~/orm/field/field-def-types.ts";
 
+export type { DBFilter, InFilter } from "~/orm/db/db-types.ts";
 export type { Choice, IDMode, InValue } from "~/orm/field/types.ts";
 
 export type { EntryBase } from "~/orm/entry/entry-base.ts";

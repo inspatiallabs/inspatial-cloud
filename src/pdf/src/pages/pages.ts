@@ -1,39 +1,37 @@
-import { Dictionary } from "../objects/dictionary.ts";
 import type { DocObject } from "../objects/docObject.ts";
+import type { PDFFactory } from "../pdf.ts";
+import type { FontDefaults } from "../resources/fonts/fontRegistry.ts";
 import type { ObjectTable } from "../table/objectTable.ts";
-import {
-  type FontDefaults,
-  type FontFamily,
-  fontMap,
-  type FontStyle,
-} from "./fonts.ts";
 import { Page } from "./page.ts";
 import { type PagesConfig, pageSize } from "./pageSizes.ts";
 
 export class Pages {
   obj: DocObject;
   pages: Map<number, Page>;
-  table: ObjectTable;
+  pdf: PDFFactory;
+  get table(): ObjectTable {
+    return this.pdf.objects;
+  }
   bounds: [number, number, number, number] = [0, 0, 0, 0];
   get pageSize(): { width: number; height: number } {
     const width = this.bounds[2] - this.bounds[0];
     const height = this.bounds[3] - this.bounds[1];
     return { width, height };
   }
-  resources: Dictionary = new Dictionary();
   fontDefaults: FontDefaults;
-  constructor(table: ObjectTable, fontDefaults?: FontDefaults) {
+  constructor(pdf: PDFFactory, fontDefaults?: FontDefaults) {
+    this.pdf = pdf;
     this.fontDefaults = {
       family: fontDefaults?.family || "Helvetica",
-      style: fontDefaults?.style || "normal",
+      italic: fontDefaults?.italic || false,
+      weight: fontDefaults?.weight || 400,
       size: fontDefaults?.size || 12,
     };
-    this.table = table;
+
     this.obj = this.table.addObject("pages");
     this.pages = new Map();
     this.obj.set("Type", "/Pages");
     this.setBounds([0, 0, 612, 792]);
-    this.#addFonts();
   }
   setSize(
     size: PagesConfig["pageSize"] = "A4",
@@ -47,19 +45,7 @@ export class Pages {
     }
     this.setBounds([0, 0, x, y]);
   }
-  #addFonts() {
-    const fontDict = new Dictionary();
-    for (const [key, value] of Object.entries(fontMap)) {
-      const font = this.table.addObject(value);
-      font.set("Type", "/Font");
-      font.set("Subtype", "/Type1");
-      font.set("BaseFont", `/${key}`);
-      // font.set("FirstChar", "33");
-      // font.set("LastChar", "126");
-      fontDict.addReference(value, font.objNumber);
-    }
-    this.resources.addReferenceDictionary("Font", fontDict);
-  }
+
   addPage(_args?: {
     name?: string;
   }) {

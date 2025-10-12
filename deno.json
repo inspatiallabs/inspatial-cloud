@@ -7,7 +7,8 @@
     "./utils": "./src/utils/mod.ts",
     "./types": "./types.ts",
     "./incloud": "./cli/incloud.ts",
-    "./models": "./src/types/models.ts"
+    "./models": "./src/types/models.ts",
+    "./pdf": "./src/pdf/mod.ts"
   },
 
   "publish": {
