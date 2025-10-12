@@ -75,6 +75,10 @@ export class PDFFactory {
 
   async generate(filePath: string) {
     this.#filePath = filePath;
+    const dir = filePath.split("/").slice(0, -1).join("/");
+    if (dir) {
+      await Deno.mkdir(dir, { recursive: true });
+    }
 
     // header
     await this.#writeLine(`%PDF-${this.version}`);
@@ -90,5 +94,8 @@ export class PDFFactory {
     await this.#writeLine(xrefStart);
     // Last line, EOF
     await this.#writeString("%%EOF");
+    const stat = await this.file.stat();
+    this.file.close();
+    return stat.size;
   }
 }

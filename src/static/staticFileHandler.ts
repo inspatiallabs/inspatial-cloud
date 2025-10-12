@@ -128,6 +128,10 @@ export class StaticFileHandler {
   async serveFromPath(
     filePath: string,
     inResponse: InResponse,
+    options?: {
+      fileName?: string;
+      download?: boolean;
+    },
   ): Promise<InResponse> {
     const fileName = filePath.split("/").pop();
     if (!fileName) {
@@ -136,6 +140,8 @@ export class StaticFileHandler {
         "File not found",
       );
     }
+    const { download } = options || {};
+
     const fileContent = await this
       .getFile(filePath);
     if (!fileContent) {
@@ -145,7 +151,8 @@ export class StaticFileHandler {
       );
     }
     inResponse.setFile({
-      fileName,
+      fileName: options?.fileName || fileName,
+      download,
       content: fileContent,
     });
     inResponse.setCacheControl(

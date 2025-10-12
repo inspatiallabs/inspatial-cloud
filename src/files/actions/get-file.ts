@@ -24,17 +24,19 @@ export const getFile = defineAPIAction("getFile", {
     type: "BooleanField",
   }],
   async action({ inCloud, orm, params, inResponse }) {
-    const { fileId, global, thumbnail } = params;
+    const { fileId, global, thumbnail, download } = params;
     const accountId = global ? "global" : `${orm._accountId}`;
     const accountAndFileId = `${accountId}/${
       thumbnail ? "thumb-" : ""
     }${fileId}`;
+    let humanFileName = "";
     let filePath = inCloud.inCache.getValue("getFileFiles", accountAndFileId);
     if (!filePath) {
       const file = await orm.getEntry(
         global ? "globalCloudFile" : "cloudFile",
         fileId,
       );
+      humanFileName = file.$fileName;
       if (file.$optimizeImage && !file.$optimized) {
         raiseServerException(404, "File not optimized yet");
       }
@@ -57,6 +59,9 @@ export const getFile = defineAPIAction("getFile", {
       );
       inCloud.inCache.setValue("getFileFiles", accountAndFileId, filePath);
     }
-    return await inCloud.privateFiles.serveFromPath(filePath, inResponse);
+    return await inCloud.privateFiles.serveFromPath(filePath, inResponse, {
+      download: download === true,
+      fileName: humanFileName || undefined,
+    });
   },
 });
