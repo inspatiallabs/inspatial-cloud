@@ -2,32 +2,14 @@ import { Dictionary } from "../../objects/dictionary.ts";
 import type { Font } from "./font.ts";
 
 export type FontWeight = number | "normal" | "bold" | "light" | "extrabold";
+export type TextAlign = "left" | "center" | "right";
+export type VerticalAlign = "top" | "middle" | "bottom";
 export interface FontDefaults {
-  family: string | "Helvetica" | "Times" | "Courier";
+  family: string;
   weight?: FontWeight;
   italic?: boolean;
   size: number;
 }
-
-const builtinFonts = [{
-  family: "Helvetica",
-  weights: {
-    400: { normal: "Helvetica", italic: "Helvetica-Oblique" },
-    700: { normal: "Helvetica-Bold", italic: "Helvetica-BoldOblique" },
-  },
-}, {
-  family: "Times",
-  weights: {
-    400: { normal: "Times-Roman", italic: "Times-Italic" },
-    700: { normal: "Times-Bold", italic: "Times-BoldItalic" },
-  },
-}, {
-  family: "Courier",
-  weights: {
-    400: { normal: "Courier", italic: "Courier-Oblique" },
-    700: { normal: "Courier-Bold", italic: "Courier-BoldOblique" },
-  },
-}];
 
 export class FontRegistry {
   fontDict: Dictionary;
@@ -38,38 +20,10 @@ export class FontRegistry {
     }>;
   }>;
   fonts: Map<string, Font>;
-  readonly builtinFontNames = new Set([
-    "Helvetica",
-    "Helvetica-Oblique",
-    "Helvetica-Bold",
-    "Helvetica-BoldOblique",
-    "Times-Roman",
-    "Times-Italic",
-    "Times-Bold",
-    "Times-BoldItalic",
-    "Courier",
-    "Courier-Oblique",
-    "Courier-Bold",
-    "Courier-BoldOblique",
-  ]);
   constructor() {
     this.families = new Map();
     this.fonts = new Map();
     this.fontDict = new Dictionary();
-    for (const font of builtinFonts) {
-      this.families.set(font.family, {
-        weights: new Map(),
-      });
-      const family = this.families.get(font.family);
-      if (!family) continue;
-      for (const [weight, styles] of Object.entries(font.weights)) {
-        const weightNum = parseInt(weight, 10);
-        family.weights.set(weightNum, {
-          italic: styles.italic,
-          normal: styles.normal,
-        });
-      }
-    }
   }
   registerFont(font: Font) {
     if (!font.fontFamily) {

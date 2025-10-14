@@ -1,4 +1,4 @@
-import type { DocObject } from "../objects/docObject.ts";
+import { DocObject } from "../../objects/docObject.ts";
 import { loadFont } from "./fontLoader.ts";
 
 export class Font {
@@ -7,12 +7,15 @@ export class Font {
   fileObject: DocObject;
   #fontName?: string;
   italic: boolean = false;
+  maxHeight: number = 0;
   #fontFamily?: string;
   fontStyle?: string;
   #fontWeight?: number;
+  widths: Map<number, number> = new Map();
   get fontWeight() {
     return this.#fontWeight || 400;
   }
+
   get fontFamily() {
     if (!this.#fontFamily) {
       throw new Error("Font not loaded");
@@ -47,10 +50,22 @@ export class Font {
     this.descriptorObject = descriptorObject;
     this.fileObject = fileObj;
   }
+  getStringWidth(text: string, fontSize: number) {
+    let width = 0;
+    if (text.length === 0) return 0;
+    for (const char of text) {
+      const charCode = char.charCodeAt(0);
+      const charWidth = this.widths.get(charCode) || 0;
+      width += charWidth;
+    }
+    return width / 1000 * fontSize;
+  }
   async load(filePath: string) {
-    const { fontName, data, fontDesc, fontDict, header } = await loadFont(
-      filePath,
-    );
+    const { fontName, data, fontDesc, fontDict, widthsMap, header } =
+      await loadFont(
+        filePath,
+      );
+    this.widths = widthsMap;
     this.#fontName = fontName;
     this.#fontFamily = fontName.split("-")[0];
     this.#fontWeight = fontDesc.fontWeight;
@@ -76,6 +91,7 @@ export class Font {
     descObj.set("FontFamily", `/${fontDesc.fontFamily}`);
     descObj.set("Flags", fontDesc.flags);
     descObj.setArray("FontBBox", fontDesc.fontBBox);
+    this.bbox = fontDesc.fontBBox;
     descObj.set("ItalicAngle", fontDesc.italicAngle);
     descObj.set("Ascent", fontDesc.ascent);
     descObj.set("Descent", fontDesc.descent);
@@ -93,6 +109,7 @@ export class Font {
     if (fontDesc.xHeight) {
       descObj.set("XHeight", fontDesc.xHeight);
     }
+    this.maxHeight = fontDesc.fontBBox[3] - fontDesc.fontBBox[1];
   }
   #setupFileObject() {
     const fontData = this.data;

@@ -94,8 +94,13 @@ export class PDFFactory {
     await this.#writeLine(xrefStart);
     // Last line, EOF
     await this.#writeString("%%EOF");
-    const stat = await this.file.stat();
-    this.file.close();
-    return stat.size;
+    let size = 0;
+    if (this.#file) {
+      const stat = await this.#file.stat();
+      size = stat.size;
+      this.#file.close();
+      this.#file = undefined;
+    }
+    return size;
   }
 }

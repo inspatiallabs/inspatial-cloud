@@ -19,17 +19,8 @@ export class ResourceManager {
       "Font",
       this.fontRegistry.fontDict,
     );
-    this.#setupBuiltinFonts();
   }
-  #setupBuiltinFonts() {
-    for (const fontName of this.fontRegistry.builtinFontNames) {
-      const fontObj = this.#addObject(fontName);
-      fontObj.set("Type", "/Font");
-      fontObj.set("Subtype", "/Type1");
-      fontObj.set("BaseFont", `/${fontName}`);
-      this.fontRegistry.fontDict.addReference(fontName, fontObj.objNumber);
-    }
-  }
+
   #addObject(objectName?: string) {
     return this.#pdf.objects.addObject(objectName);
   }

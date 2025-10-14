@@ -53,6 +53,7 @@ export async function loadFont(filePath: string) {
     italicAngle: post.italicAngle,
     xHeight: 0,
   };
+
   if (os2.sxHeight) {
     fontDesc.xHeight = os2.sxHeight * scale;
   }
@@ -68,6 +69,7 @@ export async function loadFont(filePath: string) {
   );
 
   const charToGlyph = parseCmapTable(view);
+  const widthsMap: Map<number, number> = new Map();
   for (
     let charCode = fontDict.firstChar;
     charCode <= fontDict.lastChar;
@@ -80,12 +82,16 @@ export async function loadFont(filePath: string) {
     } else if (widths.length > 0) {
       width = widths[widths.length - 1];
     }
-    finalWidths.push(width * scale);
+    const scaledWidth = width * scale;
+    widthsMap.set(charCode, scaledWidth);
+    finalWidths.push(scaledWidth);
   }
   fontDict.widths = finalWidths;
+
   return {
     fontName: fontDict.baseFont,
     fontDict,
+    widthsMap,
     fontDesc,
     header,
     data,

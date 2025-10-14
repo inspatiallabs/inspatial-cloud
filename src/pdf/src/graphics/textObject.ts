@@ -3,6 +3,8 @@ import type { Page } from "../pages/page.ts";
 import type {
   FontDefaults,
   FontWeight,
+  TextAlign,
+  VerticalAlign,
 } from "../resources/fonts/fontRegistry.ts";
 import type { Color } from "./graphics.d.ts";
 import { parseColor } from "./utils.ts";
@@ -10,12 +12,19 @@ import { parseColor } from "./utils.ts";
 export class TextObject extends ObjectBase {
   #x = 0;
   #y = 0;
-  #fontFamily: string = "Helvetica";
+  #fontFamily?: string;
   #fontWeight: FontWeight = "normal";
+  #alignX: TextAlign = "left";
+  #alignY: VerticalAlign = "bottom";
   #italic: boolean = false;
   #fontSize = 12;
   #color: Color = [0, 0, 0];
   #text = "";
+  #textWidth = 0;
+  get textWidth() {
+    return this.#textWidth;
+  }
+
   constructor(page: Page, fontDefaults?: FontDefaults) {
     super(page);
     if (fontDefaults) {
@@ -33,7 +42,14 @@ export class TextObject extends ObjectBase {
     this.#y = y;
     return this;
   }
-
+  paragraphAlign(x: TextAlign): typeof this {
+    this.#alignX = x;
+    return this;
+  }
+  verticalAlign(y: VerticalAlign): typeof this {
+    this.#alignY = y;
+    return this;
+  }
   fontFamily(family: string): typeof this {
     this.#fontFamily = family;
     return this;
@@ -57,21 +73,57 @@ export class TextObject extends ObjectBase {
     return this;
   }
   generate(): string {
-    const font = this.page.getFontName(this.#fontFamily, {
-      fontWeight: this.#fontWeight,
-      italic: this.#italic,
-    });
-    // const fontName = getFont(this.#fontFamily, this.#fontStyle);
-    // const font = fontMap[fontName] || fontName;
-    const content = `${
-      this.#color
-        ? (() => {
-          const [r, g, b] = parseColor(this.#color);
-          return `${r} ${g} ${b} rg\r\n`;
-        })()
-        : ""
-    }` +
-      `BT \r\n  /${font} ${this.#fontSize} Tf\r\n  ${this.#x} ${this.#y} Td\r\n  (${this.#text}) Tj\r\nET\r\n`;
-    return content;
+    const fontName = this.#fontFamily
+      ? this.page.getFontName(this.#fontFamily, {
+        fontWeight: this.#fontWeight,
+        italic: this.#italic,
+      })
+      : undefined;
+    if (!fontName) {
+      throw new Error("Font not found");
+    }
+    const font = this.page.resources.fontRegistry.fonts.get(fontName);
+    if (!font) {
+      throw new Error("Font not found in registry");
+    }
+    const lineHeight = font.maxHeight / 1000 * this.#fontSize / 2;
+    this.#textWidth = font.getStringWidth(this.#text, this.#fontSize);
+    let x = this.#x;
+    switch (this.#alignX) {
+      case "center":
+        x = this.#x - (this.#textWidth / 2);
+        break;
+      case "right":
+        x = this.#x - this.#textWidth;
+        break;
+      case "left":
+      default:
+        break;
+    }
+    let y = this.#y;
+    switch (this.#alignY) {
+      case "top":
+        y = this.#y - lineHeight;
+        break;
+      case "middle":
+        y = this.#y - (lineHeight / 2);
+        break;
+      case "bottom":
+        break;
+    }
+
+    const lines: string[] = [];
+    if (this.#color) {
+      const [r, g, b] = parseColor(this.#color);
+      lines.push(`${r} ${g} ${b} rg`);
+    }
+    lines.push(`BT`);
+    // lines.push(`[1 0 0 1 ${this.#x} ${this.#y}] cm`);
+    lines.push(`/${fontName} ${this.#fontSize} Tf`);
+    lines.push(`${x} ${y} Td`);
+    lines.push(`(${this.#text}) Tj`);
+    // lines.push(`[1 0 0 1 -${this.#x} -${this.#y}] cm`);
+    lines.push("ET");
+    return lines.join("\r\n") + "\r\n";
   }
 }
