@@ -80,38 +80,54 @@ export class TextObject extends ObjectBase {
       })
       : undefined;
     if (!fontName) {
-      throw new Error("Font not found");
+      throw new Error(
+        `font ${this.#fontFamily} ${this.#fontWeight} ${this.#italic} not found`,
+      );
     }
     const font = this.page.resources.fontRegistry.fonts.get(fontName);
     if (!font) {
       throw new Error("Font not found in registry");
     }
     const lineHeight = font.maxHeight / 1000 * this.#fontSize / 2;
-    this.#textWidth = font.getStringWidth(this.#text, this.#fontSize);
+    const leading = lineHeight * 1.5 - lineHeight;
+    let text = "";
+    const textLines = this.#text.split("\n");
     let x = this.#x;
-    switch (this.#alignX) {
-      case "center":
-        x = this.#x - (this.#textWidth / 2);
-        break;
-      case "right":
-        x = this.#x - this.#textWidth;
-        break;
-      case "left":
-      default:
-        break;
-    }
     let y = this.#y;
+    let lastOffset = 0;
+    const lineCount = textLines.length;
+    const textHeight = lineHeight * lineCount + (leading * lineCount - 2);
     switch (this.#alignY) {
       case "top":
-        y = this.#y - lineHeight;
+        y = y - textHeight;
         break;
       case "middle":
-        y = this.#y - (lineHeight / 2);
+        y = y + ((textHeight - lineHeight) / 2) - lineHeight / 2;
         break;
       case "bottom":
         break;
     }
+    textLines.forEach((textLine, index) => {
+      const textWidth = font.getStringWidth(textLine, this.#fontSize);
+      switch (this.#alignX) {
+        case "center":
+          x = x - (textWidth / 2) + lastOffset;
+          lastOffset = textWidth / 2;
+          break;
+        case "right":
+          x = x - textWidth;
+          lastOffset = textWidth;
+          break;
+        case "left":
+        default:
+          lastOffset = 0;
+          break;
+      }
 
+      text += `${x} ${y} Td\r\n(${textLine}) Tj\r\n`;
+      y = 0 - lineHeight - leading;
+      x = 0;
+    });
     const lines: string[] = [];
     if (this.#color) {
       const [r, g, b] = parseColor(this.#color);
@@ -120,8 +136,7 @@ export class TextObject extends ObjectBase {
     lines.push(`BT`);
     // lines.push(`[1 0 0 1 ${this.#x} ${this.#y}] cm`);
     lines.push(`/${fontName} ${this.#fontSize} Tf`);
-    lines.push(`${x} ${y} Td`);
-    lines.push(`(${this.#text}) Tj`);
+    lines.push(text);
     // lines.push(`[1 0 0 1 -${this.#x} -${this.#y}] cm`);
     lines.push("ET");
     return lines.join("\r\n") + "\r\n";

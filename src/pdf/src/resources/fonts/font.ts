@@ -91,7 +91,6 @@ export class Font {
     descObj.set("FontFamily", `/${fontDesc.fontFamily}`);
     descObj.set("Flags", fontDesc.flags);
     descObj.setArray("FontBBox", fontDesc.fontBBox);
-    this.bbox = fontDesc.fontBBox;
     descObj.set("ItalicAngle", fontDesc.italicAngle);
     descObj.set("Ascent", fontDesc.ascent);
     descObj.set("Descent", fontDesc.descent);
