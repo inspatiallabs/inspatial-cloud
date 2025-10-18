@@ -123,7 +123,8 @@ export class InResponse {
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     );
-    this.#headers.set("Access-Control-Allow-Headers", "Content-Type");
+    this.#headers.append("Access-Control-Allow-Headers", "Content-Type");
+    this.#headers.append("Access-Control-Allow-Headers", "Authorization");
   }
   /**
    * Sets the `Access-Control-Allow-Origin` header to the provided origin.
