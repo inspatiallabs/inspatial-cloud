@@ -25,7 +25,7 @@ export class FontRegistry {
     this.fonts = new Map();
     this.fontDict = new Dictionary();
   }
-  registerFont(font: Font) {
+  registerFont(font: Font): void {
     if (!font.fontFamily) {
       throw new Error("Font must have a family name");
     }
@@ -56,7 +56,7 @@ export class FontRegistry {
   getFontName(family: string, options?: {
     fontWeight?: FontWeight;
     italic?: boolean;
-  }) {
+  }): string | undefined {
     const fontFamily = this.families.get(family);
     if (!fontFamily) return undefined;
     const weight = options?.fontWeight || "normal";

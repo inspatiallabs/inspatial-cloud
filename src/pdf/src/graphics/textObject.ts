@@ -21,7 +21,7 @@ export class TextObject extends ObjectBase {
   #color: Color = [0, 0, 0];
   #text = "";
   #textWidth = 0;
-  get textWidth() {
+  get textWidth(): number {
     return this.#textWidth;
   }
 

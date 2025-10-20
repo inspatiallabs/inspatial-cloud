@@ -12,24 +12,24 @@ export class Font {
   fontStyle?: string;
   #fontWeight?: number;
   widths: Map<number, number> = new Map();
-  get fontWeight() {
+  get fontWeight(): number {
     return this.#fontWeight || 400;
   }
 
-  get fontFamily() {
+  get fontFamily(): string {
     if (!this.#fontFamily) {
       throw new Error("Font not loaded");
     }
     return this.#fontFamily;
   }
   #data?: Uint8Array;
-  get data() {
+  get data(): Uint8Array {
     if (!this.#data) {
       throw new Error("Font not loaded");
     }
     return this.#data;
   }
-  get fontName() {
+  get fontName(): string {
     if (!this.#fontName) {
       throw new Error("Font not loaded");
     }
@@ -50,7 +50,7 @@ export class Font {
     this.descriptorObject = descriptorObject;
     this.fileObject = fileObj;
   }
-  getStringWidth(text: string, fontSize: number) {
+  getStringWidth(text: string, fontSize: number): number {
     let width = 0;
     if (text.length === 0) return 0;
     for (const char of text) {
@@ -60,7 +60,7 @@ export class Font {
     }
     return width / 1000 * fontSize;
   }
-  async load(filePath: string) {
+  async load(filePath: string): Promise<void> {
     const { fontName, data, fontDesc, fontDict, widthsMap, header } =
       await loadFont(
         filePath,

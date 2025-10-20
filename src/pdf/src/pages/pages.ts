@@ -36,7 +36,7 @@ export class Pages {
   setSize(
     size: PagesConfig["pageSize"] = "A4",
     orientation: PagesConfig["orientation"] = "portrait",
-  ) {
+  ): void {
     const selectedSize = pageSize[size];
     let x: number = selectedSize.width;
     let y: number = selectedSize.height;
@@ -48,7 +48,7 @@ export class Pages {
 
   addPage(_args?: {
     name?: string;
-  }) {
+  }): Page {
     const pageObject = this.table.addObject();
 
     const page = new Page({
@@ -71,7 +71,7 @@ export class Pages {
     this.obj.set("Count", this.pages.size);
     this.obj.setArray("Kids", kids);
   }
-  setBounds(bounds: [number, number, number, number]) {
+  setBounds(bounds: [number, number, number, number]): void {
     this.bounds = bounds;
     this.obj.setArray("MediaBox", bounds);
   }

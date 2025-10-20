@@ -100,7 +100,7 @@ export class PathObject extends ObjectBase {
     fill?: {
       color?: Color;
     };
-  }) {
+  }): typeof this {
     const { center, radius, border, fill } = config;
     const k = 0.552284749831; // Approximation for control point offset
     const ox = radius * k; // Control point offset horizontal
@@ -136,61 +136,25 @@ export class PathObject extends ObjectBase {
     const drawCurves = () => {
       this.moveTo(x + radius, y);
       this.curveTo({
-        controlPt1: {
-          x: x + radius,
-          y: y + oy,
-        },
-        controlPt2: {
-          x: x + ox,
-          y: y + radius,
-        },
-        endPoint: {
-          x: x,
-          y: y + radius,
-        },
+        controlPt1: { x: x + radius, y: y + oy },
+        controlPt2: { x: x + ox, y: y + radius },
+        endPoint: { x: x, y: y + radius },
       });
       this.curveTo({
-        controlPt1: {
-          x: x - ox,
-          y: y + radius,
-        },
-        controlPt2: {
-          x: x - radius,
-          y: y + oy,
-        },
-        endPoint: {
-          x: x - radius,
-          y: y,
-        },
+        controlPt1: { x: x - ox, y: y + radius },
+        controlPt2: { x: x - radius, y: y + oy },
+        endPoint: { x: x - radius, y: y },
       });
 
       this.curveTo({
-        controlPt1: {
-          x: x - radius,
-          y: y - oy,
-        },
-        controlPt2: {
-          x: x - ox,
-          y: y - radius,
-        },
-        endPoint: {
-          x: x,
-          y: y - radius,
-        },
+        controlPt1: { x: x - radius, y: y - oy },
+        controlPt2: { x: x - ox, y: y - radius },
+        endPoint: { x: x, y: y - radius },
       });
       this.curveTo({
-        controlPt1: {
-          x: x + ox,
-          y: y - radius,
-        },
-        controlPt2: {
-          x: x + radius,
-          y: y - oy,
-        },
-        endPoint: {
-          x: x + radius,
-          y: y,
-        },
+        controlPt1: { x: x + ox, y: y - radius },
+        controlPt2: { x: x + radius, y: y - oy },
+        endPoint: { x: x + radius, y: y },
       });
     };
     if (fill?.color) {
@@ -234,7 +198,7 @@ export class PathObject extends ObjectBase {
     fill?: {
       color?: Color;
     };
-  }) {
+  }): typeof this {
     const { size, position, border, fill, radius } = config;
     let offset = 0;
     if (radius) {
@@ -249,66 +213,30 @@ export class PathObject extends ObjectBase {
       this.lineTo(xRight - offset, yBottom);
       // this.lineTo(xRight, yBottom + offset);
       this.curveTo({
-        controlPt1: {
-          x: xRight,
-          y: yBottom,
-        },
-        controlPt2: {
-          x: xRight,
-          y: yBottom,
-        },
-        endPoint: {
-          x: xRight,
-          y: yBottom + offset,
-        },
+        controlPt1: { x: xRight, y: yBottom },
+        controlPt2: { x: xRight, y: yBottom },
+        endPoint: { x: xRight, y: yBottom + offset },
       });
       this.lineTo(xRight, yTop - offset);
       // this.lineTo(xRight - offset, yTop);
       this.curveTo({
-        controlPt1: {
-          x: xRight,
-          y: yTop,
-        },
-        controlPt2: {
-          x: xRight,
-          y: yTop,
-        },
-        endPoint: {
-          x: xRight - offset,
-          y: yTop,
-        },
+        controlPt1: { x: xRight, y: yTop },
+        controlPt2: { x: xRight, y: yTop },
+        endPoint: { x: xRight - offset, y: yTop },
       });
       this.lineTo(xLeft + offset, yTop);
       // this.lineTo(xLeft, yTop - offset);
       this.curveTo({
-        controlPt1: {
-          x: xLeft,
-          y: yTop,
-        },
-        controlPt2: {
-          x: xLeft,
-          y: yTop,
-        },
-        endPoint: {
-          x: xLeft,
-          y: yTop - offset,
-        },
+        controlPt1: { x: xLeft, y: yTop },
+        controlPt2: { x: xLeft, y: yTop },
+        endPoint: { x: xLeft, y: yTop - offset },
       });
       this.lineTo(xLeft, yBottom + offset);
       // this.lineTo(xLeft + offset, yBottom);
       this.curveTo({
-        controlPt1: {
-          x: xLeft,
-          y: yBottom,
-        },
-        controlPt2: {
-          x: xLeft,
-          y: yBottom,
-        },
-        endPoint: {
-          x: xLeft + offset,
-          y: yBottom,
-        },
+        controlPt1: { x: xLeft, y: yBottom },
+        controlPt2: { x: xLeft, y: yBottom },
+        endPoint: { x: xLeft + offset, y: yBottom },
       });
     };
     if (fill?.color) {

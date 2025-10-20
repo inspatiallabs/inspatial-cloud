@@ -2,15 +2,13 @@ import { DocObject } from "../objects/docObject.ts";
 
 export class ObjectTable {
   #objects: Map<number, DocObject> = new Map();
-  constructor() {
-  }
   get size(): number {
     return this.#objects.size;
   }
-  getObject(objectNumber: number) {
+  getObject(objectNumber: number): DocObject | undefined {
     return this.#objects.get(objectNumber);
   }
-  getObjectByName(name: string) {
+  getObjectByName(name: string): DocObject | undefined {
     for (const obj of this.#objects.values()) {
       if (obj.name === name) {
         return obj;
@@ -18,7 +16,7 @@ export class ObjectTable {
     }
     return undefined;
   }
-  addObject(name?: string) {
+  addObject(name?: string): DocObject {
     const objNumber = this.#objects.size + 1;
     const newObj = new DocObject({
       name,
@@ -27,14 +25,14 @@ export class ObjectTable {
     this.#objects.set(objNumber, newObj);
     return newObj;
   }
-  setByteOffset(objectNumber: number, offset: number) {
+  setByteOffset(objectNumber: number, offset: number): void {
     const obj = this.#objects.get(objectNumber);
     if (!obj) {
       throw new Error(`Object ${objectNumber} doesn't exist`);
     }
     obj.byteOffset = offset;
   }
-  async writeObjects(file: Deno.FsFile) {
+  async writeObjects(file: Deno.FsFile): Promise<void> {
     let currentOffset = await file.seek(0, Deno.SeekMode.Current);
     for (const obj of this.#objects.values()) {
       obj.byteOffset = currentOffset;

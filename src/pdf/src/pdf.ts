@@ -1,5 +1,6 @@
 import { Dictionary } from "./objects/dictionary.ts";
 import type { DocObject } from "./objects/docObject.ts";
+import type { Page } from "./pages/page.ts";
 import { Pages } from "./pages/pages.ts";
 import type { PagesConfig } from "./pages/pageSizes.ts";
 import { ResourceManager } from "./resources/resourcManager.ts";
@@ -26,7 +27,7 @@ export class PDFFactory {
     this.pages.setSize(pageSize, orientation);
     this.#catalog.addReference("Pages", this.pages.obj.objNumber);
   }
-  addPage() {
+  addPage(): Page {
     return this.pages.addPage();
   }
   #generateIDs() {
@@ -73,7 +74,7 @@ export class PDFFactory {
     return lines.join("");
   }
 
-  async generate(filePath: string) {
+  async generate(filePath: string): Promise<number> {
     this.#filePath = filePath;
     const dir = filePath.split("/").slice(0, -1).join("/");
     if (dir) {

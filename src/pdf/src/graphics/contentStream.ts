@@ -27,7 +27,7 @@ export class ContentStream {
   addGrid(config: {
     rows: number;
     cols: number;
-  }) {
+  }): ContentStream {
     const { rows, cols } = config;
     const { width, height } = this.#page.pageSize;
     const cellWidth = width / cols;
@@ -68,7 +68,7 @@ export class ContentStream {
     headerStyle?: CellStyle;
     maxWidth?: number | string;
     paddingTop?: number | string;
-  }) {
+  }): ContentStream {
     const { rowData, columns } = config;
     let paddingTop = 0;
     if (typeof config.paddingTop === "number") {
@@ -203,7 +203,7 @@ export class ContentStream {
     fill?: {
       color?: Color;
     };
-  }) {
+  }): ContentStream {
     const path = this.addPath();
     path.$drawCircle(config);
     return this;

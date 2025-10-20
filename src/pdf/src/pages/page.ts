@@ -1,13 +1,14 @@
 import { ContentStream } from "../graphics/contentStream.ts";
 import type { Dictionary } from "../objects/dictionary.ts";
 import type { DocObject } from "../objects/docObject.ts";
+import type { ResourceManager } from "../resources/resourcManager.ts";
 import type { Pages } from "./pages.ts";
 
 export class Page {
   #obj: DocObject;
   #pages: Pages;
   contents: Map<number, DocObject>;
-  get resources() {
+  get resources(): ResourceManager {
     return this.#pages.pdf.resources;
   }
   get objNumber(): number {
@@ -16,7 +17,7 @@ export class Page {
   getFontName(fontFamily: string, options?: {
     fontWeight?: number | "normal" | "bold" | "light" | "extrabold";
     italic?: boolean;
-  }) {
+  }): string | undefined {
     return this.resources.fontRegistry.getFontName(fontFamily, options);
   }
   get pageSize(): {
@@ -45,10 +46,10 @@ export class Page {
       this.#obj.setArray("MediaBox", bounds);
     }
   }
-  addResourceDictionary(name: string, dict: Dictionary) {
+  addResourceDictionary(name: string, dict: Dictionary): void {
     this.resources.resourceDict.addReferenceDictionary(name, dict);
   }
-  addContentStream() {
+  addContentStream(): ContentStream {
     const contentObj = this.#pages.table.addObject();
     const contentStream = new ContentStream(
       this,
@@ -65,7 +66,7 @@ export class Page {
     );
     return contentStream;
   }
-  addObject() {
+  addObject(): DocObject {
     const obj = this.#pages.table.addObject();
     this.contents.set(obj.objNumber, obj);
     this.#obj.setArray(
