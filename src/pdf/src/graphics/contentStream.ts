@@ -195,6 +195,10 @@ export class ContentStream {
     border?: {
       width?: number;
       color?: Color;
+      dashed?: {
+        pattern: number[];
+        phase: number;
+      };
     };
     fill?: {
       color?: Color;
