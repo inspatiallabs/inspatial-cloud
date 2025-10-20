@@ -45,7 +45,7 @@ export class ContentStream {
     path.stroke();
     return this;
   }
-  addRow(content: Array<string>, config: {
+  addRow(_content: Array<string>, _config: {
     cols: number;
     cellPadding?: number;
     rowHeight: number;

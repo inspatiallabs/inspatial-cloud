@@ -107,7 +107,7 @@ export class TextObject extends ObjectBase {
       case "bottom":
         break;
     }
-    textLines.forEach((textLine, index) => {
+    textLines.forEach((textLine, _index) => {
       const textWidth = font.getStringWidth(textLine, this.#fontSize);
       switch (this.#alignX) {
         case "center":
