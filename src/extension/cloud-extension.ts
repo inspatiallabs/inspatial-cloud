@@ -140,6 +140,7 @@ export class CloudExtension<
     this.settingsTypes = options.settingsTypes || [];
     this.apiGroups = [] as any;
     for (const actionGroup of options.apiGroups || []) {
+      actionGroup.extension = extensionName;
       this.apiGroups.push(actionGroup);
     }
     this.install = options.install || (() => {});

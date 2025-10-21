@@ -28,7 +28,7 @@ import type {
   ExtensionConfig,
   ExtractConfig,
 } from "~/cloud-config/config-types.ts";
-import { RoleManager } from "~/orm/roles/role.ts";
+import { type RoleConfig, RoleManager } from "~/orm/roles/role.ts";
 import { CacheTime, StaticFileHandler } from "~/static/staticFileHandler.ts";
 import { ExtensionManager } from "~/extension/extension-manager.ts";
 import type { CloudExtension } from "~/extension/cloud-extension.ts";
@@ -458,14 +458,16 @@ export class InCloud {
     const basicUserConfig = coreExtension?.roles.find((r) =>
       r.roleName === "basicUser"
     );
-    if (basicUserConfig) {
-      this.roles.addRole({
-        ...basicUserConfig,
-        roleName: "accountAdmin",
-        description: "Account Administrator",
-        label: "Account Admin",
-      });
-    }
+    const accountAdminConfig: RoleConfig = {
+      ...basicUserConfig,
+      roleName: "accountAdmin",
+      description: "Account Administrator",
+      label: "Account Admin",
+      apiGroups: {
+        ...basicUserConfig?.apiGroups,
+      },
+    };
+
     for (const group of this.actionGroups.values()) {
       const actionsSet = new Set<string>();
       for (const action of group.actions.values()) {
@@ -479,7 +481,11 @@ export class InCloud {
         }
       }
       adminRole.apiGroups.set(group.groupName, actionsSet);
+      if (group.extension !== "core") {
+        accountAdminConfig.apiGroups![group.groupName] = true;
+      }
     }
+    this.roles.addRole(accountAdminConfig);
   }
   #setupOrm() {
     this.orm = setupOrm({

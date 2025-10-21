@@ -14,7 +14,7 @@ export class CloudAPIGroup<
   description: string;
   label?: string;
   actions: Map<string, CloudAPIAction>;
-
+  extension: string = "";
   constructor(groupName: G, config: {
     description: string;
     label?: string;
