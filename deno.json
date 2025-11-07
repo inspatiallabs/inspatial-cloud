@@ -1,6 +1,6 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.7.21",
+  "version": "0.7.22",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
@@ -8,7 +8,8 @@
     "./types": "./types.ts",
     "./incloud": "./cli/incloud.ts",
     "./models": "./src/types/models.ts",
-    "./pdf": "./src/pdf/mod.ts"
+    "./pdf": "./src/pdf/mod.ts",
+    "./inLog": "./src/in-log/in-log.ts"
   },
 
   "publish": {
