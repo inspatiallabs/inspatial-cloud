@@ -442,7 +442,40 @@ export class Entry<
             field: registryField.targetValueField,
           };
         }
-
+        if (this._systemGlobal) {
+          // if this is a cloud_global entryType, check if the target is account-scoped, and batch update per-account
+          const { systemGlobal, name } = this._orm.getEntryType(
+            registryField.targetEntryType as EntryName,
+          );
+          if (!systemGlobal) {
+            const sysOrm = this._orm.withUser(this._orm.systemGobalUser);
+            const { rows: accounts, rowCount } = await sysOrm.getEntryList(
+              "account",
+              {
+                columns: ["id"],
+                limit: 0,
+              },
+            );
+            // this._inCloud.inLog.warn(
+            //   `${name} is not global, batch update of ${fieldKey} from ${this._name} for ${rowCount} accounts`,
+            //   { compact: true },
+            // );
+            for (const { id } of accounts) {
+              const orm = this._orm.withAccount(id);
+              await orm.batchUpdateField(
+                registryField.targetEntryType,
+                field,
+                this._modifiedValues.get(fieldKey)!.to,
+                [{
+                  field: registryField.targetIdField,
+                  op: "=",
+                  value: this["$id" as keyof typeof this] as string,
+                }],
+              );
+            }
+            continue;
+          }
+        }
         await this._orm.batchUpdateField(
           registryField.targetEntryType,
           field,
