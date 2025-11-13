@@ -54,6 +54,6 @@ export class ObjectTable {
       const data = row.generateTableEntry();
       await file.write(data);
     }
-    return currentOffset;
+    return currentOffset + 1;
   }
 }
