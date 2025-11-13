@@ -297,7 +297,7 @@ export class RunManager {
     }
     return totalCount;
   }
-  async spawnInit() {
+  async spawnInit(): Promise<true | never> {
     const proc = this.spawnProcess("init");
     const status = await proc.status;
     if (!status.success) {

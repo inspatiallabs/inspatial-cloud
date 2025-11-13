@@ -1,5 +1,7 @@
 import MimeTypes from "~/files/mime-types/mime-types.ts";
 import { requestHandler } from "~/serve/request-handler.ts";
+export { InCloudRunner } from "~/runner/in-cloud-runner.ts";
+export { RunManager } from "#cli/run-manager.ts";
 export { StaticFileHandler } from "~/static/staticFileHandler.ts";
 export { PostgresPool } from "~/orm/db/postgres/pgPool.ts";
 export { InCloud } from "~/in-cloud.ts";

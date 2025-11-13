@@ -13,7 +13,7 @@ import { CloudExtension } from "~/extension/cloud-extension.ts";
 import { isPgError } from "../orm/db/postgres/pgError.ts";
 import { PGErrorCode } from "../orm/db/postgres/maps/errorMap.ts";
 
-class InCloudRunner {
+export class InCloudRunner {
   #mode?: CloudRunnerMode;
   rootPath: string;
   #initialized: boolean = false;
