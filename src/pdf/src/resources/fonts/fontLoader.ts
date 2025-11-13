@@ -37,6 +37,7 @@ export async function loadFont(filePath: string) {
     lastChar: 127,
     widths: [] as number[],
     encoding: "/WinAnsiEncoding",
+    // encoding: "/MacRomanEncoding",
   };
   const fontDesc = {
     fontName: fontDict.baseFont,

@@ -90,7 +90,7 @@ export class Font {
     descObj.set("FontName", `/${this.fontName}`);
     descObj.set("FontFamily", `/${fontDesc.fontFamily}`);
     descObj.set("Flags", fontDesc.flags);
-    descObj.setArray("FontBBox", fontDesc.fontBBox);
+    // descObj.setArray("FontBBox", fontDesc.fontBBox);
     descObj.set("ItalicAngle", fontDesc.italicAngle);
     descObj.set("Ascent", fontDesc.ascent);
     descObj.set("Descent", fontDesc.descent);
@@ -113,8 +113,7 @@ export class Font {
   #setupFileObject() {
     const fontData = this.data;
     const fontFile = this.fileObject;
-    fontFile.set("Length1", fontData.length);
-    /*
+    fontFile.set("Length1", fontData.length + 1);
 
     const bytesToHex = (bytes: Uint8Array) => {
       return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join(
@@ -122,12 +121,12 @@ export class Font {
       );
     };
     const hexData = bytesToHex(fontData);
-    const hexBytes = new TextEncoder().encode(hexData + ">");
+    const hexBytes = new TextEncoder().encode(hexData);
     fontFile.setArray("Filter", ["/ASCIIHexDecode"]);
-    fontFile.set("Length", hexData.length + 1); // +1 for the '>' at the end of ASCIIHexDecode
-    */
-    const hexBytes = fontData;
-    fontFile.set("Length", hexBytes.length);
+    fontFile.set("Length", hexData.length); // +1 for the '>' at the end of ASCIIHexDecode
+
+    // const hexBytes = fontData;
+    // fontFile.set("Length", hexBytes.length);
     this.fileObject.setCustomByteGenerator(() => {
       const encoder = new TextEncoder();
       const content = fontFile.generate();
