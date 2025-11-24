@@ -189,11 +189,15 @@ export class BaseClass<N extends string = string> {
         const def = this._getFieldDef<"ConnectionField">(
           field.fetchField.connectionField,
         );
-        const value = await this._db.getValue(
-          `entry_${def.entryType}`,
-          this._data.get(def.key),
-          field.fetchField.fetchField,
-        );
+        const id = this._data.get(def.key);
+        let value = field.defaultValue;
+        if (id) {
+          value = await this._db.getValue(
+            `entry_${def.entryType}`,
+            id,
+            field.fetchField.fetchField,
+          );
+        }
         this[`$${field.key}` as keyof typeof this] = value;
       }
     }
