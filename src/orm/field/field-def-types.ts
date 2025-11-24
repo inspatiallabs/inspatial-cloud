@@ -5,7 +5,7 @@ import type {
 } from "~/files/mime-types/file-types.ts";
 import type { InFilter } from "../db/db-types.ts";
 import type { EntryName } from "#types/models.ts";
-
+import type { CountryCode } from "~/countries/country-code.ts";
 export type InField<T extends InFieldType = InFieldType> = InFieldMap[T];
 
 export type InFieldMap = {
@@ -203,6 +203,7 @@ export interface JSONField extends BaseField {
 export interface PhoneField extends BaseField {
   type: "PhoneField";
   defaultValue?: InValue<"PhoneField">;
+  country?: CountryCode;
 }
 
 export interface ConnectionField extends BaseField {
