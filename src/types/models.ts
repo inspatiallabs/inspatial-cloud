@@ -513,6 +513,16 @@ type AccountFields = {
      */
     user: string;
     /**
+     * **Email** (EmailField)
+     * @type {string}
+     */
+    email?: string | null;
+    /**
+     * **Profile Picture** (DataField)
+     * @type {string}
+     */
+    profilePicture?: string | null;
+    /**
      * **Role** (ConnectionField)
      *
      * **EntryType** `userRole`
@@ -635,6 +645,16 @@ export interface Account extends EntryBase<"account", AccountFields> {
      * @required true
      */
     user: string;
+    /**
+     * **Email** (EmailField)
+     * @type {string}
+     */
+    email?: string | null;
+    /**
+     * **Profile Picture** (DataField)
+     * @type {string}
+     */
+    profilePicture?: string | null;
     /**
      * **Role** (ConnectionField)
      *

@@ -84,6 +84,22 @@ account.addChild("users", {
     entryType: "user",
     required: true,
   }, {
+    key: "email",
+    type: "EmailField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "user",
+      fetchField: "email",
+    },
+  }, {
+    key: "profilePicture",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "user",
+      fetchField: "profilePicture",
+    },
+  }, {
     key: "role",
     label: "Role",
     type: "ConnectionField",
