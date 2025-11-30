@@ -23,6 +23,9 @@ const login = defineAPIAction("login", {
     if (!isValid) {
       raiseServerException(401, "unauthorized");
     }
+    if (!user.$enabled) {
+      raiseServerException(401, "User account is disabled");
+    }
     const authHandler = inCloud.auth;
     return await authHandler.createUserSession(user, inRequest, inResponse);
   },

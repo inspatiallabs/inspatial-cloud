@@ -66,3 +66,32 @@ export const userEntry = defineEntry("user", {
     }],
   },
 });
+userEntry.addAction("enable", {
+  async action({ user }) {
+    user.$enabled = true;
+    await user.save();
+  },
+});
+userEntry.addAction("disable", {
+  async action({ inCloud, orm, user }) {
+    const { rows } = await orm.systemDb.getRows("entryUserSession", {
+      columns: ["id"],
+      filter: [{
+        field: "user",
+        op: "=",
+        value: user.id,
+      }],
+      limit: 0,
+    });
+    for (const { id } of rows) {
+      inCloud.inCache.deleteValue("userSession", id);
+    }
+    await orm.systemDb.deleteRows("entryUserSession", [{
+      field: "user",
+      op: "=",
+      value: user.id,
+    }]);
+    user.$enabled = false;
+    await user.save();
+  },
+});

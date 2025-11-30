@@ -33,7 +33,7 @@ export const userFields = [{
     width: 500,
     height: 500,
   },
-  allowedImageTypes: ["png", "jpeg", "svg+xml", "png"],
+  allowedImageTypes: ["png", "jpeg", "svg", "png"],
   description: "The user's profile picture",
 }, {
   key: "password",

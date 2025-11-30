@@ -284,6 +284,12 @@ type UserActionMap = {
   findAccounts: {
     return: Promise<unknown>;
   };
+  enable: {
+    return: Promise<unknown>;
+  };
+  disable: {
+    return: Promise<unknown>;
+  };
 };
 type UserParamsActionMap = {
   setPassword: {
