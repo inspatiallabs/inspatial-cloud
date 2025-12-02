@@ -170,6 +170,7 @@ async function makeSessiondata(
     accountName: string;
     profilePicture?: string;
     role: string;
+    systemRole?: string;
   }>;
   // Pick the first account as the default account
   const systemAdmin = !!user.$systemAdmin;
@@ -184,12 +185,12 @@ async function makeSessiondata(
     profilePicture: user.$profilePicture || undefined,
     accounts,
     accountId: "",
-    role: "",
+    role: user.$systemRole || "",
   };
   if (accounts.length > 0) {
     const { accountId, role } = accounts[0];
     sessionData.accountId = accountId;
-    sessionData.role = role;
+    sessionData.role = sessionData.role || role;
   }
   if (user.$systemAdmin) {
     sessionData.role = "systemAdmin";

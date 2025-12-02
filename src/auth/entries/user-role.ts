@@ -6,8 +6,9 @@ import type { ListOptions } from "../../orm/db/db-types.ts";
 import type { EntryName } from "#types/models.ts";
 import type { EntryPermission } from "../../orm/roles/entry-permissions.ts";
 import type { SettingsPermission } from "../../orm/roles/settings-permissions.ts";
+import { defineEntry } from "../../orm/mod.ts";
 
-export const userRole = new EntryType("userRole", {
+export const userRole = defineEntry("userRole", {
   titleField: "roleName",
   systemGlobal: true,
   idMode: {

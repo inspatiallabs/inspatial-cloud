@@ -50,6 +50,10 @@ export interface FetchOptions {
    * The field in the fetched entry to get the value from.
    */
   fetchField: string;
+  /**
+   * Only set this value if the field we're fetching from has a value. a.k.a don't clea this field if there's no value in the field we're fetching from
+   */
+  onlyWhenValue?: boolean;
   global?: boolean;
 }
 type DependsOn<FK extends PropertyKey = PropertyKey> =

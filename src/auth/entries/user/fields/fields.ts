@@ -53,19 +53,27 @@ export const userFields = [{
   label: "System Administrator",
   type: "BooleanField",
   readOnly: false,
+  required: true,
+  defaultValue: false,
   description:
     "Is the user a system administrator? (admin users have access to all parts of the system)",
 }, {
   key: "adminPortalAccess",
   label: "Admin Portal Access",
   type: "BooleanField",
+  required: true,
   description: "Does the user have access to the admin portal?",
   defaultValue: false,
+}, {
+  key: "systemRole",
+  type: "ConnectionField",
+  entryType: "userRole",
 }, {
   key: "enabled",
   label: "Enabled",
   type: "BooleanField",
   readOnly: false,
+  required: true,
   description: "Is the user account enabled? Disabled accounts cannot log in.",
   default: true,
 }, {

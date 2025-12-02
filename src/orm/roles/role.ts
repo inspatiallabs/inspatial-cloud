@@ -258,6 +258,7 @@ export class Role {
 export interface RoleConfig {
   roleName: string;
   extendsRole?: string;
+  systemRole?: boolean;
   label?: string;
   description?: string;
   entryTypes?: Record<string, EntryPermission>;
@@ -315,6 +316,8 @@ export class RoleManager {
     if (entryType.config.extension?.key !== "core") {
       const accountAdmin = this.getRole("accountAdmin");
       accountAdmin.entryPermissions.set(entryType.name, permission);
+      const accountManager = this.getRole("accountManager");
+      accountManager.entryPermissions.set(entryType.name, permission);
     }
 
     this.#rootEntryTypes.set(entryType.name, entryType);
@@ -352,6 +355,8 @@ export class RoleManager {
     if (settingsType.config.extension?.key !== "core") {
       const accountAdmin = this.getRole("accountAdmin");
       accountAdmin.settingsPermissions.set(settingsType.name, permission);
+      const accountManager = this.getRole("accountManager");
+      accountManager.settingsPermissions.set(settingsType.name, permission);
     }
     this.#rootSettingsTypes.set(settingsType.name, settingsType);
   }

@@ -454,6 +454,7 @@ export class InCloud {
     this.auth.allowPath(staticFilesHandler.match);
     const allowAll = this.getExtensionConfigValue("core", "authAllowAll");
     const adminRole = this.roles.getRole("systemAdmin");
+    const accountManagerRole = this.roles.getRole("accountManager");
     const coreExtension = this.extensionManager.extensions.get("core");
     const basicUserConfig = coreExtension?.roles.find((r) =>
       r.roleName === "basicUser"
@@ -483,6 +484,7 @@ export class InCloud {
       adminRole.apiGroups.set(group.groupName, actionsSet);
       if (group.extension !== "core") {
         accountAdminConfig.apiGroups![group.groupName] = true;
+        accountManagerRole.apiGroups.set(group.groupName, actionsSet);
       }
     }
     this.roles.addRole(accountAdminConfig);

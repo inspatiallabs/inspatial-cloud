@@ -198,6 +198,11 @@ export class BaseClass<N extends string = string> {
             field.fetchField.fetchField,
           );
         }
+        if (
+          field.fetchField.onlyWhenValue && [undefined, null].includes(value)
+        ) {
+          continue;
+        }
         this[`$${field.key}` as keyof typeof this] = value;
       }
     }

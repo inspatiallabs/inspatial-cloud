@@ -53,18 +53,28 @@ type UserFields = {
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
+   * @required true
    */
   systemAdmin: boolean;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
+   * @required true
    */
   adminPortalAccess: boolean;
+  /**
+   * **System Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @type {string}
+   */
+  systemRole?: string | null;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
+   * @required true
    */
   enabled: boolean;
   /**
@@ -133,6 +143,11 @@ type UserFields = {
    * @type {string}
    */
   profilePicture__title?: string | null;
+  /**
+   * **System Role Title** (DataField)
+   * @type {string}
+   */
+  systemRole__title?: string | null;
 };
 export interface User extends EntryBase<"user", UserFields> {
   _name: "user";
@@ -186,18 +201,28 @@ export interface User extends EntryBase<"user", UserFields> {
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
+   * @required true
    */
   $systemAdmin: boolean;
   /**
    * **Admin Portal Access** (BooleanField)
    * @description Does the user have access to the admin portal?
    * @type {boolean}
+   * @required true
    */
   $adminPortalAccess: boolean;
+  /**
+   * **System Role** (ConnectionField)
+   *
+   * **EntryType** `userRole`
+   * @type {string}
+   */
+  $systemRole?: string | null;
   /**
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
+   * @required true
    */
   $enabled: boolean;
   /**
@@ -266,6 +291,11 @@ export interface User extends EntryBase<"user", UserFields> {
    * @type {string}
    */
   $profilePicture__title?: string | null;
+  /**
+   * **System Role Title** (DataField)
+   * @type {string}
+   */
+  $systemRole__title?: string | null;
   runAction<N extends keyof UserActionMap>(
     actionName: N,
   ): UserActionMap[N]["return"];
@@ -541,6 +571,11 @@ type AccountFields = {
      */
     isOwner: boolean;
     /**
+     * **System Admin** (BooleanField)
+     * @type {boolean}
+     */
+    systemAdmin: boolean;
+    /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)
      * @type {string}
@@ -673,6 +708,11 @@ export interface Account extends EntryBase<"account", AccountFields> {
      * @type {boolean}
      */
     isOwner: boolean;
+    /**
+     * **System Admin** (BooleanField)
+     * @type {boolean}
+     */
+    systemAdmin: boolean;
     /**
      * **User Title** (DataField)
      * @description The user's full name (automatically generated)

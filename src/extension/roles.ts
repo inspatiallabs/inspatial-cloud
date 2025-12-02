@@ -1,0 +1,286 @@
+import type { RoleConfig } from "../orm/roles/role.ts";
+
+export const accountManagerRole: RoleConfig = {
+  roleName: "accountManager",
+  label: "Account Manager",
+  description: "Account Manager for the system",
+  systemRole: true,
+  apiGroups: {
+    auth: [
+      "authCheck",
+      "completeOnboarding",
+      "getAccount",
+      "googleAuthCallback",
+      "googleTokenLogin",
+      "login",
+      "logout",
+      "resetPassword",
+      "setNewPassword",
+      "signInWithGoogle",
+      "signupWithGoogle",
+      "updateAccount",
+    ],
+    api: true,
+    entry: true,
+    orm: ["entryTypes", "settingsTypes"],
+    settings: true,
+    tags: true,
+    files: true,
+  },
+  entryTypes: {
+    cloudFile: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: true,
+    },
+    globalCloudFile: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: false,
+    },
+    onboardingStep: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    emailTemplate: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    account: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: false,
+      actions: {
+        include: ["addUser"],
+      },
+    },
+    userRole: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    entryMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    fieldMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    actionMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    extensionMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    settingsMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    user: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: true,
+      fields: {
+        systemAdmin: {
+          view: true,
+          modify: false,
+        },
+        systemRole: {
+          view: true,
+          modify: true,
+        },
+        adminPortalAccess: {
+          view: true,
+          modify: false,
+        },
+        enabled: {
+          view: true,
+          modify: true,
+        },
+        firstName: {
+          modify: true,
+          view: true,
+        },
+        lastName: {
+          modify: true,
+          view: true,
+        },
+      },
+
+      actions: {
+        include: [
+          "findAccounts",
+          "generateApiToken",
+          "generateResetToken",
+          "setPassword",
+          "validatePassword",
+        ],
+      },
+    },
+  },
+};
+
+export const basicUserRole: RoleConfig = {
+  roleName: "basicUser",
+  label: "Basic User",
+  description: "The default role assigned to a user",
+  apiGroups: {
+    auth: [
+      "authCheck",
+      "completeOnboarding",
+      "getAccount",
+      "googleAuthCallback",
+      "googleTokenLogin",
+      "login",
+      "logout",
+      "resetPassword",
+      "setNewPassword",
+      "signInWithGoogle",
+      "signupWithGoogle",
+      "updateAccount",
+    ],
+    api: true,
+    entry: true,
+    orm: ["entryTypes", "settingsTypes"],
+    settings: true,
+    tags: true,
+    files: true,
+  },
+  entryTypes: {
+    cloudFile: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: true,
+    },
+    globalCloudFile: {
+      view: true,
+      modify: true,
+      create: true,
+      delete: false,
+    },
+    onboardingStep: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    emailTemplate: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    account: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+      userScope: "owner",
+      actions: {
+        include: ["addUser"],
+      },
+    },
+    userRole: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    entryMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    fieldMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    actionMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    extensionMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    settingsMeta: {
+      view: true,
+      modify: false,
+      create: false,
+      delete: false,
+    },
+    user: {
+      view: true,
+      modify: true,
+      create: false,
+      delete: false,
+      userScope: "id",
+      fields: {
+        systemAdmin: {
+          view: true,
+          modify: false,
+        },
+        systemRole: {
+          view: true,
+          modify: true,
+        },
+        adminPortalAccess: {
+          view: false,
+          modify: false,
+        },
+        enabled: {
+          view: false,
+          modify: false,
+        },
+        firstName: {
+          modify: true,
+          view: true,
+        },
+        lastName: {
+          modify: true,
+          view: true,
+        },
+      },
+
+      actions: {
+        include: [
+          "findAccounts",
+          "generateApiToken",
+          "generateResetToken",
+          "setPassword",
+          "validatePassword",
+        ],
+      },
+    },
+  },
+};

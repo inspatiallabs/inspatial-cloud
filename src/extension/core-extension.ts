@@ -58,6 +58,7 @@ import { apiGroupPermission } from "../auth/entries/permission/api-permission.ts
 import { settingsMeta } from "../build/settingsMeta.ts";
 import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
 import { dataImport } from "../data-import/data-import.ts";
+import { accountManagerRole, basicUserRole } from "./roles.ts";
 const version = "$CLOUD_VERSION";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -129,145 +130,7 @@ export const coreExtension = new CloudExtension("core", {
       await initAdminAccount(orm);
     },
   },
-  roles: [{
-    roleName: "basicUser",
-    label: "Basic User",
-    description: "The default role assigned to a user",
-
-    apiGroups: {
-      auth: [
-        "authCheck",
-        "completeOnboarding",
-        "getAccount",
-        "googleAuthCallback",
-        "googleTokenLogin",
-        "login",
-        "logout",
-        "resetPassword",
-        "setNewPassword",
-        "signInWithGoogle",
-        "signupWithGoogle",
-        "updateAccount",
-      ],
-      api: true,
-      entry: true,
-      orm: ["entryTypes", "settingsTypes"],
-      settings: true,
-      tags: true,
-      files: true,
-    },
-    entryTypes: {
-      cloudFile: {
-        view: true,
-        modify: true,
-        create: true,
-        delete: true,
-      },
-      globalCloudFile: {
-        view: true,
-        modify: true,
-        create: true,
-        delete: false,
-      },
-      onboardingStep: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      emailTemplate: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      account: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-        userScope: "owner",
-        actions: {
-          include: ["addUser"],
-        },
-      },
-      userRole: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      entryMeta: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      fieldMeta: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      actionMeta: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      extensionMeta: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      settingsMeta: {
-        view: true,
-        modify: false,
-        create: false,
-        delete: false,
-      },
-      user: {
-        view: true,
-        modify: true,
-        create: false,
-        delete: false,
-        userScope: "id",
-        fields: {
-          systemAdmin: {
-            view: false,
-            modify: false,
-          },
-          adminPortalAccess: {
-            view: false,
-            modify: false,
-          },
-          enabled: {
-            view: false,
-            modify: false,
-          },
-          firstName: {
-            modify: true,
-            view: true,
-          },
-          lastName: {
-            modify: true,
-            view: true,
-          },
-        },
-
-        actions: {
-          include: [
-            "findAccounts",
-            "generateApiToken",
-            "generateResetToken",
-            "setPassword",
-            "validatePassword",
-          ],
-        },
-      },
-    },
-  }],
+  roles: [basicUserRole, accountManagerRole],
   exceptionHandlers: [{
     name: "orm",
     handler(error) {

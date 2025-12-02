@@ -280,6 +280,12 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
           child._data.get(def.key),
           field.fetchField.fetchField,
         );
+        if (
+          field.fetchField.onlyWhenValue && [undefined, null].includes(value)
+        ) {
+          continue;
+        }
+
         child[`$${field.key}`] = value;
       }
     }

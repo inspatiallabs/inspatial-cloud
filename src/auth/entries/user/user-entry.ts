@@ -6,11 +6,17 @@ import { setPassword } from "./actions/set-password.ts";
 import { validatePassword } from "./actions/validate-password.ts";
 import { generateApiToken } from "./actions/generate-api-token.ts";
 import { generateResetToken } from "./actions/generate-reset-token.ts";
+import { raiseORMException } from "../../../orm/mod.ts";
 
 export const userEntry = defineEntry("user", {
   titleField: "fullName",
   systemGlobal: true,
-  defaultListFields: ["firstName", "lastName", "email", "systemAdmin"],
+  defaultListFields: [
+    "firstName",
+    "lastName",
+    "email",
+    "systemAdmin",
+  ],
   description: "A user of the system",
   searchFields: ["email"],
   imageField: "profilePicture",
@@ -66,6 +72,24 @@ export const userEntry = defineEntry("user", {
     }],
   },
 });
+userEntry.addHook("beforeUpdate", {
+  name: "portalAccessForManager",
+  handler({ user }) {
+    if (user.$systemRole === "accountManager") {
+      user.$adminPortalAccess = true;
+    }
+  },
+});
+userEntry.addHook("validate", {
+  name: "adminChangesAdmin",
+  handler({ user }) {
+    if (user.$systemAdmin && user._user?.role !== "systemAdmin") {
+      raiseORMException(
+        `User ${user.$fullName} can only be modified by a System Administrator`,
+      );
+    }
+  },
+});
 userEntry.addAction("enable", {
   async action({ user }) {
     user.$enabled = true;
@@ -75,7 +99,7 @@ userEntry.addAction("enable", {
 userEntry.addAction("disable", {
   async action({ inCloud, orm, user }) {
     const { rows } = await orm.systemDb.getRows("entryUserSession", {
-      columns: ["id"],
+      columns: ["id", "sessionId"],
       filter: [{
         field: "user",
         op: "=",
@@ -83,8 +107,8 @@ userEntry.addAction("disable", {
       }],
       limit: 0,
     });
-    for (const { id } of rows) {
-      inCloud.inCache.deleteValue("userSession", id);
+    for (const { sessionId } of rows) {
+      inCloud.inCache.deleteValue("userSession", sessionId);
     }
     await orm.systemDb.deleteRows("entryUserSession", [{
       field: "user",

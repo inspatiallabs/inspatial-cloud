@@ -104,11 +104,24 @@ account.addChild("users", {
     label: "Role",
     type: "ConnectionField",
     entryType: "userRole",
+    fetchField: {
+      connectionField: "user",
+      fetchField: "systemRole",
+      onlyWhenValue: true,
+    },
   }, {
     key: "isOwner",
     label: "Is Owner",
     type: "BooleanField",
     defaultValue: false,
+  }, {
+    key: "systemAdmin",
+    type: "BooleanField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "user",
+      fetchField: "systemAdmin",
+    },
   }],
   description: "Users associated with this account",
 });
