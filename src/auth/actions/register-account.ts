@@ -35,7 +35,7 @@ export const registerAccount = defineAPIAction("registerAccount", {
     await user.runAction("setPassword", { password });
     await orm.createEntry("account", {
       name: `${firstName} ${lastName}'s Account`,
-      users: [{ user: user.$id, isOwner: true }],
+      users: [{ user: user.$id, isOwner: true, systemAdmin: false }],
     });
     return await inCloud.auth.createUserSession(user, inRequest, inResponse);
   },

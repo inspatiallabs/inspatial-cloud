@@ -78,6 +78,7 @@ export async function handleGoogleSignup(args: {
       user: user.$id,
       isOwner: true,
       role: "accountOwner",
+      systemAdmin: false,
     }],
   });
   await authHandler.createUserSession(

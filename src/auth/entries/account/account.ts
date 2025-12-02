@@ -241,6 +241,7 @@ account.addAction("addUser", {
       user: user.$id,
       isOwner: false,
       role: role,
+      systemAdmin: false,
     });
     await account.save();
   },
