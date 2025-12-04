@@ -58,7 +58,7 @@ export const accountManagerRole: RoleConfig = {
       create: true,
       delete: false,
       actions: {
-        include: ["addUser"],
+        include: ["addUser", "initialize", "queueInitialize"],
       },
     },
     userRole: {
