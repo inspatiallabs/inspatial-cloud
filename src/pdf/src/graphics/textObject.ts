@@ -9,6 +9,7 @@ import type {
 import type { Color } from "./graphics.d.ts";
 import { parseColor } from "./utils.ts";
 const widths = [
+  1000,
   278,
   355,
   556,
@@ -129,6 +130,18 @@ export class TextObject extends ObjectBase {
   }
   text(text: string): typeof this {
     this.#text = text;
+    let width = 0;
+    if (text.length === 0) {
+      this.#textWidth = 0;
+      return this;
+    }
+
+    for (const char of text) {
+      const charCode = char.charCodeAt(0);
+      const charWidth = widths[charCode - 32] || 1000;
+      width += charWidth;
+    }
+    this.#textWidth = width / 1000 * this.#fontSize;
     return this;
   }
 
@@ -184,7 +197,7 @@ export class TextObject extends ObjectBase {
     //   throw new Error("Font not found in registry");
     // }
 
-    const fontName = "F1";
+    const fontName = this.#fontWeight === "bold" ? "F2" : "F1";
     // const lineHeight = font.maxHeight / 1000 * this.#fontSize / 2;
     const lineHeight = 1097 / 1000 * this.#fontSize / 2;
     const getStringWidth = (textLine: string) => {
@@ -192,7 +205,7 @@ export class TextObject extends ObjectBase {
       if (textLine.length === 0) return 0;
       for (const char of textLine) {
         const charCode = char.charCodeAt(0);
-        const charWidth = widths[charCode - 33];
+        const charWidth = widths[charCode - 32];
         width += charWidth;
       }
       return width / 1000 * this.#fontSize;

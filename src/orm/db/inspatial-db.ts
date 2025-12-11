@@ -169,16 +169,16 @@ export class InSpatialDB {
     }
     const result = await this._query(query);
     const columns = result.columns.map((column) => column.camelName);
-    if (this.debugMode) {
-      this.inLog.debug({
-        rowCount: result.rowCount,
-        columns,
-        rows: result.rows.slice(0, 2),
-      }, {
-        compact: true,
-        subject: `DBR [${qid}]: `,
-      });
-    }
+    // if (this.debugMode) {
+    //   this.inLog.debug({
+    //     rowCount: result.rowCount,
+    //     columns,
+    //     rows: result.rows.slice(0, 2),
+    //   }, {
+    //     compact: true,
+    //     subject: `DBR [${qid}]: `,
+    //   });
+    // }
     return {
       rowCount: result.rowCount,
       rows: result.rows,

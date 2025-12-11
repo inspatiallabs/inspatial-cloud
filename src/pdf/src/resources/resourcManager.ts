@@ -22,13 +22,8 @@ export class ResourceManager {
     this.#addDefaultFont();
   }
   #addDefaultFont() {
-    const helvetica = this.#addObject();
-    helvetica.set("Type", "/Font");
-    helvetica.set("Subtype", "/Type1");
-    helvetica.set("BaseFont", "/Helvetica");
-    helvetica.set("FirstChar", 33);
-    helvetica.set("LastChar", 126);
-    helvetica.setArray("Widths", [
+    const widths = [
+      250,
       278,
       355,
       556,
@@ -123,7 +118,14 @@ export class ResourceManager {
       260,
       334,
       584,
-    ]);
+    ];
+    const helvetica = this.#addObject();
+    helvetica.set("Type", "/Font");
+    helvetica.set("Subtype", "/Type1");
+    helvetica.set("BaseFont", "/Helvetica");
+    helvetica.set("FirstChar", 32);
+    helvetica.set("LastChar", 126);
+    helvetica.setArray("Widths", widths);
     const desc = this.#addObject();
     desc.set("Type", "/FontDescriptor");
     desc.set("FontName", "/Helvetica");
@@ -138,7 +140,30 @@ export class ResourceManager {
     helvetica.addReference("FontDescriptor", desc.objNumber);
 
     this.fontRegistry.fontDict.addReference("F1", helvetica.objNumber);
+
+    const helveticaBold = this.#addObject();
+    helveticaBold.set("Type", "/Font");
+    helveticaBold.set("Subtype", "/Type1");
+    helveticaBold.set("BaseFont", "/Helvetica-Bold");
+    helveticaBold.set("FirstChar", 32);
+    helveticaBold.set("LastChar", 126);
+    helveticaBold.setArray("Widths", widths);
+    const descBold = this.#addObject();
+    descBold.set("Type", "/FontDescriptor");
+    descBold.set("FontName", "/Helvetica-Bold");
+    descBold.set("Flags", 32);
+    descBold.setArray("FontBBox", [-166, -225, 1000, 931]);
+    descBold.set("ItalicAngle", 0);
+    descBold.set("Ascent", 718);
+    descBold.set("Descent", -207);
+    descBold.set("CapHeight", 718);
+    descBold.set("StemV", 88);
+    descBold.set("MissingWidth", 0);
+    helveticaBold.addReference("FontDescriptor", descBold.objNumber);
+
+    this.fontRegistry.fontDict.addReference("F2", helveticaBold.objNumber);
   }
+
   #addObject(objectName?: string) {
     return this.#pdf.objects.addObject(objectName);
   }
