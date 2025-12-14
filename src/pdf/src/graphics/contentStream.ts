@@ -2,7 +2,7 @@ import type { DocObject } from "../objects/docObject.ts";
 import type { ObjectBase } from "../objects/objectBase.ts";
 import type { Page } from "../pages/page.ts";
 import type { FontDefaults } from "../resources/fonts/fontRegistry.ts";
-import type { CellStyle, Color, Position } from "./graphics.d.ts";
+import type { CellStyle, Color, Position } from "./graphics.ts";
 import { PathObject } from "./pathObject.ts";
 import { TextObject } from "./textObject.ts";
 
