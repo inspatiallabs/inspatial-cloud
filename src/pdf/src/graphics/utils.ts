@@ -1,4 +1,4 @@
-import type { HexColor, RGBColor } from "./graphics.d.ts";
+import type { HexColor, RGBColor } from "./graphics.ts";
 
 export function parseColor(
   color: HexColor | RGBColor,

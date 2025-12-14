@@ -6,7 +6,7 @@ import type {
   TextAlign,
   VerticalAlign,
 } from "../resources/fonts/fontRegistry.ts";
-import type { Color } from "./graphics.d.ts";
+import type { Color } from "./graphics.ts";
 import { parseColor } from "./utils.ts";
 const widths = [
   1000,

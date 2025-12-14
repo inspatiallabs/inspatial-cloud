@@ -1,5 +1,5 @@
 import { ObjectBase } from "../objects/objectBase.ts";
-import type { Color, Position } from "./graphics.d.ts";
+import type { Color, Position } from "./graphics.ts";
 import { parseColor } from "./utils.ts";
 
 export class PathObject extends ObjectBase {
