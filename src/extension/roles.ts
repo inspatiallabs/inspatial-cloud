@@ -8,6 +8,7 @@ export const accountManagerRole: RoleConfig = {
   apiGroups: {
     auth: [
       "authCheck",
+      "switchAccount",
       "completeOnboarding",
       "getAccount",
       "googleAuthCallback",
