@@ -1,5 +1,6 @@
 import { ObjectBase } from "../objects/objectBase.ts";
 import type { Page } from "../pages/page.ts";
+import type { Font } from "../resources/fonts/font.ts";
 import type {
   FontDefaults,
   FontWeight,
@@ -45,7 +46,7 @@ export class TextObject extends ObjectBase {
       this.#fontSize = fontDefaults.size;
     }
   }
-  getFont() {
+  getFont(): Font | undefined {
     let fontName = this.#fontWeight === "bold" ? "F2" : "F1";
     if (this.#fontFamily && this.#fontFamily !== "Helvetica") {
       const family = this.#fontFamily
