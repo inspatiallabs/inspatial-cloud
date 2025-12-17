@@ -13,7 +13,7 @@ export interface FontDefaults {
 
 export class FontRegistry {
   fontDict: Dictionary;
-  private families: Map<string, {
+  families: Map<string, {
     weights: Map<number, {
       italic: string;
       normal: string;
@@ -66,6 +66,7 @@ export class FontRegistry {
     const weightMap: Record<string, number> = {
       light: 300,
       normal: 400,
+      medium: 500,
       bold: 700,
       extrabold: 800,
     };

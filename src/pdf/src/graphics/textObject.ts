@@ -6,105 +6,10 @@ import type {
   TextAlign,
   VerticalAlign,
 } from "../resources/fonts/fontRegistry.ts";
+import { helveticaWidths } from "../resources/fonts/widths.ts";
 import type { Color } from "./graphics.ts";
 import { parseColor } from "./utils.ts";
-const widths = [
-  250,
-  278,
-  355,
-  556,
-  556,
-  889,
-  667,
-  222,
-  333,
-  333,
-  389,
-  584,
-  278,
-  333,
-  278,
-  278,
-  556,
-  556,
-  556,
-  556,
-  556,
-  556,
-  556,
-  556,
-  556,
-  556,
-  278,
-  278,
-  584,
-  584,
-  584,
-  556,
-  1015,
-  667,
-  667,
-  722,
-  722,
-  667,
-  611,
-  778,
-  722,
-  278,
-  500,
-  667,
-  556,
-  833,
-  722,
-  778,
-  667,
-  778,
-  722,
-  667,
-  611,
-  722,
-  667,
-  944,
-  667,
-  667,
-  611,
-  278,
-  278,
-  278,
-  469,
-  556,
-  222,
-  556,
-  556,
-  500,
-  556,
-  556,
-  278,
-  556,
-  556,
-  222,
-  222,
-  500,
-  222,
-  833,
-  556,
-  556,
-  556,
-  556,
-  333,
-  500,
-  278,
-  556,
-  500,
-  722,
-  500,
-  500,
-  500,
-  334,
-  260,
-  334,
-  584,
-];
+
 export class TextObject extends ObjectBase {
   #x = 0;
   #y = 0;
@@ -117,6 +22,8 @@ export class TextObject extends ObjectBase {
   #color: Color = [0, 0, 0];
   #text = "";
   get textWidth(): number {
+    const font = this.getFont();
+    const widths = font?.widths || helveticaWidths;
     let width = 0;
     const text = this.#text;
     if (text.length === 0) {
@@ -125,7 +32,7 @@ export class TextObject extends ObjectBase {
 
     for (const char of text) {
       const charCode = char.charCodeAt(0);
-      const charWidth = widths[charCode - 32] || 1000;
+      const charWidth = widths.get(charCode) || 0;
       width += charWidth;
     }
     return width / 1000 * this.#fontSize;
@@ -137,6 +44,22 @@ export class TextObject extends ObjectBase {
       this.#fontFamily = fontDefaults.family;
       this.#fontSize = fontDefaults.size;
     }
+  }
+  getFont() {
+    let fontName = this.#fontWeight === "bold" ? "F2" : "F1";
+    if (this.#fontFamily && this.#fontFamily !== "Helvetica") {
+      const family = this.#fontFamily
+        ? this.page.getFontName(this.#fontFamily, {
+          fontWeight: this.#fontWeight,
+          italic: this.#italic,
+        })
+        : undefined;
+      if (family) {
+        fontName = family;
+      }
+    }
+    const font = this.page.resources.fontRegistry.fonts.get(fontName);
+    return font;
   }
   text(text: string): typeof this {
     this.#text = text;
@@ -179,31 +102,23 @@ export class TextObject extends ObjectBase {
     return this;
   }
   generate(): string {
-    // const fontName = this.#fontFamily
-    //   ? this.page.getFontName(this.#fontFamily, {
-    //     fontWeight: this.#fontWeight,
-    //     italic: this.#italic,
-    //   })
-    //   : undefined;
-    // if (!fontName) {
-    //   throw new Error(
-    //     `font ${this.#fontFamily} ${this.#fontWeight} ${this.#italic} not found`,
-    //   );
-    // }
-    // const font = this.page.resources.fontRegistry.fonts.get(fontName);
-    // if (!font) {
-    //   throw new Error("Font not found in registry");
-    // }
+    const font = this.getFont();
 
-    const fontName = this.#fontWeight === "bold" ? "F2" : "F1";
-    // const lineHeight = font.maxHeight / 1000 * this.#fontSize / 2;
-    const lineHeight = 1097 / 1000 * this.#fontSize / 2;
+    let lineHeight = 1097 / 1000 * this.#fontSize / 2;
+    let widths = helveticaWidths;
+    let fontName = this.#fontWeight === "bold" ? "F2" : "F1";
+    if (font) {
+      lineHeight = font.maxHeight / 1000 * this.#fontSize / 2;
+      widths = font.widths;
+      fontName = font.fontName;
+    }
+
     const getStringWidth = (textLine: string) => {
       let width = 0;
       if (textLine.length === 0) return 0;
       for (const char of textLine) {
         const charCode = char.charCodeAt(0);
-        const charWidth = widths[charCode - 32];
+        const charWidth = widths.get(charCode) || 0;
         width += charWidth;
       }
       return width / 1000 * this.#fontSize;
