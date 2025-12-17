@@ -9,7 +9,7 @@ import type {
 import type { Color } from "./graphics.ts";
 import { parseColor } from "./utils.ts";
 const widths = [
-  1000,
+  250,
   278,
   355,
   556,
@@ -116,9 +116,19 @@ export class TextObject extends ObjectBase {
   #fontSize = 12;
   #color: Color = [0, 0, 0];
   #text = "";
-  #textWidth = 0;
   get textWidth(): number {
-    return this.#textWidth;
+    let width = 0;
+    const text = this.#text;
+    if (text.length === 0) {
+      return 0;
+    }
+
+    for (const char of text) {
+      const charCode = char.charCodeAt(0);
+      const charWidth = widths[charCode - 32] || 1000;
+      width += charWidth;
+    }
+    return width / 1000 * this.#fontSize;
   }
 
   constructor(page: Page, fontDefaults?: FontDefaults) {
@@ -130,18 +140,6 @@ export class TextObject extends ObjectBase {
   }
   text(text: string): typeof this {
     this.#text = text;
-    let width = 0;
-    if (text.length === 0) {
-      this.#textWidth = 0;
-      return this;
-    }
-
-    for (const char of text) {
-      const charCode = char.charCodeAt(0);
-      const charWidth = widths[charCode - 32] || 1000;
-      width += charWidth;
-    }
-    this.#textWidth = width / 1000 * this.#fontSize;
     return this;
   }
 
