@@ -47,30 +47,6 @@ export const userEntry = defineEntry("user", {
     generateResetToken,
     findAccounts,
   ],
-
-  hooks: {
-    beforeUpdate: [{
-      name: "setFullName",
-      description: "Set the full name of the user",
-      handler({
-        user,
-      }) {
-        user.$fullName = `${user.$firstName ?? ""} ${user.$lastName ?? ""}`
-          .trim();
-      },
-    }],
-    beforeDelete: [{
-      name: "deleteUserSessions",
-      description: "Delete all user sessions",
-      async handler({ orm, user }) {
-        await orm.systemDb.deleteRows("entryUserSession", [{
-          field: "user",
-          op: "=",
-          value: user.id,
-        }]);
-      },
-    }],
-  },
 });
 userEntry.addHook("beforeUpdate", {
   name: "portalAccessForManager",
@@ -78,6 +54,39 @@ userEntry.addHook("beforeUpdate", {
     if (user.$systemRole === "accountManager") {
       user.$adminPortalAccess = true;
     }
+  },
+});
+userEntry.addHook("beforeUpdate", {
+  name: "setFullName",
+  description: "Set the full name of the user",
+  handler({
+    user,
+  }) {
+    user.$fullName = `${user.$firstName ?? ""} ${user.$lastName ?? ""}`
+      .trim();
+  },
+});
+userEntry.addHook("beforeDelete", {
+  name: "deleteUserSessions",
+  description: "Delete all user sessions",
+  async handler({ orm, user }) {
+    await orm.systemDb.deleteRows("entryUserSession", [{
+      field: "user",
+      op: "=",
+      value: user.id,
+    }]);
+  },
+});
+
+userEntry.addHook("beforeDelete", {
+  name: "removeFromAccounts",
+  description: "Remove the user from all accounts they belong to",
+  async handler({ orm, user }) {
+    await orm.systemDb.deleteRows("childAccountUsers", [{
+      field: "user",
+      op: "=",
+      value: user.id,
+    }]);
   },
 });
 userEntry.addHook("validate", {
@@ -90,6 +99,7 @@ userEntry.addHook("validate", {
     }
   },
 });
+
 userEntry.addAction("enable", {
   async action({ user }) {
     user.$enabled = true;
