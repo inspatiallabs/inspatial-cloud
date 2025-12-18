@@ -103,7 +103,13 @@ export class SettingsType<
       >
     ) {
       for (const hook of hookList) {
-        this.addHook(hookName, hook);
+        const hookMap = this.hooks[hookName];
+        if (hookMap.has(hook.name)) {
+          raiseORMException(
+            `Hook with name ${hook.name} already exists in SettingsType ${this.name} for ${hookName}`,
+          );
+        }
+        hookMap.set(hook.name, hook);
       }
     }
   }
@@ -114,6 +120,15 @@ export class SettingsType<
         `Hook with name ${hook.name} already exists in SettingsType ${this.name} for ${hookName}`,
       );
     }
+    this.sourceConfig.hooks = {
+      ...(this.sourceConfig.hooks || {}),
+      [hookName]: [
+        ...((this.sourceConfig.hooks?.[hookName] as Array<
+          SettingsHookDefinition<S>
+        >) || []),
+        hook,
+      ],
+    };
     hookMap.set(hook.name, hook);
   }
   addAction(action: SettingsActionDefinition<S>) {

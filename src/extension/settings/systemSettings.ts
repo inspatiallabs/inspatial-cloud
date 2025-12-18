@@ -1,6 +1,6 @@
-import { SettingsType } from "~/orm/settings/settings-type.ts";
+import { defineSettings } from "~/orm/mod.ts";
 
-export const systemSettings = new SettingsType(
+export const systemSettings = defineSettings(
   "systemSettings",
   {
     systemGlobal: true,

@@ -168,9 +168,9 @@ export class Settings<S extends SettingsName = SettingsName>
       });
     }
 
-    await this._saveChildren();
-    await this._load();
+    await this._saveChildren().catch((e) => this._handlePGError(e));
     await this.#afterUpdate();
+    await this._load();
   }
 
   #getFieldId(fieldKey: string): string {
