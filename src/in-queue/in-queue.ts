@@ -17,7 +17,12 @@ import { createInLog } from "#inLog";
 import { ImageOps } from "../files/image-ops/image-ops.ts";
 import MimeTypes from "../files/mime-types/mime-types.ts";
 import type { ListOptions } from "../orm/db/db-types.ts";
-import type { CloudFile, EntryMap, GlobalCloudFile } from "#types/models.ts";
+import type {
+  CloudFile,
+  EntryMap,
+  GlobalCloudFile,
+  ScheduledTask,
+} from "#types/models.ts";
 
 export class InQueue extends InCloud {
   clients: Map<string, WebSocket> = new Map();
@@ -504,7 +509,26 @@ export class InQueue extends InCloud {
       this.loadAndRunTasks();
     }, 30000);
   }
-
+  async checkForScheduledTasks() {
+    const { rows } = await this.globalOrm.getEntryList("scheduledTask", {
+      columns: [
+        "id",
+        "frequency",
+        "frequencyCount",
+        "lastRunTime",
+        "scheduleType",
+        "action",
+        "apiGroup",
+      ],
+      filter: [
+        { field: "status", op: "=", value: "idle" },
+      ],
+    });
+    for (const task of rows) {
+      if (shouldRun(task)) {
+      }
+    }
+  }
   async loadAndRunTasks() {
     if (this.isRunning) {
       return;
@@ -561,4 +585,32 @@ export class InQueue extends InCloud {
         break;
     }
   }
+}
+const msMap = {
+  minute: 60000,
+  hour: 3600000,
+  day: 86400000,
+  week: 604800000,
+};
+function shouldRun(task: ScheduledTask["__fields__"]): boolean {
+  let run = false;
+  if (!task.lastRunTime) {
+    return true;
+  }
+  const currentTime = dateUtils.nowTimestamp();
+
+  const diff = currentTime - task.lastRunTime;
+  let waitTime = 0;
+  switch (task.frequency) {
+    case "minute":
+    case "hour":
+    case "day":
+      waitTime = msMap[task.frequency];
+      break;
+    case "week":
+      break;
+    case "month":
+      break;
+  }
+  return run;
 }

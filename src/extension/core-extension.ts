@@ -59,6 +59,7 @@ import { settingsMeta } from "../build/settingsMeta.ts";
 import { settingsPermission } from "../auth/entries/permission/settings-permission.ts";
 import { dataImport } from "../data-import/data-import.ts";
 import { accountManagerRole, basicUserRole } from "./roles.ts";
+import { scheduledTask } from "../in-queue/entry-types/scheduled-task/scheduled-task.ts";
 const version = "$CLOUD_VERSION";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -67,15 +68,11 @@ export const coreExtension = new CloudExtension("core", {
   version,
   ormGlobalHooks: {
     entries: {
-      afterUpdate: [
-        notifyUpdate,
-      ],
+      afterUpdate: [notifyUpdate],
       afterCreate: [notifyCreate],
       afterDelete: [notifyDelete],
     },
-    settings: {
-      afterUpdate: [notifySettings],
-    },
+    settings: { afterUpdate: [notifySettings] },
   },
   apiGroups: [
     authGroup,
@@ -117,12 +114,11 @@ export const coreExtension = new CloudExtension("core", {
     apiAction,
     apiGroupPermission,
     dataImport,
+    scheduledTask,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],
-  requestLifecycle: {
-    setup: [authLifecycle, inLiveLifecycle],
-  },
+  requestLifecycle: { setup: [authLifecycle, inLiveLifecycle] },
   afterGlobalMigrate: {
     name: "initAdminAccount",
     description: "Check for the existence of a system user",
@@ -324,10 +320,7 @@ export const coreExtension = new CloudExtension("core", {
       type: "number",
       default: 11527,
       required: true,
-      dependsOn: {
-        key: "embeddedDb",
-        value: true,
-      },
+      dependsOn: { key: "embeddedDb", value: true },
     },
     ormDebugMode: {
       description:
@@ -341,17 +334,11 @@ export const coreExtension = new CloudExtension("core", {
       type: "string",
       enum: ["tcp", "socket"],
       default: "tcp",
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbSocketPath: {
       type: "string",
-      dependsOn: {
-        key: "dbConnectionType",
-        value: "socket",
-      },
+      dependsOn: { key: "dbConnectionType", value: "socket" },
       description: "Path to the database socket",
       default: "/var/run/postgresql/.s.PGSQL.5432",
     },
@@ -359,52 +346,37 @@ export const coreExtension = new CloudExtension("core", {
       type: "string",
       description: "Name of the database",
       default: "inspatial",
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbHost: {
       type: "string",
       description: "Host of the database",
       default: "localhost",
-      dependsOn: [{
-        key: "dbConnectionType",
-        value: "tcp",
-      }, {
-        key: "embeddedDb",
-        value: false,
-      }],
+      dependsOn: [
+        { key: "dbConnectionType", value: "tcp" },
+        { key: "embeddedDb", value: false },
+      ],
     },
     dbPort: {
       type: "number",
       description: "Port of the database",
       default: 5432,
-      dependsOn: [{
-        key: "dbConnectionType",
-        value: "tcp",
-      }, {
-        key: "embeddedDb",
-        value: false,
-      }],
+      dependsOn: [
+        { key: "dbConnectionType", value: "tcp" },
+        { key: "embeddedDb", value: false },
+      ],
     },
     dbUser: {
       type: "string",
       description: "User of the database",
       default: "postgres",
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbPassword: {
       type: "string",
       description: "Password of the database",
       default: "postgres",
-      dependsOn: [{
-        key: "dbConnectionType",
-        value: "tcp",
-      }, {
+      dependsOn: [{ key: "dbConnectionType", value: "tcp" }, {
         key: "embeddedDb",
         value: false,
       }],
@@ -413,49 +385,33 @@ export const coreExtension = new CloudExtension("core", {
       type: "string",
       description: "Application name for the database connection",
       default: "InSpatial",
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbClientMode: {
       type: "string",
       enum: ["pool", "single"],
       description: "Client mode for the database connection",
       default: "single",
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbPoolSize: {
       type: "number",
       description: "The number of clients in the pool",
       default: 1,
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbMaxPoolSize: {
       type: "number",
       description: "The maximum number of clients in the pool",
       default: 10,
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
     dbIdleTimeout: {
       type: "number",
       description: "The idle timeout for the pool",
       default: 5000,
-      dependsOn: {
-        key: "embeddedDb",
-        value: false,
-      },
+      dependsOn: { key: "embeddedDb", value: false },
     },
-
     authAllowAll: {
       type: "boolean",
       description:

@@ -5411,6 +5411,184 @@ type DataImportActionMap = {
   };
 };
 
+type ScheduledTaskFields = {
+  /**
+   * **Schedule Type** (ChoicesField)
+   * @type {'single' | 'recurring' | 'count'}
+   * @required true
+   */
+  scheduleType: "single" | "recurring" | "count";
+  /**
+   * **Frequency** (ChoicesField)
+   * @type {'minute' | 'hour' | 'day' | 'week' | 'month'}
+   * @required true
+   */
+  frequency: "minute" | "hour" | "day" | "week" | "month";
+  /**
+   * **Week Day** (ChoicesField)
+   * @type {'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'}
+   * @required true
+   */
+  weekDay: "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+  /**
+   * **Hour** (IntField)
+   * @type {number}
+   * @required true
+   */
+  hour: number;
+  /**
+   * **Minute** (IntField)
+   * @type {number}
+   * @required true
+   */
+  minute: number;
+  /**
+   * **Last Run Time** (TimeStampField)
+   * @type {number}
+   */
+  lastRunTime?: number | null;
+  /**
+   * **Api Group** (ConnectionField)
+   *
+   * **EntryType** `apiGroup`
+   * @type {string}
+   */
+  apiGroup?: string | null;
+  /**
+   * **Action** (ConnectionField)
+   *
+   * **EntryType** `apiAction`
+   * @type {string}
+   */
+  action?: string | null;
+  /**
+   * **Status** (ChoicesField)
+   * @type {'idle' | 'running' | 'completed' | 'error'}
+   * @required true
+   */
+  status: "idle" | "running" | "completed" | "error";
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **Api Group Title** (DataField)
+   * @type {string}
+   */
+  apiGroup__title?: string | null;
+  /**
+   * **Action Title** (DataField)
+   * @type {string}
+   */
+  action__title?: string | null;
+};
+export interface ScheduledTask
+  extends EntryBase<"scheduledTask", ScheduledTaskFields> {
+  _name: "scheduledTask";
+  __fields__: ScheduledTaskFields;
+  /**
+   * **Schedule Type** (ChoicesField)
+   * @type {'single' | 'recurring' | 'count'}
+   * @required true
+   */
+  $scheduleType: "single" | "recurring" | "count";
+  /**
+   * **Frequency** (ChoicesField)
+   * @type {'minute' | 'hour' | 'day' | 'week' | 'month'}
+   * @required true
+   */
+  $frequency: "minute" | "hour" | "day" | "week" | "month";
+  /**
+   * **Week Day** (ChoicesField)
+   * @type {'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat'}
+   * @required true
+   */
+  $weekDay: "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+  /**
+   * **Hour** (IntField)
+   * @type {number}
+   * @required true
+   */
+  $hour: number;
+  /**
+   * **Minute** (IntField)
+   * @type {number}
+   * @required true
+   */
+  $minute: number;
+  /**
+   * **Last Run Time** (TimeStampField)
+   * @type {number}
+   */
+  $lastRunTime?: number | null;
+  /**
+   * **Api Group** (ConnectionField)
+   *
+   * **EntryType** `apiGroup`
+   * @type {string}
+   */
+  $apiGroup?: string | null;
+  /**
+   * **Action** (ConnectionField)
+   *
+   * **EntryType** `apiAction`
+   * @type {string}
+   */
+  $action?: string | null;
+  /**
+   * **Status** (ChoicesField)
+   * @type {'idle' | 'running' | 'completed' | 'error'}
+   * @required true
+   */
+  $status: "idle" | "running" | "completed" | "error";
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **Api Group Title** (DataField)
+   * @type {string}
+   */
+  $apiGroup__title?: string | null;
+  /**
+   * **Action Title** (DataField)
+   * @type {string}
+   */
+  $action__title?: string | null;
+}
+
 type SystemSettingsFields = {
   /**
    * **Enable User Signup** (BooleanField)
@@ -5581,6 +5759,7 @@ export interface EntryMap {
   apiAction: ApiAction;
   apiGroupPermission: ApiGroupPermission;
   dataImport: DataImport;
+  scheduledTask: ScheduledTask;
 }
 export interface SettingsMap {
   systemSettings: SystemSettings;

@@ -375,17 +375,15 @@ export const exportEntry = defineAPIAction("export", {
 
     const { columns: exportedColumns, rowCount, rows } = response;
     switch (format) {
-      case "csv":
-        {
-          const csvContent = csvUtils.createCSV(rows);
-          inResponse.setFile({
-            content: csvContent,
-            fileName: `${entryType}-export-${new Date().toISOString()}.csv`,
-            download: true,
-          });
-          return inResponse;
-        }
-        break;
+      case "csv": {
+        const csvContent = csvUtils.createCSV(rows);
+        inResponse.setFile({
+          content: csvContent,
+          fileName: `${entryType}-export-${new Date().toISOString()}.csv`,
+          download: true,
+        });
+        return inResponse;
+      }
       case "json":
         break;
       case "pdf":

@@ -1,0 +1,102 @@
+import { defineEntry } from "~/orm/mod.ts";
+
+export const scheduledTask = defineEntry("scheduledTask", {
+  systemGlobal: true,
+  defaultListFields: [
+    "apiGroup",
+    "action",
+    "scheduleType",
+    "frequency",
+    "status",
+    "lastRunTime",
+  ],
+  fields: [
+    {
+      key: "scheduleType",
+      type: "ChoicesField",
+      choices: [
+        { key: "single", label: "Once" },
+        { key: "recurring", label: "Recurring" },
+        { key: "count", label: "Count" },
+      ],
+      required: true,
+    },
+    {
+      key: "frequency",
+      type: "ChoicesField",
+      choices: [
+        { key: "minute", label: "Minute" },
+        { key: "hour", label: "Hour" },
+        { key: "day", label: "Day" },
+        { key: "week", label: "Week" },
+        { key: "month", label: "Month" },
+      ],
+      required: true,
+      dependsOn: { field: "scheduleType", value: ["recurring", "count"] },
+    },
+    {
+      key: "weekDay",
+      type: "ChoicesField",
+      choices: [
+        { key: "sun", label: "Sunday" },
+        { key: "mon", label: "Monday" },
+        { key: "tue", label: "Tuesday" },
+        { key: "wed", label: "Wednesday" },
+        { key: "thu", label: "Thursday" },
+        { key: "fri", label: "Friday" },
+        { key: "sat", label: "Saturday" },
+      ],
+      required: true,
+      defaultValue: "sun",
+      dependsOn: { field: "frequency", value: "week" },
+    },
+    {
+      key: "hour",
+      type: "IntField",
+      min: 0,
+      max: 23,
+      defaultValue: 0,
+      required: true,
+      dependsOn: { field: "frequency", value: ["day", "week", "month"] },
+    },
+    {
+      key: "minute",
+      type: "IntField",
+      min: 0,
+      defaultValue: 0,
+      required: true,
+      max: 59,
+      dependsOn: {
+        field: "frequency",
+        value: ["hour", "day", "week", "month"],
+      },
+    },
+    {
+      key: "lastRunTime",
+      type: "TimeStampField",
+      readOnly: true,
+      showTime: true,
+    },
+    { key: "apiGroup", type: "ConnectionField", entryType: "apiGroup" },
+    {
+      key: "action",
+      type: "ConnectionField",
+      entryType: "apiAction",
+      dependsOn: "apiGroup",
+      filterBy: { apiGroup: "apiGroup" },
+    },
+    {
+      key: "status",
+      type: "ChoicesField",
+      choices: [
+        { key: "idle", label: "Idle", color: "muted" },
+        { key: "running", label: "Running", color: "warning" },
+        { key: "completed", label: "Completed", color: "success" },
+        { key: "error", label: "Error", color: "error" },
+      ],
+      required: true,
+      readOnly: true,
+      defaultValue: "idle",
+    },
+  ],
+});
