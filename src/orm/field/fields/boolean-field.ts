@@ -33,4 +33,4 @@ export default new ORMFieldConfig("BooleanField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"BooleanField">;

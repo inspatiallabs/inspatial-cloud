@@ -17,4 +17,4 @@ export default new ORMFieldConfig("FileField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"FileField">;

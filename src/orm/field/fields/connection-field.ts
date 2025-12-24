@@ -30,4 +30,4 @@ export default new ORMFieldConfig("ConnectionField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"ConnectionField">;

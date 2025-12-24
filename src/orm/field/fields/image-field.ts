@@ -17,4 +17,4 @@ export default new ORMFieldConfig("ImageField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"ImageField">;
