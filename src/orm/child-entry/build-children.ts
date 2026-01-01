@@ -30,6 +30,7 @@ export function buildChildren(
         override _fields = child.fields;
         override _tableName = child.config.tableName!;
         override _changeableFields = changeableFields;
+        override _idMode = child.config.idMode || "ulid";
         override _titleFields: Map<string, InField> =
           child.connectionTitleFields;
 

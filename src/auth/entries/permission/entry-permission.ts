@@ -5,7 +5,6 @@ import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
 const fieldPermission = new ChildEntryType("fieldPermissions", {
   fields: [{
     key: "field",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "fieldMeta",
@@ -24,7 +23,6 @@ const actionPermission = new ChildEntryType("actionPermissions", {
   label: "Action Permissions",
   fields: [{
     key: "action",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "actionMeta",

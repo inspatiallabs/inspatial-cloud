@@ -2,7 +2,6 @@ import { EntryType } from "@inspatial/cloud";
 
 export const extensionMeta = new EntryType("extensionMeta", {
   label: "Cloud Extension",
-  description: "",
   systemGlobal: true,
   titleField: "label",
   defaultListFields: ["key", "label", "icon", "description", "version"],

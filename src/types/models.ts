@@ -5411,6 +5411,372 @@ type DataImportActionMap = {
   };
 };
 
+type AccountLogFields = {
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  settingsType__title?: string | null;
+};
+export interface AccountLog extends EntryBase<"accountLog", AccountLogFields> {
+  _name: "accountLog";
+  __fields__: AccountLogFields;
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  $user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  $systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  $action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  $changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  $entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  $entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  $modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  $user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  $entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  $settingsType__title?: string | null;
+}
+
+type SystemLogFields = {
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  settingsType__title?: string | null;
+};
+export interface SystemLog extends EntryBase<"systemLog", SystemLogFields> {
+  _name: "systemLog";
+  __fields__: SystemLogFields;
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  $user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  $systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  $action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  $changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  $entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  $entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  $modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  $user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  $entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  $settingsType__title?: string | null;
+}
+
 type SystemSettingsFields = {
   /**
    * **Enable User Signup** (BooleanField)
@@ -5581,6 +5947,8 @@ export interface EntryMap {
   apiAction: ApiAction;
   apiGroupPermission: ApiGroupPermission;
   dataImport: DataImport;
+  accountLog: AccountLog;
+  systemLog: SystemLog;
 }
 export interface SettingsMap {
   systemSettings: SystemSettings;

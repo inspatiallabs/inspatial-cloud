@@ -73,6 +73,12 @@ export class ORMFieldConfig<T extends InFieldType = InFieldType> {
   }
 
   normalize(value: unknown, fieldDef: InFieldMap[T]): InValue<T> {
+    switch (value) {
+      case null:
+      case undefined:
+        value = null;
+        break;
+    }
     return this.#normalize(value, fieldDef);
   }
 

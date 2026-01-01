@@ -1,10 +1,14 @@
-import { EntryType } from "@inspatial/cloud";
-import { ChildEntryType } from "../../../orm/child-entry/child-entry.ts";
+import { defineChildEntry } from "../../../orm/child-entry/child-entry.ts";
 import { raiseORMException } from "../../../orm/orm-exception.ts";
 import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
+import { defineEntry } from "../../../orm/entry/entry-type.ts";
 
-const apiActions = new ChildEntryType("actions", {
+const apiActions = defineChildEntry("actions", {
   label: "API Actions",
+  idMode: {
+    type: "fields",
+    fields: ["parent", "apiAction"],
+  },
   fields: [{
     key: "apiAction",
     label: "Action",
@@ -32,7 +36,7 @@ const syncRoleConfig: EntryHookDefinition<"apiGroupPermission"> = {
     userRole.runAction("generateConfig");
   },
 };
-export const apiGroupPermission = new EntryType("apiGroupPermission", {
+export const apiGroupPermission = defineEntry("apiGroupPermission", {
   systemGlobal: true,
   idMode: {
     type: "fields",

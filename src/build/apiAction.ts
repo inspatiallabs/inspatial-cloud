@@ -1,9 +1,11 @@
 import { EntryType } from "@inspatial/cloud";
-import { ChildEntryType } from "../orm/child-entry/child-entry.ts";
+import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 import { ormFields } from "../orm/field/fields.ts";
+import { defineEntry } from "../orm/entry/entry-type.ts";
 
-const actionParams = new ChildEntryType("parameters", {
+const actionParams = defineChildEntry("parameters", {
   label: "Input Parameters",
+  idMode: { type: "fields", fields: ["parent", "role"] },
   fields: [{
     key: "key",
     type: "DataField",
@@ -37,7 +39,7 @@ const actionParams = new ChildEntryType("parameters", {
       "The entry type this parameter connects to. Only used if type is ConnectionField.",
   }],
 });
-export const apiAction = new EntryType("apiAction", {
+export const apiAction = defineEntry("apiAction", {
   systemGlobal: true,
   idMode: {
     type: "fields",

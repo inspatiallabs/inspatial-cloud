@@ -184,7 +184,6 @@ export class CloudAPIAction<
             this.#raisePermissionError();
           }
       }
-
       runObject.orm = args.inCloud.orm.withUser(user);
     }
 

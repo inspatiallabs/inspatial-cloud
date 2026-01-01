@@ -19,7 +19,7 @@ export interface BaseTypeInfo {
 
 export interface BaseTypeConfig {
   label: string;
-  description: string;
+  description?: string | null;
   extension?: {
     extensionType: {
       key: string;
@@ -27,7 +27,7 @@ export interface BaseTypeConfig {
     };
     key: string;
     label: string;
-    description: string;
+    description?: string | null;
     version?: string;
   };
 }

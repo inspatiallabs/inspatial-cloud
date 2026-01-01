@@ -23,7 +23,6 @@ const actionPermission = new ChildEntryType("actionPermissions", {
   label: "Action Permissions",
   fields: [{
     key: "action",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "actionMeta",

@@ -95,7 +95,7 @@ export type EntryActionMethod<
 export type EntryActionConfig = {
   key: string;
   label?: string;
-  description?: string;
+  description?: string | null;
   /**
    * Set to true to hide this action from the api.
    * This means it can only be called from server side code.

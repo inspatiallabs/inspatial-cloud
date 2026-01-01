@@ -39,7 +39,6 @@ export const account = defineEntry("account", {
     label: "Account Name",
     description: "The name of the account",
     required: true,
-    defaultValue: "",
   }, {
     key: "onboardingComplete",
     type: "BooleanField",

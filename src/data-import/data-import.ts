@@ -5,8 +5,6 @@ import { handlePgError, isPgError } from "../orm/db/postgres/pgError.ts";
 import { dateUtils } from "~/utils/date-utils.ts";
 
 export const dataImport = defineEntry("dataImport", {
-  label: "",
-  description: "",
   titleField: "title",
   defaultListFields: [
     "title",
@@ -23,7 +21,6 @@ export const dataImport = defineEntry("dataImport", {
     type: "DataField",
     required: true,
     readOnly: true,
-    defaultValue: "",
   }, {
     key: "csv",
     label: "",

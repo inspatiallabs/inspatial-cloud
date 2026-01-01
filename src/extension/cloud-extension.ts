@@ -39,7 +39,7 @@ export class CloudExtension<
 > {
   key: string;
   label: string;
-  description: string;
+  description?: string | null;
   version?: string;
   icon?: string;
   /**
@@ -94,7 +94,7 @@ export class CloudExtension<
     this.afterOnboarding = options.afterOnboarding;
     this.key = extensionName;
     this.label = options.label || convertString(extensionName, "title", true);
-    this.description = options.description || "";
+    this.description = options.description;
     this.version = options.version || "1.0.0";
     this.roles = options.roles || [];
     this.icon = options.icon || "extension";

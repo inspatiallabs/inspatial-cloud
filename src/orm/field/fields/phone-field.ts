@@ -16,8 +16,8 @@ export default new ORMFieldConfig("PhoneField", {
   },
   normalize(value, fieldDef) {
     let stValue: string = "";
-    if (!value) {
-      return stValue;
+    if (value === null || value === undefined) {
+      return value;
     }
     switch (typeof value) {
       case "string":

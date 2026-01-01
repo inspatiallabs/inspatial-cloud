@@ -1,7 +1,10 @@
 import { ChildEntryType, EntryType } from "@inspatial/cloud";
 import { ormFields } from "../orm/field/fields.ts";
+import { defineEntry } from "../orm/mod.ts";
+import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 
-const actionParams = new ChildEntryType("parameters", {
+const actionParams = defineChildEntry("parameters", {
+  idMode: { type: "fields", fields: ["parent", "key"] },
   label: "Input Parameters",
   fields: [{
     key: "key",
@@ -37,7 +40,7 @@ const actionParams = new ChildEntryType("parameters", {
   }],
 });
 
-export const actionMeta = new EntryType("actionMeta", {
+export const actionMeta = defineEntry("actionMeta", {
   systemGlobal: true,
   idMode: {
     type: "fields",

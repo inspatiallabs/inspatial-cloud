@@ -68,7 +68,7 @@ export function defineAPIGroup<G extends string>(groupName: G, config?: {
   actions?: Array<CloudAPIAction<any, any>>;
 }): CloudAPIGroup<G> {
   const group = new CloudAPIGroup(groupName, {
-    description: config?.description || "",
+    description: config?.description,
     label: config?.label || convertString(groupName, "title", true),
     actions: config?.actions,
   });

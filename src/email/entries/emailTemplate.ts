@@ -7,11 +7,9 @@ export const emailTemplate = new EntryType("emailTemplate", {
     key: "title",
     type: "DataField",
     required: true,
-    defaultValue: "",
   }, {
     key: "subject",
     type: "DataField",
-    defaultValue: "",
   }, {
     key: "content",
     type: "RichTextField",

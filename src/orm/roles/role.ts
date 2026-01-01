@@ -35,7 +35,7 @@ import type {
 export class Role {
   readonly roleName: string;
   label: string;
-  description: string;
+  description?: string | null;
   extendsRole?: string;
   entryTypes: Map<string, EntryType>;
   #entryClasses: Map<string, typeof Entry>;
@@ -51,7 +51,7 @@ export class Role {
     this.#locked = false;
     this.roleName = config.roleName;
     this.extendsRole = config.extendsRole;
-    this.description = config.description || "";
+    this.description = config.description;
     this.label = config.label || convertString(config.roleName, "title", true);
     this.entryPermissions = new Map(Object.entries(config.entryTypes || {}));
     this.settingsPermissions = new Map(
@@ -260,7 +260,7 @@ export interface RoleConfig {
   extendsRole?: string;
   systemRole?: boolean;
   label?: string;
-  description?: string;
+  description?: string | null;
   entryTypes?: Record<string, EntryPermission>;
   settingsTypes?: Record<string, SettingsPermission>;
   apiGroups?: Record<string, Array<string> | true>;

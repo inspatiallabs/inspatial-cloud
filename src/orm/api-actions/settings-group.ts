@@ -1,8 +1,9 @@
 import { CloudAPIAction } from "~/api/cloud-action.ts";
 import type { SettingsType } from "~/orm/mod.ts";
 import type { SettingsName } from "#types/models.ts";
+import { defineAPIAction } from "@inspatial/cloud";
 
-export const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
+export const getSettingsInfo = defineAPIAction("getSettingsInfo", {
   label: "Get Settings Info",
   description: "Get the settings info for a given settings type",
   action({ orm, params }): SettingsType["info"] {
@@ -19,7 +20,7 @@ export const getSettingsInfo = new CloudAPIAction("getSettingsInfo", {
   }],
 });
 
-export const getSettings = new CloudAPIAction("getSettings", {
+export const getSettings = defineAPIAction("getSettings", {
   label: "Get Settings",
   description: "Get the settings for a given settings type",
   async action({ orm, params }): Promise<any> {
@@ -49,7 +50,7 @@ export const getSettings = new CloudAPIAction("getSettings", {
   }],
 });
 
-export const updateSettings = new CloudAPIAction("updateSettings", {
+export const updateSettings = defineAPIAction("updateSettings", {
   label: "Update Settings",
   description: "Update the settings for a given settings type",
   async action({ orm, params }): Promise<any> {
@@ -73,7 +74,7 @@ export const updateSettings = new CloudAPIAction("updateSettings", {
   }],
 });
 
-export const runSettingsAction = new CloudAPIAction("runSettingsAction", {
+export const runSettingsAction = defineAPIAction("runSettingsAction", {
   label: "Run Settings Action",
   description: "Run a settings action for a given settings type",
   async action({ orm, params }): Promise<any> {
