@@ -257,6 +257,7 @@ export interface CodeField extends BaseField {
     start?: string;
     end?: string;
   };
+  codeType?: "typescript" | "javascript" | "html";
 }
 
 export interface CurrencyField extends BaseField {

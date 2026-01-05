@@ -314,6 +314,9 @@ type UserActionMap = {
   findAccounts: {
     return: Promise<unknown>;
   };
+  sendWelcomeEmail: {
+    return: Promise<unknown>;
+  };
   enable: {
     return: Promise<unknown>;
   };
@@ -2435,6 +2438,16 @@ type EmailTemplateFields = {
    */
   content?: string | null;
   /**
+   * **Use Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  useGlobalHeader: boolean;
+  /**
+   * **Use Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  useGlobalFooter: boolean;
+  /**
    * **ID** (IDField)
    * @type {string}
    * @required true
@@ -2475,6 +2488,16 @@ export interface EmailTemplate
    * @type {string}
    */
   $content?: string | null;
+  /**
+   * **Use Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  $useGlobalHeader: boolean;
+  /**
+   * **Use Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  $useGlobalFooter: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5505,11 +5528,60 @@ type EmailSettingsFields = {
    */
   defaultSendAccount?: string | null;
   /**
+   * **Welcome Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  welcomeTemplate?: string | null;
+  /**
+   * **Reset Password Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  resetPasswordTemplate?: string | null;
+  /**
+   * **Enable Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  enableGlobalHeader: boolean;
+  /**
+   * **Email Header Content** (CodeField)
+   * @type {string}
+   */
+  emailHeaderContent?: string | null;
+  /**
+   * **Email Body Template** (CodeField)
+   * @type {string}
+   */
+  emailBodyTemplate?: string | null;
+  /**
+   * **Enable Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  enableGlobalFooter: boolean;
+  /**
+   * **Email Footer Content** (CodeField)
+   * @type {string}
+   */
+  emailFooterContent?: string | null;
+  /**
    * **Default Send Account Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
   defaultSendAccount__title?: string | null;
+  /**
+   * **Welcome Email Template Title** (DataField)
+   * @type {string}
+   */
+  welcomeTemplate__title?: string | null;
+  /**
+   * **Reset Password Template Title** (DataField)
+   * @type {string}
+   */
+  resetPasswordTemplate__title?: string | null;
 };
 export interface EmailSettings
   extends SettingsBase<"emailSettings", EmailSettingsFields> {
@@ -5530,11 +5602,60 @@ export interface EmailSettings
    */
   $defaultSendAccount?: string | null;
   /**
+   * **Welcome Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $welcomeTemplate?: string | null;
+  /**
+   * **Reset Password Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $resetPasswordTemplate?: string | null;
+  /**
+   * **Enable Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  $enableGlobalHeader: boolean;
+  /**
+   * **Email Header Content** (CodeField)
+   * @type {string}
+   */
+  $emailHeaderContent?: string | null;
+  /**
+   * **Email Body Template** (CodeField)
+   * @type {string}
+   */
+  $emailBodyTemplate?: string | null;
+  /**
+   * **Enable Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  $enableGlobalFooter: boolean;
+  /**
+   * **Email Footer Content** (CodeField)
+   * @type {string}
+   */
+  $emailFooterContent?: string | null;
+  /**
    * **Default Send Account Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
   $defaultSendAccount__title?: string | null;
+  /**
+   * **Welcome Email Template Title** (DataField)
+   * @type {string}
+   */
+  $welcomeTemplate__title?: string | null;
+  /**
+   * **Reset Password Template Title** (DataField)
+   * @type {string}
+   */
+  $resetPasswordTemplate__title?: string | null;
 }
 
 type OnboardingFields = {

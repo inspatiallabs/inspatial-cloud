@@ -7,6 +7,7 @@ import { validatePassword } from "./actions/validate-password.ts";
 import { generateApiToken } from "./actions/generate-api-token.ts";
 import { generateResetToken } from "./actions/generate-reset-token.ts";
 import { raiseORMException } from "../../../orm/mod.ts";
+import { sendWelcomeEmail } from "./actions/send-welcome.ts";
 
 export const userEntry = defineEntry("user", {
   titleField: "fullName",
@@ -46,6 +47,7 @@ export const userEntry = defineEntry("user", {
     generateApiToken,
     generateResetToken,
     findAccounts,
+    sendWelcomeEmail,
   ],
 });
 userEntry.addHook("beforeUpdate", {
