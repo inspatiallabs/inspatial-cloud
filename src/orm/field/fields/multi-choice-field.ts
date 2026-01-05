@@ -16,4 +16,4 @@ export default new ORMFieldConfig("MultiChoiceField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"MultiChoiceField">;

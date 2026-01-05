@@ -18,4 +18,4 @@ export default new ORMFieldConfig("CurrencyField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"CurrencyField">;

@@ -16,4 +16,4 @@ export default new ORMFieldConfig("RichTextField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"RichTextField">;

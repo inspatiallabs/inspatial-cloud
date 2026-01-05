@@ -23,4 +23,4 @@ export default new ORMFieldConfig("IntField", {
 
     return value;
   },
-});
+}) as ORMFieldConfig<"IntField">;

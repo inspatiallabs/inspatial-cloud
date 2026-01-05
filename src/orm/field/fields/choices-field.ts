@@ -34,4 +34,4 @@ export default new ORMFieldConfig("ChoicesField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"ChoicesField">;

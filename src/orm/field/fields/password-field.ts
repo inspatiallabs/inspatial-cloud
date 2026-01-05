@@ -16,4 +16,4 @@ export default new ORMFieldConfig("PasswordField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"PasswordField">;

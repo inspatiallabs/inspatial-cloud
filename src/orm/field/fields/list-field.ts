@@ -21,4 +21,4 @@ export default new ORMFieldConfig("ListField", {
     }
     return value;
   },
-});
+}) as ORMFieldConfig<"ListField">;

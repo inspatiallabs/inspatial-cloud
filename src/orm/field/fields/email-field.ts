@@ -16,4 +16,4 @@ export default new ORMFieldConfig("EmailField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"EmailField">;

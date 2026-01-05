@@ -20,4 +20,4 @@ export const dataField = new ORMFieldConfig("DataField", {
   normalize(value) {
     return value;
   },
-});
+}) as ORMFieldConfig<"DataField">;

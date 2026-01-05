@@ -5,3 +5,5 @@ export { InSpatialORM } from "~/orm/inspatial-orm.ts";
 export { defineSettings, SettingsType } from "~/orm/settings/settings-type.ts";
 
 export { defineEntry, EntryType } from "~/orm/entry/entry-type.ts";
+
+export { ormFields } from "~/orm/field/fields.ts";
