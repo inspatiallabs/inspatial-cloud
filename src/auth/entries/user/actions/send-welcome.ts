@@ -21,6 +21,7 @@ export const sendWelcomeEmail: EntryActionDefinition<"user"> = {
         entryId: user.id,
       },
     });
+    return { success: true };
   },
   params: [],
 };
