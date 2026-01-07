@@ -8,6 +8,8 @@ import { generateApiToken } from "./actions/generate-api-token.ts";
 import { generateResetToken } from "./actions/generate-reset-token.ts";
 import { raiseORMException } from "../../../orm/mod.ts";
 import { sendWelcomeEmail } from "./actions/send-welcome.ts";
+import { generateSalt } from "../../security.ts";
+import { sendVerifyEmail } from "./actions/send-verify-email.ts";
 
 export const userEntry = defineEntry("user", {
   titleField: "fullName",
@@ -48,6 +50,7 @@ export const userEntry = defineEntry("user", {
     generateResetToken,
     findAccounts,
     sendWelcomeEmail,
+    sendVerifyEmail,
   ],
 });
 userEntry.addHook("beforeUpdate", {
@@ -99,6 +102,14 @@ userEntry.addHook("validate", {
         `User ${user.$fullName} can only be modified by a System Administrator`,
       );
     }
+  },
+});
+
+userEntry.addHook("beforeCreate", {
+  name: "generateVerifyToken",
+  handler({ user }) {
+    user.$verifyToken = generateSalt();
+    user.$verified = false;
   },
 });
 

@@ -84,6 +84,16 @@ type UserFields = {
    */
   apiToken?: string | null;
   /**
+   * **Verify Token** (PasswordField)
+   * @type {string}
+   */
+  verifyToken?: string | null;
+  /**
+   * **Verified** (BooleanField)
+   * @type {boolean}
+   */
+  verified: boolean;
+  /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
@@ -232,6 +242,16 @@ export interface User extends EntryBase<"user", UserFields> {
    */
   $apiToken?: string | null;
   /**
+   * **Verify Token** (PasswordField)
+   * @type {string}
+   */
+  $verifyToken?: string | null;
+  /**
+   * **Verified** (BooleanField)
+   * @type {boolean}
+   */
+  $verified: boolean;
+  /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
@@ -315,6 +335,9 @@ type UserActionMap = {
     return: Promise<unknown>;
   };
   sendWelcomeEmail: {
+    return: Promise<unknown>;
+  };
+  sendVerifyEmail: {
     return: Promise<unknown>;
   };
   enable: {
@@ -5542,6 +5565,13 @@ type EmailSettingsFields = {
    */
   resetPasswordTemplate?: string | null;
   /**
+   * **Verification Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  verifyTemplate?: string | null;
+  /**
    * **Enable Global Header** (BooleanField)
    * @type {boolean}
    */
@@ -5582,6 +5612,11 @@ type EmailSettingsFields = {
    * @type {string}
    */
   resetPasswordTemplate__title?: string | null;
+  /**
+   * **Verification Email Template Title** (DataField)
+   * @type {string}
+   */
+  verifyTemplate__title?: string | null;
 };
 export interface EmailSettings
   extends SettingsBase<"emailSettings", EmailSettingsFields> {
@@ -5615,6 +5650,13 @@ export interface EmailSettings
    * @type {string}
    */
   $resetPasswordTemplate?: string | null;
+  /**
+   * **Verification Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $verifyTemplate?: string | null;
   /**
    * **Enable Global Header** (BooleanField)
    * @type {boolean}
@@ -5656,6 +5698,11 @@ export interface EmailSettings
    * @type {string}
    */
   $resetPasswordTemplate__title?: string | null;
+  /**
+   * **Verification Email Template Title** (DataField)
+   * @type {string}
+   */
+  $verifyTemplate__title?: string | null;
 }
 
 type OnboardingFields = {

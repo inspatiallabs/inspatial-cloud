@@ -29,6 +29,12 @@ export const emailSettings = defineSettings("emailSettings", {
       type: "ConnectionField",
       entryType: "emailTemplate",
     },
+    {
+      key: "verifyTemplate",
+      label: "Verification Email Template",
+      type: "ConnectionField",
+      entryType: "emailTemplate",
+    },
     { key: "enableGlobalHeader", type: "BooleanField" },
     { key: "emailHeaderContent", type: "CodeField", codeType: "html" },
     { key: "emailBodyTemplate", type: "CodeField", codeType: "html" },

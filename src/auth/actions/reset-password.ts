@@ -27,10 +27,11 @@ export const resetPassword = defineAPIAction("resetPassword", {
     searchParams.set("token", token);
     searchParams.set("email", email);
     const resetString = `${resetLink}?${searchParams.toString()}`;
-    const resetPasswordTemplate = await orm.getSettingsValue(
-      "emailSettings",
-      "resetPasswordTemplate",
-    );
+    const resetPasswordTemplate = await orm.asAdmin()
+      .getSettingsValue(
+        "emailSettings",
+        "resetPasswordTemplate",
+      );
     try {
       if (resetPasswordTemplate) {
         await inCloud.emailManager.sendTemplateEmail({
