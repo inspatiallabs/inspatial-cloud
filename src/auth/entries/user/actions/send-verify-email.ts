@@ -5,7 +5,7 @@ export const sendVerifyEmail: EntryActionDefinition<"user"> = {
   key: "sendVerifyEmail",
   description: "Sends the user a verification email",
   async action({ inCloud, user, orm }) {
-    const templateId = await orm.asAdmin().getSettingsValue(
+    const templateId = await inCloud.orm.asAdmin().getSettingsValue(
       "emailSettings",
       "verifyTemplate",
     );

@@ -5,7 +5,7 @@ export const sendWelcomeEmail: EntryActionDefinition<"user"> = {
   key: "sendWelcomeEmail",
   description: "Sends the user a welcome email",
   async action({ inCloud, user, orm }) {
-    const templateId = await orm.asAdmin().getSettingsValue(
+    const templateId = await inCloud.orm.asAdmin().getSettingsValue(
       "emailSettings",
       "welcomeTemplate",
     );

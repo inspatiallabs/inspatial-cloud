@@ -27,7 +27,7 @@ export const resetPassword = defineAPIAction("resetPassword", {
     searchParams.set("token", token);
     searchParams.set("email", email);
     const resetString = `${resetLink}?${searchParams.toString()}`;
-    const resetPasswordTemplate = await orm.asAdmin()
+    const resetPasswordTemplate = await inCloud.orm.asAdmin()
       .getSettingsValue(
         "emailSettings",
         "resetPasswordTemplate",
