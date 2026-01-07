@@ -20,17 +20,25 @@ export const sendVerifyEmail: EntryActionDefinition<"user"> = {
     url.searchParams.set("token", token);
     const link = url.toString();
     if (!templateId) {
+      const content = `<p>Hi ${user.$firstName},<p>
+        <p>Thanks for creating an account with ${inCloud.appDisplayName}.</p>
+        <p>Before you get started, please verify your email address by clicking the link below:</p>
+
+        <a href="${link}" target="_blank">Verify Email</a>
+        <p>If you did not create this account, you can safely ignore this email.</p>
+        <p>${inCloud.appDisplayName}</p>
+`;
       inCloud.emailManager.sendEmail({
         recipientEmail: user.$email,
-        subject: `Verify your account with ${inCloud.appDisplayName}`,
-        body: `Hi Please verify ${link}`,
+        subject: `Verify your email with ${inCloud.appDisplayName}`,
+        body: content,
       });
-      return;
+      return { success: true };
     }
     await inCloud.emailManager.sendTemplateEmail({
       recipientEmail: user.$email,
       templateId,
-      params: { link },
+      params: { link, firstName: user.$firstName },
       link: {
         entryType: "user",
         entryId: user.id,

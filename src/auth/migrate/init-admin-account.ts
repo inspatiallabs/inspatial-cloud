@@ -1,6 +1,7 @@
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import { center } from "../../terminal/format-utils.ts";
 import type { User } from "#types/models.ts";
+import { generateSalt } from "../security.ts";
 
 export async function initAdminAccount(
   orm: InSpatialORM,
@@ -62,6 +63,8 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
   });
 
   user.$systemAdmin = true;
+  user.$verified = true;
+  user.$verifyToken = generateSalt();
   await user.save();
   await user.runAction("setPassword", { password });
   orm.inLog.info("Admin user created successfully.");
