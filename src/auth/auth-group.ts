@@ -15,6 +15,7 @@ import { updateAccount } from "./actions/update-account.ts";
 import { completeOnboarding } from "../onboarding/actions/complete-onboarding.ts";
 import { registerAccount } from "./actions/register-account.ts";
 import { switchAccount } from "./actions/switch-account.ts";
+import { verifyUserEmail } from "./actions/verify-user-email.ts";
 
 const authGroup = defineAPIGroup("auth", {
   description: "User, Account and Authentication related actions",
@@ -35,6 +36,7 @@ const authGroup = defineAPIGroup("auth", {
     registerAccount,
     completeOnboarding,
     switchAccount,
+    verifyUserEmail,
   ],
 });
 

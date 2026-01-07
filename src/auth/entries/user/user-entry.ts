@@ -36,7 +36,13 @@ export const userEntry = defineEntry("user", {
     key: "security",
     label: "Security",
     description: "Security related information",
-    fields: ["systemAdmin", "adminPortalAccess", "apiToken", "enabled"],
+    fields: [
+      "systemAdmin",
+      "adminPortalAccess",
+      "apiToken",
+      "enabled",
+      "verified",
+    ],
   }, {
     key: "google",
     label: "Google Account",
@@ -105,11 +111,13 @@ userEntry.addHook("validate", {
   },
 });
 
-userEntry.addHook("beforeCreate", {
+userEntry.addHook("beforeValidate", {
   name: "generateVerifyToken",
   handler({ user }) {
-    user.$verifyToken = generateSalt();
-    user.$verified = false;
+    if (!user.$verifyToken) {
+      user.$verifyToken = generateSalt();
+      user.$verified = false;
+    }
   },
 });
 
@@ -141,4 +149,20 @@ userEntry.addAction("disable", {
     user.$enabled = false;
     await user.save();
   },
+});
+
+userEntry.addAction("verifyToken", {
+  async action({ params: { token }, user }) {
+    if (token.length === 0 || !token) {
+      return false;
+    }
+    if (user.$verifyToken !== token) {
+      return false;
+    }
+    user.$verified = true;
+    await user.save();
+    return true;
+  },
+
+  params: [{ key: "token", type: "PasswordField", required: true }],
 });

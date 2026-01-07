@@ -90,6 +90,6 @@ export const userFields = [{
 }, {
   key: "verified",
   type: "BooleanField",
-  hidden: true,
-  readOnly: true,
+  hidden: false,
+  readOnly: false,
 }] as Array<InField>;

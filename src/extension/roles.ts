@@ -53,6 +53,7 @@ export const accountManagerRole: RoleConfig = {
       delete: true,
       fields: {
         systemAdmin: { view: true, modify: false },
+        verified: { view: false, modify: false },
         systemRole: { view: true, modify: true },
         adminPortalAccess: { view: true, modify: false },
         enabled: { view: true, modify: true },
@@ -128,6 +129,7 @@ export const basicUserRole: RoleConfig = {
       userScope: "id",
       fields: {
         systemAdmin: { view: true, modify: false },
+        verified: { view: false, modify: false },
         systemRole: { view: true, modify: true },
         adminPortalAccess: { view: false, modify: false },
         enabled: { view: false, modify: false },

@@ -372,6 +372,17 @@ type UserParamsActionMap = {
     };
     return: Promise<unknown>;
   };
+  verifyToken: {
+    params: {
+      /**
+       * **Token** (PasswordField)
+       * @type {string}
+       * @required true
+       */
+      token: string;
+    };
+    return: Promise<unknown>;
+  };
 };
 
 type UserSessionFields = {

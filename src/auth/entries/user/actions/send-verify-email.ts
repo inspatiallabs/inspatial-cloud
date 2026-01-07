@@ -9,13 +9,28 @@ export const sendVerifyEmail: EntryActionDefinition<"user"> = {
       "emailSettings",
       "verifyTemplate",
     );
+    if (!user.$verifyToken) {
+      await user.save();
+    }
+    const token = btoa(`${user.id}:${user.$verifyToken}`);
+    const host = await inCloud.getServerHost();
+    const url = new URL(`${host}/api`);
+    url.searchParams.set("group", "auth");
+    url.searchParams.set("action", "verifyUserEmail");
+    url.searchParams.set("token", token);
+    const link = url.toString();
     if (!templateId) {
-      raiseORMException("No verification template is set!", "Send Email", 400);
+      inCloud.emailManager.sendEmail({
+        recipientEmail: user.$email,
+        subject: `Verify your account with ${inCloud.appDisplayName}`,
+        body: `Hi Please verify ${link}`,
+      });
+      return;
     }
     await inCloud.emailManager.sendTemplateEmail({
       recipientEmail: user.$email,
       templateId,
-      params: user.clientData,
+      params: { link },
       link: {
         entryType: "user",
         entryId: user.id,
