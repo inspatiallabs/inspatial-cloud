@@ -13,15 +13,21 @@ export async function getAuditLog(
 ) {
   const { inCloud, accountId, entryId } = options;
   const entryType = options.entryType as EntryName;
+
+  let logType: EntryName = accountId ? "accountLog" : "systemLog";
+  const filter: DBFilter = [];
+  if (entryType) {
+    const entryDef = inCloud.orm.getEntryType(entryType);
+    logType = entryDef.systemGlobal ? "systemLog" : "accountLog";
+
+    filter.push({ field: "entryType", op: "=", value: entryType });
+    if (entryId) {
+      filter.push({ field: "entryId", op: "=", value: entryId });
+    }
+  }
   const orm = accountId
     ? inCloud.orm.withAccount(accountId)
     : inCloud.orm.withUser(inCloud.orm.systemGobalUser);
-  const entryDef = orm.getEntryType(entryType);
-  const logType: EntryName = entryDef.systemGlobal ? "systemLog" : "accountLog";
-  const filter: DBFilter = [{ field: "entryType", op: "=", value: entryType }];
-  if (entryId) {
-    filter.push({ field: "entryId", op: "=", value: entryId });
-  }
   const { rows } = await orm.getEntryList(logType, {
     filter,
     orderBy: "modifiedDate",
@@ -44,22 +50,18 @@ export async function getAuditLog(
 }
 export const getAuditLogAction = defineAPIAction("getAuditLog", {
   async action(
-    { inCloud, inRequest, inResponse, orm, params },
+    { inCloud, params, orm },
   ) {
     return await getAuditLog({
       inCloud,
       entryType: params.entryType as EntryName,
-      accountId: orm._accountId,
+      accountId: params.accountId || orm._accountId,
       entryId: params.entryId,
     });
   },
   params: [
-    {
-      key: "entryType",
-      type: "ConnectionField",
-      entryType: "entryMeta",
-      required: true,
-    },
+    { key: "entryType", type: "ConnectionField", entryType: "entryMeta" },
     { key: "entryId", type: "DataField" },
+    { key: "accountId", type: "ConnectionField", entryType: "account" },
   ],
 });

@@ -24,7 +24,6 @@ export const auditUpdateHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
   if (shouldSkipEntry(entry)) {
-    orm.inLog.info(`Skipping ${entryType}`);
     return;
   }
   entry._modifiedValues.delete("updatedAt");
