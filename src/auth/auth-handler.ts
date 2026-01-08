@@ -4,6 +4,7 @@ import type { InResponse } from "~/serve/in-response.ts";
 import type { InCloud } from "~/in-cloud.ts";
 import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { User } from "#types/models.ts";
+import { raiseServerException } from "@inspatial/cloud";
 
 export class AuthHandler {
   #inCloud: InCloud;
@@ -125,11 +126,21 @@ export class AuthHandler {
       }
       : null;
   }
+  async verifyUserEmail(user: User) {
+    if (!user.$verified) {
+      await user.runAction("sendVerifyEmail");
+      raiseServerException(
+        401,
+        "User email is not verified! Check your email inbox",
+      );
+    }
+  }
   async createUserSession(
     user: User,
     inRequest: InRequest,
     inResponse: InResponse,
   ): Promise<SessionData & { sessionId: string }> {
+    await this.verifyUserEmail(user);
     const sessionData = await makeSessiondata(user);
 
     const session = await this.orm.createEntry(
@@ -185,6 +196,7 @@ async function makeSessiondata(
     profilePicture: user.$profilePicture || undefined,
     accounts,
     accountId: "",
+    verified: user.$verified,
     role: user.$systemRole || "",
   };
   if (accounts.length > 0) {

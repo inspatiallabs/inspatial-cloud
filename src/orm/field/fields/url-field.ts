@@ -16,4 +16,4 @@ export default new ORMFieldConfig("URLField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"URLField">;

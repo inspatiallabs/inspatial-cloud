@@ -45,4 +45,4 @@ export default new ORMFieldConfig("PhoneField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"PhoneField">;

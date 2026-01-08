@@ -90,7 +90,16 @@ export class InSpatialORM {
     beforeValidate: [],
     validate: [],
   };
-
+  asAdmin(): InSpatialORM {
+    const accountId = this._accountId || "system_global";
+    const clone = Object.create(this) as InSpatialORM;
+    clone._user = {
+      ...this.systemAdminUser,
+      accountId,
+    };
+    clone._accountId = accountId;
+    return this;
+  }
   withUser(user: UserContext): InSpatialORM {
     if (!user) {
       raiseORMException(

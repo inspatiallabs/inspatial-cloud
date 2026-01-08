@@ -7,6 +7,9 @@ import { validatePassword } from "./actions/validate-password.ts";
 import { generateApiToken } from "./actions/generate-api-token.ts";
 import { generateResetToken } from "./actions/generate-reset-token.ts";
 import { raiseORMException } from "../../../orm/mod.ts";
+import { sendWelcomeEmail } from "./actions/send-welcome.ts";
+import { generateSalt } from "../../security.ts";
+import { sendVerifyEmail } from "./actions/send-verify-email.ts";
 
 export const userEntry = defineEntry("user", {
   titleField: "fullName",
@@ -33,7 +36,13 @@ export const userEntry = defineEntry("user", {
     key: "security",
     label: "Security",
     description: "Security related information",
-    fields: ["systemAdmin", "adminPortalAccess", "apiToken", "enabled"],
+    fields: [
+      "systemAdmin",
+      "adminPortalAccess",
+      "apiToken",
+      "enabled",
+      "verified",
+    ],
   }, {
     key: "google",
     label: "Google Account",
@@ -46,6 +55,8 @@ export const userEntry = defineEntry("user", {
     generateApiToken,
     generateResetToken,
     findAccounts,
+    sendWelcomeEmail,
+    sendVerifyEmail,
   ],
 });
 userEntry.addHook("beforeUpdate", {
@@ -100,6 +111,16 @@ userEntry.addHook("validate", {
   },
 });
 
+userEntry.addHook("beforeValidate", {
+  name: "generateVerifyToken",
+  handler({ user }) {
+    if (!user.$verifyToken) {
+      user.$verifyToken = generateSalt();
+      user.$verified = false;
+    }
+  },
+});
+
 userEntry.addAction("enable", {
   async action({ user }) {
     user.$enabled = true;
@@ -128,4 +149,20 @@ userEntry.addAction("disable", {
     user.$enabled = false;
     await user.save();
   },
+});
+
+userEntry.addAction("verifyToken", {
+  async action({ params: { token }, user }) {
+    if (token.length === 0 || !token) {
+      return false;
+    }
+    if (user.$verifyToken !== token) {
+      return false;
+    }
+    user.$verified = true;
+    await user.save();
+    return true;
+  },
+
+  params: [{ key: "token", type: "PasswordField", required: true }],
 });

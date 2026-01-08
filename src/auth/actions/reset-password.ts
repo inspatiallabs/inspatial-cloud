@@ -27,22 +27,40 @@ export const resetPassword = defineAPIAction("resetPassword", {
     searchParams.set("token", token);
     searchParams.set("email", email);
     const resetString = `${resetLink}?${searchParams.toString()}`;
-
-    const emailContent = `
-      <p>Hi ${user.$firstName},</p>
-      <p>We received a request to reset your password.</p>
-      <p><b>Click the link below to reset your password:<b></p>
-      <a href="${resetString}" target="_blank">${resetString}</a>
-      <p>If you didn't request a password reset, you can ignore this email.</p>
-      <p>Thanks!</p>
-      <p>${inCloud.appDisplayName}</p>
-      `;
+    const resetPasswordTemplate = await inCloud.orm.asAdmin()
+      .getSettingsValue(
+        "emailSettings",
+        "resetPasswordTemplate",
+      );
     try {
-      await inCloud.emailManager.sendEmail({
-        recipientEmail: email,
-        subject: "Reset your password",
-        body: emailContent,
-      });
+      if (resetPasswordTemplate) {
+        await inCloud.emailManager.sendTemplateEmail({
+          templateId: resetPasswordTemplate,
+          recipientEmail: email,
+          link: {
+            entryType: "user",
+            entryId: user.id,
+            entryTitle: user.$fullName || user.id,
+          },
+          params: { resetLink: resetString, firstName: user.$firstName },
+        });
+      } else {
+        const emailContent = `
+        <p>Hi ${user.$firstName},</p>
+        <p>We received a request to reset your password.</p>
+        <p><b>Click the link below to reset your password:<b></p>
+        <a href="${resetString}" target="_blank">${resetString}</a>
+        <p>If you didn't request a password reset, you can ignore this email.</p>
+        <p>Thanks!</p>
+        <p>${inCloud.appDisplayName}</p>
+        `;
+        await inCloud.emailManager.sendEmail({
+          recipientEmail: email,
+          subject: "Reset your password",
+          body: emailContent,
+        });
+      }
+
       return {
         status: 200,
         type: "success",

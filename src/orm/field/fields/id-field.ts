@@ -35,4 +35,4 @@ export default new ORMFieldConfig("IDField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"IDField">;

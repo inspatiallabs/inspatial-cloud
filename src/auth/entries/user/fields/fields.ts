@@ -82,4 +82,14 @@ export const userFields = [{
   type: "PasswordField",
   description: "The user's API token",
   readOnly: true,
+}, {
+  key: "verifyToken",
+  type: "PasswordField",
+  hidden: true,
+  readOnly: true,
+}, {
+  key: "verified",
+  type: "BooleanField",
+  hidden: false,
+  readOnly: false,
 }] as Array<InField>;

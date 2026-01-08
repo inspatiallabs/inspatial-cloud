@@ -16,4 +16,4 @@ export default new ORMFieldConfig("DecimalField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"DecimalField">;

@@ -43,4 +43,4 @@ export default new ORMFieldConfig("ArrayField", {
     value = `{${value.join(",")}}`;
     return value;
   },
-});
+}) as ORMFieldConfig<"ArrayField">;

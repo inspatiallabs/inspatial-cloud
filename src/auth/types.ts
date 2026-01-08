@@ -5,6 +5,7 @@ export interface SessionData extends UserContext {
   systemAdmin: boolean;
   adminPortalAccess: boolean;
   profilePicture?: string;
+  verified?: boolean;
   accounts: Array<{ accountId: string; accountName: string; role: string }>;
   [key: string]: any;
 }
