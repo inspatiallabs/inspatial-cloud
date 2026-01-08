@@ -28,9 +28,10 @@ export class BaseType<N extends string = string> {
     config: {
       fields: Array<InField>;
       fieldGroups?: Array<FieldGroupConfig>;
+      skipAuditLog?: boolean;
       systemGlobal?: boolean;
       label?: string;
-      description?: string;
+      description?: string | null;
       children?: Array<ChildEntryType<any>>;
     },
   ) {

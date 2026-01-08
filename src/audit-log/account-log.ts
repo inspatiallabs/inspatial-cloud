@@ -43,6 +43,8 @@ const defaultListFields = [
 ] as any[];
 export const accountLog = defineEntry("accountLog", {
   index: [{ fields: ["entryType", "entryId"] }],
+  defaultSortField: "modifiedDate",
+  defaultSortDirection: "desc",
   skipAuditLog: true,
   defaultListFields,
   fields,
@@ -60,6 +62,8 @@ accountLog.addHook("beforeCreate", {
 
 export const systemLog = defineEntry("systemLog", {
   index: [{ fields: ["entryType", "entryId"] }],
+  defaultSortField: "modifiedDate",
+  defaultSortDirection: "desc",
   systemGlobal: true,
   skipAuditLog: true,
   defaultListFields,

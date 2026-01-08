@@ -6,7 +6,7 @@ import type {
 
 export interface BaseTypeInfo {
   name: string;
-  description: string;
+  description?: string | null;
   systemGlobal: boolean;
   extension?: string;
   label: string;
@@ -37,7 +37,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   /** A human readable label. If not provided, one will be generated from the name. */
   label?: string;
   /** A brief description of this type. */
-  description?: string;
+  description?: string | null;
   /** Setting this to `true` will add this to the globally available schema that all accounts can reference. */
   systemGlobal?: boolean;
   /** An array of `InField` definitions  */

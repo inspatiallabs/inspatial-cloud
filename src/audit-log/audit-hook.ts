@@ -7,7 +7,7 @@ import { dateUtils } from "../utils/date-utils.ts";
 import type { InFieldType } from "../orm/field/field-def-types.ts";
 import type { Entry } from "../orm/entry/entry.ts";
 import type { Settings } from "../orm/settings/settings.ts";
-import { getInLog } from "@inspatial/cloud/inLog";
+import { getInLog } from "#inLog";
 
 export type LogUpdateField = {
   key: string;
@@ -19,20 +19,12 @@ export type LogUpdateField = {
 export type LogUpdateData = {
   data: Array<LogUpdateField>;
 };
-const skipTHis: Array<EntryName> = [
-  "accountLog",
-  "systemLog",
-  "userSession",
-  "actionMeta",
-  "entryMeta",
-  "fieldMeta",
-];
 
 export const auditUpdateHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
   if (shouldSkipEntry(entry)) {
-    getInLog("cloud").info(`Skipping ${entryType}`);
+    orm.inLog.info(`Skipping ${entryType}`);
     return;
   }
   entry._modifiedValues.delete("updatedAt");
@@ -65,7 +57,6 @@ export const auditCreateHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
   if (shouldSkipEntry(entry)) {
-    getInLog("cloud").info(`Skipping ${entryType}`);
     return;
   }
   const user = entry._user?.userId;
@@ -86,7 +77,6 @@ export const auditDeleteHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
   if (shouldSkipEntry(entry)) {
-    getInLog("cloud").info(`Skipping ${entryType}`);
     return;
   }
 

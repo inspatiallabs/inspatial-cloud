@@ -11,12 +11,12 @@ export class CloudAPIGroup<
   G extends string = string,
 > {
   groupName: G;
-  description: string;
+  description?: string;
   label?: string;
   actions: Map<string, CloudAPIAction>;
   extension: string = "";
   constructor(groupName: G, config: {
-    description: string;
+    description?: string;
     label?: string;
     actions?: Array<CloudAPIAction>;
   }) {

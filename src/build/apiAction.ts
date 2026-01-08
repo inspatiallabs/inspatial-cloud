@@ -29,7 +29,7 @@ const actionParams = defineChildEntry("parameters", {
   }, {
     key: "required",
     type: "BooleanField",
-    description: "Whether the field is mandatory.",
+    description: "Whether the field is a mandatory field.",
   }, {
     key: "entryType",
     type: "ConnectionField",

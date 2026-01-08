@@ -56,6 +56,7 @@ export class SettingsType<
     };
     this.config = {
       description: this.description,
+      skipAuditLog: config.skipAuditLog || false,
       label: this.label,
     };
     this.#setChildrenParent();
