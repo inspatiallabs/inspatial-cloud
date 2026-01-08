@@ -27,7 +27,6 @@
     ],
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
-
   "imports": {
     "@inspatial/cloud-client": "jsr:@inspatial/cloud-client@^0.1.22",
     "~/": "./src/",

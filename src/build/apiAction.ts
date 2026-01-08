@@ -1,4 +1,3 @@
-import { EntryType } from "@inspatial/cloud";
 import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 import { ormFields } from "../orm/field/fields.ts";
 import { defineEntry } from "../orm/entry/entry-type.ts";
@@ -41,6 +40,7 @@ const actionParams = defineChildEntry("parameters", {
 });
 export const apiAction = defineEntry("apiAction", {
   systemGlobal: true,
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["apiGroup", "actionName"],

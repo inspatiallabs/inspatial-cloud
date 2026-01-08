@@ -1,7 +1,8 @@
 import { EntryType } from "@inspatial/cloud";
-import { ChildEntryType } from "../orm/child-entry/child-entry.ts";
+import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
+import { defineEntry } from "../orm/mod.ts";
 
-const settingsHooks = new ChildEntryType("hooks", {
+const settingsHooks = defineChildEntry("hooks", {
   label: "Lifecycle Hooks",
   fields: [{
     key: "hook",
@@ -46,37 +47,36 @@ const settingsHooks = new ChildEntryType("hooks", {
   }],
 });
 
-export const settingsMeta = new EntryType("settingsMeta", {
+export const settingsMeta = defineEntry("settingsMeta", {
   systemGlobal: true,
+  skipAuditLog: true,
   idMode: {
     type: "field",
     field: "settingsName",
   },
   titleField: "label",
   defaultListFields: ["extensionMeta"],
-  fields: [{
-    key: "settingsName",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "label",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "description",
-    type: "TextField",
-    description: "A brief description of the settings.",
-  }, {
-    key: "systemGlobal",
-    type: "BooleanField",
-    description:
-      "Whether these settings are global to the entire system or specific to an account.",
-  }, {
-    key: "extensionMeta",
-    label: "Extension",
-    type: "ConnectionField",
-    entryType: "extensionMeta",
-    required: true,
-  }],
+  fields: [
+    { key: "settingsName", type: "DataField", required: true },
+    { key: "label", type: "DataField", required: true },
+    {
+      key: "description",
+      type: "TextField",
+      description: "A brief description of the settings.",
+    },
+    {
+      key: "systemGlobal",
+      type: "BooleanField",
+      description:
+        "Whether these settings are global to the entire system or specific to an account.",
+    },
+    {
+      key: "extensionMeta",
+      label: "Extension",
+      type: "ConnectionField",
+      entryType: "extensionMeta",
+      required: true,
+    },
+  ],
   children: [settingsHooks],
 });

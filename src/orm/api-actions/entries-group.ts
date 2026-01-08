@@ -223,22 +223,6 @@ export const getEntryListAction = defineAPIAction("getEntryList", {
   }],
 });
 
-export const getEntryTypeInfoAction = defineAPIAction("getEntryTypeInfo", {
-  label: "Get Entry Type Info",
-  description: "Get the Entry Type definition for a given Entry Type",
-  action({ orm, params }): EntryTypeInfo {
-    const entryType = orm.getEntryType(params.entryType as EntryName);
-    return entryType.info as EntryTypeInfo;
-  },
-  params: [{
-    key: "entryType",
-    type: "DataField",
-    label: "Entry Type",
-    description: "The Entry Type to get the schema for",
-    required: true,
-  }],
-});
-
 export const countConnections = defineAPIAction("countConnections", {
   label: "Count Entry Connections",
   description:
@@ -261,33 +245,42 @@ export const countConnections = defineAPIAction("countConnections", {
   },
 });
 
-export const sum = defineAPIAction("sum", {
-  label: "Sum",
-  description: "Get the sum of the selected fields for a given Entry Type",
+export const getEntryTypeInfoAction = defineAPIAction("getEntryTypeInfo", {
+  label: "Get Entry Type Info",
+  description: "Get the Entry Type definition for a given Entry Type",
+  action({ orm, params }): EntryTypeInfo {
+    const entryType = orm.getEntryType(params.entryType as EntryName);
+    return entryType.info as EntryTypeInfo;
+  },
   params: [{
     key: "entryType",
     type: "DataField",
     label: "Entry Type",
-    description: "The Entry Type to list",
+    description: "The Entry Type to get the schema for",
     required: true,
-  }, {
-    key: "filter",
-    type: "JSONField",
-    required: false,
-  }, {
-    key: "orFilter",
-    type: "JSONField",
-    required: false,
-  }, {
-    key: "fields",
-    type: "ListField",
-    required: true,
-  }, {
-    key: "groupBy",
-    type: "ListField",
-    required: false,
-    description: "The field to group the results by, if any",
   }],
+});
+export const sum = defineAPIAction("sum", {
+  label: "Sum",
+  description: "Get the sum of the selected fields for a given Entry Type",
+  params: [
+    {
+      key: "entryType",
+      type: "DataField",
+      label: "Entry Type",
+      description: "The Entry Type to list",
+      required: true,
+    },
+    { key: "filter", type: "JSONField", required: false },
+    { key: "orFilter", type: "JSONField", required: false },
+    { key: "fields", type: "ListField", required: true },
+    {
+      key: "groupBy",
+      type: "ListField",
+      required: false,
+      description: "The field to group the results by, if any",
+    },
+  ],
   async action(
     { orm, params: { entryType, fields, filter, orFilter, groupBy } },
   ) {
@@ -314,12 +307,7 @@ export const count = new CloudAPIAction("count", {
     "Get the count of entries for a given Entry Type, optionally grouped by a field",
   async action({
     orm,
-    params: {
-      entryType,
-      filter,
-      orFilter,
-      groupBy,
-    },
+    params: { entryType, filter, orFilter, groupBy },
   }) {
     const result = await orm.count(entryType as EntryName, {
       filter: filter as DBFilter,
@@ -331,23 +319,12 @@ export const count = new CloudAPIAction("count", {
     }
     return result;
   },
-  params: [{
-    key: "entryType",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "filter",
-    type: "JSONField",
-    required: false,
-  }, {
-    key: "orFilter",
-    type: "JSONField",
-    required: false,
-  }, {
-    key: "groupBy",
-    type: "ListField",
-    required: false,
-  }],
+  params: [
+    { key: "entryType", type: "DataField", required: true },
+    { key: "filter", type: "JSONField", required: false },
+    { key: "orFilter", type: "JSONField", required: false },
+    { key: "groupBy", type: "ListField", required: false },
+  ],
 });
 
 export const exportEntry = defineAPIAction("export", {
@@ -355,15 +332,8 @@ export const exportEntry = defineAPIAction("export", {
   description:
     "Export a list of entries for a given Entry Type as CSV,PDF or JSON",
   async action({ orm, params, inResponse }) {
-    const {
-      entryType,
-      columns,
-      order,
-      filter,
-      orFilter,
-      orderBy,
-      format,
-    } = params;
+    const { entryType, columns, order, filter, orFilter, orderBy, format } =
+      params;
     const response = await orm.getEntryList(entryType as EntryName, {
       columns: columns as any[] | undefined,
       filter: filter as DBFilter | undefined,
@@ -452,21 +422,9 @@ export const exportEntry = defineAPIAction("export", {
     type: "ChoicesField",
     required: true,
     choices: [
-      {
-        key: "csv",
-        label: "CSV",
-        description: "Export as CSV",
-      },
-      {
-        key: "pdf",
-        label: "PDF",
-        description: "Export as PDF",
-      },
-      {
-        key: "json",
-        label: "JSON",
-        description: "Export as JSON",
-      },
+      { key: "csv", label: "CSV", description: "Export as CSV" },
+      { key: "pdf", label: "PDF", description: "Export as PDF" },
+      { key: "json", label: "JSON", description: "Export as JSON" },
     ],
   }],
 });

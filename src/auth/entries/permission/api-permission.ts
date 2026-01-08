@@ -38,6 +38,7 @@ const syncRoleConfig: EntryHookDefinition<"apiGroupPermission"> = {
 };
 export const apiGroupPermission = defineEntry("apiGroupPermission", {
   systemGlobal: true,
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["userRole", "apiGroup"],

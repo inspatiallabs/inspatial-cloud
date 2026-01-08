@@ -1,8 +1,8 @@
-import { EntryType } from "@inspatial/cloud";
-import { raiseORMException } from "../../../orm/orm-exception.ts";
-import { ChildEntryType } from "../../../orm/child-entry/child-entry.ts";
-import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
-const fieldPermission = new ChildEntryType("fieldPermissions", {
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import { defineChildEntry } from "~/orm/child-entry/child-entry.ts";
+import type { EntryHookDefinition } from "~/orm/entry/types.ts";
+import { defineEntry } from "~/orm/entry/entry-type.ts";
+const fieldPermission = defineChildEntry("fieldPermissions", {
   fields: [{
     key: "field",
     type: "ConnectionField",
@@ -19,7 +19,7 @@ const fieldPermission = new ChildEntryType("fieldPermissions", {
     type: "BooleanField",
   }],
 });
-const actionPermission = new ChildEntryType("actionPermissions", {
+const actionPermission = defineChildEntry("actionPermissions", {
   label: "Action Permissions",
   fields: [{
     key: "action",
@@ -45,10 +45,11 @@ const syncRoleConfig: EntryHookDefinition<"settingsPermission"> = {
     userRole.runAction("generateConfig");
   },
 };
-export const settingsPermission = new EntryType(
+export const settingsPermission = defineEntry(
   "settingsPermission",
   {
     systemGlobal: true,
+    skipAuditLog: true,
     description: "Role permissions for a specific settings type",
     defaultListFields: [
       "userRole",
@@ -56,32 +57,26 @@ export const settingsPermission = new EntryType(
       "canView",
       "canModify",
     ],
-    fields: [{
-      key: "userRole",
-      type: "ConnectionField",
-      entryType: "userRole",
-      required: true,
-      description: "The user role this permission applies to",
-    }, {
-      key: "settingsMeta",
-      label: "Settings",
-      type: "ConnectionField",
-      entryType: "settingsMeta",
-      required: true,
-      description: "The settings type this permission applies to",
-    }, {
-      key: "canView",
-      type: "BooleanField",
-      defaultValue: true,
-    }, {
-      key: "canModify",
-      type: "BooleanField",
-      defaultValue: false,
-    }, {
-      key: "allowAllActions",
-      type: "BooleanField",
-      defaultValue: true,
-    }],
+    fields: [
+      {
+        key: "userRole",
+        type: "ConnectionField",
+        entryType: "userRole",
+        required: true,
+        description: "The user role this permission applies to",
+      },
+      {
+        key: "settingsMeta",
+        label: "Settings",
+        type: "ConnectionField",
+        entryType: "settingsMeta",
+        required: true,
+        description: "The settings type this permission applies to",
+      },
+      { key: "canView", type: "BooleanField", defaultValue: true },
+      { key: "canModify", type: "BooleanField", defaultValue: false },
+      { key: "allowAllActions", type: "BooleanField", defaultValue: true },
+    ],
     children: [fieldPermission, actionPermission],
     hooks: {
       validate: [{

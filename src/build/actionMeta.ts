@@ -6,6 +6,7 @@ import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 const actionParams = defineChildEntry("parameters", {
   idMode: { type: "fields", fields: ["parent", "key"] },
   label: "Input Parameters",
+
   fields: [{
     key: "key",
     type: "DataField",
@@ -42,6 +43,7 @@ const actionParams = defineChildEntry("parameters", {
 
 export const actionMeta = defineEntry("actionMeta", {
   systemGlobal: true,
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["entryMeta", "settingsMeta", "key"],

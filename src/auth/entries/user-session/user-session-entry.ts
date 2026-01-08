@@ -5,6 +5,7 @@ import { generateSalt } from "~/auth/security.ts";
 export const userSessionEntry = new EntryType("userSession", {
   label: "User Session",
   description: "An authenticated user session",
+  skipAuditLog: true,
   systemGlobal: true,
   idMode: "ulid",
   fields: [{

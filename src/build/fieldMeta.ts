@@ -7,10 +7,7 @@ import convertString from "../utils/convert-string.ts";
 const choices = defineChildEntry("choices", {
   label: "Choice",
   description: "A list of Choices for the ChoicesField",
-  idMode: {
-    type: "fields",
-    fields: ["parent", "key"],
-  },
+  idMode: { type: "fields", fields: ["parent", "key"] },
   fields: [{
     key: "key",
     type: "DataField",
@@ -49,6 +46,7 @@ const choices = defineChildEntry("choices", {
 export const fieldMeta = defineEntry("fieldMeta", {
   systemGlobal: true,
   label: "Field Meta",
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["entryMeta", "settingsMeta", "key"],

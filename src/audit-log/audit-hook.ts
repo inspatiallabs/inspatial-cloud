@@ -4,14 +4,49 @@ import type {
 } from "../orm/orm-types.ts";
 import type { EntryName } from "#types/models.ts";
 import { dateUtils } from "../utils/date-utils.ts";
+import type { InFieldType } from "../orm/field/field-def-types.ts";
+import type { Entry } from "../orm/entry/entry.ts";
+import type { Settings } from "../orm/settings/settings.ts";
+import { getInLog } from "@inspatial/cloud/inLog";
 
-const skip: Set<EntryName> = new Set(["accountLog", "systemLog"]);
+export type LogUpdateField = {
+  key: string;
+  type: InFieldType;
+  label: string;
+  from: { value: any; label: string };
+  to: { value: any; label: string };
+};
+export type LogUpdateData = {
+  data: Array<LogUpdateField>;
+};
+const skipTHis: Array<EntryName> = [
+  "accountLog",
+  "systemLog",
+  "userSession",
+  "actionMeta",
+  "entryMeta",
+  "fieldMeta",
+];
+
 export const auditUpdateHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
-  if (skip.has(entryType as EntryName)) return;
+  if (shouldSkipEntry(entry)) {
+    getInLog("cloud").info(`Skipping ${entryType}`);
+    return;
+  }
   entry._modifiedValues.delete("updatedAt");
-  const changes = Object.fromEntries(entry._modifiedValues);
+  const changes: Array<LogUpdateField> = [];
+  const fields = entry._entryType.fields;
+  for (const [key, value] of entry._modifiedValues.entries()) {
+    changes.push({
+      key,
+      type: fields.get(key)?.type || "DataField",
+      label: fields.get(key)?.label || key,
+      from: { value: value.from, label: value.from },
+      to: { value: value.to, label: value.to },
+    });
+  }
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
   const { titleField = "id" } = entry._entryType.config;
@@ -22,14 +57,17 @@ export const auditUpdateHook: GlobalHookFunction = async (
   log.$entryId = entry.id;
   log.$entryTitle = entry._data.get(titleField);
   log.$modifiedDate = entry._data.get("updatedAt");
-  log.$changes = changes;
+  log.$changes = { data: changes };
   await log.save();
 };
 
 export const auditCreateHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
-  if (skip.has(entryType as EntryName)) return;
+  if (shouldSkipEntry(entry)) {
+    getInLog("cloud").info(`Skipping ${entryType}`);
+    return;
+  }
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
   const { titleField = "id" } = entry._entryType.config;
@@ -47,7 +85,10 @@ export const auditCreateHook: GlobalHookFunction = async (
 export const auditDeleteHook: GlobalHookFunction = async (
   { entry, entryType, orm },
 ) => {
-  if (skip.has(entryType as EntryName)) return;
+  if (shouldSkipEntry(entry)) {
+    getInLog("cloud").info(`Skipping ${entryType}`);
+    return;
+  }
 
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
@@ -66,6 +107,9 @@ export const auditDeleteHook: GlobalHookFunction = async (
 export const auditUpdateSettingsHook: GlobalSettingsHookFunction = async (
   { settings, orm },
 ) => {
+  if (shouldSkipSettings(settings)) {
+    return;
+  }
   settings._modifiedValues.delete("updatedAt");
   const changes = Object.fromEntries(settings._modifiedValues);
   const logName: EntryName = settings._systemGlobal
@@ -79,3 +123,10 @@ export const auditUpdateSettingsHook: GlobalSettingsHookFunction = async (
   log.$changes = changes;
   await log.save();
 };
+
+function shouldSkipEntry(entry: Entry) {
+  return entry._entryType.config.skipAuditLog || false;
+}
+function shouldSkipSettings(settings: Settings) {
+  return settings._settingsType.config.skipAuditLog || false;
+}

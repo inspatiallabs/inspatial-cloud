@@ -43,6 +43,7 @@ const defaultListFields = [
 ] as any[];
 export const accountLog = defineEntry("accountLog", {
   index: [{ fields: ["entryType", "entryId"] }],
+  skipAuditLog: true,
   defaultListFields,
   fields,
 });
@@ -60,6 +61,7 @@ accountLog.addHook("beforeCreate", {
 export const systemLog = defineEntry("systemLog", {
   index: [{ fields: ["entryType", "entryId"] }],
   systemGlobal: true,
+  skipAuditLog: true,
   defaultListFields,
   fields,
 });

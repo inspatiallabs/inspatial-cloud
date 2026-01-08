@@ -166,6 +166,7 @@ export class BaseClass<N extends string = string> {
       await child.load(parentId);
     }
   }
+
   #getAndValidateAction(
     actionKey: string,
     data?: Record<string, any>,

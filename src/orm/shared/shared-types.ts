@@ -20,6 +20,7 @@ export interface BaseTypeInfo {
 export interface BaseTypeConfig {
   label: string;
   description?: string | null;
+  skipAuditLog?: boolean;
   extension?: {
     extensionType: {
       key: string;
@@ -44,6 +45,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;
   dir?: string;
+  skipAuditLog?: boolean;
 }
 
 export interface FieldGroupConfig<FK extends PropertyKey = PropertyKey> {
