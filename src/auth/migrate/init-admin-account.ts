@@ -58,10 +58,9 @@ async function createAdminUser(orm: InSpatialORM): Promise<User | undefined> {
     firstName,
     lastName,
     email,
-    systemAdmin: true,
-    adminPortalAccess: true,
   });
-
+  user.$adminPortalAccess = true;
+  user.$enabled = true;
   user.$systemAdmin = true;
   user.$verified = true;
   user.$verifyToken = generateSalt();

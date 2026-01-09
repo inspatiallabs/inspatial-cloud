@@ -39,7 +39,7 @@ export function handlePgError(error: PgError) {
           error.message.split('"')[1],
           "camel",
         )
-      } field does not exist in the database. You may need to run a migration`);
+      } field does not exist in the database. You may need to run a migration \n${error.query}`);
       break;
     case PGErrorCode.ForeignKeyViolation: {
       response.push(error.detail);

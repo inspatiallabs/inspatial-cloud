@@ -1,9 +1,12 @@
-import { EntryType } from "@inspatial/cloud";
 import { defineChildEntry } from "../orm/child-entry/child-entry.ts";
 import { defineEntry } from "../orm/mod.ts";
 
 const settingsHooks = defineChildEntry("hooks", {
   label: "Lifecycle Hooks",
+  idMode: {
+    type: "fields",
+    fields: ["parent", "hook", "name"],
+  },
   fields: [{
     key: "hook",
     label: "Hook",

@@ -1,4 +1,3 @@
-import { ChildEntryType, EntryType } from "@inspatial/cloud";
 import { ormFields } from "../orm/field/fields.ts";
 import { defineEntry } from "../orm/mod.ts";
 import { defineChildEntry } from "../orm/child-entry/child-entry.ts";

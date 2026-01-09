@@ -4,8 +4,8 @@ export const emailTemplate = new EntryType("emailTemplate", {
   systemGlobal: true,
   titleField: "title",
   fields: [
-    { key: "title", type: "DataField", required: true, defaultValue: "" },
-    { key: "subject", type: "DataField", defaultValue: "" },
+    { key: "title", type: "DataField", required: true },
+    { key: "subject", type: "DataField" },
     { key: "content", type: "RichTextField" },
     { key: "useGlobalHeader", type: "BooleanField", defaultValue: true },
     { key: "useGlobalFooter", type: "BooleanField", defaultValue: true },

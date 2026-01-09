@@ -1,11 +1,12 @@
-import { raiseORMException } from "../../../orm/orm-exception.ts";
-import {
-  ChildEntryType,
-  defineChildEntry,
-} from "../../../orm/child-entry/child-entry.ts";
-import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
-import { defineEntry } from "../../../orm/mod.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+import { defineChildEntry } from "~/orm/child-entry/child-entry.ts";
+import type { EntryHookDefinition } from "~/orm/entry/types.ts";
+import { defineEntry } from "~/orm/mod.ts";
 const fieldPermission = defineChildEntry("fieldPermissions", {
+  idMode: {
+    type: "fields",
+    fields: ["parent", "fieldKey"],
+  },
   fields: [{
     key: "field",
     type: "ConnectionField",
@@ -13,6 +14,14 @@ const fieldPermission = defineChildEntry("fieldPermissions", {
     entryType: "fieldMeta",
     filterBy: {
       entryMeta: "entryMeta",
+    },
+  }, {
+    key: "fieldKey",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "field",
+      fetchField: "key",
     },
   }, {
     key: "canView",
@@ -24,6 +33,10 @@ const fieldPermission = defineChildEntry("fieldPermissions", {
 });
 const actionPermission = defineChildEntry("actionPermissions", {
   label: "Action Permissions",
+  idMode: {
+    type: "fields",
+    fields: ["parent", "actionKey"],
+  },
   fields: [{
     key: "action",
     type: "ConnectionField",
@@ -31,6 +44,14 @@ const actionPermission = defineChildEntry("actionPermissions", {
     entryType: "actionMeta",
     filterBy: {
       entryMeta: "entryMeta",
+    },
+  }, {
+    key: "actionKey",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "action",
+      fetchField: "key",
     },
   }, {
     key: "canExecute",
@@ -53,6 +74,10 @@ export const entryPermission = defineEntry(
   {
     systemGlobal: true,
     skipAuditLog: true,
+    idMode: {
+      type: "fields",
+      fields: ["userRole", "entryMeta"],
+    },
     description: "Role permissions for a specific entry type",
     defaultListFields: [
       "userRole",
@@ -200,12 +225,14 @@ export const entryPermission = defineEntry(
             filter: {
               entryMeta: entryPermission.$entryMeta,
             },
-            columns: ["id"],
+            columns: ["id", "key"],
             limit: 0,
           });
+
           if (entryPermission.$allowAllActions) {
             entryPermission.$actionPermissions.update(actions.map((a) => ({
               action: a.id,
+              actionKey: a.key,
               canExecute: true,
             })));
             return;

@@ -161,9 +161,9 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     return typeof this._idMode === "object" && "fields" in this._idMode;
   }
   update(data: Array<T & { id?: string }>): void {
+    if (data.length === 0 && this._data.size === 0) return;
     this._newData.clear();
     const rowsToRemove = new Set(this._data.keys());
-
     for (const row of data) {
       if (typeof this._idMode === "object" && "fields" in this._idMode) {
         const id = `${this._parentId}:${

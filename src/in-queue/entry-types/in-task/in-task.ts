@@ -2,11 +2,11 @@ import { inTaskFields } from "~/in-queue/entry-types/in-task/fields.ts";
 
 import { EntryType } from "~/orm/entry/entry-type.ts";
 
-import dateUtils from "../../../utils/date-utils.ts";
-import type { InSpatialORM } from "../../../orm/inspatial-orm.ts";
+import dateUtils from "~/utils/date-utils.ts";
+import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import { convertString } from "~/utils/mod.ts";
-import type { EntryName, SettingsName } from "#types/models.ts";
-import type { GenericEntry } from "../../../orm/entry/entry-base.ts";
+import type { SettingsName } from "#types/models.ts";
+import type { GenericEntry } from "~/orm/entry/entry-base.ts";
 
 const config = {
   titleField: "title",
@@ -19,6 +19,7 @@ const config = {
     "actionName",
   ],
   fields: inTaskFields,
+  skipAuditLog: true,
   hooks: {
     beforeCreate: [{
       name: "setTitle",

@@ -149,7 +149,6 @@ export class InCloudMigrator extends InCloud {
       }
       const name = entryType.name;
       entryNames.add(name);
-      console.log({ sync: name });
       let model = await orm.findEntry("entryMeta", {
         id: name,
       });
@@ -355,11 +354,16 @@ export class InCloudMigrator extends InCloud {
         const code = formatFunction(action.action.toString());
         if (code.length > 0) {
           actionMeta.$code = code;
+        } else {
+          actionMeta.$code = "{}";
         }
 
         if (action.params) {
           actionMeta.$parameters.update(
-            action.params as any[],
+            action.params.map((param) => ({
+              ...param,
+              label: param.label || convertString(param.key, "title", true),
+            })) as any[],
           );
         }
         await actionMeta.save();
@@ -531,6 +535,7 @@ export class InCloudMigrator extends InCloud {
         entryPermModel.$userRole = roleName;
         entryPermModel.$entryMeta = entryTypeName;
       }
+
       entryPermModel.$canView = entryPerm.view || false;
       entryPermModel.$canModify = entryPerm.modify || false;
       entryPermModel.$canCreate = entryPerm.create || false;
@@ -544,19 +549,20 @@ export class InCloudMigrator extends InCloud {
       const excludedActions = new Set(
         entryPerm.actions?.exclude || [],
       );
+      const actionPermissions = [];
       if (includedActions.size > 0 || excludedActions.size > 0) {
         entryPermModel.$allowAllActions = false;
-
-        entryPermModel.$actionPermissions.update(
-          entryPerm.actions?.include?.map((actionName) => ({
-            action: `${entryTypeName}:${actionName}`,
+        for (const action of entryPerm.actions?.include || []) {
+          actionPermissions.push({
+            action: `${entryTypeName}:${action}`,
+            actionKey: action,
             canExecute: true,
-          })) || [],
-        );
+          });
+        }
+        // entryPermModel.$actionPermissions.update(actionPermissions);
       }
-
+      const fieldPerms = [];
       if (entryPerm.fields) {
-        const fieldPerms = [];
         for (
           const [fieldName, permission] of Object.entries(entryPerm.fields)
         ) {
@@ -569,9 +575,8 @@ export class InCloudMigrator extends InCloud {
             canModify: !!permission.modify,
           });
         }
-        entryPermModel.$fieldPermissions.update(fieldPerms);
       }
-
+      // entryPermModel.$fieldPermissions.update(fieldPerms);
       await entryPermModel.save();
     }
   }
@@ -599,12 +604,12 @@ export class InCloudMigrator extends InCloud {
       if (includedActions.size > 0 || excludedActions.size > 0) {
         settingsPermModel.$allowAllActions = false;
 
-        settingsPermModel.$actionPermissions.update(
-          settingsPerm.actions?.include?.map((actionName) => ({
-            action: `${settingsTypeName}:${actionName}`,
-            canExecute: true,
-          })) || [],
-        );
+        // settingsPermModel.$actionPermissions.update(
+        //   settingsPerm.actions?.include?.map((actionName) => ({
+        //     action: `${settingsTypeName}:${actionName}`,
+        //     canExecute: true,
+        //   })) || [],
+        // );
       }
 
       if (settingsPerm.fields) {
@@ -621,7 +626,7 @@ export class InCloudMigrator extends InCloud {
             canModify: !!permission.modify,
           });
         }
-        settingsPermModel.$fieldPermissions.update(fieldPerms);
+        // settingsPermModel.$fieldPermissions.update(fieldPerms);
       }
 
       await settingsPermModel.save();
@@ -649,7 +654,6 @@ export class InCloudMigrator extends InCloud {
         for (const actionName of groupPerm) {
           const actionId = `${groupName}:${actionName}`;
           newActions.push({
-            id: `${apiGroupPermModel.id}:${actionId}`,
             apiAction: actionId,
             canAccess: true,
           });
@@ -657,13 +661,12 @@ export class InCloudMigrator extends InCloud {
         for (const existingAction of existingActions) {
           if (!groupPerm.has(existingAction.split(":").pop()!)) {
             newActions.push({
-              id: `${apiGroupPermModel.id}:${existingAction}`,
               apiAction: existingAction,
               canAccess: false,
             });
           }
         }
-        apiGroupPermModel.$actions.update(newActions);
+        // apiGroupPermModel.$actions.update(newActions);
       }
 
       await apiGroupPermModel.save();
@@ -695,7 +698,7 @@ export class InCloudMigrator extends InCloud {
             convertString(param.key as string, "title", true),
         });
       }
-      model.$parameters.update(params);
+      // model.$parameters.update(params);
       await model.save();
     };
     const syncGroup = async (group: CloudAPIGroup, extension: string) => {

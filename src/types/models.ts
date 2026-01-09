@@ -53,7 +53,6 @@ type UserFields = {
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
-   * @required true
    */
   systemAdmin: boolean;
   /**
@@ -74,7 +73,6 @@ type UserFields = {
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
-   * @required true
    */
   enabled: boolean;
   /**
@@ -211,7 +209,6 @@ export interface User extends EntryBase<"user", UserFields> {
    * **System Administrator** (BooleanField)
    * @description Is the user a system administrator? (admin users have access to all parts of the system)
    * @type {boolean}
-   * @required true
    */
   $systemAdmin: boolean;
   /**
@@ -232,7 +229,6 @@ export interface User extends EntryBase<"user", UserFields> {
    * **Enabled** (BooleanField)
    * @description Is the user account enabled? Disabled accounts cannot log in.
    * @type {boolean}
-   * @required true
    */
   $enabled: boolean;
   /**
@@ -4201,6 +4197,11 @@ type EntryPermissionFields = {
      */
     field: string;
     /**
+     * **Field Key** (DataField)
+     * @type {string}
+     */
+    fieldKey?: string | null;
+    /**
      * **Can View** (BooleanField)
      * @type {boolean}
      */
@@ -4225,6 +4226,11 @@ type EntryPermissionFields = {
      * @required true
      */
     action: string;
+    /**
+     * **Action Key** (DataField)
+     * @type {string}
+     */
+    actionKey?: string | null;
     /**
      * **Can Execute** (BooleanField)
      * @type {boolean}
@@ -4342,6 +4348,11 @@ export interface EntryPermission
      */
     field: string;
     /**
+     * **Field Key** (DataField)
+     * @type {string}
+     */
+    fieldKey?: string | null;
+    /**
      * **Can View** (BooleanField)
      * @type {boolean}
      */
@@ -4366,6 +4377,11 @@ export interface EntryPermission
      * @required true
      */
     action: string;
+    /**
+     * **Action Key** (DataField)
+     * @type {string}
+     */
+    actionKey?: string | null;
     /**
      * **Can Execute** (BooleanField)
      * @type {boolean}
@@ -4453,6 +4469,11 @@ type SettingsPermissionFields = {
      */
     field: string;
     /**
+     * **Field Key** (DataField)
+     * @type {string}
+     */
+    fieldKey?: string | null;
+    /**
      * **Can View** (BooleanField)
      * @type {boolean}
      */
@@ -4477,6 +4498,11 @@ type SettingsPermissionFields = {
      * @required true
      */
     action: string;
+    /**
+     * **Action Key** (DataField)
+     * @type {string}
+     */
+    actionKey?: string | null;
     /**
      * **Can Execute** (BooleanField)
      * @type {boolean}
@@ -4566,6 +4592,11 @@ export interface SettingsPermission
      */
     field: string;
     /**
+     * **Field Key** (DataField)
+     * @type {string}
+     */
+    fieldKey?: string | null;
+    /**
      * **Can View** (BooleanField)
      * @type {boolean}
      */
@@ -4590,6 +4621,11 @@ export interface SettingsPermission
      * @required true
      */
     action: string;
+    /**
+     * **Action Key** (DataField)
+     * @type {string}
+     */
+    actionKey?: string | null;
     /**
      * **Can Execute** (BooleanField)
      * @type {boolean}
@@ -5082,6 +5118,11 @@ type ApiGroupPermissionFields = {
      */
     apiAction: string;
     /**
+     * **Action Name** (DataField)
+     * @type {string}
+     */
+    actionName?: string | null;
+    /**
      * **Can Access** (BooleanField)
      * @description Whether the role can access this API action
      * @type {boolean}
@@ -5165,6 +5206,11 @@ export interface ApiGroupPermission
      * @required true
      */
     apiAction: string;
+    /**
+     * **Action Name** (DataField)
+     * @type {string}
+     */
+    actionName?: string | null;
     /**
      * **Can Access** (BooleanField)
      * @description Whether the role can access this API action

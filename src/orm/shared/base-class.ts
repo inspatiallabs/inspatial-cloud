@@ -26,6 +26,7 @@ export class BaseClass<N extends string = string> {
   _db: InSpatialDB;
   _data: Map<string, any>;
   _modifiedValues: Map<string, { from: any; to: any }> = new Map();
+  _modifiedChildren: Map<string, any> = new Map();
   _fields: Map<string, InField> = new Map();
   _titleFields: Map<string, InField> = new Map();
   _changeableFields: Map<string, InField> = new Map();
@@ -146,15 +147,14 @@ export class BaseClass<N extends string = string> {
     }
     return this._childrenData.get(childName)!;
   }
-  async _saveChildren(withParentId?: string): Promise<Map<string, true>> {
-    const modifiedChildren = new Map();
+  async _saveChildren(withParentId?: string): Promise<void> {
+    this._modifiedChildren = new Map();
     for (const child of this._childrenData.values()) {
       const isModified = await child.save(withParentId);
       if (isModified) {
-        modifiedChildren.set(child._name, true);
+        this._modifiedChildren.set(child._name, true);
       }
     }
-    return modifiedChildren;
   }
   async _deleteChildren() {
     for (const child of this._childrenData.values()) {

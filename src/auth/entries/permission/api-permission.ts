@@ -7,7 +7,7 @@ const apiActions = defineChildEntry("actions", {
   label: "API Actions",
   idMode: {
     type: "fields",
-    fields: ["parent", "apiAction"],
+    fields: ["parent", "actionName"],
   },
   fields: [{
     key: "apiAction",
@@ -17,6 +17,14 @@ const apiActions = defineChildEntry("actions", {
     required: true,
     filterBy: {
       apiGroup: "apiGroup",
+    },
+  }, {
+    key: "actionName",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "apiAction",
+      fetchField: "actionName",
     },
   }, {
     key: "canAccess",
@@ -106,7 +114,7 @@ export const apiGroupPermission = defineEntry("apiGroupPermission", {
           filter: {
             apiGroup: apiGroupPermission.$apiGroup,
           },
-          columns: ["id"],
+          columns: ["id", "actionName"],
           limit: 0,
         });
         const currentActions = apiGroupPermission.$actions.data.map(
@@ -117,6 +125,7 @@ export const apiGroupPermission = defineEntry("apiGroupPermission", {
           apiGroupPermission.$accessAll = apiGroupPermission.$canAccess;
           apiGroupPermission.$actions.update(actions.map((a) => ({
             apiAction: a.id,
+            actionName: a.actionName,
             canAccess: apiGroupPermission.$accessAll,
           })));
           return;
@@ -128,6 +137,7 @@ export const apiGroupPermission = defineEntry("apiGroupPermission", {
           apiGroupPermission.$actions.update([
             ...newActions.map((a) => ({
               apiAction: a.id,
+              actionName: a.actionName,
               canAccess: apiGroupPermission.$canAccess,
             })),
             ...apiGroupPermission.$actions.data,

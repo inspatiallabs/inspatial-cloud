@@ -3,6 +3,10 @@ import { defineChildEntry } from "~/orm/child-entry/child-entry.ts";
 import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 import { defineEntry } from "~/orm/entry/entry-type.ts";
 const fieldPermission = defineChildEntry("fieldPermissions", {
+  idMode: {
+    type: "fields",
+    fields: ["parent", "fieldKey"],
+  },
   fields: [{
     key: "field",
     type: "ConnectionField",
@@ -10,6 +14,14 @@ const fieldPermission = defineChildEntry("fieldPermissions", {
     entryType: "fieldMeta",
     filterBy: {
       settingsMeta: "settingsMeta",
+    },
+  }, {
+    key: "fieldKey",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "field",
+      fetchField: "key",
     },
   }, {
     key: "canView",
@@ -21,6 +33,10 @@ const fieldPermission = defineChildEntry("fieldPermissions", {
 });
 const actionPermission = defineChildEntry("actionPermissions", {
   label: "Action Permissions",
+  idMode: {
+    type: "fields",
+    fields: ["parent", "actionKey"],
+  },
   fields: [{
     key: "action",
     type: "ConnectionField",
@@ -28,6 +44,14 @@ const actionPermission = defineChildEntry("actionPermissions", {
     entryType: "actionMeta",
     filterBy: {
       settingsMeta: "settingsMeta",
+    },
+  }, {
+    key: "actionKey",
+    type: "DataField",
+    readOnly: true,
+    fetchField: {
+      connectionField: "action",
+      fetchField: "key",
     },
   }, {
     key: "canExecute",
@@ -51,6 +75,10 @@ export const settingsPermission = defineEntry(
     systemGlobal: true,
     skipAuditLog: true,
     description: "Role permissions for a specific settings type",
+    idMode: {
+      type: "fields",
+      fields: ["userRole", "settingsMeta"],
+    },
     defaultListFields: [
       "userRole",
       "settingsMeta",
@@ -146,12 +174,13 @@ export const settingsPermission = defineEntry(
             filter: {
               settingsMeta: settingsPermission.$settingsMeta,
             },
-            columns: ["id"],
+            columns: ["id", "key"],
             limit: 0,
           });
           if (settingsPermission.$allowAllActions) {
             settingsPermission.$actionPermissions.update(actions.map((a) => ({
               action: a.id,
+              actionKey: a.key,
               canExecute: true,
             })));
             return;

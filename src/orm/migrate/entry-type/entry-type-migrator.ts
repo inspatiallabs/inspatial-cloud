@@ -287,7 +287,10 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       if (field.key == "id") {
         const idField = field as InField<"IDField">;
         this.migrationPlan.table.idMode = idField.idMode;
-        // continue;
+        if (this.migrationPlan.table.create) {
+          // don't include the "id" column below since it will be created with the new table;
+          continue;
+        }
       }
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);

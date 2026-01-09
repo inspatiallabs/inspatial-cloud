@@ -78,6 +78,7 @@ export const entryMeta = defineEntry("entryMeta", {
   },
   titleField: "label",
   searchFields: ["extension"],
+  skipAuditLog: true,
   defaultListFields: ["label", "extension", "systemGlobal"],
   fields: [
     {

@@ -119,6 +119,7 @@ export class Entry<
     this.#assertViewPermission();
     this._data.clear();
     this._modifiedValues.clear();
+    this._modifiedChildren.clear();
     // Load the main table row
     const dbRow = await this._db.getRow(this._entryType.config.tableName, id);
     if (!dbRow) {
@@ -219,10 +220,8 @@ export class Entry<
 
     // Update the main table row
 
-    const modifiedChildren = await this._saveChildren().catch((e) =>
-      this._handlePGError(e)
-    );
-    if (this._modifiedValues.size === 0 && modifiedChildren.size === 0) {
+    await this._saveChildren().catch((e) => this._handlePGError(e));
+    if (this._modifiedValues.size === 0 && this._modifiedChildren.size === 0) {
       return;
     }
     const updatedAt = new Date();

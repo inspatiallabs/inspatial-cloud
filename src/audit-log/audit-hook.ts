@@ -38,6 +38,7 @@ export const auditUpdateHook: GlobalHookFunction = async (
       to: { value: value.to, label: value.to },
     });
   }
+
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
   const { titleField = "id" } = entry._entryType.config;
@@ -114,9 +115,11 @@ export const auditUpdateSettingsHook: GlobalSettingsHookFunction = async (
 };
 
 function shouldSkipEntry(entry: Entry) {
-  console.log("checking", entry._name);
-  return entry._entryType.config.skipAuditLog || false;
+  const skip = entry._entryType.config.skipAuditLog || false;
+  return skip;
 }
 function shouldSkipSettings(settings: Settings) {
-  return settings._settingsType.config.skipAuditLog || false;
+  const skip = settings._settingsType.config.skipAuditLog || false;
+
+  return skip;
 }
