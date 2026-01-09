@@ -514,7 +514,6 @@ export class InQueue extends InCloud {
       columns: [
         "id",
         "frequency",
-        "frequencyCount",
         "lastRunTime",
         "scheduleType",
         "action",

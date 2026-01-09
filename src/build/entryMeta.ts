@@ -79,36 +79,31 @@ export const entryMeta = defineEntry("entryMeta", {
   titleField: "label",
   searchFields: ["extension"],
   defaultListFields: ["label", "extension", "systemGlobal"],
-  fields: [{
-    key: "name",
-    type: "DataField",
-    required: true,
-    readOnly: false,
-    description: "The unique name of this entry type",
-    unique: true,
-  }, {
-    key: "label",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "description",
-    type: "TextField",
-  }, {
-    key: "extension",
-    type: "ConnectionField",
-    entryType: "extensionMeta",
-    description: "The extension this entry type belongs to",
-  }, {
-    key: "custom",
-    type: "BooleanField",
-    description: "Whether this entry type is custom or not",
-  }, {
-    key: "titleField",
-    type: "DataField",
-  }, {
-    key: "systemGlobal",
-    type: "BooleanField",
-  }],
+  fields: [
+    {
+      key: "name",
+      type: "DataField",
+      required: true,
+      readOnly: false,
+      description: "The unique name of this entry type",
+      unique: true,
+    },
+    { key: "label", type: "DataField", required: true },
+    { key: "description", type: "TextField" },
+    {
+      key: "extension",
+      type: "ConnectionField",
+      entryType: "extensionMeta",
+      description: "The extension this entry type belongs to",
+    },
+    {
+      key: "custom",
+      type: "BooleanField",
+      description: "Whether this entry type is custom or not",
+    },
+    { key: "titleField", type: "DataField" },
+    { key: "systemGlobal", type: "BooleanField" },
+  ],
   children: [entryHooks],
 });
 

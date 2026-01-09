@@ -89,6 +89,7 @@ export class InCloudMigrator extends InCloud {
       //   "Sync Roles",
       //   async () => await this.#syncRoles(orm),
       // );
+
       await this.#deleteObsoleteMeta(orm);
       await this.#syncExtensionMeta(orm);
       await this.#syncEntryMeta(orm);
@@ -106,6 +107,7 @@ export class InCloudMigrator extends InCloud {
         });
         raiseORMException(response.join("\n"), subject);
       }
+      throw e;
     }
     for (const migrateAction of this.extensionManager.afterMigrate.global) {
       await migrateAction.action({
@@ -147,9 +149,11 @@ export class InCloudMigrator extends InCloud {
       }
       const name = entryType.name;
       entryNames.add(name);
+      console.log({ sync: name });
       let model = await orm.findEntry("entryMeta", {
         id: name,
       });
+
       if (!model) {
         model = orm.getNewEntry("entryMeta");
         model.$name = name;
@@ -355,9 +359,7 @@ export class InCloudMigrator extends InCloud {
 
         if (action.params) {
           actionMeta.$parameters.update(
-            action.params.map((param) => ({
-              ...param,
-            })) as any[],
+            action.params as any[],
           );
         }
         await actionMeta.save();
@@ -688,7 +690,6 @@ export class InCloudMigrator extends InCloud {
       const params: any = [];
       for (const param of action.params.values()) {
         params.push({
-          id: `${model.id}${param.key}`,
           ...param,
           label: param.label ||
             convertString(param.key as string, "title", true),

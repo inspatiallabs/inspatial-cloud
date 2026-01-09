@@ -4,7 +4,7 @@ import { defineEntry } from "../orm/entry/entry-type.ts";
 
 const actionParams = defineChildEntry("parameters", {
   label: "Input Parameters",
-  idMode: { type: "fields", fields: ["parent", "role"] },
+  idMode: { type: "fields", fields: ["parent", "key"] },
   fields: [{
     key: "key",
     type: "DataField",

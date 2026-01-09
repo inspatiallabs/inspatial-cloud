@@ -114,6 +114,7 @@ export const auditUpdateSettingsHook: GlobalSettingsHookFunction = async (
 };
 
 function shouldSkipEntry(entry: Entry) {
+  console.log("checking", entry._name);
   return entry._entryType.config.skipAuditLog || false;
 }
 function shouldSkipSettings(settings: Settings) {

@@ -157,10 +157,23 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     );
     this.rowsToRemove.clear();
   }
-  update(data: Array<T>): void {
+  get isFieldsIdMode(): boolean {
+    return typeof this._idMode === "object" && "fields" in this._idMode;
+  }
+  update(data: Array<T & { id?: string }>): void {
     this._newData.clear();
     const rowsToRemove = new Set(this._data.keys());
+
     for (const row of data) {
+      if (typeof this._idMode === "object" && "fields" in this._idMode) {
+        const id = `${this._parentId}:${
+          this._idMode.fields.filter((field) => field !== "parent")
+            .map((field) => row[field]).join(":")
+        }`;
+        if (rowsToRemove.has(id)) {
+          row.id = id;
+        }
+      }
       switch (typeof row.id) {
         case "string":
           rowsToRemove.delete(row.id);
@@ -180,7 +193,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
     const child = this._data.get(id);
     if (!child) {
       raiseORMException(
-        `Child with id ${id} not found in entry type ${this._name}`,
+        `Child with id ${id} not found in child ${this._name} for ${this._parentId}`,
       );
     }
     return child;
@@ -228,6 +241,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
 
     for (const childEntry of this._data.values()) {
       await this.#refreshFetchedFields(childEntry);
+
       if (childEntry._modifiedValues.size === 0) {
         continue;
       }
@@ -280,7 +294,6 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       );
       this._data.set(childEntry.$id, childEntry);
     }
-
     await this.deleteStaleRecords();
     await this.load(this._parentId);
     return hasChanges;

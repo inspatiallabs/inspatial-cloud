@@ -151,7 +151,6 @@ export class PostgresPool {
     }
     const client = await this.getClient();
     const result = await client.query<T>(query);
-
     this.returnClient(client);
     return result;
   }

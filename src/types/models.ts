@@ -4842,7 +4842,7 @@ type ApiActionFields = {
     description?: string | null;
     /**
      * **Required** (BooleanField)
-     * @description Whether the field is mandatory.
+     * @description Whether the field is a mandatory field.
      * @type {boolean}
      */
     required: boolean;
@@ -4993,7 +4993,7 @@ export interface ApiAction extends EntryBase<"apiAction", ApiActionFields> {
     description?: string | null;
     /**
      * **Required** (BooleanField)
-     * @description Whether the field is mandatory.
+     * @description Whether the field is a mandatory field.
      * @type {boolean}
      */
     required: boolean;
@@ -5524,59 +5524,6 @@ type ScheduledTaskFields = {
    * @required true
    */
   status: "idle" | "running" | "completed" | "error";
-type AccountLogFields = {
-  /**
-   * **User** (ConnectionField)
-   *
-   * **EntryType** `user`
-   * @type {string}
-   */
-  user?: string | null;
-  /**
-   * **System Admin** (BooleanField)
-   * @type {boolean}
-   */
-  systemAdmin: boolean;
-  /**
-   * **Action** (ChoicesField)
-   * @type {'create' | 'update' | 'delete'}
-   * @required true
-   */
-  action: "create" | "update" | "delete";
-  /**
-   * **Changes** (JSONField)
-   * @type {Record<string, unknown>}
-   */
-  changes?: Record<string, unknown> | null;
-  /**
-   * **Entry Type** (ConnectionField)
-   *
-   * **EntryType** `entryMeta`
-   * @type {string}
-   */
-  entryType?: string | null;
-  /**
-   * **Settings Type** (ConnectionField)
-   *
-   * **EntryType** `settingsMeta`
-   * @type {string}
-   */
-  settingsType?: string | null;
-  /**
-   * **Entry Id** (DataField)
-   * @type {string}
-   */
-  entryId?: string | null;
-  /**
-   * **Entry Title** (DataField)
-   * @type {string}
-   */
-  entryTitle?: string | null;
-  /**
-   * **Modified Date** (TimeStampField)
-   * @type {number}
-   */
-  modifiedDate?: number | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5667,6 +5614,112 @@ export interface ScheduledTask
    * @required true
    */
   $status: "idle" | "running" | "completed" | "error";
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **Api Group Title** (DataField)
+   * @type {string}
+   */
+  $apiGroup__title?: string | null;
+  /**
+   * **Action Title** (DataField)
+   * @type {string}
+   */
+  $action__title?: string | null;
+}
+
+type AccountLogFields = {
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
    * **User Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
@@ -5759,15 +5812,6 @@ export interface AccountLog extends EntryBase<"accountLog", AccountLogFields> {
    */
   $updatedAt: number;
   /**
-   * **Api Group Title** (DataField)
-   * @type {string}
-   */
-  $apiGroup__title?: string | null;
-  /**
-   * **Action Title** (DataField)
-   * @type {string}
-   */
-  $action__title?: string | null;
    * **User Title** (DataField)
    * @description The user's full name (automatically generated)
    * @type {string}
