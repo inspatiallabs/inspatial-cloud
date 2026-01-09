@@ -45,6 +45,7 @@ export type PgDataType =
   | "text"
   | "text[]"
   | "character varying"
+  | "character"
   | "timestamp with time zone"
   | "integer"
   | "integer[]"

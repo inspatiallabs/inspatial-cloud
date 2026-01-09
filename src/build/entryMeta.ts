@@ -7,6 +7,10 @@ import { defineEntry } from "../orm/entry/entry-type.ts";
 
 const entryHooks = defineChildEntry("hooks", {
   label: "Lifecycle Hooks",
+  idMode: {
+    type: "fields",
+    fields: ["parent", "hook", "name"],
+  },
   fields: [{
     key: "hook",
     label: "Hook",
@@ -171,7 +175,7 @@ entryMeta.addAction("generateConfig", {
 
     const config: EntryConfig<any> = {
       label: $label,
-      description: $description || "",
+      description: $description,
       systemGlobal: $systemGlobal || false,
       fields,
       children: [],
@@ -222,7 +226,6 @@ entryMeta.addAction("bootSync", {
     entryType.config.extension = {
       key: $extension || "",
       label: $extension__title || "",
-      description: "",
       extensionType: {
         key: "cloud",
         label: "Cloud Extension",

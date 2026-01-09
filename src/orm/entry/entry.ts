@@ -195,9 +195,10 @@ export class Entry<
     }
     this.#assertModifyPermission();
     await this._refreshFetchedFields();
-    this["$updatedAt" as keyof typeof this] = Date.now() as any;
+    // this["$updatedAt" as keyof typeof this] = Date.now() as any;
     switch (this.isNew) {
       case true:
+        this["$updatedAt" as keyof typeof this] = Date.now() as any;
         this["$createdAt" as keyof typeof this] = Date.now() as any;
         await this.#beforeCreate();
         break;
@@ -217,12 +218,21 @@ export class Entry<
     }
 
     // Update the main table row
+
+    const modifiedChildren = await this._saveChildren().catch((e) =>
+      this._handlePGError(e)
+    );
+    if (this._modifiedValues.size === 0 && modifiedChildren.size === 0) {
+      return;
+    }
+    const updatedAt = new Date();
+    data["updatedAt"] = updatedAt.toUTCString();
     await this._db.updateRow(
       this._entryType.config.tableName,
       this.id,
       data,
     ).catch((e) => this._handlePGError(e));
-    await this._saveChildren().catch((e) => this._handlePGError(e));
+    this["$updatedAt" as keyof typeof this] = updatedAt.getTime() as any;
     await this.#afterUpdate();
     await this._load(this.id);
   }

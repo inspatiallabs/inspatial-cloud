@@ -131,6 +131,7 @@ export class EntryType<
     this.config = {
       tableName: this.#generateTableName(),
       label: this.label,
+      skipAuditLog: config.skipAuditLog || false,
       index: config.index as Array<EntryIndex<string>> || [],
       titleField: config.titleField as string || "id",
       idMode: config.idMode || "ulid",

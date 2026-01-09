@@ -146,10 +146,15 @@ export class BaseClass<N extends string = string> {
     }
     return this._childrenData.get(childName)!;
   }
-  async _saveChildren(withParentId?: string): Promise<void> {
+  async _saveChildren(withParentId?: string): Promise<Map<string, true>> {
+    const modifiedChildren = new Map();
     for (const child of this._childrenData.values()) {
-      await child.save(withParentId);
+      const isModified = await child.save(withParentId);
+      if (isModified) {
+        modifiedChildren.set(child._name, true);
+      }
     }
+    return modifiedChildren;
   }
   async _deleteChildren() {
     for (const child of this._childrenData.values()) {
@@ -161,6 +166,7 @@ export class BaseClass<N extends string = string> {
       await child.load(parentId);
     }
   }
+
   #getAndValidateAction(
     actionKey: string,
     data?: Record<string, any>,

@@ -6,7 +6,7 @@ import type {
 
 export interface BaseTypeInfo {
   name: string;
-  description: string;
+  description?: string | null;
   systemGlobal: boolean;
   extension?: string;
   label: string;
@@ -19,7 +19,8 @@ export interface BaseTypeInfo {
 
 export interface BaseTypeConfig {
   label: string;
-  description: string;
+  description?: string | null;
+  skipAuditLog?: boolean;
   extension?: {
     extensionType: {
       key: string;
@@ -27,7 +28,7 @@ export interface BaseTypeConfig {
     };
     key: string;
     label: string;
-    description: string;
+    description?: string | null;
     version?: string;
   };
 }
@@ -36,7 +37,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   /** A human readable label. If not provided, one will be generated from the name. */
   label?: string;
   /** A brief description of this type. */
-  description?: string;
+  description?: string | null;
   /** Setting this to `true` will add this to the globally available schema that all accounts can reference. */
   systemGlobal?: boolean;
   /** An array of `InField` definitions  */
@@ -44,6 +45,7 @@ export interface BaseConfig<FK extends PropertyKey = PropertyKey> {
   fieldGroups?: Array<FieldGroupConfig<FK>>;
   children?: Array<ChildEntryType<any>>;
   dir?: string;
+  skipAuditLog?: boolean;
 }
 
 export interface FieldGroupConfig<FK extends PropertyKey = PropertyKey> {

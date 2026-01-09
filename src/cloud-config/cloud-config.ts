@@ -28,7 +28,7 @@ export function generateCloudConfigFile(
       switch (config.type) {
         case "string":
         case "number":
-          value = config.default || "";
+          value = config.default;
           break;
         case "boolean":
           value = config.default || false;

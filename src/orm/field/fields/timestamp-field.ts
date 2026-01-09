@@ -20,4 +20,4 @@ export default new ORMFieldConfig("TimeStampField", {
     }
     return value;
   },
-});
+}) as ORMFieldConfig<"TimeStampField">;

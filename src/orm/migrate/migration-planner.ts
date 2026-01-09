@@ -306,6 +306,20 @@ export class MigrationPlanner {
     const tableName = plan.table.tableName;
 
     for (const column of plan.columns.modify) {
+      if (column.columnName === "id" && this.db.schema === "cloud_global") {
+        const query =
+          `SELECT * FROM information_schema.tables WHERE table_type = 'VIEW' AND table_name = '${
+            convertString(tableName, "snake")
+          }';`;
+        const { rows } = await this.db.query<
+          { tableName: string; tableSchema: string }
+        >(query);
+        for (const { tableName, tableSchema } of rows) {
+          await this.db.query(
+            `DROP VIEW IF EXISTS "${tableSchema}".${tableName};`,
+          );
+        }
+      }
       const { nullable, dataType, unique, foreignKey } = column;
       if (unique) {
         switch (unique.to) {

@@ -60,6 +60,13 @@ import { settingsPermission } from "../auth/entries/permission/settings-permissi
 import { dataImport } from "../data-import/data-import.ts";
 import { accountManagerRole, basicUserRole } from "./roles.ts";
 import { scheduledTask } from "../in-queue/entry-types/scheduled-task/scheduled-task.ts";
+import { accountLog, systemLog } from "../audit-log/account-log.ts";
+import {
+  auditCreateHook,
+  auditDeleteHook,
+  auditUpdateHook,
+  auditUpdateSettingsHook,
+} from "../audit-log/audit-hook.ts";
 const version = "$CLOUD_VERSION";
 export const coreExtension = new CloudExtension("core", {
   description: "InSpatial Cloud Core Extension",
@@ -68,11 +75,13 @@ export const coreExtension = new CloudExtension("core", {
   version,
   ormGlobalHooks: {
     entries: {
-      afterUpdate: [notifyUpdate],
-      afterCreate: [notifyCreate],
-      afterDelete: [notifyDelete],
+      afterUpdate: [notifyUpdate, auditUpdateHook],
+      afterCreate: [notifyCreate, auditCreateHook],
+      afterDelete: [notifyDelete, auditDeleteHook],
     },
-    settings: { afterUpdate: [notifySettings] },
+    settings: {
+      afterUpdate: [notifySettings, auditUpdateSettingsHook],
+    },
   },
   apiGroups: [
     authGroup,
@@ -115,6 +124,8 @@ export const coreExtension = new CloudExtension("core", {
     apiGroupPermission,
     dataImport,
     scheduledTask,
+    accountLog,
+    systemLog,
   ],
   middleware: [corsMiddleware, authMiddleware, inLiveMiddleware],
   pathHandlers: [apiPathHandler, publicFilesHandler],

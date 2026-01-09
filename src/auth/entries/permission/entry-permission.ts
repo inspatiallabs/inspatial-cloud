@@ -1,11 +1,13 @@
-import { EntryType } from "@inspatial/cloud";
 import { raiseORMException } from "../../../orm/orm-exception.ts";
-import { ChildEntryType } from "../../../orm/child-entry/child-entry.ts";
+import {
+  ChildEntryType,
+  defineChildEntry,
+} from "../../../orm/child-entry/child-entry.ts";
 import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
-const fieldPermission = new ChildEntryType("fieldPermissions", {
+import { defineEntry } from "../../../orm/mod.ts";
+const fieldPermission = defineChildEntry("fieldPermissions", {
   fields: [{
     key: "field",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "fieldMeta",
@@ -20,11 +22,10 @@ const fieldPermission = new ChildEntryType("fieldPermissions", {
     type: "BooleanField",
   }],
 });
-const actionPermission = new ChildEntryType("actionPermissions", {
+const actionPermission = defineChildEntry("actionPermissions", {
   label: "Action Permissions",
   fields: [{
     key: "action",
-    label: "",
     type: "ConnectionField",
     required: true,
     entryType: "actionMeta",
@@ -47,10 +48,11 @@ const syncRoleConfig: EntryHookDefinition<"entryPermission"> = {
     userRole.runAction("generateConfig");
   },
 };
-export const entryPermission = new EntryType(
+export const entryPermission = defineEntry(
   "entryPermission",
   {
     systemGlobal: true,
+    skipAuditLog: true,
     description: "Role permissions for a specific entry type",
     defaultListFields: [
       "userRole",

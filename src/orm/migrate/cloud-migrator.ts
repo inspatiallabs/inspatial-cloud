@@ -156,9 +156,9 @@ export class InCloudMigrator extends InCloud {
       }
       model.$systemGlobal = entryType.systemGlobal || false;
       model.$label = entryType.label || name;
-      model.$description = entryType.description || "";
-      model.$titleField = entryType.config.titleField || "";
-      model.$extension = entryType.config.extension?.key || "";
+      model.$description = entryType.description;
+      model.$titleField = entryType.config.titleField;
+      model.$extension = entryType.config.extension?.key;
       const parseHookFunc = (funcString: string) => {
         const regex = /handler[^\)]+[^\{]+\{(.*)\}$/s;
         const match = funcString.match(regex);
@@ -184,7 +184,7 @@ export class InCloudMigrator extends InCloud {
           hookDefs.values().map((hookDef) => ({
             hook: hookName,
             name: hookDef.name,
-            description: hookDef.description || "",
+            description: hookDef.description,
             handler: parseHookFunc(hookDef.handler.toString()),
             active: true,
           })),
@@ -211,7 +211,7 @@ export class InCloudMigrator extends InCloud {
         model.$settingsName = key;
       }
       model.$label = setting.label || convertString(key, "title", true);
-      model.$description = setting.description || "";
+      model.$description = setting.description;
       model.$extensionMeta = setting.config.extension!.key;
       model.$systemGlobal = setting.systemGlobal || false;
 
@@ -222,7 +222,7 @@ export class InCloudMigrator extends InCloud {
           hookDefs.values().map((hookDef) => ({
             hook: hookName,
             name: hookDef.name,
-            description: hookDef.description || "",
+            description: hookDef.description,
             handler: hookDef.handler.toString(),
             active: true,
           })),
@@ -263,7 +263,7 @@ export class InCloudMigrator extends InCloud {
           }
         }
         fieldMeta.$label = field.label || key;
-        fieldMeta.$description = field.description || "";
+        fieldMeta.$description = field.description;
         fieldMeta.$type = field.type;
         fieldMeta.$required = field.required || false;
         fieldMeta.$readOnly = field.readOnly || false;
@@ -272,7 +272,7 @@ export class InCloudMigrator extends InCloud {
           ? field.defaultValue.toString()
           : undefined;
         fieldMeta.$hidden = field.hidden || false;
-        fieldMeta.$placeholder = field.placeholder || "";
+        fieldMeta.$placeholder = field.placeholder;
         if (field.type === "ConnectionField" && field.entryType) {
           fieldMeta.$entryType = field.entryType;
         }
@@ -281,7 +281,7 @@ export class InCloudMigrator extends InCloud {
             key: choice.key,
             label: choice.label,
             color: choice.color as any,
-            description: choice.description || "",
+            description: choice.description,
           })));
         } else {
           fieldMeta.$choices.update([]); // clear choices if not a choice field
@@ -346,12 +346,19 @@ export class InCloudMigrator extends InCloud {
           }
         }
         actionMeta.$label = action.label || convertString(key, "title", true);
-        actionMeta.$description = action.description || "";
+        actionMeta.$description = action.description;
         actionMeta.$private = action.private || false;
-        actionMeta.$code = formatFunction(action.action.toString());
+        const code = formatFunction(action.action.toString());
+        if (code.length > 0) {
+          actionMeta.$code = code;
+        }
 
         if (action.params) {
-          actionMeta.$parameters.update(action.params as any[]);
+          actionMeta.$parameters.update(
+            action.params.map((param) => ({
+              ...param,
+            })) as any[],
+          );
         }
         await actionMeta.save();
       }
@@ -640,6 +647,7 @@ export class InCloudMigrator extends InCloud {
         for (const actionName of groupPerm) {
           const actionId = `${groupName}:${actionName}`;
           newActions.push({
+            id: `${apiGroupPermModel.id}:${actionId}`,
             apiAction: actionId,
             canAccess: true,
           });
@@ -647,6 +655,7 @@ export class InCloudMigrator extends InCloud {
         for (const existingAction of existingActions) {
           if (!groupPerm.has(existingAction.split(":").pop()!)) {
             newActions.push({
+              id: `${apiGroupPermModel.id}:${existingAction}`,
               apiAction: existingAction,
               canAccess: false,
             });
@@ -671,7 +680,7 @@ export class InCloudMigrator extends InCloud {
       }
       model.$label = action.label ||
         convertString(action.actionName, "title", true);
-      model.$description = action.description || "";
+      model.$description = action.description;
       model.$authRequired = !!action.authRequired;
       model.$code = action.run.toString();
       model.$hideFromApi = !action.includeInAPI;
@@ -679,6 +688,7 @@ export class InCloudMigrator extends InCloud {
       const params: any = [];
       for (const param of action.params.values()) {
         params.push({
+          id: `${model.id}${param.key}`,
           ...param,
           label: param.label ||
             convertString(param.key as string, "title", true),
@@ -697,7 +707,7 @@ export class InCloudMigrator extends InCloud {
       }
       model.$label = group.label ||
         convertString(group.groupName, "title", true);
-      model.$description = group.description || "";
+      model.$description = group.description;
       model.$extensionMeta = extension;
       await model.save();
       for (const action of group.actions.values()) {
@@ -717,22 +727,18 @@ export class InCloudMigrator extends InCloud {
     }
     const { rows: actions } = await orm.getEntryList("apiAction", {
       columns: ["id"],
-      filter: [{
-        field: "apiGroup",
-        op: "notInList",
-        value: Array.from(groupNames),
-      }],
+      filter: [
+        { field: "apiGroup", op: "notInList", value: Array.from(groupNames) },
+      ],
     });
     for (const { id } of actions) {
       await orm.deleteEntry("apiAction", id);
     }
     const { rows: groups } = await orm.getEntryList("apiGroup", {
       columns: ["id"],
-      filter: [{
-        field: "id",
-        op: "notInList",
-        value: Array.from(groupNames),
-      }],
+      filter: [
+        { field: "id", op: "notInList", value: Array.from(groupNames) },
+      ],
     });
     for (const { id } of groups) {
       await orm.deleteEntry("apiGroup", id);
@@ -742,13 +748,7 @@ export class InCloudMigrator extends InCloud {
   async #migrateAccounts() {
     const { rows: accounts } = await this.orm.getEntryList(
       "account",
-      {
-        columns: ["id"],
-        filter: {
-          initialized: true,
-        },
-        limit: 0,
-      },
+      { columns: ["id"], filter: { initialized: true }, limit: 0 },
     );
     for (const { id } of accounts) {
       await this.orm.migrate(id);

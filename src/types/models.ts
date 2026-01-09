@@ -84,6 +84,16 @@ type UserFields = {
    */
   apiToken?: string | null;
   /**
+   * **Verify Token** (PasswordField)
+   * @type {string}
+   */
+  verifyToken?: string | null;
+  /**
+   * **Verified** (BooleanField)
+   * @type {boolean}
+   */
+  verified: boolean;
+  /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
@@ -232,6 +242,16 @@ export interface User extends EntryBase<"user", UserFields> {
    */
   $apiToken?: string | null;
   /**
+   * **Verify Token** (PasswordField)
+   * @type {string}
+   */
+  $verifyToken?: string | null;
+  /**
+   * **Verified** (BooleanField)
+   * @type {boolean}
+   */
+  $verified: boolean;
+  /**
    * **Access Token** (PasswordField)
    * @description The access token used to authenticate the user with Google.
    * @type {string}
@@ -314,6 +334,12 @@ type UserActionMap = {
   findAccounts: {
     return: Promise<unknown>;
   };
+  sendWelcomeEmail: {
+    return: Promise<unknown>;
+  };
+  sendVerifyEmail: {
+    return: Promise<unknown>;
+  };
   enable: {
     return: Promise<unknown>;
   };
@@ -343,6 +369,17 @@ type UserParamsActionMap = {
        * @required true
        */
       password: string;
+    };
+    return: Promise<unknown>;
+  };
+  verifyToken: {
+    params: {
+      /**
+       * **Token** (PasswordField)
+       * @type {string}
+       * @required true
+       */
+      token: string;
     };
     return: Promise<unknown>;
   };
@@ -2435,6 +2472,16 @@ type EmailTemplateFields = {
    */
   content?: string | null;
   /**
+   * **Use Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  useGlobalHeader: boolean;
+  /**
+   * **Use Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  useGlobalFooter: boolean;
+  /**
    * **ID** (IDField)
    * @type {string}
    * @required true
@@ -2475,6 +2522,16 @@ export interface EmailTemplate
    * @type {string}
    */
   $content?: string | null;
+  /**
+   * **Use Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  $useGlobalHeader: boolean;
+  /**
+   * **Use Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  $useGlobalFooter: boolean;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5467,6 +5524,59 @@ type ScheduledTaskFields = {
    * @required true
    */
   status: "idle" | "running" | "completed" | "error";
+type AccountLogFields = {
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  modifiedDate?: number | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5557,6 +5667,77 @@ export interface ScheduledTask
    * @required true
    */
   $status: "idle" | "running" | "completed" | "error";
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  settingsType__title?: string | null;
+};
+export interface AccountLog extends EntryBase<"accountLog", AccountLogFields> {
+  _name: "accountLog";
+  __fields__: AccountLogFields;
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  $user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  $systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  $action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  $changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  $entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  $entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  $modifiedDate?: number | null;
   /**
    * **ID** (IDField)
    * @type {string}
@@ -5587,6 +5768,204 @@ export interface ScheduledTask
    * @type {string}
    */
   $action__title?: string | null;
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  $user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  $entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  $settingsType__title?: string | null;
+}
+
+type SystemLogFields = {
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  settingsType__title?: string | null;
+};
+export interface SystemLog extends EntryBase<"systemLog", SystemLogFields> {
+  _name: "systemLog";
+  __fields__: SystemLogFields;
+  /**
+   * **User** (ConnectionField)
+   *
+   * **EntryType** `user`
+   * @type {string}
+   */
+  $user?: string | null;
+  /**
+   * **System Admin** (BooleanField)
+   * @type {boolean}
+   */
+  $systemAdmin: boolean;
+  /**
+   * **Action** (ChoicesField)
+   * @type {'create' | 'update' | 'delete'}
+   * @required true
+   */
+  $action: "create" | "update" | "delete";
+  /**
+   * **Changes** (JSONField)
+   * @type {Record<string, unknown>}
+   */
+  $changes?: Record<string, unknown> | null;
+  /**
+   * **Entry Type** (ConnectionField)
+   *
+   * **EntryType** `entryMeta`
+   * @type {string}
+   */
+  $entryType?: string | null;
+  /**
+   * **Settings Type** (ConnectionField)
+   *
+   * **EntryType** `settingsMeta`
+   * @type {string}
+   */
+  $settingsType?: string | null;
+  /**
+   * **Entry Id** (DataField)
+   * @type {string}
+   */
+  $entryId?: string | null;
+  /**
+   * **Entry Title** (DataField)
+   * @type {string}
+   */
+  $entryTitle?: string | null;
+  /**
+   * **Modified Date** (TimeStampField)
+   * @type {number}
+   */
+  $modifiedDate?: number | null;
+  /**
+   * **ID** (IDField)
+   * @type {string}
+   * @required true
+   */
+  $id: string;
+  /**
+   * **Created At** (TimeStampField)
+   * @description The date and time this entry was created
+   * @type {number}
+   * @required true
+   */
+  $createdAt: number;
+  /**
+   * **Updated At** (TimeStampField)
+   * @description The date and time this entry was last updated
+   * @type {number}
+   * @required true
+   */
+  $updatedAt: number;
+  /**
+   * **User Title** (DataField)
+   * @description The user's full name (automatically generated)
+   * @type {string}
+   */
+  $user__title?: string | null;
+  /**
+   * **Entry Type Title** (DataField)
+   * @type {string}
+   */
+  $entryType__title?: string | null;
+  /**
+   * **Settings Type Title** (DataField)
+   * @type {string}
+   */
+  $settingsType__title?: string | null;
 }
 
 type SystemSettingsFields = {
@@ -5683,11 +6062,72 @@ type EmailSettingsFields = {
    */
   defaultSendAccount?: string | null;
   /**
+   * **Welcome Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  welcomeTemplate?: string | null;
+  /**
+   * **Reset Password Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  resetPasswordTemplate?: string | null;
+  /**
+   * **Verification Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  verifyTemplate?: string | null;
+  /**
+   * **Enable Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  enableGlobalHeader: boolean;
+  /**
+   * **Email Header Content** (CodeField)
+   * @type {string}
+   */
+  emailHeaderContent?: string | null;
+  /**
+   * **Email Body Template** (CodeField)
+   * @type {string}
+   */
+  emailBodyTemplate?: string | null;
+  /**
+   * **Enable Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  enableGlobalFooter: boolean;
+  /**
+   * **Email Footer Content** (CodeField)
+   * @type {string}
+   */
+  emailFooterContent?: string | null;
+  /**
    * **Default Send Account Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
   defaultSendAccount__title?: string | null;
+  /**
+   * **Welcome Email Template Title** (DataField)
+   * @type {string}
+   */
+  welcomeTemplate__title?: string | null;
+  /**
+   * **Reset Password Template Title** (DataField)
+   * @type {string}
+   */
+  resetPasswordTemplate__title?: string | null;
+  /**
+   * **Verification Email Template Title** (DataField)
+   * @type {string}
+   */
+  verifyTemplate__title?: string | null;
 };
 export interface EmailSettings
   extends SettingsBase<"emailSettings", EmailSettingsFields> {
@@ -5708,11 +6148,72 @@ export interface EmailSettings
    */
   $defaultSendAccount?: string | null;
   /**
+   * **Welcome Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $welcomeTemplate?: string | null;
+  /**
+   * **Reset Password Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $resetPasswordTemplate?: string | null;
+  /**
+   * **Verification Email Template** (ConnectionField)
+   *
+   * **EntryType** `emailTemplate`
+   * @type {string}
+   */
+  $verifyTemplate?: string | null;
+  /**
+   * **Enable Global Header** (BooleanField)
+   * @type {boolean}
+   */
+  $enableGlobalHeader: boolean;
+  /**
+   * **Email Header Content** (CodeField)
+   * @type {string}
+   */
+  $emailHeaderContent?: string | null;
+  /**
+   * **Email Body Template** (CodeField)
+   * @type {string}
+   */
+  $emailBodyTemplate?: string | null;
+  /**
+   * **Enable Global Footer** (BooleanField)
+   * @type {boolean}
+   */
+  $enableGlobalFooter: boolean;
+  /**
+   * **Email Footer Content** (CodeField)
+   * @type {string}
+   */
+  $emailFooterContent?: string | null;
+  /**
    * **Default Send Account Title** (EmailField)
    * @description The email account to send emails from
    * @type {string}
    */
   $defaultSendAccount__title?: string | null;
+  /**
+   * **Welcome Email Template Title** (DataField)
+   * @type {string}
+   */
+  $welcomeTemplate__title?: string | null;
+  /**
+   * **Reset Password Template Title** (DataField)
+   * @type {string}
+   */
+  $resetPasswordTemplate__title?: string | null;
+  /**
+   * **Verification Email Template Title** (DataField)
+   * @type {string}
+   */
+  $verifyTemplate__title?: string | null;
 }
 
 type OnboardingFields = {
@@ -5760,6 +6261,8 @@ export interface EntryMap {
   apiGroupPermission: ApiGroupPermission;
   dataImport: DataImport;
   scheduledTask: ScheduledTask;
+  accountLog: AccountLog;
+  systemLog: SystemLog;
 }
 export interface SettingsMap {
   systemSettings: SystemSettings;

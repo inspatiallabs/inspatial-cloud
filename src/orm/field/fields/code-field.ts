@@ -16,4 +16,4 @@ export default new ORMFieldConfig("CodeField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"CodeField">;

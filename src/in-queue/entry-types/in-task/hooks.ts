@@ -6,7 +6,6 @@ import type { InCloud } from "~/in-cloud.ts";
 
 export const validateTask: EntryHookDefinition = {
   name: "validate entry or settings",
-  description: "",
   handler({ entry: inTask, orm, inCloud }) {
     switch (inTask.taskType) {
       case "entry":

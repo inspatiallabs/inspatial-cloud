@@ -10,9 +10,9 @@ interface SendEmailOptions {
   link?: EmailLink;
 }
 interface EmailLink {
-  account: string;
-  entryType: string;
-  entryId: string;
+  account?: string;
+  entryType?: string;
+  entryId?: string;
   entryTitle?: string;
 }
 export class EmailManager {
@@ -31,18 +31,10 @@ export class EmailManager {
       value: args.account,
     }];
     if (args.entryType) {
-      filters.push({
-        field: "linkEntry",
-        op: "=",
-        value: args.entryType,
-      });
+      filters.push({ field: "linkEntry", op: "=", value: args.entryType });
     }
     if (args.entryId) {
-      filters.push({
-        field: "linkId",
-        op: "=",
-        value: args.entryId,
-      });
+      filters.push({ field: "linkId", op: "=", value: args.entryId });
     }
 
     const emails = await orm.getEntryList("email", {
@@ -65,7 +57,7 @@ export class EmailManager {
     templateId: string;
     params: Record<string, any>;
     now?: boolean;
-    link: EmailLink;
+    link?: EmailLink;
   }): Promise<any> {
     const { recipientEmail, templateId, params, now, link } = args;
     const orm = this.inCloud.orm;
@@ -75,6 +67,8 @@ export class EmailManager {
     );
     const rendered: { content: string; subject: string } = await template
       .runAction("renderTemplate", { params }) as any;
+    // console.log(rendered.content);
+
     return await this.sendEmail({
       recipientEmail,
       subject: rendered.subject || "",

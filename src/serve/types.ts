@@ -31,7 +31,7 @@ export interface CloudExtensionInfo {
   /**
    * A brief description of the extension.
    */
-  description: string;
+  description?: string | null;
   /**
    * The version of the extension.
    */

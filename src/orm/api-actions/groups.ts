@@ -26,6 +26,7 @@ import {
   runSettingsAction,
   updateSettings,
 } from "./settings-group.ts";
+import { getAuditLogAction } from "../../audit-log/audit-actions.ts";
 
 export const entriesGroup = defineAPIGroup("entry", {
   description: "CRUD actions for InSpatial ORM Entries",
@@ -40,6 +41,7 @@ export const entriesGroup = defineAPIGroup("entry", {
     getEntryListAction,
     exportEntry,
     countConnections,
+    getAuditLogAction,
     sum,
     count,
   ],

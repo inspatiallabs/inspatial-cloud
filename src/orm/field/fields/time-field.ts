@@ -17,4 +17,4 @@ export default new ORMFieldConfig("TimeField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"TimeField">;

@@ -22,4 +22,4 @@ export default new ORMFieldConfig("JSONField", {
     }
     return JSON.stringify(value); // Ensure value is serializable
   },
-});
+}) as ORMFieldConfig<"JSONField">;

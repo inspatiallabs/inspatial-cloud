@@ -8,71 +8,64 @@ export const account = defineEntry("account", {
   titleField: "name",
   description: "An account in the system with one or more associated users",
   imageField: "profilePicture",
-  fieldGroups: [{
-    key: "accountInfo",
-    label: "Account Info",
-    fields: ["profilePicture", "name", "owner"],
-  }, {
-    key: "status",
-    label: "Status",
-    fields: ["initialized", "onboardingComplete"],
-  }, {
-    key: "branding",
-    label: "Branding",
-    fields: ["logo", "favicon"],
-  }, {
-    key: "advanced",
-    label: "Advanced",
-    fields: ["obResponse"],
-  }],
-  fields: [{
-    key: "owner",
-    type: "ConnectionField",
-    entryType: "user",
-    label: "Account Owner",
-    description:
-      "The user who owns this account. Only one user can be the owner.",
-    readOnly: true,
-  }, {
-    key: "name",
-    type: "DataField",
-    label: "Account Name",
-    description: "The name of the account",
-    required: true,
-    defaultValue: "",
-  }, {
-    key: "onboardingComplete",
-    type: "BooleanField",
-    readOnly: false,
-  }, {
-    key: "initialized",
-    type: "BooleanField",
-    readOnly: false,
-  }, {
-    key: "profilePicture",
-    type: "ImageField",
-    allowedImageTypes: ["png", "jpeg", "jpg", "svg", "webp"],
-    optimize: {
-      height: 1000,
-      width: 1000,
+  fieldGroups: [
+    {
+      key: "accountInfo",
+      label: "Account Info",
+      fields: ["profilePicture", "name", "owner"],
     },
-  }, {
-    key: "logo",
-    type: "ImageField",
-    publicFile: true,
-    label: "Logo",
-    allowedImageTypes: ["png", "jpeg", "jpg", "svg", "webp"],
-  }, {
-    key: "favicon",
-    type: "ImageField",
-    label: "Favicon",
-    publicFile: true,
-    allowedImageTypes: ["png", "ico", "svg"],
-  }, {
-    key: "obResponse",
-    label: "Onboarding Response",
-    type: "JSONField",
-  }],
+    {
+      key: "status",
+      label: "Status",
+      fields: ["initialized", "onboardingComplete"],
+    },
+    { key: "branding", label: "Branding", fields: ["logo", "favicon"] },
+    { key: "advanced", label: "Advanced", fields: ["obResponse"] },
+  ],
+  fields: [
+    {
+      key: "owner",
+      type: "ConnectionField",
+      entryType: "user",
+      label: "Account Owner",
+      description:
+        "The user who owns this account. Only one user can be the owner.",
+      readOnly: true,
+    },
+    {
+      key: "name",
+      type: "DataField",
+      label: "Account Name",
+      description: "The name of the account",
+      required: true,
+    },
+    { key: "onboardingComplete", type: "BooleanField", readOnly: false },
+    { key: "initialized", type: "BooleanField", readOnly: false },
+    {
+      key: "profilePicture",
+      type: "ImageField",
+      allowedImageTypes: ["png", "jpeg", "jpg", "svg", "webp"],
+      optimize: {
+        height: 1000,
+        width: 1000,
+      },
+    },
+    {
+      key: "logo",
+      type: "ImageField",
+      publicFile: true,
+      label: "Logo",
+      allowedImageTypes: ["png", "jpeg", "jpg", "svg", "webp"],
+    },
+    {
+      key: "favicon",
+      type: "ImageField",
+      label: "Favicon",
+      publicFile: true,
+      allowedImageTypes: ["png", "ico", "svg"],
+    },
+    { key: "obResponse", label: "Onboarding Response", type: "JSONField" },
+  ],
 });
 
 account.addChild("users", {

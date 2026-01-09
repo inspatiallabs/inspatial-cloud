@@ -108,7 +108,7 @@ userRole.addAction("generateConfig", {
   async action({ userRole, orm }) {
     const roleConfig: RoleConfig = {
       roleName: userRole.$roleKey,
-      description: userRole.$description || "",
+      description: userRole.$description,
       label: userRole.$roleName,
       entryTypes: {},
       settingsTypes: {},

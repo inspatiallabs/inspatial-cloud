@@ -24,7 +24,7 @@ export interface CloudAPIGroupDocs {
   /**
    * A description of the group.
    */
-  description: string;
+  description?: string;
   /**
    * An array of actions in the group.
    */

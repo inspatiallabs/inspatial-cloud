@@ -1,6 +1,6 @@
 {
   "name": "@inspatial/cloud",
-  "version": "0.7.40",
+  "version": "0.8.1",
   "license": "Apache-2.0",
   "exports": {
     ".": "./mod.ts",
@@ -27,7 +27,6 @@
     ],
     "exclude": [".github/", ".vscode/", ".zed/", "examples/**/.inspatial/"]
   },
-
   "imports": {
     "@inspatial/cloud-client": "jsr:@inspatial/cloud-client@^0.1.22",
     "~/": "./src/",

@@ -6,7 +6,10 @@ import type {
   GoogleAccessTokenResponse,
   GoogleIdToken,
 } from "~/auth/providers/google/accessToken.ts";
-import { raiseServerException } from "~/serve/server-exception.ts";
+import {
+  isServerException,
+  raiseServerException,
+} from "~/serve/server-exception.ts";
 
 export async function handleGoogleLogin(args: {
   accessToken: GoogleAccessTokenResponse;
@@ -29,8 +32,21 @@ export async function handleGoogleLogin(args: {
     inResponse,
   } = args;
   const authHandler = inCloud.auth;
+  const redirectUrl = new URL(redirectTo);
+
+  const host = await inCloud.getServerHost();
+
+  const redirect = (message: string, type: string) => {
+    const url = new URL(`${host}/login`);
+    url.searchParams.set("message", message);
+    url.searchParams.set("type", type);
+    return inResponse.redirect(url.toString());
+  };
   if (!email || !emailVerified) {
-    raiseServerException(401, "Google auth: Email not verified");
+    inCloud.inLog.error("Google auth: Email not verified", {
+      subject: "Google OAuth",
+    });
+    return redirect("There was a problem authenticating with google", "error");
   }
   const user = await orm.findEntry("user", [{
     field: "email",
@@ -38,7 +54,10 @@ export async function handleGoogleLogin(args: {
     value: email,
   }]);
   if (!user) {
-    raiseServerException(401, "Google auth: User not found");
+    inCloud.inLog.error("Google auth: User not found", {
+      subject: "Google OAuth",
+    });
+    return redirect("There was a problem authenticating with google", "error");
   }
   user.$googleCredential = accessToken as any;
   user.$googleAccessToken = accessToken.accessToken;
@@ -47,16 +66,31 @@ export async function handleGoogleLogin(args: {
   user.$googleId = idToken.sub;
   user.$googleAuthStatus = "authenticated";
   await user.save();
-  await authHandler.createUserSession(
-    user,
-    inRequest,
-    inResponse,
-  );
+  try {
+    await authHandler.createUserSession(
+      user,
+      inRequest,
+      inResponse,
+    );
+  } catch (e) {
+    if (isServerException(e)) {
+      if (e.message.match(/not\sverified/)) {
+        return redirect(e.message, "error");
+      }
+      inCloud.inLog.error(Deno.inspect(e), { subject: "Google OAuth" });
+      return redirect(
+        "There was a problem authenticating with google",
+        "error",
+      );
+    }
+  }
   const sessionId = inRequest.context.get<string>("userSession");
   if (!sessionId) {
-    raiseServerException(401, "Google auth: Session not found");
+    inCloud.inLog.error("Google auth: Session not found", {
+      subject: "Google OAuth",
+    });
+    return redirect("There was a problem authenticating with google", "error");
   }
-  const redirectUrl = new URL(redirectTo);
   // redirectUrl.searchParams.set("sessionId", sessionId);
   return inResponse.redirect(redirectUrl.toString());
 }

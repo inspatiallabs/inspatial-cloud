@@ -287,7 +287,7 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       if (field.key == "id") {
         const idField = field as InField<"IDField">;
         this.migrationPlan.table.idMode = idField.idMode;
-        continue;
+        // continue;
       }
       const ormField = this.orm._getFieldType(field.type);
       const dbColumn = ormField.generateDbColumn(field);
@@ -334,9 +334,6 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
 
   #checkForColumnsToDrop(): void {
     for (const column of this.existingColumns.values()) {
-      if (column.columnName == "id") {
-        continue;
-      }
       if (!this.targetColumns.has(column.columnName)) {
         this.migrationPlan.columns.drop.push({
           columnName: column.columnName,

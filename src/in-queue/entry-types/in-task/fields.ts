@@ -4,7 +4,6 @@ export const inTaskFields: Array<InField> = [{
   key: "title",
   type: "DataField",
   required: true,
-  defaultValue: "",
 }, {
   key: "taskType",
   label: "Task Type",

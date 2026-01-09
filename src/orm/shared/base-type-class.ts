@@ -14,7 +14,7 @@ export class BaseType<N extends string = string> {
   extension: string;
   dir?: string;
   systemGlobal: boolean;
-  description: string;
+  description?: string | null;
   fields: Map<string, InField> = new Map();
   displayFields: Map<string, InField> = new Map();
   fieldGroups: Map<string, FieldGroup> = new Map();
@@ -28,9 +28,10 @@ export class BaseType<N extends string = string> {
     config: {
       fields: Array<InField>;
       fieldGroups?: Array<FieldGroupConfig>;
+      skipAuditLog?: boolean;
       systemGlobal?: boolean;
       label?: string;
-      description?: string;
+      description?: string | null;
       children?: Array<ChildEntryType<any>>;
     },
   ) {
@@ -42,7 +43,7 @@ export class BaseType<N extends string = string> {
       label = convertString(this.name, "title", true);
     }
     this.label = label;
-    this.description = config.description || "";
+    this.description = config.description;
     for (const field of config.fields) {
       if (this.fields.has(field.key)) {
         raiseORMException(

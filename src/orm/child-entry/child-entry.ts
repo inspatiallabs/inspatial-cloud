@@ -14,6 +14,7 @@ import type { InSpatialDB } from "../db/inspatial-db.ts";
 import type { DBFilter } from "../db/db-types.ts";
 import { getInLog } from "#inLog";
 import type { EntryName } from "#types/models.ts";
+import type { IDMode } from "../field/types.ts";
 export interface ChildEntry<T extends Record<string, unknown>> {
   _name?: string;
   [key: `$${string}`]: any;
@@ -46,6 +47,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   _changeableFields: Map<string, InField> = new Map();
   _db: InSpatialDB;
   _tableName: string = "";
+  _idMode: IDMode = "ulid";
   _data: Map<string, ChildEntry<T>> = new Map();
   _newData: Map<string, ChildEntry<T>> = new Map();
   _parentId: string = "";
@@ -218,7 +220,8 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
   get countExisting(): number {
     return this._data.size;
   }
-  async save(withParentId?: string): Promise<void> {
+  async save(withParentId?: string): Promise<boolean> {
+    let hasChanges = false;
     if (withParentId) {
       this._parentId = withParentId;
     }
@@ -228,7 +231,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       if (childEntry._modifiedValues.size === 0) {
         continue;
       }
-
+      hasChanges = true;
       childEntry.$updatedAt = dateUtils.nowTimestamp();
       if (withParentId) {
         childEntry.$parent = this._parentId;
@@ -246,13 +249,25 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
       );
     }
     for (const childEntry of this._newData.values()) {
+      hasChanges = true;
       await this.#refreshFetchedFields(childEntry);
       if (withParentId) {
         childEntry.$parent = this._parentId;
       }
       childEntry.$createdAt = dateUtils.nowTimestamp();
       childEntry.$updatedAt = dateUtils.nowTimestamp();
-      childEntry.$id = ulid();
+      // if(this._childClass)
+
+      if (typeof this._idMode === "string") {
+        childEntry.$id = ulid();
+      } else if (this._idMode.type === "fields") {
+        const { fields } = this._idMode;
+        childEntry.$id = fields.map((field) => childEntry[`$${field}`]).join(
+          ":",
+        );
+      } else {
+        childEntry.$id = ulid();
+      }
       const data: Record<string, any> = {};
       for (const [key, value] of childEntry._data.entries()) {
         const fieldDef = this._getFieldDef(key);
@@ -268,6 +283,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
 
     await this.deleteStaleRecords();
     await this.load(this._parentId);
+    return hasChanges;
   }
   async #refreshFetchedFields(child: ChildEntry): Promise<void> {
     for (const field of this._fields.values()) {
@@ -295,6 +311,7 @@ export class ChildEntryList<T extends Record<string, unknown> = any> {
 export interface ChildEntryConfig extends BaseTypeConfig {
   tableName?: string;
   parentEntryType?: string;
+  idMode?: IDMode;
 }
 
 export class ChildEntryType<N extends string = any> extends BaseType<N> {
@@ -304,6 +321,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
     description?: string;
     label?: string;
     fields: Array<InField>;
+    idMode?: IDMode;
   }) {
     if ("children" in config) {
       delete config.children;
@@ -314,6 +332,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
     super(name, config);
     this.config = {
       description: this.description,
+      idMode: config.idMode,
       label: this.label,
     };
     this.fields.set("id", {
@@ -321,7 +340,7 @@ export class ChildEntryType<N extends string = any> extends BaseType<N> {
       label: "ID",
       type: "IDField",
       entryType: this.name,
-      idMode: "ulid",
+      idMode: config.idMode || "ulid",
       readOnly: true,
       required: true,
     });
@@ -393,6 +412,7 @@ export function defineChildEntry<N extends string>(
     label?: string;
     description?: string;
     fields: Array<InField>;
+    idMode?: IDMode;
   },
 ): ChildEntryType<N> {
   return new ChildEntryType(name, config);

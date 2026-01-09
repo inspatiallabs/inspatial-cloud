@@ -7,6 +7,7 @@ import convertString from "../utils/convert-string.ts";
 const choices = defineChildEntry("choices", {
   label: "Choice",
   description: "A list of Choices for the ChoicesField",
+  idMode: { type: "fields", fields: ["parent", "key"] },
   fields: [{
     key: "key",
     type: "DataField",
@@ -45,7 +46,7 @@ const choices = defineChildEntry("choices", {
 export const fieldMeta = defineEntry("fieldMeta", {
   systemGlobal: true,
   label: "Field Meta",
-  description: "",
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["entryMeta", "settingsMeta", "key"],
@@ -91,69 +92,67 @@ export const fieldMeta = defineEntry("fieldMeta", {
     fields: ["entryType"],
     description: "Attributes specific to connection fields.",
   }],
-  fields: [{
-    key: "entryMeta",
-    type: "ConnectionField",
-    entryType: "entryMeta",
-  }, {
-    key: "settingsMeta",
-    type: "ConnectionField",
-    entryType: "settingsMeta",
-  }, {
-    key: "key",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "label",
-    type: "DataField",
-    required: true,
-  }, {
-    key: "type",
-    type: "ChoicesField",
-    choices: ormFields.map((f) => ({
-      key: f.type,
-      label: f.type.replace("Field", ""),
-      description: f.description,
-    })),
-    required: true,
-  }, {
-    key: "description",
-    type: "TextField",
-    description: "A brief description of the field.",
-  }, {
-    key: "required",
-    type: "BooleanField",
-    description: "Whether the field is mandatory.",
-  }, {
-    key: "readOnly",
-    type: "BooleanField",
-    description: "Whether the field is read-only.",
-  }, {
-    key: "unique",
-    type: "BooleanField",
-    description: "Whether the field must have unique values across entries.",
-  }, {
-    key: "defaultValue",
-    type: "DataField",
-    description: "The default value for the field.",
-  }, {
-    key: "hidden",
-    type: "BooleanField",
-    description: "Whether the field is hidden in the UI.",
-  }, {
-    key: "placeholder",
-    type: "DataField",
-    description: "Placeholder text for the field.",
-  }, {
-    key: "entryType",
-    type: "ConnectionField",
-    entryType: "entryMeta",
-    description: "The entry type this connection field is associated with.",
-    dependsOn: [{
-      field: "type",
-      value: "ConnectionField",
-    }],
-  }],
+  fields: [
+    { key: "entryMeta", type: "ConnectionField", entryType: "entryMeta" },
+    { key: "settingsMeta", type: "ConnectionField", entryType: "settingsMeta" },
+    { key: "key", type: "DataField", required: true },
+    { key: "label", type: "DataField", required: true },
+    {
+      key: "type",
+      type: "ChoicesField",
+      choices: ormFields.map((f) => ({
+        key: f.type,
+        label: f.type.replace("Field", ""),
+        description: f.description,
+      })),
+      required: true,
+    },
+    {
+      key: "description",
+      type: "TextField",
+      description: "A brief description of the field.",
+    },
+    {
+      key: "required",
+      type: "BooleanField",
+      description: "Whether the field is mandatory.",
+    },
+    {
+      key: "readOnly",
+      type: "BooleanField",
+      description: "Whether the field is read-only.",
+    },
+    {
+      key: "unique",
+      type: "BooleanField",
+      description: "Whether the field must have unique values across entries.",
+    },
+    {
+      key: "defaultValue",
+      type: "DataField",
+      description: "The default value for the field.",
+    },
+    {
+      key: "hidden",
+      type: "BooleanField",
+      description: "Whether the field is hidden in the UI.",
+    },
+    {
+      key: "placeholder",
+      type: "DataField",
+      description: "Placeholder text for the field.",
+    },
+    {
+      key: "entryType",
+      type: "ConnectionField",
+      entryType: "entryMeta",
+      description: "The entry type this connection field is associated with.",
+      dependsOn: [{
+        field: "type",
+        value: "ConnectionField",
+      }],
+    },
+  ],
   children: [choices],
 });
 

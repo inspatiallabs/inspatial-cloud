@@ -11,8 +11,8 @@ export default new ORMFieldConfig("IDField", {
     };
     switch (fieldDef.idMode) {
       case "ulid":
-        pgColumn.dataType = "character varying",
-          pgColumn.characterMaximumLength = 26;
+        pgColumn.dataType = "character";
+        pgColumn.characterMaximumLength = 26;
         break;
       case "auto":
         pgColumn.dataType = "integer";
@@ -20,6 +20,9 @@ export default new ORMFieldConfig("IDField", {
       case "uuid":
         pgColumn.dataType = "text";
         break;
+      default:
+        pgColumn.dataType = "character varying";
+        pgColumn.characterMaximumLength = 255;
     }
     return pgColumn;
   },
@@ -32,4 +35,4 @@ export default new ORMFieldConfig("IDField", {
   dbSave(value, _fieldDef) {
     return value;
   },
-});
+}) as ORMFieldConfig<"IDField">;

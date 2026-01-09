@@ -4,6 +4,7 @@ import { defineEntry } from "../orm/entry/entry-type.ts";
 
 const actionParams = defineChildEntry("parameters", {
   label: "Input Parameters",
+  idMode: { type: "fields", fields: ["parent", "role"] },
   fields: [{
     key: "key",
     type: "DataField",
@@ -28,7 +29,7 @@ const actionParams = defineChildEntry("parameters", {
   }, {
     key: "required",
     type: "BooleanField",
-    description: "Whether the field is mandatory.",
+    description: "Whether the field is a mandatory field.",
   }, {
     key: "entryType",
     type: "ConnectionField",
@@ -39,6 +40,7 @@ const actionParams = defineChildEntry("parameters", {
 });
 export const apiAction = defineEntry("apiAction", {
   systemGlobal: true,
+  skipAuditLog: true,
   idMode: {
     type: "fields",
     fields: ["apiGroup", "actionName"],
