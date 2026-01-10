@@ -3,8 +3,8 @@ import type { InSpatialORM } from "../mod.ts";
 import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
-import type { EntryName } from "#types/models.ts";
-import type { InField } from "../field/field-def-types.ts";
+import type { EntryName, FieldMeta } from "#types/models.ts";
+import type { InField, InFieldType } from "../field/field-def-types.ts";
 import type { EntryActionDefinition } from "../entry/types.ts";
 import type { SettingsActionDefinition } from "../settings/types.ts";
 import { handlePgError, isPgError } from "../db/postgres/pgError.ts";
@@ -54,7 +54,7 @@ export class InCloudMigrator extends InCloud {
     const orm = this.orm.withUser(this.orm.systemGobalUser);
     await this.#checkCoreVersion(orm);
     // await withTime("Global migration", async () => await orm.migrateGlobal());
-    await orm.migrateGlobal();
+    // await orm.migrateGlobal();
     try {
       // await withTime(
       //   "Delete Obsolete",
@@ -89,7 +89,7 @@ export class InCloudMigrator extends InCloud {
       //   "Sync Roles",
       //   async () => await this.#syncRoles(orm),
       // );
-
+      await this.#deleteObsoletePermissions(orm);
       await this.#deleteObsoleteMeta(orm);
       await this.#syncExtensionMeta(orm);
       await this.#syncEntryMeta(orm);
@@ -117,7 +117,27 @@ export class InCloudMigrator extends InCloud {
     }
   }
   async #syncExtensionMeta(orm: InSpatialORM) {
+    const { rows: existingExtensions } = await orm.getEntryList(
+      "extensionMeta",
+      {
+        columns: ["id", "label", "description", "version", "icon"],
+      },
+    );
     for (const extension of this.extensionManager.extensions.values()) {
+      const index = existingExtensions.findIndex((ext) =>
+        ext.id === extension.key
+      );
+      const existing = existingExtensions.splice(index, 1)[0];
+      if (existing) {
+        if (
+          existing.label === extension.label &&
+          existing.description === extension.description &&
+          existing.version === extension.version &&
+          existing.icon === extension.icon
+        ) {
+          continue;
+        }
+      }
       let model = await orm.findEntry("extensionMeta", {
         id: extension.key,
       });
@@ -131,13 +151,14 @@ export class InCloudMigrator extends InCloud {
       model.$icon = extension.icon || "extension";
       await model.save();
     }
-    const extensionKeys = Array.from(
-      this.extensionManager.extensions.keys(),
-    );
+    if (existingExtensions.length === 0) {
+      return;
+    }
+
     await orm.db.deleteRows("entryExtensionMeta", [{
       field: "id",
       op: "notInList",
-      value: extensionKeys,
+      value: existingExtensions.map((ext) => ext.id),
     }]);
   }
   async #syncEntryMeta(orm: InSpatialORM) {
@@ -240,6 +261,30 @@ export class InCloudMigrator extends InCloud {
     const skipFields = new Set<string>([
       "in__tags",
     ]);
+    const { rows: fieldsList } = await orm.db.getRows(
+      "entryFieldMeta",
+      { limit: 0, columns: "*" },
+    );
+    const { rows: choices } = await orm.db.getRows<
+      FieldMeta["__fields__"]["choices"]["data"][number] & {
+        id: string;
+        parent: string;
+      }
+    >("childFieldMetaChoices", { limit: 0, columns: "*" });
+    const choicesMap = new Map<
+      string,
+      FieldMeta["__fields__"]["choices"]["data"]
+    >();
+    for (const choice of choices) {
+      if (!choicesMap.has(choice.parent)) {
+        const choiceArray: FieldMeta["__fields__"]["choices"]["data"] = [];
+        choicesMap.set(choice.parent, choiceArray);
+      }
+      choicesMap.get(choice.parent)!.push(choice);
+    }
+    const fieldListMap = new Map(
+      fieldsList.map((field) => [field.id, field]),
+    );
     const syncFields = async (
       fields: Map<string, InField>,
       name: string,
@@ -248,6 +293,61 @@ export class InCloudMigrator extends InCloud {
       for (const [key, field] of fields.entries()) {
         if (skipFields.has(key)) continue;
         if (key.endsWith("__title")) continue; // skip title fields
+
+        const existingField = fieldListMap.get(`${name}:${key}`);
+        const values: Record<string, any> = {
+          label: field.label || convertString(key, "title", true),
+          description: field.description || null,
+          type: field.type,
+          required: field.required || false,
+          readOnly: field.readOnly || false,
+          unique: field.unique || false,
+          defaultValue: field.defaultValue !== undefined
+            ? field.defaultValue.toString()
+            : null,
+          hidden: field.hidden || false,
+          placeholder: field.placeholder || null,
+        };
+        if (field.type === "ConnectionField" && field.entryType) {
+          (values as InField<"ConnectionField">).entryType = field.entryType;
+        }
+        if (existingField) {
+          let skip = true;
+          for (const [key, value] of Object.entries(values)) {
+            const currentValue = existingField[key];
+            if (currentValue !== value) {
+              skip = false;
+            }
+          }
+          if (field.type === "ChoicesField") {
+            const existingChoices = choicesMap.get(existingField.id);
+            if (!existingChoices) {
+              skip = false;
+              console.log("no choices");
+            }
+            for (
+              const { key, label, color = null, description = null } of field
+                .choices
+            ) {
+              const existing = existingChoices?.find((choice) =>
+                choice.key === key
+              );
+              if (!existing) {
+                skip = false;
+                continue;
+              }
+              if (
+                label !== existing.label || color !== existing.color ||
+                description !== existing.description
+              ) {
+                console.log({ key, label, color, description, existing });
+                skip = false;
+              }
+            }
+          }
+          if (skip) continue;
+        }
+
         let fieldMeta = await orm.findEntry("fieldMeta", {
           id: `${name}:${key}`,
         });
@@ -265,7 +365,7 @@ export class InCloudMigrator extends InCloud {
               break;
           }
         }
-        fieldMeta.$label = field.label || key;
+        fieldMeta.$label = field.label || convertString(key, "title", true);
         fieldMeta.$description = field.description;
         fieldMeta.$type = field.type;
         fieldMeta.$required = field.required || false;
@@ -503,6 +603,42 @@ export class InCloudMigrator extends InCloud {
       }],
     });
   }
+  async #deleteObsoletePermissions(orm: InSpatialORM) {
+    const entryIds = [];
+    const settingsIds = [];
+    for (const [roleName, role] of this.roles.roles.entries()) {
+      entryIds.push(
+        ...Array.from(
+          role.entryPermissions.keys().map((key) => `${roleName}:${key}`),
+        ),
+      );
+      settingsIds.push(...Array.from(
+        role.settingsPermissions.keys().map((key) => `${roleName}:${key}`),
+      ));
+    }
+    // delete entry permissions
+    const { rows: permsToDelete } = await orm.getEntryList("entryPermission", {
+      filter: [{ field: "id", op: "notInList", value: entryIds }],
+      columns: ["id"],
+      limit: 0,
+    });
+    for (const { id } of permsToDelete) {
+      await orm.deleteEntry("entryPermission", id);
+    }
+
+    // delete settings permissions
+    const { rows: settingsToDelete } = await orm.getEntryList(
+      "settingsPermission",
+      {
+        filter: [{ field: "id", op: "notInList", value: settingsIds }],
+        columns: ["id"],
+        limit: 0,
+      },
+    );
+    for (const { id } of settingsToDelete) {
+      await orm.deleteEntry("settingsPermission", id);
+    }
+  }
   async #syncRoles(orm: InSpatialORM) {
     for (const [roleName, role] of this.roles.roles.entries()) {
       if (roleName === "systemAdmin") {
@@ -525,7 +661,36 @@ export class InCloudMigrator extends InCloud {
   }
   async #syncRoleEntryPermissions(orm: InSpatialORM, roleName: string) {
     const role = this.roles.getRole(roleName);
+    const { rows } = await orm.getEntryList("entryPermission", {
+      columns: [
+        "id",
+        "userRole",
+        "entryMeta",
+        "canView",
+        "canModify",
+        "canCreate",
+        "canDelete",
+        "userScope",
+      ],
+    });
+    const entryPerms = new Map(rows.map((row) => [row.id, row]));
     for (const [entryTypeName, entryPerm] of role.entryPermissions.entries()) {
+      const permRow = entryPerms.get(`${roleName}:${entryTypeName}`);
+      if (permRow) {
+        if (
+          permRow.canView === entryPerm.view &&
+          permRow.canModify === entryPerm.modify &&
+          permRow.canCreate === entryPerm.create &&
+          permRow.canDelete === entryPerm.delete &&
+          permRow.userScope ===
+            (entryPerm.userScope
+              ? `${entryTypeName}:${entryPerm.userScope}`
+              : entryPerm.userScope)
+        ) {
+          continue;
+        }
+      }
+
       let entryPermModel = await orm.findEntry("entryPermission", {
         userRole: roleName,
         entryMeta: entryTypeName,

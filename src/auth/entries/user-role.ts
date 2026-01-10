@@ -10,6 +10,7 @@ import { defineEntry } from "../../orm/mod.ts";
 
 export const userRole = defineEntry("userRole", {
   titleField: "roleName",
+  description: "A role assignable to a user",
   systemGlobal: true,
   idMode: {
     type: "field",
@@ -32,7 +33,7 @@ export const userRole = defineEntry("userRole", {
   }, {
     key: "description",
     type: "TextField",
-    description: "A short description of the role",
+    description: "A short descriptions of the role",
   }],
   hooks: {
     beforeValidate: [{
@@ -86,19 +87,20 @@ export const userRole = defineEntry("userRole", {
 userRole.addAction("syncWithSystem", {
   label: "Sync with System Roles",
   async action({ userRole, inCloud }) {
-    const roleConfig = await userRole.runAction("generateConfig") as RoleConfig;
-    try {
-      inCloud.roles.updateRole(roleConfig);
-    } catch (e) {
-      if (e instanceof ORMException) {
-        inCloud.inLog.warn("Role Setup: " + e.message, {
-          compact: true,
-          subject: e.subject,
-        });
-        return;
-      }
-      throw e;
-    }
+    throw new Error("stop! this is not implemented properly yet");
+    // const roleConfig = await userRole.runAction("generateConfig") as RoleConfig;
+    // try {
+    //   inCloud.roles.updateRole(roleConfig);
+    // } catch (e) {
+    //   if (e instanceof ORMException) {
+    //     inCloud.inLog.warn("Role Setup: " + e.message, {
+    //       compact: true,
+    //       subject: e.subject,
+    //     });
+    //     return;
+    //   }
+    //   throw e;
+    // }
   },
 });
 userRole.addAction("generateConfig", {
@@ -106,147 +108,148 @@ userRole.addAction("generateConfig", {
   description: "Generate the role configuration as a JSON object",
   private: false,
   async action({ userRole, orm }) {
-    const roleConfig: RoleConfig = {
-      roleName: userRole.$roleKey,
-      description: userRole.$description,
-      label: userRole.$roleName,
-      entryTypes: {},
-      settingsTypes: {},
-      apiGroups: {},
-    };
-    const entryTypes = new Map<string, EntryPermission>();
-    const settingsTypes = new Map<string, SettingsPermission>();
-    const apiGroups = new Map<string, string[] | true>();
-    if (userRole.$extendsRole) {
-      const parentRole = await orm.getEntry("userRole", userRole.$extendsRole);
-      const parentConfig = await parentRole.runAction(
-        "generateConfig",
-      ) as RoleConfig;
-      if (parentConfig.entryTypes) {
-        for (
-          const [key, entryPerm] of Object.entries(parentConfig.entryTypes)
-        ) {
-          entryTypes.set(key, entryPerm);
-        }
-      }
-      if (parentConfig.settingsTypes) {
-        for (
-          const [key, settingsPerm] of Object.entries(
-            parentConfig.settingsTypes,
-          )
-        ) {
-          settingsTypes.set(key, settingsPerm);
-        }
-      }
-      if (parentConfig.apiGroups) {
-        for (const [key, apiPerm] of Object.entries(parentConfig.apiGroups)) {
-          apiGroups.set(key, apiPerm);
-        }
-      }
-    }
+    throw new Error("stop! this is not implemented properly yet");
+    // const roleConfig: RoleConfig = {
+    //   roleName: userRole.$roleKey,
+    //   description: userRole.$description,
+    //   label: userRole.$roleName,
+    //   entryTypes: {},
+    //   settingsTypes: {},
+    //   apiGroups: {},
+    // };
+    // const entryTypes = new Map<string, EntryPermission>();
+    // const settingsTypes = new Map<string, SettingsPermission>();
+    // const apiGroups = new Map<string, string[] | true>();
+    // if (userRole.$extendsRole) {
+    //   const parentRole = await orm.getEntry("userRole", userRole.$extendsRole);
+    //   const parentConfig = await parentRole.runAction(
+    //     "generateConfig",
+    //   ) as RoleConfig;
+    //   if (parentConfig.entryTypes) {
+    //     for (
+    //       const [key, entryPerm] of Object.entries(parentConfig.entryTypes)
+    //     ) {
+    //       entryTypes.set(key, entryPerm);
+    //     }
+    //   }
+    //   if (parentConfig.settingsTypes) {
+    //     for (
+    //       const [key, settingsPerm] of Object.entries(
+    //         parentConfig.settingsTypes,
+    //       )
+    //     ) {
+    //       settingsTypes.set(key, settingsPerm);
+    //     }
+    //   }
+    //   if (parentConfig.apiGroups) {
+    //     for (const [key, apiPerm] of Object.entries(parentConfig.apiGroups)) {
+    //       apiGroups.set(key, apiPerm);
+    //     }
+    //   }
+    // }
 
-    const listOptions: ListOptions = {
-      filter: {
-        userRole: userRole.$id,
-      },
-      columns: [
-        "id",
-      ],
-    };
-    const { rows: entryPermissions } = await orm.getEntryList(
-      "entryPermission",
-      listOptions,
-    );
+    // const listOptions: ListOptions = {
+    //   filter: {
+    //     userRole: userRole.$id,
+    //   },
+    //   columns: [
+    //     "id",
+    //   ],
+    // };
+    // const { rows: entryPermissions } = await orm.getEntryList(
+    //   "entryPermission",
+    //   listOptions,
+    // );
 
-    for (const { id } of entryPermissions) {
-      const perm = await orm.getEntry("entryPermission", id);
-      const existing = entryTypes.get(perm.$entryMeta);
-      const entryPermission: EntryPermission = {
-        ...existing,
-        create: perm.$canCreate,
-        delete: perm.$canDelete,
-        modify: perm.$canModify,
-        view: perm.$canView,
-        userScope: perm.$userScope?.split(":").pop() || existing?.userScope,
-        actions: {
-          include: perm.$actionPermissions.data.filter((action) =>
-            action.canExecute
-          ).map((action) => action.action.split(":").pop()!),
-          exclude: perm.$actionPermissions.data.filter((action) =>
-            !action.canExecute
-          ).map((action) => action.action.split(":").pop()!),
-        },
-      };
+    // for (const { id } of entryPermissions) {
+    //   const perm = await orm.getEntry("entryPermission", id);
+    //   const existing = entryTypes.get(perm.$entryMeta);
+    //   const entryPermission: EntryPermission = {
+    //     ...existing,
+    //     create: perm.$canCreate,
+    //     delete: perm.$canDelete,
+    //     modify: perm.$canModify,
+    //     view: perm.$canView,
+    //     userScope: perm.$userScope?.split(":").pop() || existing?.userScope,
+    //     actions: {
+    //       include: perm.$actionPermissions.data.filter((action) =>
+    //         action.canExecute
+    //       ).map((action) => action.action.split(":").pop()!),
+    //       exclude: perm.$actionPermissions.data.filter((action) =>
+    //         !action.canExecute
+    //       ).map((action) => action.action.split(":").pop()!),
+    //     },
+    //   };
 
-      if (perm.$fieldPermissions.count > 0) {
-        if (!entryPermission.fields) {
-          entryPermission.fields = {};
-        }
-        for (const field of perm.$fieldPermissions.data) {
-          entryPermission.fields[field.field.split(":").pop()!] = {
-            view: !!field.canView,
-            modify: !!field.canModify,
-          };
-        }
-      }
+    //   if (perm.$fieldPermissions.count > 0) {
+    //     if (!entryPermission.fields) {
+    //       entryPermission.fields = {};
+    //     }
+    //     for (const field of perm.$fieldPermissions.data) {
+    //       entryPermission.fields[field.field.split(":").pop()!] = {
+    //         view: !!field.canView,
+    //         modify: !!field.canModify,
+    //       };
+    //     }
+    //   }
 
-      entryTypes.set(perm.$entryMeta, entryPermission);
-    }
-    roleConfig.entryTypes = Object.fromEntries(entryTypes);
-    const { rows: settingsPermissions } = await orm.getEntryList(
-      "settingsPermission",
-      listOptions,
-    );
-    for (const { id } of settingsPermissions) {
-      const perm = await orm.getEntry("settingsPermission", id);
-      const existing = settingsTypes.get(perm.$settingsMeta);
-      if (!roleConfig.settingsTypes) {
-        roleConfig.settingsTypes = {};
-      }
-      const settingsPermission: SettingsPermission = {
-        ...existing,
-        modify: perm.$canModify,
-        view: perm.$canView,
-        actions: {
-          include: perm.$actionPermissions.data.filter((action) =>
-            action.canExecute
-          ).map((action) => action.action.split(":").pop()!),
-          exclude: perm.$actionPermissions.data.filter((action) =>
-            !action.canExecute
-          ).map((action) => action.action.split(":").pop()!),
-        },
-      };
-      if (perm.$fieldPermissions.count > 0) {
-        if (!settingsPermission.fields) {
-          settingsPermission.fields = {};
-        }
-        for (const field of perm.$fieldPermissions.data) {
-          settingsPermission["fields"][field.field.split(":").pop()!] = {
-            view: !!field.canView,
-            modify: !!field.canModify,
-          };
-        }
-      }
-      settingsTypes.set(perm.$settingsMeta, settingsPermission);
-    }
-    roleConfig.settingsTypes = Object.fromEntries(settingsTypes);
-    const { rows: apiGroupPermissions } = await orm.getEntryList(
-      "apiGroupPermission",
-      listOptions,
-    );
-    for (const { id } of apiGroupPermissions) {
-      const perm = await orm.getEntry("apiGroupPermission", id);
+    //   entryTypes.set(perm.$entryMeta, entryPermission);
+    // }
+    // roleConfig.entryTypes = Object.fromEntries(entryTypes);
+    // const { rows: settingsPermissions } = await orm.getEntryList(
+    //   "settingsPermission",
+    //   listOptions,
+    // );
+    // for (const { id } of settingsPermissions) {
+    //   const perm = await orm.getEntry("settingsPermission", id);
+    //   const existing = settingsTypes.get(perm.$settingsMeta);
+    //   if (!roleConfig.settingsTypes) {
+    //     roleConfig.settingsTypes = {};
+    //   }
+    //   const settingsPermission: SettingsPermission = {
+    //     ...existing,
+    //     modify: perm.$canModify,
+    //     view: perm.$canView,
+    //     actions: {
+    //       include: perm.$actionPermissions.data.filter((action) =>
+    //         action.canExecute
+    //       ).map((action) => action.action.split(":").pop()!),
+    //       exclude: perm.$actionPermissions.data.filter((action) =>
+    //         !action.canExecute
+    //       ).map((action) => action.action.split(":").pop()!),
+    //     },
+    //   };
+    //   if (perm.$fieldPermissions.count > 0) {
+    //     if (!settingsPermission.fields) {
+    //       settingsPermission.fields = {};
+    //     }
+    //     for (const field of perm.$fieldPermissions.data) {
+    //       settingsPermission["fields"][field.field.split(":").pop()!] = {
+    //         view: !!field.canView,
+    //         modify: !!field.canModify,
+    //       };
+    //     }
+    //   }
+    //   settingsTypes.set(perm.$settingsMeta, settingsPermission);
+    // }
+    // roleConfig.settingsTypes = Object.fromEntries(settingsTypes);
+    // const { rows: apiGroupPermissions } = await orm.getEntryList(
+    //   "apiGroupPermission",
+    //   listOptions,
+    // );
+    // for (const { id } of apiGroupPermissions) {
+    //   const perm = await orm.getEntry("apiGroupPermission", id);
 
-      const accessActions = perm.$actions.data.filter((
-        action,
-      ) => action.canAccess).map((
-        action,
-      ) => action.apiAction.split(":").pop()!);
-      apiGroups.set(perm.$apiGroup, perm.$accessAll ? true : accessActions);
-    }
-    roleConfig.apiGroups = Object.fromEntries(apiGroups);
+    //   const accessActions = perm.$actions.data.filter((
+    //     action,
+    //   ) => action.canAccess).map((
+    //     action,
+    //   ) => action.apiAction.split(":").pop()!);
+    //   apiGroups.set(perm.$apiGroup, perm.$accessAll ? true : accessActions);
+    // }
+    // roleConfig.apiGroups = Object.fromEntries(apiGroups);
 
-    return roleConfig;
+    // return roleConfig;
   },
 });
 

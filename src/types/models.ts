@@ -2794,7 +2794,7 @@ type UserRoleFields = {
   extendsRole?: string | null;
   /**
    * **Description** (TextField)
-   * @description A short description of the role
+   * @description A short descriptions of the role
    * @type {string}
    */
   description?: string | null;
@@ -2849,7 +2849,7 @@ export interface UserRole extends EntryBase<"userRole", UserRoleFields> {
   $extendsRole?: string | null;
   /**
    * **Description** (TextField)
-   * @description A short description of the role
+   * @description A short descriptions of the role
    * @type {string}
    */
   $description?: string | null;
