@@ -1,7 +1,7 @@
-import { defineChildEntry } from "../../../orm/child-entry/child-entry.ts";
-import { raiseORMException } from "../../../orm/orm-exception.ts";
-import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
-import { defineEntry } from "../../../orm/entry/entry-type.ts";
+import { defineChildEntry } from "~/orm/child-entry/child-entry.ts";
+import { raiseORMException } from "~/orm/orm-exception.ts";
+// import type { EntryHookDefinition } from "../../../orm/entry/types.ts";
+import { defineEntry } from "~/orm/entry/entry-type.ts";
 
 const apiActions = defineChildEntry("actions", {
   label: "API Actions",
@@ -34,16 +34,16 @@ const apiActions = defineChildEntry("actions", {
     description: "Whether the role can access this API action",
   }],
 });
-const syncRoleConfig: EntryHookDefinition<"apiGroupPermission"> = {
-  name: "syncRoleConfig",
-  async handler({ apiGroupPermission, orm }) {
-    const userRole = await orm.getEntry(
-      "userRole",
-      apiGroupPermission.$userRole,
-    );
-    userRole.runAction("generateConfig");
-  },
-};
+// const syncRoleConfig: EntryHookDefinition<"apiGroupPermission"> = {
+//   name: "syncRoleConfig",
+//   async handler({ apiGroupPermission, orm }) {
+//     const userRole = await orm.getEntry(
+//       "userRole",
+//       apiGroupPermission.$userRole,
+//     );
+//     userRole.runAction("generateConfig");
+//   },
+// };
 export const apiGroupPermission = defineEntry("apiGroupPermission", {
   systemGlobal: true,
   skipAuditLog: true,

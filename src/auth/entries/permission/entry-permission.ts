@@ -1,6 +1,6 @@
 import { raiseORMException } from "~/orm/orm-exception.ts";
 import { defineChildEntry } from "~/orm/child-entry/child-entry.ts";
-import type { EntryHookDefinition } from "~/orm/entry/types.ts";
+// import type { EntryHookDefinition } from "~/orm/entry/types.ts";
 import { defineEntry } from "~/orm/mod.ts";
 const fieldPermission = defineChildEntry("fieldPermissions", {
   idMode: {
@@ -59,16 +59,16 @@ const actionPermission = defineChildEntry("actionPermissions", {
   }],
 });
 
-const syncRoleConfig: EntryHookDefinition<"entryPermission"> = {
-  name: "syncRoleConfig",
-  async handler({ entryPermission, orm }) {
-    const userRole = await orm.getEntry(
-      "userRole",
-      entryPermission.$userRole,
-    );
-    userRole.runAction("generateConfig");
-  },
-};
+// const syncRoleConfig: EntryHookDefinition<"entryPermission"> = {
+//   name: "syncRoleConfig",
+//   async handler({ entryPermission, orm }) {
+//     const userRole = await orm.getEntry(
+//       "userRole",
+//       entryPermission.$userRole,
+//     );
+//     userRole.runAction("generateConfig");
+//   },
+// };
 export const entryPermission = defineEntry(
   "entryPermission",
   {

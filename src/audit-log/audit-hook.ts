@@ -7,7 +7,6 @@ import { dateUtils } from "../utils/date-utils.ts";
 import type { InFieldType } from "../orm/field/field-def-types.ts";
 import type { Entry } from "../orm/entry/entry.ts";
 import type { Settings } from "../orm/settings/settings.ts";
-import { getInLog } from "#inLog";
 
 export type LogUpdateField = {
   key: string;
