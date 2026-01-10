@@ -29,12 +29,36 @@ export const auditUpdateHook: GlobalHookFunction = async (
   const changes: Array<LogUpdateField> = [];
   const fields = entry._entryType.fields;
   for (const [key, value] of entry._modifiedValues.entries()) {
+    let fromLabel = value.from;
+    let toLabel = value.to;
+    if (key.includes("__title")) continue;
+    const field = fields.get(key)!;
+    switch (field.type) {
+      case "ChoicesField":
+        fromLabel = field.choices.find((choice) =>
+          choice.key === value.from
+        )?.label || value.from;
+        toLabel = field.choices.find((choice) =>
+          choice.key === value.to
+        )?.label || value.to;
+        break;
+      case "ConnectionField":
+        {
+          const title = entry._modifiedValues.get(`${field.key}__title`);
+          if (!title) {
+            break;
+          }
+          fromLabel = title.from;
+          toLabel = title.to;
+        }
+        break;
+    }
     changes.push({
       key,
-      type: fields.get(key)?.type || "DataField",
-      label: fields.get(key)?.label || key,
-      from: { value: value.from, label: value.from },
-      to: { value: value.to, label: value.to },
+      type: field?.type || "DataField",
+      label: field?.label || key,
+      from: { value: value.from, label: fromLabel },
+      to: { value: value.to, label: toLabel },
     });
   }
 
