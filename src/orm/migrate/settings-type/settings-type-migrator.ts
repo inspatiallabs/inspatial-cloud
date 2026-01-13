@@ -4,6 +4,11 @@ import type { InSpatialORM } from "~/orm/inspatial-orm.ts";
 import type { SettingsRow } from "~/orm/settings/types.ts";
 import { BaseMigrator } from "~/orm/migrate/shared/base-migrator.ts";
 import type { InSpatialDB } from "../../db/inspatial-db.ts";
+import type {
+  PostgresColumn,
+  TableConstraint,
+  TableIndex,
+} from "../../db/db-types.ts";
 
 export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
   get settingsType(): SettingsType {
@@ -35,40 +40,33 @@ export class SettingsTypeMigrator extends BaseMigrator<SettingsType> {
     this.targetFields = new Map();
   }
 
-  async planMigration(): Promise<SettingsMigrationPlan> {
+  async planMigration(
+    options: {
+      indexes: Array<TableIndex>;
+      columns: Array<PostgresColumn>;
+      constraints: Array<TableConstraint>;
+      tables: Set<string>;
+      settingsColumns: Array<SettingsRow>;
+    },
+  ): Promise<SettingsMigrationPlan> {
     this.migrationPlan = new SettingsMigrationPlan(this.settingsType.name);
-    await this.#loadExistingFields();
+    this.#loadExistingFields(options.settingsColumns);
     this.#loadTargetFields();
     this.#checkForFieldsToCreate();
     this.#checkForFieldsToDrop();
     this.#checkForFieldsToModify();
-    await this.loadExistingChildren();
-    await this.makeChildrenMigrationPlan();
+    this.loadExistingChildren(options.columns);
+    await this.makeChildrenMigrationPlan(options);
     return this.migrationPlan;
   }
 
   async migrate(): Promise<void> {}
 
-  async #loadExistingFields(): Promise<void> {
-    const hasTable = await this.db.tableExists("inSettings");
-    if (!hasTable) {
-      return;
-    }
-    const result = await this.db.getRows<SettingsRow>("inSettings", {
-      filter: [
-        {
-          field: "settingsType",
-          op: "=",
-          value: this.settingsType.name,
-        },
-      ],
-      columns: ["id", "settingsType", "field", "value"],
-    });
-    this.existingFields = new Map();
-    for (const row of result.rows) {
-      const { field } = row;
-      this.existingFields.set(field, row);
-    }
+  #loadExistingFields(settingsColumns: Array<SettingsRow>): void {
+    const cols = settingsColumns.filter((col) =>
+      col.settingsType === this.settingsType.name
+    );
+    this.existingFields = new Map(cols.map((col) => [col.field, col]));
   }
 
   #loadTargetFields(): void {

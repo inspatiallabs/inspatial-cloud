@@ -4,14 +4,23 @@ import type { CloudAPIGroup } from "../../api/cloud-group.ts";
 import convertString from "../../utils/convert-string.ts";
 import type { CloudAPIAction } from "@inspatial/cloud";
 import type { EntryName, FieldMeta } from "#types/models.ts";
-import type { InField, InFieldType } from "../field/field-def-types.ts";
+import type { InField } from "../field/field-def-types.ts";
 import type { EntryActionDefinition } from "../entry/types.ts";
 import type { SettingsActionDefinition } from "../settings/types.ts";
 import { handlePgError, isPgError } from "../db/postgres/pgError.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import type { ListOptions } from "../db/db-types.ts";
 import type { InFilter } from "~/orm/db/db-types.ts";
-
+const SHOW_TIME = true;
+const withTime = async (name: string, callback: () => Promise<any>) => {
+  if (!SHOW_TIME) {
+    await callback();
+    return;
+  }
+  console.time(name);
+  await callback();
+  console.timeEnd(name);
+};
 export class InCloudMigrator extends InCloud {
   constructor(appName: string, config: any) {
     super(appName, config, "migrator");
@@ -46,49 +55,12 @@ export class InCloudMigrator extends InCloud {
     );
   }
   async #migrateGlobal() {
-    const withTime = async (name: string, callback: () => Promise<any>) => {
-      console.time(name);
-      await callback();
-      console.timeEnd(name);
-    };
     const orm = this.orm.withUser(this.orm.systemGobalUser);
     await this.#checkCoreVersion(orm);
-    // await withTime("Global migration", async () => await orm.migrateGlobal());
-    await orm.migrateGlobal();
-    try {
-      // await withTime(
-      //   "Delete Obsolete",
-      //   async () => await this.#deleteObsoleteMeta(orm),
-      // );
-      // await withTime(
-      //   "Sync Extension Meta",
-      //   async () => await this.#syncExtensionMeta(orm),
-      // );
-      // await withTime(
-      //   "Sync Entry Meta",
-      //   async () => await this.#syncEntryMeta(orm),
-      // );
-      // await withTime(
-      //   "Sync Settings Meta",
-      //   async () => await this.#syncSettingsMeta(orm),
-      // );
-      // await withTime(
-      //   "Sync Field Meta",
-      //   async () => await this.#syncFieldMeta(orm),
-      // );
-      // await withTime(
-      //   "Sync Action Meta",
-      //   async () => await this.#syncActionMeta(orm),
-      // );
 
-      // await withTime(
-      //   "Sync Api Groups",
-      //   async () => await this.#syncApiGroups(orm),
-      // );
-      // await withTime(
-      //   "Sync Roles",
-      //   async () => await this.#syncRoles(orm),
-      // );
+    await orm.migrateGlobal();
+
+    try {
       await this.#deleteObsoletePermissions(orm);
       await this.#deleteObsoleteMeta(orm);
       await this.#syncExtensionMeta(orm);
@@ -655,7 +627,9 @@ export class InCloudMigrator extends InCloud {
       roleModel.$extendsRole = role.extendsRole;
       await roleModel.save();
       await this.#syncRoleEntryPermissions(orm, roleName);
+
       await this.#syncRoleSettingsPermissions(orm, roleName);
+
       await this.#syncRoleApiPermissions(orm, roleName);
     }
   }
@@ -676,21 +650,26 @@ export class InCloudMigrator extends InCloud {
     const entryPerms = new Map(rows.map((row) => [row.id, row]));
     for (const [entryTypeName, entryPerm] of role.entryPermissions.entries()) {
       const permRow = entryPerms.get(`${roleName}:${entryTypeName}`);
+      let skip = false;
       if (permRow) {
         if (
           permRow.canView === entryPerm.view &&
           permRow.canModify === entryPerm.modify &&
           permRow.canCreate === entryPerm.create &&
-          permRow.canDelete === entryPerm.delete &&
-          permRow.userScope ===
-            (entryPerm.userScope
-              ? `${entryTypeName}:${entryPerm.userScope}`
-              : entryPerm.userScope)
+          permRow.canDelete === entryPerm.delete
         ) {
-          continue;
+          skip = true;
+        }
+        if (!entryPerm.userScope && !permRow.userScope) {
+          skip = true;
+        }
+        if (permRow.userScope === `${entryTypeName}:${entryPerm.userScope}`) {
+          skip = true;
         }
       }
-
+      if (skip) {
+        continue;
+      }
       let entryPermModel = await orm.findEntry("entryPermission", {
         userRole: roleName,
         entryMeta: entryTypeName,
@@ -747,7 +726,30 @@ export class InCloudMigrator extends InCloud {
   }
   async #syncRoleSettingsPermissions(orm: InSpatialORM, roleName: string) {
     const role = this.roles.getRole(roleName);
+    const { rows } = await orm.getEntryList("settingsPermission", {
+      columns: [
+        "id",
+        "userRole",
+        "settingsMeta",
+        "canView",
+        "canModify",
+      ],
+    });
+    const settingsPerms = new Map(rows.map((row) => [row.id, row]));
     for (const [settingsTypeName, settingsPerm] of role.settingsPermissions) {
+      const permRow = settingsPerms.get(`${roleName}:${settingsTypeName}`);
+      let skip = false;
+      if (permRow) {
+        if (
+          permRow.canView === settingsPerm.view &&
+          permRow.canModify === settingsPerm.modify
+        ) {
+          skip = true;
+        }
+      }
+      if (skip) {
+        continue;
+      }
       let settingsPermModel = await orm.findEntry("settingsPermission", {
         userRole: roleName,
         settingsMeta: settingsTypeName,
@@ -917,7 +919,7 @@ export class InCloudMigrator extends InCloud {
   async #migrateAccounts() {
     const { rows: accounts } = await this.orm.getEntryList(
       "account",
-      { columns: ["id"], filter: { initialized: true }, limit: 0 },
+      { columns: ["id", "name"], filter: { initialized: true }, limit: 0 },
     );
     for (const { id } of accounts) {
       await this.orm.migrate(id);

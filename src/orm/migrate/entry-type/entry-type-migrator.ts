@@ -89,35 +89,46 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
     this.migrationPlan = new EntryMigrationPlan(this.entryType.name);
   }
   async migrate(): Promise<any> {
-    await this.planMigration();
     await this.#createTableIfNotExists();
     await this.#syncTableDescription();
     await this.#migrateColumns();
     await this.#syncIndexes();
   }
 
-  async planMigration(): Promise<EntryMigrationPlan> {
+  async planMigration(options: {
+    indexes: Array<TableIndex>;
+    columns: Array<PostgresColumn>;
+    constraints: Array<TableConstraint>;
+    tables: Set<string>;
+  }): Promise<EntryMigrationPlan> {
+    const { columns, constraints } = options;
     this.migrationPlan = new EntryMigrationPlan(this.entryType.name);
     this.migrationPlan.table.tableName = this.#tableName;
-    await this.#checkTableInfo();
+    this.#checkTableInfo(options.tables);
     this.#loadTargetColumns();
     this.#loadTargetIndexes();
-    await this.#loadExistingIndexes();
+    this.#loadExistingIndexes(options.indexes);
     if (!this.migrationPlan.table.create) {
-      await this.#loadExistingColumns();
-      await this.#loadExistingConstraints();
+      this.#setColumns(columns);
+      this.#loadExistingConstraints(constraints);
       this.#checkForColumnsToDrop();
       this.#checkForColumnsToModify();
     }
     this.#checkForColumnsToCreate();
 
     if (!this.isChild) {
-      await this.loadExistingChildren();
-      await this.makeChildrenMigrationPlan();
+      this.loadExistingChildren(columns);
+      await this.makeChildrenMigrationPlan(options);
     }
     return this.migrationPlan;
   }
-
+  #setColumns(columns: Array<PostgresColumn>) {
+    const tableName = this.#tableName;
+    const filtered = columns.filter((column) => column.tableName === tableName);
+    this.existingColumns = new Map(
+      filtered.map((col) => [col.columnName, col]),
+    );
+  }
   async #createTableIfNotExists() {
     const { table } = this.migrationPlan;
     if (table.create) {
@@ -214,21 +225,12 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       });
     }
   }
-  async #loadExistingColumns(): Promise<void> {
-    const columns = await this.db.getTableColumns(this.#tableName);
-    for (const column of columns) {
-      this.existingColumns.set(column.columnName, column);
-    }
-  }
 
-  async #loadExistingIndexes() {
-    const result = await this.db.getTableIndexes(this.#tableName);
-
-    for (const index of result) {
-      if (!index.indexname.startsWith("idx_")) {
-        continue;
-      }
-
+  #loadExistingIndexes(indexes: Array<TableIndex>) {
+    const filtered = indexes.filter((index) =>
+      index.indexname.startsWith("idx_") && index.tablename === this.#tableName
+    );
+    for (const index of filtered) {
       this.existingIndexes.set(index.indexname, index);
     }
   }
@@ -254,10 +256,9 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
     }
   }
-  async #loadExistingConstraints(): Promise<void> {
-    const constraints = await this.db.getTableConstraints(this.#tableName);
-
+  #loadExistingConstraints(constraints: Array<TableConstraint>): void {
     for (const constraint of constraints) {
+      if (constraint.tableName !== this.#tableName) continue;
       switch (constraint.constraintType) {
         case "UNIQUE":
           this.existingConstraints.unique.set(
@@ -364,25 +365,14 @@ export class EntryTypeMigrator<T extends EntryType | ChildEntryType>
       }
     }
   }
-  async #checkTableInfo(): Promise<void> {
-    const tableExists = await this.db.tableExists(this.#tableName);
-    const newDescription = this.entryType.config.description || null;
+  #checkTableInfo(tables: Set<string>): void {
+    const tableName = convertString(this.#tableName, "camel");
+    const tableExists = tables.has(tableName);
     if (!tableExists) {
       this.migrationPlan.table.create = true;
-      this.migrationPlan.table.updateDescription = {
-        from: "",
-        to: newDescription ?? "",
-      };
       return;
     }
-    const existingDescription = await this.db.getTableComment(this.#tableName);
     this.migrationPlan.table.create = false;
-    if (existingDescription != newDescription) {
-      this.migrationPlan.table.updateDescription = {
-        from: existingDescription,
-        to: newDescription ?? "",
-      };
-    }
   }
 
   #checkForColumnsToModify(): void {

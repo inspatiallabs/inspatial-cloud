@@ -25,7 +25,9 @@ import { formatColumnName, formatDbValue } from "~/orm/db/utils.ts";
 import { raiseORMException } from "../orm-exception.ts";
 import { generateId } from "../../utils/misc.ts";
 import { getInLog, type InLog } from "#inLog";
-
+const stats = {
+  queryCount: 0,
+};
 /**
  * InSpatialDB is an interface for interacting with a Postgres database
  */
@@ -147,7 +149,14 @@ export class InSpatialDB {
     }
     return this.#version;
   }
-
+  _resetCount() {
+    stats.queryCount = 0;
+  }
+  get _stats() {
+    const queryCount = stats.queryCount;
+    stats.queryCount = 0;
+    return { queryCount };
+  }
   /**
    * Send a query to the database and return the result.
    * The result is formatted to use camelCase for column names
@@ -161,6 +170,7 @@ export class InSpatialDB {
     }
     let qid: string = "";
     if (this.debugMode) {
+      stats.queryCount++;
       qid = generateId(8);
       this.debugMode && this.inLog.debug(query, {
         compact: true,
@@ -199,6 +209,82 @@ export class InSpatialDB {
     }
     const query = `CREATE SCHEMA IF NOT EXISTS "${schema}";`;
     return await this.query(query);
+  }
+  async getSchemaColumns(): Promise<
+    Array<PostgresColumn & { array?: boolean }>
+  > {
+    const columns = [
+      "tableCatalog",
+      "tableSchema",
+      "tableName",
+      "columnName",
+      "ordinalPosition",
+      "columnDefault",
+      "isNullable",
+      "dataType",
+      "characterMaximumLength",
+      "characterOctetLength",
+      "numericPrecision",
+      "numericPrecisionRadix",
+      "numericScale",
+      "datetimePrecision",
+      "intervalType",
+      "intervalPrecision",
+      // "characterSetCatalog",
+      // "characterSetSchema",
+      // "characterSetName",
+      // "collationCatalog",
+      // "collationSchema",
+      // "collationName",
+      "domainCatalog",
+      "domainSchema",
+      "domainName",
+      "udtCatalog",
+      "udtSchema",
+      "udtName",
+      // "scopeCatalog",
+      // "scopeSchema",
+      // "scopeName",
+      "maximumCardinality",
+      "dtdIdentifier",
+      "isSelfReferencing",
+      "isIdentity",
+      "identityGeneration",
+      "identityStart",
+      "identityIncrement",
+      "identityMaximum",
+      "identityMinimum",
+      "identityCycle",
+      "isGenerated",
+      "generationExpression",
+      "isUpdatable",
+    ];
+    const formattedColumns = columns.map((column) => formatColumnName(column));
+    const query = `SELECT ${
+      formattedColumns.join(", ")
+    } FROM information_schema.columns WHERE table_schema = '${this.schema}';`;
+    const result = await this.query<PostgresColumn>(query);
+    return result.rows.map((row) => {
+      let array: true | undefined;
+      if (row.dataType as string === "ARRAY") {
+        array = true;
+        switch (row.udtName) {
+          case "_int4":
+            row.dataType = "integer";
+            break;
+          case "_text":
+            row.dataType = "text";
+            break;
+          default:
+            raiseORMException(`Unsupported array type: ${row.udtName}`);
+        }
+      }
+      return {
+        ...row,
+        columnName: snakeToCamel(row.columnName),
+        array,
+      };
+    });
   }
   /**
    * Get a list of column definitions for a table
@@ -788,6 +874,13 @@ export class InSpatialDB {
     return result.rows[0];
   }
 
+  async getSchemaIndexes(): Promise<Array<TableIndex>> {
+    const query =
+      `SELECT * FROM pg_indexes WHERE schemaname = '${this.schema}';`;
+    const result = await this.query<TableIndex>(query);
+    return result.rows;
+  }
+
   async getTableIndexes(tableName: string): Promise<Array<TableIndex>> {
     const query =
       `SELECT * FROM pg_indexes WHERE schemaname = '${this.schema}' AND tablename = '${tableName}';`;
@@ -1109,6 +1202,30 @@ export class InSpatialDB {
         ON tc.constraint_name = kcu.constraint_name
     WHERE tc.table_name = '${tableName}'
         AND tc.table_schema = '${this.schema}';`;
+    // AND tc.constraint_type = 'UNIQUE';`;
+
+    const result = await this.query<
+      TableConstraint
+    >(query);
+    return result.rows.map((row) => {
+      return {
+        ...row,
+        columnName: snakeToCamel(row.columnName),
+      };
+    });
+  }
+  async getSchemaConstraints(): Promise<Array<TableConstraint>> {
+    const query =
+      // `SELECT * FROM information_schema.table_constraints WHERE table_name = '${tableName}' AND table_schema = '${this.schema}'`;
+      `SELECT
+        tc.table_name,
+        tc.constraint_name,
+        tc.constraint_type,
+        kcu.column_name
+    FROM information_schema.table_constraints AS tc
+    JOIN information_schema.key_column_usage AS kcu
+        ON tc.constraint_name = kcu.constraint_name
+    WHERE tc.table_schema = '${this.schema}';`;
     // AND tc.constraint_type = 'UNIQUE';`;
 
     const result = await this.query<

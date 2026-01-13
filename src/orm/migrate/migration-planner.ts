@@ -9,6 +9,7 @@ import { MigrationPlan } from "~/orm/migrate/migration-plan.ts";
 import type { InSpatialORM } from "../inspatial-orm.ts";
 import { setupTagsTable } from "../../tags/tags.ts";
 import convertString from "../../utils/convert-string.ts";
+import type { SettingsRow } from "../settings/types.ts";
 
 export class MigrationPlanner {
   entryTypes: Map<string, EntryTypeMigrator<EntryType>>;
@@ -64,8 +65,17 @@ export class MigrationPlanner {
     this.migrationPlan.database = this.db.dbName || "";
     this.migrationPlan.schema = this.db.schema;
 
+    const columns = await this.db.getSchemaColumns();
+    const indexes = await this.db.getSchemaIndexes();
+    const constraints = await this.db.getSchemaConstraints();
     for (const migrator of this.entryTypes.values()) {
-      const plan = await migrator.planMigration();
+      const plan = await migrator.planMigration({
+        columns,
+        indexes,
+        constraints,
+        tables,
+      });
+
       tables.delete(toCamel(plan.table.tableName));
       this.migrationPlan.summary.addColumns += plan.columns.create.length;
       this.migrationPlan.summary.dropColumns += plan.columns.drop.length;
@@ -87,8 +97,21 @@ export class MigrationPlanner {
       this.migrationPlan.settingsTable.create = true;
       this.migrationPlan.summary.createTables++;
     }
+    const { rows: settingsColumns } = await this.db.getRows<SettingsRow>(
+      "inSettings",
+      {
+        limit: 0,
+        columns: ["id", "settingsType", "field", "value"],
+      },
+    );
     for (const migrator of this.settingsTypes.values()) {
-      const plan = await migrator.planMigration();
+      const plan = await migrator.planMigration({
+        columns,
+        settingsColumns,
+        indexes,
+        constraints,
+        tables,
+      });
       this.migrationPlan.summary.addSettingsFields += plan.fields.create.length;
       this.migrationPlan.summary.dropSettingsFields += plan.fields.drop.length;
       this.migrationPlan.summary.modifySettingsFields +=
@@ -106,12 +129,19 @@ export class MigrationPlanner {
   async migrate(): Promise<Array<string>> {
     await this.#validateSchema();
     await this.createMigrationPlan();
+
     await this.#dropTables();
+
     await this.#verifyTagsTable();
+
     await this.#verifySettingsTable();
+
     await this.#syncViews();
+
     await this.#migrateEntryTypes();
+
     await this.#migrateSettingsTypes();
+
     return this.#results;
   }
   async #syncViews(): Promise<void> {

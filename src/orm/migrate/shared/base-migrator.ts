@@ -7,6 +7,11 @@ import type { EntryMigrationPlan } from "~/orm/migrate/entry-type/entry-migratio
 import { EntryTypeMigrator } from "~/orm/migrate/entry-type/entry-type-migrator.ts";
 import type { SettingsMigrationPlan } from "~/orm/migrate/settings-type/settings-migration-plan.ts";
 import convertString from "~/utils/convert-string.ts";
+import type {
+  PostgresColumn,
+  TableConstraint,
+  TableIndex,
+} from "../../db/db-types.ts";
 
 export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
   db: InSpatialDB;
@@ -16,7 +21,10 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
   migrationPlan!: T extends SettingsType ? SettingsMigrationPlan
     : EntryMigrationPlan;
 
-  existingChildren: Map<string, any>;
+  existingChildren: Map<
+    string,
+    { tableName: string; columns: Array<PostgresColumn> }
+  >;
   constructor(args: {
     db: InSpatialDB;
     orm: InSpatialORM;
@@ -31,39 +39,52 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
     this.typeDef = args.typeDef;
     this.existingChildren = new Map();
   }
-  async loadExistingChildren(): Promise<void> {
-    const result = await this.db.getRows<{ tableName: string }>("tables", {
-      columns: ["tableName"],
-      filter: [{
-        field: "tableSchema",
-        op: "=",
-        value: this.db.schema,
-      }, {
-        field: "tableName",
-        op: "startsWith",
-        value: convertString(`child_${this.typeDef.name}`, "snake", true),
-      }],
-    }, "information_schema");
-    for (const row of result.rows) {
-      const columns = await this.db.getTableColumns(row.tableName);
-      const tableName = convertString(row.tableName, "camel");
-      this.existingChildren.set(tableName, {
-        tableName,
-        columns: columns,
-      });
+  loadExistingChildren(columns: Array<PostgresColumn>): void {
+    const snakeTable = convertString(
+      `child_${this.typeDef.name}`,
+      "snake",
+      true,
+    );
+    const childrenColumns = columns.filter((column) =>
+      column.tableName.startsWith(snakeTable)
+    );
+    for (const column of childrenColumns) {
+      const tableName = convertString(column.tableName, "camel");
+      if (!this.existingChildren.has(tableName)) {
+        this.existingChildren.set(tableName, {
+          tableName,
+          columns: [],
+        });
+      }
+      this.existingChildren.get(tableName)!.columns.push(column);
     }
   }
-  async makeChildrenMigrationPlan(): Promise<void> {
+  async makeChildrenMigrationPlan(options: {
+    indexes: Array<TableIndex>;
+    columns: Array<PostgresColumn>;
+    constraints: Array<TableConstraint>;
+    tables: Set<string>;
+  }): Promise<void> {
     if (!this.typeDef.children) {
       return;
     }
+    const { columns } = options;
     for (const child of this.typeDef.children.values()) {
-      const migrationPlan = await this.generateChildMigrationPlan(child);
+      const migrationPlan = await this.generateChildMigrationPlan(
+        child,
+        options,
+      );
       this.migrationPlan.children.push(migrationPlan);
     }
   }
   async generateChildMigrationPlan(
     child: ChildEntryType<any>,
+    options: {
+      columns: Array<PostgresColumn>;
+      indexes: Array<TableIndex>;
+      constraints: Array<TableConstraint>;
+      tables: Set<string>;
+    },
   ): Promise<EntryMigrationPlan> {
     const migrationPlan = new EntryTypeMigrator({
       entryType: child,
@@ -73,6 +94,6 @@ export class BaseMigrator<T extends EntryType | SettingsType | ChildEntryType> {
       isChild: true,
     });
 
-    return await migrationPlan.planMigration();
+    return await migrationPlan.planMigration(options);
   }
 }

@@ -100,6 +100,7 @@ export class InSpatialORM {
     clone._accountId = accountId;
     return this;
   }
+
   withUser(user: UserContext): InSpatialORM {
     if (!user) {
       raiseORMException(
