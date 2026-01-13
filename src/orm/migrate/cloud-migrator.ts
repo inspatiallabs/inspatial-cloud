@@ -54,7 +54,7 @@ export class InCloudMigrator extends InCloud {
     const orm = this.orm.withUser(this.orm.systemGobalUser);
     await this.#checkCoreVersion(orm);
     // await withTime("Global migration", async () => await orm.migrateGlobal());
-    // await orm.migrateGlobal();
+    await orm.migrateGlobal();
     try {
       // await withTime(
       //   "Delete Obsolete",
