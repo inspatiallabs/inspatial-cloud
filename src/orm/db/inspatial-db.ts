@@ -149,10 +149,10 @@ export class InSpatialDB {
     }
     return this.#version;
   }
-  _resetCount() {
+  _resetCount(): void {
     stats.queryCount = 0;
   }
-  get _stats() {
+  get _stats(): { queryCount: number } {
     const queryCount = stats.queryCount;
     stats.queryCount = 0;
     return { queryCount };
