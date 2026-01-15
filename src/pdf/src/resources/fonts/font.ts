@@ -1,6 +1,5 @@
-import { ContentStream } from "../../graphics/contentStream.ts";
 import { Dictionary } from "../../objects/dictionary.ts";
-import { DocObject } from "../../objects/docObject.ts";
+import type { DocObject } from "../../objects/docObject.ts";
 import { loadFont } from "./fontLoader.ts";
 
 export class Font {
@@ -199,12 +198,6 @@ export class Font {
   #setupFileObject() {
     const fontData = this.data;
     const fontFile = this.fileObject;
-
-    const bytesToHex = (bytes: Uint8Array) => {
-      return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join(
-        "",
-      );
-    };
 
     fontFile.set("Length", fontData.byteLength);
     fontFile.set("Length1", fontData.byteLength);
