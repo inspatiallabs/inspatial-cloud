@@ -1,10 +1,11 @@
 {
+  "project_name": "InSpatial Cloud",
   "languages": {
     "TypeScript": {
-      "language_servers": ["deno"]
+      "language_servers": ["deno"],
     },
     "JavaScript": {
-      "language_servers": ["deno"]
-    }
-  }
+      "language_servers": ["deno"],
+    },
+  },
 }
