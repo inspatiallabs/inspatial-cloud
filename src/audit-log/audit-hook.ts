@@ -20,11 +20,12 @@ export type LogUpdateData = {
 };
 
 export const auditUpdateHook: GlobalHookFunction = async (
-  { entry, entryType, orm },
+  { entry, entryType, orm: ormScoped, inCloud },
 ) => {
   if (shouldSkipEntry(entry)) {
     return;
   }
+  const orm = inCloud.orm.withAccount(ormScoped._accountId || "systemGlobal");
   entry._modifiedValues.delete("updatedAt");
   const changes: Array<LogUpdateField> = [];
   const fields = entry._entryType.fields;
@@ -77,11 +78,12 @@ export const auditUpdateHook: GlobalHookFunction = async (
 };
 
 export const auditCreateHook: GlobalHookFunction = async (
-  { entry, entryType, orm },
+  { entry, entryType, orm: ormScoped, inCloud },
 ) => {
   if (shouldSkipEntry(entry)) {
     return;
   }
+  const orm = inCloud.orm.withAccount(ormScoped._accountId || "systemGlobal");
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
   const { titleField = "id" } = entry._entryType.config;
@@ -97,12 +99,12 @@ export const auditCreateHook: GlobalHookFunction = async (
 };
 
 export const auditDeleteHook: GlobalHookFunction = async (
-  { entry, entryType, orm },
+  { entry, entryType, orm: ormScoped, inCloud },
 ) => {
   if (shouldSkipEntry(entry)) {
     return;
   }
-
+  const orm = inCloud.orm.withAccount(ormScoped._accountId || "systemGlobal");
   const user = entry._user?.userId;
   const logName: EntryName = entry._systemGlobal ? "systemLog" : "accountLog";
   const { titleField = "id" } = entry._entryType.config;
@@ -118,11 +120,12 @@ export const auditDeleteHook: GlobalHookFunction = async (
 };
 
 export const auditUpdateSettingsHook: GlobalSettingsHookFunction = async (
-  { settings, orm },
+  { settings, orm: ormScoped, inCloud },
 ) => {
   if (shouldSkipSettings(settings)) {
     return;
   }
+  const orm = inCloud.orm.withAccount(ormScoped._accountId || "systemGlobal");
   settings._modifiedValues.delete("updatedAt");
   const changes = Object.fromEntries(settings._modifiedValues);
   const logName: EntryName = settings._systemGlobal
