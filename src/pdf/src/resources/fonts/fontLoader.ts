@@ -37,6 +37,7 @@ export async function loadFont(filePath: string) {
     lastChar: 127,
     widths: [] as number[],
     encoding: "/WinAnsiEncoding",
+    cmap: new Map<number, number>(),
     // encoding: "/MacRomanEncoding",
   };
   const fontDesc = {
@@ -88,6 +89,7 @@ export async function loadFont(filePath: string) {
     finalWidths.push(scaledWidth);
   }
   fontDict.widths = finalWidths;
+  fontDict.cmap = charToGlyph;
 
   return {
     fontName: fontDict.baseFont,

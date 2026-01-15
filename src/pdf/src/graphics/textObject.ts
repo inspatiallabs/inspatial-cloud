@@ -144,6 +144,7 @@ export class TextObject extends ObjectBase {
     }
     textLines.forEach((textLine, _index) => {
       const textWidth = getStringWidth(textLine);
+      let outText = `(${textLine})`;
       switch (this.#alignX) {
         case "center":
           x = x - (textWidth / 2) + lastOffset;
@@ -158,8 +159,17 @@ export class TextObject extends ObjectBase {
           lastOffset = 0;
           break;
       }
-
-      text += `${x} ${y} Td\r\n(${textLine}) Tj\r\n`;
+      if (font?.cmap) {
+        outText = "";
+        for (const char of textLine) {
+          const code = font.cmap.get(char.charCodeAt(0));
+          const byte = code?.toString(16).padStart(4, "0");
+          if (!byte) continue;
+          outText += byte;
+        }
+        outText = `<${outText}>`;
+      }
+      text += `${x} ${y} Td\r\n${outText} Tj\r\n`;
       y = 0 - lineHeight - leading;
       x = 0;
     });
