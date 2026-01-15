@@ -74,10 +74,9 @@ export class ResourceManager {
   }
 
   async addFont(filePath: string) {
-    const fontObj = this.#addObject();
-    const descObj = this.#addObject();
-    const fileObj = this.#addObject();
-    const font = new Font(fontObj, descObj, fileObj);
+    const addObject = () => this.#addObject();
+    // const addStream = ()=> this
+    const font = new Font(addObject.bind(this));
     await font.load(filePath);
     this.fontRegistry.registerFont(font);
   }

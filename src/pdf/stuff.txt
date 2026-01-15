@@ -1,0 +1,98 @@
+19 0 obj
+<<
+/Length 16028
+/Length1 16028
+>>
+stream
+/// font data
+endstream
+endobj
+
+20 0 obj
+<<
+/Length 511
+/Length1 511
+>>
+stream
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <<
+  /Registry (Adobe)
+  /Ordering (UCS)
+  /Supplement 0
+>> def
+/CMapName /Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<0000><ffff>
+endcodespacerange
+14 beginbfchar
+<0003><0020>
+<0045><0062>
+<0046><0063>
+<0047><0064>
+<0048><0065>
+<004a><0067>
+<004b><0068>
+<004c><0069>
+<004f><006c>
+<0051><006e>
+<0055><0072>
+<0056><0073>
+<0058><0075>
+<005a><0077>
+endbfchar
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+endstream
+endobj
+
+
+21 0 obj
+<<
+/Type /FontDescriptor
+/FontName /Euclid_Circular_B-Regular
+/FontFile2 19 0 R
+/FontBBox [-361 -269 1382 1000]
+/Flags 32
+/StemV 0
+/ItalicAngle 0
+/Ascent 1000
+/Descent -268
+/CapHeight 710
+>>
+endobj
+
+
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Euclid_Circular_B-Regular
+/FontDescriptor 21 0 R
+/W [75 [589] 76 [249] 3 [241] 86 [450] 85 [366] 90 [763] 72 [581] 71 [630] 81 [589] 74 [628] 70 [565] 79 [249] 88 [579] 69 [630]]
+/CIDToGIDMap /Identity
+/DW 1000
+/Subtype /CIDFontType2
+/CIDSystemInfo
+<<
+/Supplement 0
+/Registry (Adobe)
+/Ordering (Identity-H)
+>>
+>>
+endobj
+
+
+23 0 obj
+<<
+/Type /Font
+/Subtype /Type0
+/ToUnicode 20 0 R
+/BaseFont /Euclid_Circular_B-Regular
+/Encoding /Identity-H
+/DescendantFonts [22 0 R]
+>>
+endobj
