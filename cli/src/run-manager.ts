@@ -15,6 +15,29 @@ const logo = makeLogo({
   fillColor: "brightMagenta",
   outlineColor: "white",
 });
+
+function chooseDefaultCloudEntryPoint(rootPath: string): string {
+  const mainPath = joinPath(rootPath, "main.ts");
+  const cloudPath = joinPath(rootPath, "cloud.ts");
+
+  try {
+    Deno.statSync(mainPath); // exists > prefer main.ts
+    return "main.ts";
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    Deno.statSync(cloudPath); // otherwise, prefer cloud.ts great for workspace monorepo for kit x cloud projects
+    return "cloud.ts";
+  } catch {
+    /* ignore */
+  }
+
+  // final fallback for to base on main.ts
+  return "main.ts";
+}
+
 export class RunManager {
   rootPath: string;
   coreCount: number;
@@ -59,7 +82,7 @@ export class RunManager {
     this.queueProc = undefined;
     this.coreCount = 1;
     this.rootPath = rootPath;
-    this.moduleName = moduleName || "main.ts";
+    this.moduleName = moduleName || chooseDefaultCloudEntryPoint(rootPath);
     this.appName = Deno.env.get("APP_NAME") || "InSpatial";
   }
   async init(): Promise<void> {
@@ -70,7 +93,7 @@ export class RunManager {
     if (!result) {
       this.inLog.error(
         "No cloud-config.json file found. Please run `in init` to create one.",
-        convertString(this.appName, "title", true),
+        convertString(this.appName, "title", true)
       );
       Deno.exit(1);
     }
@@ -118,13 +141,11 @@ export class RunManager {
       dbConnectionString = makeRunning(
         "Database",
         !!this.dbProc,
-        embeddedDb ? embeddedDbPort : "unknown",
+        embeddedDb ? embeddedDbPort : "unknown"
       );
     }
     if (!embeddedDb) {
-      dbConnectionString = makeDBConnectionString(
-        config.core,
-      );
+      dbConnectionString = makeDBConnectionString(config.core);
     }
     const rows = [
       makeRunning("Broker", !!this.brokerProc, brokerPort),
@@ -133,7 +154,7 @@ export class RunManager {
       makeRunning(
         "Server",
         this.serveProcs.size > 0,
-        `${this.port} (${procCount} instances)`,
+        `${this.port} (${procCount} instances)`
       ),
     ];
     this.printInfo(rows);
@@ -141,7 +162,7 @@ export class RunManager {
     if (this.watch) {
       this.inLog.info(
         "Watching for file changes. Press Ctrl+C to stop.",
-        this.appTitle,
+        this.appTitle
       );
       this.setupWatcher();
     }
@@ -158,13 +179,10 @@ export class RunManager {
     });
   }
   async shutdown(_signal: Deno.Signal): Promise<void> {
-    this.inLogSmall.warn(
-      `Shutting down gracefully...`,
-      {
-        compact: true,
-        subject: this.appTitle,
-      },
-    );
+    this.inLogSmall.warn(`Shutting down gracefully...`, {
+      compact: true,
+      subject: this.appTitle,
+    });
     for (const proc of this.serveProcs.values()) {
       // await killProc(proc, signal);
       await proc.status;
@@ -183,17 +201,14 @@ export class RunManager {
       await this.dbProc.status;
     }
 
-    this.inLogSmall.info(
-      "All processes have been shut down.",
-      this.appTitle,
-    );
+    this.inLogSmall.info("All processes have been shut down.", this.appTitle);
     Deno.exit(0);
   }
   async setupWatcher() {
     const paths: string[] = [];
     const setupPaths = (
       root: string,
-      dirs: IteratorObject<Deno.DirEntry, unknown, unknown>,
+      dirs: IteratorObject<Deno.DirEntry, unknown, unknown>
     ) => {
       for (const item of dirs) {
         if (item.isDirectory && !item.name.startsWith(".")) {
@@ -246,7 +261,7 @@ export class RunManager {
         this.isReloading = true;
         this.inLogSmall.warn(
           `File change detected, reloading...`,
-          this.appTitle,
+          this.appTitle
         );
         this.reload();
         return;
@@ -275,16 +290,13 @@ export class RunManager {
     this.spawnServers();
     this.spawnQueue();
     this.isReloading = false;
-    this.inLogSmall.info(
-      "Reloaded successfully.",
-      this.appTitle,
-    );
+    this.inLogSmall.info("Reloaded successfully.", this.appTitle);
   }
 
   spawnServers(): number {
     if (this.serveProcs.size > this.coreCount) {
       throw new Error(
-        `Cannot spawn more servers than the core count (${this.coreCount}).`,
+        `Cannot spawn more servers than the core count (${this.coreCount}).`
       );
     }
     let totalCount = 0;
@@ -308,7 +320,7 @@ export class RunManager {
   spawnDB(port: number) {
     this.inLog.warn(
       "Starting the embedded database....",
-      convertString(this.appName, "title", true),
+      convertString(this.appName, "title", true)
     );
     const dataPath = joinPath(this.rootPath, ".inspatial", "db-data");
     this.dbProc = this.spawnProcess("db", [], {
@@ -324,10 +336,7 @@ export class RunManager {
     }
     return status.success;
   }
-  spawnServer(config?: {
-    instanceNumber?: string;
-    reusePort?: boolean;
-  }): void {
+  spawnServer(config?: { instanceNumber?: string; reusePort?: boolean }): void {
     const proc = this.spawnProcess("server", ["--unstable-net"], {
       REUSE_PORT: config?.reusePort ? "true" : "false",
       SERVE_PROC_NUM: config?.instanceNumber || "_",
@@ -357,7 +366,7 @@ export class RunManager {
   spawnProcess(
     mode: RunnerMode,
     flags: Array<string> = [],
-    env: Record<string, string> = {},
+    env: Record<string, string> = {}
   ): Deno.ChildProcess {
     const cmd = new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", ...flags, "--unstable-raw-imports", this.moduleName],
@@ -390,8 +399,8 @@ export class RunManager {
           return;
         case 1:
           if (
-            IS_WINDOWS && mode === "server" ||
-            mode === "queue" && this.isReloading
+            (IS_WINDOWS && mode === "server") ||
+            (mode === "queue" && this.isReloading)
           ) {
             // Ignore exit code 1 on Windows for server and queue processes during reload, it's because we used taskkill to kill the process
             return;
@@ -399,16 +408,15 @@ export class RunManager {
           break;
       }
       const message = ColorMe.standard();
-      message.content("Exit code ").color("white").content(
-        status.code.toString(),
-      ).color("brightRed");
+      message
+        .content("Exit code ")
+        .color("white")
+        .content(status.code.toString())
+        .color("brightRed");
       if (status.signal) {
         message.content(` (${status.signal})`).color("brightYellow");
       }
-      this.inLogSmall.error(
-        message.end(),
-        `${this.appTitle}: ${mode}`,
-      );
+      this.inLogSmall.error(message.end(), `${this.appTitle}: ${mode}`);
     });
 
     return process;
@@ -420,33 +428,19 @@ export class RunManager {
       "",
       ...rows.map((row) => center(row)),
       "",
-      center(
-        "Static files are served at:",
-      ),
-      ColorMe.fromOptions(
-        center(
-          `http://${this.hostname}:${this.port}`,
-        ),
-        {
-          color: "brightCyan",
-        },
-      ),
+      center("Static files are served at:"),
+      ColorMe.fromOptions(center(`http://${this.hostname}:${this.port}`), {
+        color: "brightCyan",
+      }),
       "",
-      center(
-        "API is available at:",
-      ),
-      ColorMe.fromOptions(
-        center(
-          `http://${this.hostname}:${this.port}/api`,
-        ),
-        {
-          color: "brightCyan",
-        },
-      ),
+      center("API is available at:"),
+      ColorMe.fromOptions(center(`http://${this.hostname}:${this.port}/api`), {
+        color: "brightCyan",
+      }),
     ];
     this.inLog.info(
       output.join("\n"),
-      convertString(this.appName, "title", true),
+      convertString(this.appName, "title", true)
     );
   }
 }
@@ -454,50 +448,68 @@ function makeDBConnectionString(dbConfig: any, connected?: boolean): string {
   const { dbConnectionType, dbHost, dbPort, dbName, dbUser } = dbConfig;
   if (connected) {
     const outConn = ColorMe.standard()
-      .content("Connected ").color(
-        "brightGreen",
-      ).content(
-        "db: ",
-      ).color("white").content(
-        dbName,
-      ).color("brightCyan");
+      .content("Connected ")
+      .color("brightGreen")
+      .content("db: ")
+      .color("white")
+      .content(dbName)
+      .color("brightCyan");
     if (dbConnectionType === "socket") {
-      outConn.content(" via ").color("white").content(
-        dbConnectionType,
-      ).color("brightCyan");
+      outConn
+        .content(" via ")
+        .color("white")
+        .content(dbConnectionType)
+        .color("brightCyan");
       return outConn.end();
     }
-    return outConn.content(" at ").color("white").content(
-      `${dbHost}:${dbPort}`,
-    ).color("brightCyan").end();
+    return outConn
+      .content(" at ")
+      .color("white")
+      .content(`${dbHost}:${dbPort}`)
+      .color("brightCyan")
+      .end();
   }
-  const out = ColorMe.standard().content("Database: ").color("brightBlue")
-    .content("via ").color("white").content(
-      dbConnectionType,
-    ).color("brightCyan").content(" db:").color("white").content(
-      dbName,
-    ).color("brightCyan").content(" user:").color("white").content(
-      dbUser,
-    ).color("brightCyan");
+  const out = ColorMe.standard()
+    .content("Database: ")
+    .color("brightBlue")
+    .content("via ")
+    .color("white")
+    .content(dbConnectionType)
+    .color("brightCyan")
+    .content(" db:")
+    .color("white")
+    .content(dbName)
+    .color("brightCyan")
+    .content(" user:")
+    .color("white")
+    .content(dbUser)
+    .color("brightCyan");
 
   if (dbConnectionType === "socket") {
     return out.end();
   }
-  return out.content(" at ").color("white").content(
-    `${dbHost}:${dbPort}`,
-  ).color("brightCyan").end();
+  return out
+    .content(" at ")
+    .color("white")
+    .content(`${dbHost}:${dbPort}`)
+    .color("brightCyan")
+    .end();
 }
 function makeRunning(
   name: string,
   isRunning: boolean,
-  port: number | string = "unknown",
+  port: number | string = "unknown"
 ): string {
   const output = ColorMe.standard().content(`${name}: `).color("brightBlue");
   if (isRunning) {
-    return output.content("Running").color("brightGreen").content(" on port ")
-      .color(
-        "white",
-      ).content(port.toString()).color("brightYellow").end();
+    return output
+      .content("Running")
+      .color("brightGreen")
+      .content(" on port ")
+      .color("white")
+      .content(port.toString())
+      .color("brightYellow")
+      .end();
   }
   return output.content("Not running").color("brightRed").end();
 }
