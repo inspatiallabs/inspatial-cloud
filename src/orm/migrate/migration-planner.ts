@@ -93,17 +93,21 @@ export class MigrationPlanner {
     const hasSettingsTable = await this.db.tableExists(
       "inSettings",
     );
+    const settingsColumns: SettingsRow[] = [];
     if (!hasSettingsTable) {
       this.migrationPlan.settingsTable.create = true;
       this.migrationPlan.summary.createTables++;
     }
-    const { rows: settingsColumns } = await this.db.getRows<SettingsRow>(
-      "inSettings",
-      {
-        limit: 0,
-        columns: ["id", "settingsType", "field", "value"],
-      },
-    );
+    if (hasSettingsTable) {
+      const { rows } = await this.db.getRows<SettingsRow>(
+        "inSettings",
+        {
+          limit: 0,
+          columns: ["id", "settingsType", "field", "value"],
+        },
+      );
+      settingsColumns.push(...rows);
+    }
     for (const migrator of this.settingsTypes.values()) {
       const plan = await migrator.planMigration({
         columns,
